@@ -85,7 +85,7 @@ class RangkumanUtama extends StatelessWidget {
               fontSize: 12,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
 
           // 2x2 Grid of Skeleton Cards (Layout Only, No Contents)
           GridView.count(
