@@ -6,6 +6,7 @@ import 'widgets/rangkuman_utama.dart';
 import 'widgets/tren_asesmen_chart.dart';
 import 'widgets/jadwal_asesmen.dart';
 import 'widgets/bottom_menu_bar.dart';
+import 'widgets/statistik_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,8 +58,8 @@ class _MainNavigatorState extends State<MainNavigator> {
         index: _currentIndex,
         children: [
           const DashboardScreen(),
+          const StatistikScreen(),
           // Placeholder screens for other tabs to keep it clean and fully functional
-          const PlaceholderScreen(title: 'Halaman Statistik'),
           const PlaceholderScreen(title: 'Halaman Jadwal'),
           const PlaceholderScreen(title: 'Halaman Sertivikat'),
           const PlaceholderScreen(title: 'Halaman Profil'),
