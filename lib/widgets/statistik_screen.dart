@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'statistik/indonesia_map.dart';
 
 class StatistikScreen extends StatefulWidget {
-  const StatistikScreen({super.key});
+  final VoidCallback? onBackToHome;
+
+  const StatistikScreen({super.key, this.onBackToHome});
 
   @override
   State<StatistikScreen> createState() => _StatistikScreenState();
@@ -79,7 +81,11 @@ class _StatistikScreenState extends State<StatistikScreen> {
           // Circular Black Back Arrow Button
           GestureDetector(
             onTap: () {
-              Navigator.of(context).pop();
+              if (widget.onBackToHome != null) {
+                widget.onBackToHome!();
+              } else {
+                Navigator.of(context).pop();
+              }
             },
             child: Container(
               width: 32,

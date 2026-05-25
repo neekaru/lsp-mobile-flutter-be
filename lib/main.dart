@@ -58,7 +58,13 @@ class _MainNavigatorState extends State<MainNavigator> {
         index: _currentIndex,
         children: [
           const DashboardScreen(),
-          const StatistikScreen(),
+          StatistikScreen(
+            onBackToHome: () {
+              setState(() {
+                _currentIndex = 0;
+              });
+            },
+          ),
           // Placeholder screens for other tabs to keep it clean and fully functional
           const PlaceholderScreen(title: 'Halaman Jadwal'),
           const PlaceholderScreen(title: 'Halaman Sertivikat'),
