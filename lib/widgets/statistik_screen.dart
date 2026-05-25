@@ -56,7 +56,13 @@ class _StatistikScreenState extends State<StatistikScreen> {
             // 6. Realistic 32-Province Choropleth Map with float-right vertical legend
             IndonesiaMap(
               onIslandSelected: (islandId) {
-                // Interactive callback if needed for deep dives
+                // Callback untuk island selection (backward compatibility)
+                debugPrint('Island selected: $islandId');
+              },
+              onProvinceSelected: (province) {
+                // Callback dengan data provinsi lengkap
+                debugPrint('Province selected: ${province.name} (ID: ${province.id}, Island: ${province.islandId})');
+                // TODO: Implementasi logic untuk tampilkan detail provinsi/kabupaten
               },
             ),
 
