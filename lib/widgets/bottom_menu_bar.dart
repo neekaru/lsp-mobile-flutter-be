@@ -52,7 +52,7 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
             _buildMenuItem(
               index: 3,
               icon: Icons.workspace_premium_rounded,
-              label: 'Sertivikat', // Spelled with 'v' to match screenshot exactly
+              label: 'Sertifikat', // Spelled with 'v' to match screenshot exactly
             ),
             _buildMenuItem(
               index: 4,
