@@ -106,7 +106,7 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
               final data = snapshot.data;
               if (data != null && data.isCurrentMonth && data.note != null) {
                 return Container(
-                  margin: const EdgeInsets.only(top: 8),
+                  margin: const EdgeInsets.only(top: 8, bottom: 8),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0x33FFA726), // Orange with opacity
@@ -140,11 +140,9 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                   ),
                 );
               }
-              return const SizedBox.shrink();
+              return const SizedBox(height: 12);
             },
           ),
-          
-          const SizedBox(height: 12),
 
           // 2x2 Grid of Summary Cards with premium modern rounded Material Icons
           FutureBuilder<DashboardSummary>(
