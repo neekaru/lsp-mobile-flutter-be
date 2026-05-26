@@ -86,7 +86,13 @@ class _MainNavigatorState extends State<MainNavigator> {
             },
           ),
           // Jadwal Screen
-          const JadwalScreen(),
+          JadwalScreen(
+            onBackToHome: () {
+              setState(() {
+                _currentIndex = 0;
+              });
+            },
+          ),
           // Sertifikat Screen
           SertifikatScreen(
             onBackToHome: () {
@@ -95,7 +101,14 @@ class _MainNavigatorState extends State<MainNavigator> {
               });
             },
           ),
-          const PlaceholderScreen(title: 'Halaman Profil'),
+          PlaceholderScreen(
+            title: 'Halaman Profil',
+            onBackToHome: () {
+              setState(() {
+                _currentIndex = 0;
+              });
+            },
+          ),
         ],
       ),
       bottomNavigationBar: BottomMenuBar(

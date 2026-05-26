@@ -4,7 +4,9 @@ import '../widgets/jadwal/jadwal_list_item.dart';
 import 'jadwal_detail_screen.dart';
 
 class JadwalScreen extends StatefulWidget {
-  const JadwalScreen({super.key});
+  final VoidCallback? onBackToHome;
+
+  const JadwalScreen({super.key, this.onBackToHome});
 
   @override
   State<JadwalScreen> createState() => _JadwalScreenState();
@@ -435,7 +437,13 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
         children: [
           // Circular Black Back Arrow Button
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              if (widget.onBackToHome != null) {
+                widget.onBackToHome!();
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
             child: Container(
               width: 32,
               height: 32,

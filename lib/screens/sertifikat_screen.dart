@@ -261,49 +261,54 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
         backgroundColor: const Color(0xFFF5F6F8),
         body: Column(
         children: [
-          // Header
-          Container(
-            width: double.infinity,
-            color: Colors.white,
-            padding: EdgeInsets.fromLTRB(16, statusBarHeight + 12, 16, 16),
+          SizedBox(height: statusBarHeight + 8),
+          
+          // Header with consistent style
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                IconButton(
-                  onPressed: () {
+                // Circular Black Back Arrow Button
+                GestureDetector(
+                  onTap: () {
                     if (widget.onBackToHome != null) {
                       widget.onBackToHome!();
                     } else {
-                      Navigator.pop(context);
+                      Navigator.of(context).pop();
                     }
                   },
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.black87,
-                    size: 24,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 16),
-                const Expanded(
-                  child: Text(
-                    'Skema Pemegang Sertifikat',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.keyboard_arrow_left_rounded,
+                      color: Colors.white,
+                      size: 20,
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.more_horiz,
-                    color: Colors.black87,
-                    size: 24,
+                
+                // Bold screen title
+                const Text(
+                  'Skema Pemegang Sertifikat',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.2,
                   ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                ),
+                
+                // More options horizontal ellipsis
+                const Icon(
+                  Icons.more_horiz_rounded,
+                  color: Colors.black,
+                  size: 24,
                 ),
               ],
             ),
