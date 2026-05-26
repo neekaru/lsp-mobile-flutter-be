@@ -197,6 +197,7 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
                     final isSelected = skema == _selectedSkema;
                     
                     return ListTile(
+                      tileColor: Colors.white,
                       title: Text(
                         skema,
                         style: TextStyle(
