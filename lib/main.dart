@@ -15,8 +15,16 @@ void main() async {
   // Load environment variables securely from .env
   try {
     await dotenv.load(fileName: ".env");
+    print('✅ .env loaded successfully');
+    print('📍 BASE_URL: ${dotenv.env['BASE_URL']}');
+    
+    // Check if BASE_URL is empty or null
+    if (dotenv.env['BASE_URL'] == null || dotenv.env['BASE_URL']!.isEmpty) {
+      print('⚠️ WARNING: BASE_URL is null or empty!');
+    }
   } catch (e) {
-    // Graceful fallback if missing
+    print('❌ ERROR loading .env: $e');
+    print('⚠️ Using fallback configuration');
   }
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(

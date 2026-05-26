@@ -15,13 +15,34 @@ class ApiService {
   // Configuration
   // ============================================================================
   
-  static String get baseUrl => dotenv.env['BASE_URL'] ?? "";
+  static String get baseUrl {
+    final url = dotenv.env['BASE_URL'] ?? "";
+    print('🌐 ApiService baseUrl: $url');
+    return url;
+  }
 
   static final Dio _dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(milliseconds: 1000),
-      receiveTimeout: const Duration(milliseconds: 1500),
+      connectTimeout: const Duration(seconds: 10), // Increased from 1s to 10s
+      receiveTimeout: const Duration(seconds: 10), // Increased from 1.5s to 10s
+      sendTimeout: const Duration(seconds: 10),
+    ),
+  )..interceptors.add(
+    InterceptorsWrapper(
+      onRequest: (options, handler) {
+        print('🔵 API Request: ${options.method} ${options.uri}');
+        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        print('🟢 API Response: ${response.statusCode} ${response.requestOptions.uri}');
+        return handler.next(response);
+      },
+      onError: (error, handler) {
+        print('🔴 API Error: ${error.message}');
+        print('🔴 URL: ${error.requestOptions.uri}');
+        return handler.next(error);
+      },
     ),
   );
 
@@ -45,7 +66,8 @@ class ApiService {
           totalAsesor: data['total_asesor'] ?? 0,
           totalTuk: data['total_tuk'] ?? 0,
           trendAsesmen: trends['asesmen']?['formatted'] ?? '+0,0%',
-          trendPemegangSertifikat: trends['pemegang_sertifikat']?['formatted'] ?? '+0,0%',
+          trendPemegangSertifikat:
+              trends['pemegang_sertifikat']?['formatted'] ?? '+0,0%',
           trendAsesor: trends['asesor']?['formatted'] ?? '+0,0%',
           trendTuk: trends['tuk']?['formatted'] ?? '+0,0%',
           isCurrentMonth: meta?['is_current_month'] ?? false,
@@ -63,7 +85,10 @@ class ApiService {
   static Future<List<MonthlyAssessment>> getMonthlyAssessments() async {
     try {
       final response = await _dio.get(
-        ApiRoutes.withMonths(ApiRoutes.dashboardMonthlyAssessments, MonthsRange.fourMonths.value),
+        ApiRoutes.withMonths(
+          ApiRoutes.dashboardMonthlyAssessments,
+          MonthsRange.fourMonths.value,
+        ),
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -149,7 +174,11 @@ class ApiService {
 
   static List<TopProvinsi> _getFallbackProvinces() {
     return const [
-      TopProvinsi(name: 'Sampit, Kalimantan Tengah', value: 214, percentage: '17,2%'),
+      TopProvinsi(
+        name: 'Sampit, Kalimantan Tengah',
+        value: 214,
+        percentage: '17,2%',
+      ),
       TopProvinsi(name: 'Yogyakarta', value: 100, percentage: '15,9%'),
       TopProvinsi(name: 'Sumatra Utara', value: 62, percentage: '12,3%'),
       TopProvinsi(name: 'Semarang', value: 200, percentage: '11,4%'),
@@ -159,7 +188,11 @@ class ApiService {
 
   static List<TopMitra> _getFallbackMitras() {
     return const [
-      TopMitra(name: 'LKP Gen Komputer Sampit', value: 214, percentage: '17,2%'),
+      TopMitra(
+        name: 'LKP Gen Komputer Sampit',
+        value: 214,
+        percentage: '17,2%',
+      ),
       TopMitra(name: 'LPP Enter Pangkalanbun', value: 100, percentage: '15,9%'),
       TopMitra(name: 'TUK Tanascom Lempuing', value: 62, percentage: '12,3%'),
       TopMitra(name: 'SMKN 2 Jakarta', value: 200, percentage: '11,4%'),
@@ -174,7 +207,9 @@ class ApiService {
   /// Fetch Jadwal Asesmen Mendekati Akhir (Out of Date Schedules)
   static Future<List<JadwalOverdue>> getJadwalOutOfDate() async {
     try {
-      final response = await _dio.get(ApiRoutes.withLimit(ApiRoutes.jadwalOutOfDate, DataLimit.three.value));
+      final response = await _dio.get(
+        ApiRoutes.withLimit(ApiRoutes.jadwalOutOfDate, DataLimit.three.value),
+      );
 
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
@@ -225,7 +260,12 @@ class ApiService {
   /// Fetch Top 5 Provinces by Assessors
   static Future<List<TopProvinsi>> getTopProvinces() async {
     try {
-      final response = await _dio.get(ApiRoutes.withLimit(ApiRoutes.dashboardAsesorDistribution, DataLimit.five.value));
+      final response = await _dio.get(
+        ApiRoutes.withLimit(
+          ApiRoutes.dashboardAsesorDistribution,
+          DataLimit.five.value,
+        ),
+      );
 
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
@@ -235,11 +275,13 @@ class ApiService {
         for (var item in data) {
           int count = item['total_asesor'] ?? 0;
           double percent = totalAsesor > 0 ? (count / totalAsesor * 100) : 0.0;
-          list.add(TopProvinsi(
-            name: item['provinsi'] ?? '',
-            value: count,
-            percentage: '${percent.toStringAsFixed(1).replaceAll('.', ',')}%',
-          ));
+          list.add(
+            TopProvinsi(
+              name: item['provinsi'] ?? '',
+              value: count,
+              percentage: '${percent.toStringAsFixed(1).replaceAll('.', ',')}%',
+            ),
+          );
         }
 
         if (list.isEmpty) return _getFallbackProvinces();
@@ -258,11 +300,16 @@ class ApiService {
   /// Fetch Skema Statistics
   static Future<SkemaStats> getSkemaStats() async {
     try {
-      final response = await _dio.get(ApiRoutes.withLimit(ApiRoutes.dashboardSertifikatPerSkema, DataLimit.thousand.value));
+      final response = await _dio.get(
+        ApiRoutes.withLimit(
+          ApiRoutes.dashboardSertifikatPerSkema,
+          DataLimit.thousand.value,
+        ),
+      );
 
       if (response.statusCode == 200 && response.data != null) {
         int totalSkema = response.data['meta']?['total_skema'] ?? 58;
-        
+
         // In the real database, all schemas are active (status_aktif = '1')
         int active = totalSkema;
         int inactive = 0;
@@ -287,7 +334,12 @@ class ApiService {
   /// Fetch Top 5 Partners (Mitra)
   static Future<List<TopMitra>> getTopMitras() async {
     try {
-      final response = await _dio.get(ApiRoutes.withLimit(ApiRoutes.dashboardPenyebaranMitra, DataLimit.five.value));
+      final response = await _dio.get(
+        ApiRoutes.withLimit(
+          ApiRoutes.dashboardPenyebaranMitra,
+          DataLimit.five.value,
+        ),
+      );
 
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
@@ -298,12 +350,16 @@ class ApiService {
           int count = item['jumlah'] ?? 0;
           double percent = totalMitra > 0 ? (count / totalMitra * 100) : 0.0;
           final List<dynamic> mitras = item['mitra'] ?? [];
-          String partnerName = mitras.isNotEmpty ? mitras[0] : item['kota'] ?? '';
-          list.add(TopMitra(
-            name: partnerName,
-            value: count,
-            percentage: '${percent.toStringAsFixed(1).replaceAll('.', ',')}%',
-          ));
+          String partnerName = mitras.isNotEmpty
+              ? mitras[0]
+              : item['kota'] ?? '';
+          list.add(
+            TopMitra(
+              name: partnerName,
+              value: count,
+              percentage: '${percent.toStringAsFixed(1).replaceAll('.', ',')}%',
+            ),
+          );
         }
 
         if (list.isEmpty) return _getFallbackMitras();
@@ -323,16 +379,22 @@ class ApiService {
   static Future<List<TUKKabupaten>> getTUKKabupaten(String provinceId) async {
     try {
       int bpsCode = BpsCodeHelper.getBpsCode(provinceId);
-      final response = await _dio.get(ApiRoutes.withProvinsiId(ApiRoutes.wilayahTukPerKabupaten, bpsCode));
+      final response = await _dio.get(
+        ApiRoutes.withProvinsiId(ApiRoutes.wilayahTukPerKabupaten, bpsCode),
+      );
 
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> provList = response.data['data'] ?? [];
         if (provList.isNotEmpty) {
           final List<dynamic> kabs = provList[0]['kabupaten'] ?? [];
-          return kabs.map((item) => TUKKabupaten(
-            kabupaten: item['kabupaten'] ?? 'Kabupaten/Kota',
-            jumlah: item['jumlah'] ?? 0,
-          )).toList();
+          return kabs
+              .map(
+                (item) => TUKKabupaten(
+                  kabupaten: item['kabupaten'] ?? 'Kabupaten/Kota',
+                  jumlah: item['jumlah'] ?? 0,
+                ),
+              )
+              .toList();
         }
       }
       return [];
@@ -375,20 +437,29 @@ class ApiService {
   /// Fetch Sector Distribution
   static Future<List<SectorDistribution>> getSectorDistribution() async {
     try {
-      final response = await _dio.get(ApiRoutes.withLimit(ApiRoutes.dashboardDistribusiSektor, DataLimit.five.value));
+      final response = await _dio.get(
+        ApiRoutes.withLimit(
+          ApiRoutes.dashboardDistribusiSektor,
+          DataLimit.five.value,
+        ),
+      );
 
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic>? data = response.data['data'];
-        
+
         if (data != null && data.isNotEmpty) {
-          return data.map((item) => SectorDistribution(
-            sectorName: item['sector_name'] ?? '',
-            count: item['count'] ?? 0,
-            percentage: (item['percentage'] ?? 0.0).toDouble() / 100,
-          )).toList();
+          return data
+              .map(
+                (item) => SectorDistribution(
+                  sectorName: item['sector_name'] ?? '',
+                  count: item['count'] ?? 0,
+                  percentage: (item['percentage'] ?? 0.0).toDouble() / 100,
+                ),
+              )
+              .toList();
         }
       }
-      
+
       return _getFallbackSectorDistribution();
     } catch (e) {
       return _getFallbackSectorDistribution();
@@ -397,11 +468,31 @@ class ApiService {
 
   static List<SectorDistribution> _getFallbackSectorDistribution() {
     return const [
-      SectorDistribution(sectorName: 'Teknologi Informasi & Komunikasi', count: 9060, percentage: 0.35),
-      SectorDistribution(sectorName: 'Manufaktur & Teknik Industri', count: 5695, percentage: 0.22),
-      SectorDistribution(sectorName: 'Pariwisata & Perhotelan', count: 4660, percentage: 0.18),
-      SectorDistribution(sectorName: 'Bisnis & Keuangan Administrasi', count: 3880, percentage: 0.15),
-      SectorDistribution(sectorName: 'Kesehatan & Farmasi', count: 2595, percentage: 0.10),
+      SectorDistribution(
+        sectorName: 'Teknologi Informasi & Komunikasi',
+        count: 9060,
+        percentage: 0.35,
+      ),
+      SectorDistribution(
+        sectorName: 'Manufaktur & Teknik Industri',
+        count: 5695,
+        percentage: 0.22,
+      ),
+      SectorDistribution(
+        sectorName: 'Pariwisata & Perhotelan',
+        count: 4660,
+        percentage: 0.18,
+      ),
+      SectorDistribution(
+        sectorName: 'Bisnis & Keuangan Administrasi',
+        count: 3880,
+        percentage: 0.15,
+      ),
+      SectorDistribution(
+        sectorName: 'Kesehatan & Farmasi',
+        count: 2595,
+        percentage: 0.10,
+      ),
     ];
   }
 
@@ -416,12 +507,17 @@ class ApiService {
 
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic>? data = response.data['data'];
-        
+
         if (data != null && data.isNotEmpty) {
-          return data.map((item) => RegionalDistribution.fromJson(item as Map<String, dynamic>)).toList();
+          return data
+              .map(
+                (item) =>
+                    RegionalDistribution.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
         }
       }
-      
+
       return [];
     } catch (e) {
       return [];

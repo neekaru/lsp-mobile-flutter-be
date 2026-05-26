@@ -7,33 +7,37 @@ class ApiRoutes {
   // ============================================================================
   // Dashboard Routes (Enhanced)
   // ============================================================================
-  
+
   static const String dashboardSummary = '/api/dashboard/summary';
-  static const String dashboardStatistikOverview = '/api/dashboard/statistik-overview';
-  static const String dashboardDistribusiSektor = '/api/dashboard/distribusi-sektor';
+  static const String dashboardStatistikOverview =
+      '/api/dashboard/statistik-overview';
+  static const String dashboardDistribusiSektor =
+      '/api/dashboard/distribusi-sektor';
   static const String dashboardAsesorStats = '/api/dashboard/asesor-stats';
   static const String dashboardLspCount = '/api/dashboard/lsp-count';
-  static const String dashboardMonthlyAssessmentsEnhanced = '/api/dashboard/monthly-assessments-enhanced';
-  static const String dashboardPenyebaranRegional = '/api/dashboard/penyebaran-regional';
+  static const String dashboardMonthlyAssessments =
+      '/api/dashboard/monthly-assessments';
+  static const String dashboardPenyebaranRegional =
+      '/api/dashboard/penyebaran-regional';
   static const String dashboardTrends = '/api/dashboard/trends';
-  
-  // Legacy routes (for backward compatibility)
-  static const String dashboardMonthlyAssessments = '/api/dashboard/monthly-assessments';
-  static const String dashboardSertifikatPerSkema = '/api/dashboard/sertifikat-per-skema';
-  static const String dashboardAsesorDistribution = '/api/dashboard/asesor-distribution';
+  static const String dashboardSertifikatPerSkema =
+      '/api/dashboard/sertifikat-per-skema';
+  static const String dashboardAsesorDistribution =
+      '/api/dashboard/asesor-distribution';
   static const String dashboardPenyebaranTuk = '/api/dashboard/penyebaran-tuk';
-  static const String dashboardPenyebaranMitra = '/api/dashboard/penyebaran-mitra';
+  static const String dashboardPenyebaranMitra =
+      '/api/dashboard/penyebaran-mitra';
 
   // ============================================================================
   // Jadwal Routes
   // ============================================================================
-  
+
   static const String jadwalOutOfDate = '/api/jadwal/out-of-date';
 
   // ============================================================================
   // Wilayah Routes
   // ============================================================================
-  
+
   static const String wilayahTukPerKabupaten = '/api/wilayah/tuk-per-kabupaten';
 
   // ============================================================================
@@ -56,7 +60,11 @@ class ApiRoutes {
   }
 
   /// Build URL dengan limit dan include_invalid parameters
-  static String withLimitAndIncludeInvalid(String route, int limit, bool includeInvalid) {
+  static String withLimitAndIncludeInvalid(
+    String route,
+    int limit,
+    bool includeInvalid,
+  ) {
     return '$route?limit=$limit&include_invalid=$includeInvalid';
   }
 
@@ -66,7 +74,11 @@ class ApiRoutes {
   }
 
   /// Build URL dengan metric dan compare_period parameters
-  static String withTrendsParams(String route, String metric, String comparePeriod) {
+  static String withTrendsParams(
+    String route,
+    String metric,
+    String comparePeriod,
+  ) {
     return '$route?metric=$metric&compare_period=$comparePeriod';
   }
 
@@ -85,7 +97,7 @@ class ApiRoutes {
     if (sektor != null) params.add('sektor=$sektor');
     if (idLsp != null) params.add('id_lsp=$idLsp');
     if (idTuk != null) params.add('id_tuk=$idTuk');
-    
+
     return params.isEmpty ? route : '$route?${params.join('&')}';
   }
 }
@@ -148,4 +160,3 @@ enum ComparePeriod {
   final String value;
   const ComparePeriod(this.value);
 }
-
