@@ -778,105 +778,13 @@ class _StatistikScreenState extends State<StatistikScreen> {
 
                     return ListView.separated(
                       itemCount: data.length,
+                      physics: const BouncingScrollPhysics(),
+                      addAutomaticKeepAlives: true,
+                      addRepaintBoundaries: true,
                       separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[200]),
                       itemBuilder: (context, index) {
                         final item = data[index];
-                        if (item.detail.isEmpty) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    item.kabupaten,
-                                    style: const TextStyle(
-                                      fontSize: 13.5,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE5F1FC),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    '${item.jumlah} TUK',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2C6C9C),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-
-                        return Theme(
-                          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                          child: ExpansionTile(
-                            tilePadding: EdgeInsets.zero,
-                            childrenPadding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
-                            title: Text(
-                              item.kabupaten,
-                              style: const TextStyle(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE5F1FC),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    '${item.jumlah} TUK',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2C6C9C),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Colors.grey),
-                              ],
-                            ),
-                            children: item.detail.map((tukName) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 6.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 2.0),
-                                    child: Icon(Icons.domain_rounded, size: 12, color: Color(0xFF2C6C9C)),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      tukName,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                        height: 1.3,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )).toList(),
-                          ),
-                        );
+                        return _TUKListItem(item: item);
                       },
                     );
                   },
@@ -902,4 +810,111 @@ class _ListModel {
     required this.percentage,
     required this.color,
   });
+}
+
+// Optimized TUK List Item Widget
+class _TUKListItem extends StatelessWidget {
+  final TUKKabupaten item;
+
+  const _TUKListItem({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    if (item.detail.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                item.kabupaten,
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE5F1FC),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${item.jumlah} TUK',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2C6C9C),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+        title: Text(
+          item.kabupaten,
+          style: const TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE5F1FC),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${item.jumlah} TUK',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2C6C9C),
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Colors.grey),
+          ],
+        ),
+        children: item.detail.map((tukName) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 2.0),
+                child: Icon(Icons.domain_rounded, size: 12, color: Color(0xFF2C6C9C)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  tukName,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                    height: 1.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        )).toList(),
+      ),
+    );
+  }
 }
