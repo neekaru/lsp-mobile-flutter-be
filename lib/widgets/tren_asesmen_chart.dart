@@ -1,7 +1,28 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
-class TrenAsesmenChart extends StatelessWidget {
+class TrenAsesmenChart extends StatefulWidget {
   const TrenAsesmenChart({super.key});
+
+  @override
+  State<TrenAsesmenChart> createState() => _TrenAsesmenChartState();
+}
+
+class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
+  late Future<List<MonthlyAssessment>> _chartFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _chartFuture = ApiService.getMonthlyAssessments();
+  }
+
+  // Format numbers with dots as thousands separator
+  String _formatNumber(int number) {
+    RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    return number.toString().replaceAllMapped(reg, (Match match) => '${match[1]}.');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,85 +55,105 @@ class TrenAsesmenChart extends StatelessWidget {
           const SizedBox(height: 4),
           const Text(
             'Jumlah Asesmen',
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 10, color: Colors.grey),
           ),
           const SizedBox(height: 16),
 
-          // Chart Drawing (Pure Flutter visual placeholder)
-          SizedBox(
-            height: 180,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Y-Axis Labels
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: const [
-                    Text('2.500', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                    Text('2.000', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                    Text('1.500', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                    Text('1.000', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                    Text('500', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                    Text('0', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                  ],
-                ),
-                const SizedBox(width: 8),
+          FutureBuilder<List<MonthlyAssessment>>(
+            future: _chartFuture,
+            builder: (context, snapshot) {
+              final isSearching = snapshot.connectionState == ConnectionState.waiting;
+              final data = snapshot.data ?? [];
 
-                // Chart Bars Area
-                Expanded(
-                  child: Stack(
-                    children: [
-                      // Grid Lines (Horizontal Background Lines)
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(6, (index) {
-                          return Container(
-                            height: 1,
-                            color: const Color(0xFFF1F3F5),
-                          );
-                        }),
-                      ),
+              // Calculate dynamic Y-axis scale based on maximum data value
+              int maxVal = 2500;
+              if (data.isNotEmpty) {
+                int dataMax = data.map((e) => e.total).reduce(max);
+                if (dataMax > 0) {
+                  maxVal = ((dataMax + 499) ~/ 500) * 500; // Round up to next 500 for clean steps
+                }
+              }
 
-                      // Bars
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: const [
-                          ChartBarItem(
-                            valueText: '1.600',
-                            heightPercentage: 0.64, // 1600 / 2500
-                            label: 'Minggu 1',
-                            subLabel: '(1 - 4 Mei)',
+              final yAxisLabels = [
+                _formatNumber(maxVal),
+                _formatNumber((maxVal * 0.8).toInt()),
+                _formatNumber((maxVal * 0.6).toInt()),
+                _formatNumber((maxVal * 0.4).toInt()),
+                _formatNumber((maxVal * 0.2).toInt()),
+                '0',
+              ];
+
+              return SizedBox(
+                height: 180,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Y-Axis Labels
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: yAxisLabels
+                          .map((label) => Text(
+                                label,
+                                style: const TextStyle(fontSize: 10, color: Colors.grey),
+                              ))
+                          .toList(),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Chart Bars Area
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          // Grid Lines (Horizontal Background Lines)
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: List.generate(6, (index) {
+                              return Container(
+                                height: 1,
+                                color: const Color(0xFFF1F3F5),
+                              );
+                            }),
                           ),
-                          ChartBarItem(
-                            valueText: '1.850',
-                            heightPercentage: 0.74, // 1850 / 2500
-                            label: 'Minggu 2',
-                            subLabel: '(5 - 11 Mei)',
-                          ),
-                          ChartBarItem(
-                            valueText: '2.050',
-                            heightPercentage: 0.82, // 2050 / 2500
-                            label: 'Minggu 3',
-                            subLabel: '(12 - 18 Mei)',
-                          ),
-                          ChartBarItem(
-                            valueText: '2.545',
-                            heightPercentage: 1.0, // 2545 / 2500 (capped/full)
-                            label: 'Minggu 4',
-                            subLabel: '(19 - 31 Mei)',
-                          ),
+
+                          // Bars
+                          if (isSearching)
+                            const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Color(0xFF2C6C9C),
+                              ),
+                            )
+                          else
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: data.map((item) {
+                                // Calculate height factor against rounded maxVal
+                                double percentage = item.total / maxVal;
+                                if (percentage > 1.0) percentage = 1.0;
+                                if (percentage < 0.0) percentage = 0.0;
+
+                                // Format label
+                                final labelParts = item.label.split(' ');
+                                final displayLabel = labelParts.first; // e.g. "Mei"
+                                final displaySub = labelParts.length > 1 ? '(${labelParts[1]})' : ''; // e.g. "(2026)"
+
+                                return ChartBarItem(
+                                  valueText: _formatNumber(item.total),
+                                  heightPercentage: percentage,
+                                  label: displayLabel,
+                                  subLabel: displaySub,
+                                );
+                              }).toList(),
+                            ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -152,27 +193,30 @@ class ChartBarItem extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            // The Bar itself
+            // The Bar itself with dynamic fractional height scaling
             Expanded(
-              flex: (heightPercentage * 100).toInt(),
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF4FA8E8),
-                      Color(0xFF2C6C9C),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(6),
-                    topRight: Radius.circular(6),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: FractionallySizedBox(
+                  heightFactor: heightPercentage,
+                  widthFactor: 1.0,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFF4FA8E8), Color(0xFF2C6C9C)],
+                      ),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(6),
+                        topRight: Radius.circular(6),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-            // Expanded space at the bottom to balance structure
+            // Spacing at the bottom
             const SizedBox(height: 8),
             Text(
               label,
@@ -185,10 +229,7 @@ class ChartBarItem extends StatelessWidget {
             ),
             Text(
               subLabel,
-              style: const TextStyle(
-                fontSize: 8,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 8, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
           ],

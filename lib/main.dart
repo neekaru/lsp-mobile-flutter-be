@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Import our modular custom widgets
 import 'widgets/rangkuman_utama.dart';
@@ -8,8 +9,16 @@ import 'widgets/jadwal_asesmen.dart';
 import 'widgets/bottom_menu_bar.dart';
 import 'widgets/statistik_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load environment variables securely from .env
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // Graceful fallback if missing
+  }
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
@@ -183,7 +192,7 @@ class DashboardScreen extends StatelessWidget {
                   top: statusBarHeight + 90,
                   left: 16,
                   right: 16,
-                  bottom: 24,
+                  bottom: 12, // Set to 12
                 ),
                 child: const RangkumanUtama(),
               ),
@@ -192,13 +201,18 @@ class DashboardScreen extends StatelessWidget {
 
           // 2. Tren Asesmen Bulanan Section (Imported chart card widget)
           const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: EdgeInsets.only(
+              left: 16.0,
+              right: 16.0,
+              top: 4.0, // 12 (bottom of previous) + 4 (top of this) = 16px gap
+              bottom: 8.0, // Set to 8
+            ),
             child: TrenAsesmenChart(),
           ),
 
           // 3. Jadwal Asesmen Mendekati Akhir Section (Imported list widget)
           const Padding(
-            padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 32.0),
+            padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0), // 8 (bottom of previous) + 8 (top of this) = 16px gap
             child: JadwalAsesmen(),
           ),
         ],
