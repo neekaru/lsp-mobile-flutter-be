@@ -86,13 +86,7 @@ class _MainNavigatorState extends State<MainNavigator> {
             },
           ),
           // Jadwal Screen
-          JadwalScreen(
-            onBackToHome: () {
-              setState(() {
-                _currentIndex = 0;
-              });
-            },
-          ),
+          const JadwalScreen(),
           // Sertifikat Screen
           SertifikatScreen(
             onBackToHome: () {
