@@ -805,46 +805,12 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Expanded(
-                child: Text(
-                  'Berdasarkan Jumlah Pemegang Sertifikat',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.calendar_today,
-                      size: 12,
-                      color: Colors.black87,
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      'Mei 2025',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          const Text(
+            'Berdasarkan Jumlah Pemegang Sertifikat',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey,
+            ),
           ),
           const SizedBox(height: 24),
 
