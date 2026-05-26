@@ -223,7 +223,12 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('Akan Berakhir'),
+                      const Flexible(
+                        child: Text(
+                          'Akan Berakhir',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       const SizedBox(width: 4),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
