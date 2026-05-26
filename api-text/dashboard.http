@@ -1,0 +1,144 @@
+### Dashboard API Tests
+@url = http://127.0.0.1:3000
+
+### ============= CORE DASHBOARD ENDPOINTS =============
+
+### Get Monthly Assessments (Default: 4 months with competency breakdown)
+GET {{url}}/api/dashboard/monthly-assessments
+
+### Get Monthly Assessments (Last 6 months)
+GET {{url}}/api/dashboard/monthly-assessments?months=6
+
+### Get Monthly Assessments (Last 12 months)
+GET {{url}}/api/dashboard/monthly-assessments?months=12
+
+### Get Monthly Assessments (Filter by Provinsi)
+GET {{url}}/api/dashboard/monthly-assessments?months=6&provinsi_id=31
+
+### Get Monthly Assessments (Filter by Sektor)
+GET {{url}}/api/dashboard/monthly-assessments?months=6&sektor=Digital Marketing
+
+### Get Monthly Assessments (Filter by TUK)
+GET {{url}}/api/dashboard/monthly-assessments?months=6&id_tuk=348
+
+### Get Monthly Assessments (All Filters)
+GET {{url}}/api/dashboard/monthly-assessments?months=12&provinsi_id=31&sektor=Digital Marketing&id_tuk=348
+
+### Get Sertifikat Per Skema (Default: Top 10)
+GET {{url}}/api/dashboard/sertifikat-per-skema
+
+### Get Sertifikat Per Skema (Top 5)
+GET {{url}}/api/dashboard/sertifikat-per-skema?limit=5
+
+### Get Sertifikat Per Skema (Filter tahun 2025)
+GET {{url}}/api/dashboard/sertifikat-per-skema?tahun=2025
+
+### Get Sertifikat Per Skema (Filter tahun 2026)
+GET {{url}}/api/dashboard/sertifikat-per-skema?tahun=2026
+
+### Get Sertifikat Per Skema (Sort ascending)
+GET {{url}}/api/dashboard/sertifikat-per-skema?sort=asc&limit=10
+
+### Get Sertifikat Per Skema (Kombinasi: Top 15, tahun 2025, desc)
+GET {{url}}/api/dashboard/sertifikat-per-skema?limit=15&tahun=2025&sort=desc
+
+### Get Sertifikat Per Skema (All bidang - limit 50)
+GET {{url}}/api/dashboard/sertifikat-per-skema?limit=50
+
+### Get Penyebaran TUK (Default: Top 20)
+GET {{url}}/api/dashboard/penyebaran-tuk
+
+### Get Penyebaran TUK (Top 10)
+GET {{url}}/api/dashboard/penyebaran-tuk?limit=100
+
+### Get Penyebaran TUK (Filter by jenis_tuk)
+GET {{url}}/api/dashboard/penyebaran-tuk?jenis_tuk=Mandiri
+
+### Get Penyebaran TUK (Sort ascending)
+GET {{url}}/api/dashboard/penyebaran-tuk?sort=asc&limit=15
+
+### Get Penyebaran TUK (All filters)
+GET {{url}}/api/dashboard/penyebaran-tuk?limit=30&jenis_tuk=TUK Sewaktu&sort=desc
+
+### Get Penyebaran Mitra (Default: Top 20)
+GET {{url}}/api/dashboard/penyebaran-mitra
+
+### Get Penyebaran Mitra (Top 10)
+GET {{url}}/api/dashboard/penyebaran-mitra?limit=10
+
+### Get Penyebaran Mitra (Sort ascending)
+GET {{url}}/api/dashboard/penyebaran-mitra?sort=asc&limit=15
+
+### Get Penyebaran Mitra (Top 50)
+GET {{url}}/api/dashboard/penyebaran-mitra?limit=50
+
+### Get Asesor Distribution (Default: All provinces, only approved assessors)
+GET {{url}}/api/dashboard/asesor-distribution
+
+### Get Asesor Distribution (Top 10 Provinces)
+GET {{url}}/api/dashboard/asesor-distribution?limit=10
+
+### Get Asesor Distribution (Sort ascending)
+GET {{url}}/api/dashboard/asesor-distribution?sort=asc&limit=15
+
+### Get Asesor Distribution (Include invalid assessors)
+GET {{url}}/api/dashboard/asesor-distribution?include_invalid=true
+
+### Get Asesor Distribution (Top 5, with invalid assessors)
+GET {{url}}/api/dashboard/asesor-distribution?limit=5&include_invalid=true&sort=desc
+
+### ============= ADDITIONAL DASHBOARD API TESTS =============
+
+### Get Dashboard Summary (Current Month)
+GET {{url}}/api/dashboard/summary
+
+### Get Dashboard Summary (Current Month - Explicit)
+GET {{url}}/api/dashboard/summary?period=current_month
+
+### Get Dashboard Summary (Current Year)
+GET {{url}}/api/dashboard/summary?period=current_year
+
+### Get Statistik Overview
+GET {{url}}/api/dashboard/statistik-overview
+
+### Get Distribusi Sektor (Default: Top 5)
+GET {{url}}/api/dashboard/distribusi-sektor
+
+### Get Distribusi Sektor (Top 10)
+GET {{url}}/api/dashboard/distribusi-sektor?limit=10
+
+### Get Asesor Stats
+GET {{url}}/api/dashboard/asesor-stats
+
+### Get LSP Count
+GET {{url}}/api/dashboard/lsp-count
+
+### Get Monthly Assessments with Competency (Default: 4 months)
+GET {{url}}/api/dashboard/monthly-assessments
+
+### Get Monthly Assessments with Competency (Last 6 months)
+GET {{url}}/api/dashboard/monthly-assessments?months=6
+
+### Get Monthly Assessments with Competency (Filter by Provinsi)
+GET {{url}}/api/dashboard/monthly-assessments?months=12&provinsi_id=31
+
+### Get Monthly Assessments with Competency (Filter by Sektor)
+GET {{url}}/api/dashboard/monthly-assessments?months=6&sektor=Teknologi Informasi
+
+### Get Monthly Assessments with Competency (All Filters)
+GET {{url}}/api/dashboard/monthly-assessments?months=12&provinsi_id=31&sektor=TIK&id_lsp=1565&id_tuk=348
+
+### Get Penyebaran Regional (By Island)
+GET {{url}}/api/dashboard/penyebaran-regional
+
+### Get Trends Comparison (Default: All metrics, Previous Month)
+GET {{url}}/api/dashboard/trends
+
+### Get Trends Comparison (Previous Month)
+GET {{url}}/api/dashboard/trends?metric=all&compare_period=previous_month
+
+### Get Trends Comparison (Previous Year)
+GET {{url}}/api/dashboard/trends?metric=all&compare_period=previous_year
+
+### Get Trends Comparison (Specific Metric)
+GET {{url}}/api/dashboard/trends?metric=asesmen&compare_period=previous_month

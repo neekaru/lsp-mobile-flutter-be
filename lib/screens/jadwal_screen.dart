@@ -151,47 +151,10 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
       backgroundColor: const Color(0xFFF5F6F8),
       body: Column(
         children: [
-          // Header sederhana dengan back button
-          Container(
-            width: double.infinity,
-            color: Colors.white,
-            padding: EdgeInsets.fromLTRB(16, statusBarHeight + 12, 16, 12),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.black87,
-                    size: 24,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 16),
-                const Expanded(
-                  child: Text(
-                    'Jadwal Asesmen',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.more_horiz,
-                    color: Colors.black87,
-                    size: 24,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-          ),
+          SizedBox(height: statusBarHeight + 8),
+          
+          // Header dengan style dari statistik_screen
+          _buildAppBar(),
 
           // Tab Bar
           Container(
@@ -461,6 +424,52 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
           },
         );
       },
+    );
+  }
+
+  Widget _buildAppBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Circular Black Back Arrow Button
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                color: Colors.black,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+          
+          // Bold screen title
+          const Text(
+            'Jadwal Asesmen',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.2,
+            ),
+          ),
+          
+          // More options horizontal ellipsis
+          const Icon(
+            Icons.more_horiz_rounded,
+            color: Colors.black,
+            size: 24,
+          ),
+        ],
+      ),
     );
   }
 }

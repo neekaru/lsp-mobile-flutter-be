@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/dashboard_models.dart';
 import '../helpers/number_format_helper.dart';
-import 'statistik/indonesia_map.dart';
+import '../widgets/statistik/indonesia_map.dart';
 
 class StatistikScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;

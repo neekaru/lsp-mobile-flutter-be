@@ -1,0 +1,196 @@
+### Jadwal Out of Date API Testing
+### Base URL
+@baseUrl = http://localhost:3000
+@apiPrefix = /api/jadwal
+
+###############################################################################
+### Scenario 1: Basic Request - Default Parameters
+### Expected: 20 jadwal out-of-date, sorted by days_overdue DESC, status 1,2
+GET {{baseUrl}}{{apiPrefix}}/out-of-date
+Content-Type: application/json
+
+###############################################################################
+### Scenario 2: Custom Limit
+### Expected: Top 10 jadwal out-of-date
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?limit=10
+Content-Type: application/json
+
+###############################################################################
+### Scenario 3: Large Limit
+### Expected: Top 50 jadwal out-of-date
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?limit=50
+Content-Type: application/json
+
+###############################################################################
+### Scenario 4: Sort by Tanggal Ascending
+### Expected: Oldest dates first
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?sort_by=tanggal&sort_order=asc&limit=15
+Content-Type: application/json
+
+###############################################################################
+### Scenario 5: Sort by Tanggal Descending
+### Expected: Newest dates first (but still out-of-date)
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?sort_by=tanggal&sort_order=desc&limit=15
+Content-Type: application/json
+
+###############################################################################
+### Scenario 6: Sort by Jadwal Name Ascending
+### Expected: Alphabetically sorted by schedule name
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?sort_by=jadwal&sort_order=asc&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 7: Sort by Jadwal Name Descending
+### Expected: Reverse alphabetically sorted
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?sort_by=jadwal&sort_order=desc&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 8: Sort by Days Overdue Ascending
+### Expected: Least overdue first
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?sort_by=days_overdue&sort_order=asc&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 9: Sort by Days Overdue Descending (Default)
+### Expected: Most overdue first
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?sort_by=days_overdue&sort_order=desc&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 10: Filter by Status - Only "Terjadwal" (1)
+### Expected: Only schedules with status_jadwal = 1
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?status_jadwal=1&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 11: Filter by Status - Only "Sedang Berlangsung" (2)
+### Expected: Only schedules with status_jadwal = 2
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?status_jadwal=2&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 12: Filter by Multiple Status
+### Expected: Schedules with status 1, 2, or 3
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?status_jadwal=1,2,3&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 13: Filter by Status - All Status
+### Expected: All out-of-date schedules regardless of status
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?status_jadwal=0,1,2,3,4&limit=30
+Content-Type: application/json
+
+###############################################################################
+### Scenario 14: Filter by TUK ID
+### Expected: Only schedules from specific TUK (e.g., TUK ID 257)
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?id_tuk=257&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 15: Filter by TUK ID (Another Example)
+### Expected: Only schedules from TUK ID 4
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?id_tuk=4&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 16: Filter by LSP ID
+### Expected: Only schedules from specific LSP (if id_lsp is not NULL)
+### Note: Many records have NULL id_lsp, adjust as needed
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?id_lsp=LSP001&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 17: Combined Filters - TUK + Status
+### Expected: Schedules from TUK 257 with status 1
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?id_tuk=257&status_jadwal=1&limit=20
+Content-Type: application/json
+
+###############################################################################
+### Scenario 18: Combined Filters - TUK + Status + Sort
+### Expected: TUK 257, status 1,2, sorted by tanggal asc
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?id_tuk=257&status_jadwal=1,2&sort_by=tanggal&sort_order=asc&limit=15
+Content-Type: application/json
+
+###############################################################################
+### Scenario 19: Edge Case - Limit 1
+### Expected: Only 1 most overdue schedule
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?limit=1
+Content-Type: application/json
+
+###############################################################################
+### Scenario 20: Edge Case - Maximum Limit (100)
+### Expected: Top 100 out-of-date schedules
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?limit=100
+Content-Type: application/json
+
+###############################################################################
+### Scenario 21: Validation Test - Invalid Limit (exceeds max)
+### Expected: 400 Bad Request or capped at 100
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?limit=200
+Content-Type: application/json
+
+###############################################################################
+### Scenario 22: Validation Test - Invalid Sort By
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?sort_by=invalid_field
+Content-Type: application/json
+
+###############################################################################
+### Scenario 23: Validation Test - Invalid Sort Order
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?sort_order=invalid
+Content-Type: application/json
+
+###############################################################################
+### Scenario 24: Validation Test - Invalid Status Jadwal
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?status_jadwal=5,6
+Content-Type: application/json
+
+###############################################################################
+### Scenario 25: Validation Test - Invalid TUK ID (negative)
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?id_tuk=-1
+Content-Type: application/json
+
+###############################################################################
+### Scenario 26: Real World - Check Corrupt Dates Handling
+### Expected: Dates with year 1970 or 0202 should be corrected to tanggal
+### Check IDs: 5715, 5978, 6210, 8755, 9664, 9704, 9713, 9929, 9968
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?limit=100&sort_by=days_overdue&sort_order=desc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 27: Performance Test - Large Dataset
+### Expected: Should return within reasonable time
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?limit=100&status_jadwal=0,1,2,3,4
+Content-Type: application/json
+
+###############################################################################
+### Scenario 28: Business Case - Find Most Critical Overdue
+### Expected: Top 5 most overdue schedules that are still "Terjadwal" or "Sedang Berlangsung"
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?limit=5&status_jadwal=1,2&sort_by=days_overdue&sort_order=desc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 29: Business Case - Recent Overdue Schedules
+### Expected: Recently overdue schedules (least days overdue)
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?limit=10&sort_by=days_overdue&sort_order=asc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 30: Business Case - Overdue by Specific TUK with Details
+### Expected: All overdue schedules from TUK 42 (Campus Digital)
+GET {{baseUrl}}{{apiPrefix}}/out-of-date?id_tuk=42&limit=50&sort_by=tanggal&sort_order=desc
+Content-Type: application/json
+
+###############################################################################
+### Notes:
+### - Default limit: 20
+### - Default status_jadwal: 1,2 (Terjadwal, Sedang Berlangsung)
+### - Default sort_by: days_overdue
+### - Default sort_order: desc
+### - Corrupt dates (year 1970 or 0202) are automatically corrected in response
+### - Total count is always returned in meta regardless of limit
+###############################################################################

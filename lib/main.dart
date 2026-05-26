@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-// Import our modular custom widgets
-import 'widgets/rangkuman_utama.dart';
-import 'widgets/tren_asesmen_chart.dart';
-import 'widgets/jadwal_asesmen.dart';
-import 'widgets/bottom_menu_bar.dart';
-import 'widgets/statistik_screen.dart';
+// Import screens
+import 'screens/dashboard_screen.dart';
+import 'screens/statistik_screen.dart';
 import 'screens/jadwal_screen.dart';
+import 'screens/placeholder_screen.dart';
+
+// Import widgets
+import 'widgets/bottom_menu_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,193 +97,6 @@ class _MainNavigatorState extends State<MainNavigator> {
             _currentIndex = index;
           });
         },
-      ),
-    );
-  }
-}
-
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.of(context).padding.top;
-
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // 1. Top Section: Header & Rangkuman Utama Card Overlay
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Sky Blue Header Background
-              Container(
-                width: double.infinity,
-                height: 260 + statusBarHeight,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF4FA8E8),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
-                  ),
-                ),
-                padding: EdgeInsets.fromLTRB(20, statusBarHeight + 20, 20, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Custom Logo
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: const Color(0x66FFFFFF), // white with 0.4 opacity
-                              width: 2,
-                            ),
-                            color: Colors.white,
-                          ),
-                          padding: const EdgeInsets.all(6),
-                          child: Image.asset(
-                            'assets/logo.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        // Title Texts
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  'LSP Monitoring sertifikasi',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: -0.3,
-                                  ),
-                                ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Monitoring Sertifikasi Nasional',
-                                style: TextStyle(
-                                  color: Color(0xE6FFFFFF), // white with 0.9 opacity
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Notification Bell Icon
-                        IconButton(
-                          onPressed: () {},
-                          icon: const Icon(
-                            Icons.notifications_none_rounded,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Rangkuman Utama Card Container (Imported widget)
-              Padding(
-                padding: EdgeInsets.only(
-                  top: statusBarHeight + 90,
-                  left: 16,
-                  right: 16,
-                  bottom: 12, // Set to 12
-                ),
-                child: const RangkumanUtama(),
-              ),
-            ],
-          ),
-
-          // 2. Tren Asesmen Bulanan Section (Imported chart card widget)
-          const Padding(
-            padding: EdgeInsets.only(
-              left: 16.0,
-              right: 16.0,
-              top: 4.0, // 12 (bottom of previous) + 4 (top of this) = 16px gap
-              bottom: 8.0, // Set to 8
-            ),
-            child: TrenAsesmenChart(),
-          ),
-
-          // 3. Jadwal Asesmen Mendekati Akhir Section (Imported list widget)
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0), // 8 (bottom of previous) + 8 (top of this) = 16px gap
-            child: JadwalAsesmen(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Simple elegant fallback screen for other navigation tabs
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const PlaceholderScreen({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8),
-      appBar: AppBar(
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE5F1FC),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.construction_rounded,
-                color: Color(0xFF2C6C9C),
-                size: 36,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '$title Sedang Dikembangkan',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black54,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Layout Beranda siap ditampilkan!',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
