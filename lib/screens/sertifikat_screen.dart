@@ -196,45 +196,47 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
                     final skema = _skemaList[index];
                     final isSelected = skema == _selectedSkema;
                     
-                    return ListTile(
-                      tileColor: Colors.white,
-                      title: Text(
-                        skema,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                          color: isSelected ? const Color(0xFF5B9FD8) : Colors.black87,
-                        ),
-                      ),
-                      trailing: isSelected
-                          ? const Icon(
-                              Icons.check_circle,
-                              color: Color(0xFF5B9FD8),
-                              size: 24,
-                            )
-                          : null,
-                      onTap: () {
-                        setState(() {
-                          _selectedSkema = skema;
-                        });
-                        Navigator.pop(context);
-                        
-                        // Tampilkan snackbar untuk feedback
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              skema == 'Semua Skema'
-                                  ? 'Menampilkan semua skema'
-                                  : 'Filter: $skema',
-                            ),
-                            duration: const Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                    return Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        title: Text(
+                          skema,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                            color: isSelected ? const Color(0xFF5B9FD8) : Colors.black87,
                           ),
-                        );
-                      },
+                        ),
+                        trailing: isSelected
+                            ? const Icon(
+                                Icons.check_circle,
+                                color: Color(0xFF5B9FD8),
+                                size: 24,
+                              )
+                            : null,
+                        onTap: () {
+                          setState(() {
+                            _selectedSkema = skema;
+                          });
+                          Navigator.pop(context);
+                          
+                          // Tampilkan snackbar untuk feedback
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                skema == 'Semua Skema'
+                                    ? 'Menampilkan semua skema'
+                                    : 'Filter: $skema',
+                              ),
+                              duration: const Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
