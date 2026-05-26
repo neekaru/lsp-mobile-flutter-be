@@ -229,22 +229,22 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFF6B6B),
-                          borderRadius: BorderRadius.circular(8),
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFF6B6B),
+                          shape: BoxShape.circle,
                         ),
                         constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
+                          minWidth: 20,
+                          minHeight: 20,
                         ),
                         child: Center(
                           child: Text(
                             '${akanBerakhirList.length}',
                             style: const TextStyle(
-                              fontSize: 9,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               height: 1.0,
