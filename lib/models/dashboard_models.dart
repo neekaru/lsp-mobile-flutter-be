@@ -162,10 +162,12 @@ class TopMitra {
 class TUKKabupaten {
   final String kabupaten;
   final int jumlah;
+  final List<String> detail;
 
   const TUKKabupaten({
     required this.kabupaten,
     required this.jumlah,
+    this.detail = const [],
   });
 }
 

@@ -392,6 +392,7 @@ class ApiService {
                 (item) => TUKKabupaten(
                   kabupaten: item['kabupaten'] ?? 'Kabupaten/Kota',
                   jumlah: item['jumlah'] ?? 0,
+                  detail: List<String>.from(item['detail'] ?? []),
                 ),
               )
               .toList();
