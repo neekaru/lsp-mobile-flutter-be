@@ -197,35 +197,28 @@ class JadwalItemCard extends StatelessWidget {
           const SizedBox(width: 12),
 
           // Right Column: Date & Remaining Days
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _formatIndonesianDate(item.tanggal),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                _formatIndonesianDate(item.tanggal),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  'Lewat ${item.daysOverdue} hari',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFFE53935), // Red warning text
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 3),
+              Text(
+                'Lewat ${item.daysOverdue} hari',
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Color(0xFFE53935), // Red warning text
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
