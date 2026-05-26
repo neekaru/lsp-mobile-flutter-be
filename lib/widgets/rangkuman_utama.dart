@@ -140,7 +140,7 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                   ),
                 );
               }
-              return const SizedBox(height: 12);
+              return const SizedBox.shrink();
             },
           ),
 
