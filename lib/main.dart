@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/statistik_screen.dart';
 import 'screens/jadwal_screen.dart';
+import 'screens/sertifikat_screen.dart';
 import 'screens/placeholder_screen.dart';
 
 // Import widgets
@@ -85,8 +86,21 @@ class _MainNavigatorState extends State<MainNavigator> {
             },
           ),
           // Jadwal Screen
-          const JadwalScreen(),
-          const PlaceholderScreen(title: 'Halaman Sertivikat'),
+          JadwalScreen(
+            onBackToHome: () {
+              setState(() {
+                _currentIndex = 0;
+              });
+            },
+          ),
+          // Sertifikat Screen
+          SertifikatScreen(
+            onBackToHome: () {
+              setState(() {
+                _currentIndex = 0;
+              });
+            },
+          ),
           const PlaceholderScreen(title: 'Halaman Profil'),
         ],
       ),
