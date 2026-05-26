@@ -277,15 +277,18 @@ class SummaryCard extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Text(
-                      '▲',
-                      style: TextStyle(color: Color(0xFF3CD278), fontSize: 8),
+                    Text(
+                      trend.startsWith('-') ? '▼' : '▲',
+                      style: TextStyle(
+                        color: trend.startsWith('-') ? const Color(0xFFFF5252) : const Color(0xFF3CD278),
+                        fontSize: 8,
+                      ),
                     ),
                     const SizedBox(width: 3),
                     Text(
                       trend,
-                      style: const TextStyle(
-                        color: Color(0xFF3CD278),
+                      style: TextStyle(
+                        color: trend.startsWith('-') ? const Color(0xFFFF5252) : const Color(0xFF3CD278),
                         fontSize: 9,
                         fontWeight: FontWeight.bold,
                       ),

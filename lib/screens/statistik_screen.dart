@@ -315,10 +315,10 @@ class _StatistikScreenState extends State<StatistikScreen> {
                 const SizedBox(width: 3),
                 Text(
                   trend,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 8,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4CAF50),
+                    color: trend.startsWith('-') ? const Color(0xFFFF5252) : const Color(0xFF4CAF50),
                   ),
                 ),
               ],

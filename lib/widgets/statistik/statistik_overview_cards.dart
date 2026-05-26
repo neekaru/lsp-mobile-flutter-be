@@ -42,7 +42,6 @@ class _StatistikOverviewCardsState extends State<StatistikOverviewCards> {
                 value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesi),
                 subtitle: 'Telah terdaftar',
                 trend: data.trendTotalAsesi,
-                isTrendPositive: true,
                 icon: Icons.people_alt_rounded,
                 iconBgColor: const Color(0xFFE5F1FC),
                 iconColor: const Color(0xFF2C6C9C),
@@ -52,7 +51,6 @@ class _StatistikOverviewCardsState extends State<StatistikOverviewCards> {
                 value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.sertifikatTerbit),
                 subtitle: 'Aktif & Valid',
                 trend: data.trendSertifikatTerbit,
-                isTrendPositive: true,
                 icon: Icons.verified_user_rounded,
                 iconBgColor: const Color(0xFFE8F5E9),
                 iconColor: const Color(0xFF4CAF50),
@@ -62,7 +60,6 @@ class _StatistikOverviewCardsState extends State<StatistikOverviewCards> {
                 value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.lspTerdaftar),
                 subtitle: 'Lembaga Aktif',
                 trend: data.trendLspTerdaftar,
-                isTrendPositive: true,
                 icon: Icons.account_balance_rounded,
                 iconBgColor: const Color(0xFFF3E5F5),
                 iconColor: const Color(0xFF9C27B0),
@@ -72,7 +69,6 @@ class _StatistikOverviewCardsState extends State<StatistikOverviewCards> {
                 value: isLoading ? '...' : '${data.tingkatKelulusan.toStringAsFixed(1)}%',
                 subtitle: 'Kompeten',
                 trend: data.trendTingkatKelulusan,
-                isTrendPositive: true,
                 icon: Icons.school_rounded,
                 iconBgColor: const Color(0xFFFFF3E0),
                 iconColor: const Color(0xFFFF9800),
@@ -89,7 +85,6 @@ class _StatistikOverviewCardsState extends State<StatistikOverviewCards> {
     required String value,
     required String subtitle,
     required String trend,
-    required bool isTrendPositive,
     required IconData icon,
     required Color iconBgColor,
     required Color iconColor,
@@ -159,15 +154,15 @@ class _StatistikOverviewCardsState extends State<StatistikOverviewCards> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
+                  color: trend.startsWith('-') ? const Color(0xFFFFEBEE) : const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   trend,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 8,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4CAF50),
+                    color: trend.startsWith('-') ? const Color(0xFFFF5252) : const Color(0xFF4CAF50),
                   ),
                 ),
               ),
