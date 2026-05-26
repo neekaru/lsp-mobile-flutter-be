@@ -106,8 +106,8 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
               final data = snapshot.data;
               if (data != null && data.isCurrentMonth && data.note != null) {
                 return Container(
-                  margin: const EdgeInsets.only(top: 8, bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  margin: const EdgeInsets.only(top: 8, bottom: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0x33FFA726), // Orange with opacity
                     borderRadius: BorderRadius.circular(8),
