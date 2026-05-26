@@ -8,6 +8,7 @@ import 'widgets/tren_asesmen_chart.dart';
 import 'widgets/jadwal_asesmen.dart';
 import 'widgets/bottom_menu_bar.dart';
 import 'widgets/statistik_screen.dart';
+import 'screens/jadwal_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,8 +75,8 @@ class _MainNavigatorState extends State<MainNavigator> {
               });
             },
           ),
-          // Placeholder screens for other tabs to keep it clean and fully functional
-          const PlaceholderScreen(title: 'Halaman Jadwal'),
+          // Jadwal Screen
+          const JadwalScreen(),
           const PlaceholderScreen(title: 'Halaman Sertivikat'),
           const PlaceholderScreen(title: 'Halaman Profil'),
         ],

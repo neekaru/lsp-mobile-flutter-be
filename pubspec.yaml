@@ -11,8 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_dotenv: ^6.0.1
+  flutter_lucide: ^1.2.1
   http: ^1.6.0
-  lucide_icons: ^0.257.0
   syncfusion_flutter_maps: ^33.2.7
 
 dev_dependencies:

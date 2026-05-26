@@ -68,7 +68,7 @@ class ApiService {
 
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        final meta = response.data['meta'];
+        // Meta data tersedia jika diperlukan: response.data['meta']
 
         List<MonthlyAssessment> list = [];
         int maxTotal = 1; // Prevent division by zero
