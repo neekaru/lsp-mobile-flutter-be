@@ -1,62 +1,86 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
+import '../../models/dashboard_models.dart';
+import '../../helpers/number_format_helper.dart';
 
-class StatistikOverviewCards extends StatelessWidget {
+class StatistikOverviewCards extends StatefulWidget {
   const StatistikOverviewCards({super.key});
 
   @override
+  State<StatistikOverviewCards> createState() => _StatistikOverviewCardsState();
+}
+
+class _StatistikOverviewCardsState extends State<StatistikOverviewCards> {
+  late Future<StatistikOverview> _overviewFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _overviewFuture = ApiService.getStatistikOverview();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-      child: GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 2,
-        childAspectRatio: 1.4,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        children: [
-          _buildStatCard(
-            title: 'Total Asesi',
-            value: '25.890',
-            subtitle: 'Telah terdaftar',
-            trend: '+14.2%',
-            isTrendPositive: true,
-            icon: Icons.people_alt_rounded,
-            iconBgColor: const Color(0xFFE5F1FC),
-            iconColor: const Color(0xFF2C6C9C),
+    return FutureBuilder<StatistikOverview>(
+      future: _overviewFuture,
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        final data = snapshot.data ?? StatistikOverview.fallback();
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+          child: GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            childAspectRatio: 1.4,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            children: [
+              _buildStatCard(
+                title: 'Total Asesi',
+                value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesi),
+                subtitle: 'Telah terdaftar',
+                trend: data.trendTotalAsesi,
+                isTrendPositive: true,
+                icon: Icons.people_alt_rounded,
+                iconBgColor: const Color(0xFFE5F1FC),
+                iconColor: const Color(0xFF2C6C9C),
+              ),
+              _buildStatCard(
+                title: 'Sertifikat Terbit',
+                value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.sertifikatTerbit),
+                subtitle: 'Aktif & Valid',
+                trend: data.trendSertifikatTerbit,
+                isTrendPositive: true,
+                icon: Icons.verified_user_rounded,
+                iconBgColor: const Color(0xFFE8F5E9),
+                iconColor: const Color(0xFF4CAF50),
+              ),
+              _buildStatCard(
+                title: 'LSP Terdaftar',
+                value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.lspTerdaftar),
+                subtitle: 'Lembaga Aktif',
+                trend: data.trendLspTerdaftar,
+                isTrendPositive: true,
+                icon: Icons.account_balance_rounded,
+                iconBgColor: const Color(0xFFF3E5F5),
+                iconColor: const Color(0xFF9C27B0),
+              ),
+              _buildStatCard(
+                title: 'Tingkat Kelulusan',
+                value: isLoading ? '...' : '${data.tingkatKelulusan.toStringAsFixed(1)}%',
+                subtitle: 'Kompeten',
+                trend: data.trendTingkatKelulusan,
+                isTrendPositive: true,
+                icon: Icons.school_rounded,
+                iconBgColor: const Color(0xFFFFF3E0),
+                iconColor: const Color(0xFFFF9800),
+              ),
+            ],
           ),
-          _buildStatCard(
-            title: 'Sertifikat Terbit',
-            value: '21.435',
-            subtitle: 'Aktif & Valid',
-            trend: '+11.8%',
-            isTrendPositive: true,
-            icon: Icons.verified_user_rounded,
-            iconBgColor: const Color(0xFFE8F5E9),
-            iconColor: const Color(0xFF4CAF50),
-          ),
-          _buildStatCard(
-            title: 'LSP Terdaftar',
-            value: '145',
-            subtitle: 'Lembaga Aktif',
-            trend: '+4.5%',
-            isTrendPositive: true,
-            icon: Icons.account_balance_rounded,
-            iconBgColor: const Color(0xFFF3E5F5),
-            iconColor: const Color(0xFF9C27B0),
-          ),
-          _buildStatCard(
-            title: 'Tingkat Kelulusan',
-            value: '82.8%',
-            subtitle: 'Kompeten',
-            trend: '+1.2%',
-            isTrendPositive: true,
-            icon: Icons.school_rounded,
-            iconBgColor: const Color(0xFFFFF3E0),
-            iconColor: const Color(0xFFFF9800),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

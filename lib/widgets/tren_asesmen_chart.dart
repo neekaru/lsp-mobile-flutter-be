@@ -1,6 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../models/dashboard_models.dart';
+import '../helpers/number_format_helper.dart';
+import '../models/dashboard_models.dart';
 
 class TrenAsesmenChart extends StatefulWidget {
   const TrenAsesmenChart({super.key});
@@ -16,12 +19,6 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
   void initState() {
     super.initState();
     _chartFuture = ApiService.getMonthlyAssessments();
-  }
-
-  // Format numbers with dots as thousands separator
-  String _formatNumber(int number) {
-    RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    return number.toString().replaceAllMapped(reg, (Match match) => '${match[1]}.');
   }
 
   @override
@@ -62,7 +59,8 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
           FutureBuilder<List<MonthlyAssessment>>(
             future: _chartFuture,
             builder: (context, snapshot) {
-              final isSearching = snapshot.connectionState == ConnectionState.waiting;
+              final isSearching =
+                  snapshot.connectionState == ConnectionState.waiting;
               final data = snapshot.data ?? [];
 
               // Calculate dynamic Y-axis scale based on maximum data value
@@ -70,16 +68,18 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
               if (data.isNotEmpty) {
                 int dataMax = data.map((e) => e.total).reduce(max);
                 if (dataMax > 0) {
-                  maxVal = ((dataMax + 499) ~/ 500) * 500; // Round up to next 500 for clean steps
+                  maxVal =
+                      ((dataMax + 499) ~/ 500) *
+                      500; // Round up to next 500 for clean steps
                 }
               }
 
               final yAxisLabels = [
-                _formatNumber(maxVal),
-                _formatNumber((maxVal * 0.8).toInt()),
-                _formatNumber((maxVal * 0.6).toInt()),
-                _formatNumber((maxVal * 0.4).toInt()),
-                _formatNumber((maxVal * 0.2).toInt()),
+                NumberFormatHelper.formatWithDots(maxVal),
+                NumberFormatHelper.formatWithDots((maxVal * 0.8).toInt()),
+                NumberFormatHelper.formatWithDots((maxVal * 0.6).toInt()),
+                NumberFormatHelper.formatWithDots((maxVal * 0.4).toInt()),
+                NumberFormatHelper.formatWithDots((maxVal * 0.2).toInt()),
                 '0',
               ];
 
@@ -93,10 +93,15 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: yAxisLabels
-                          .map((label) => Text(
-                                label,
-                                style: const TextStyle(fontSize: 10, color: Colors.grey),
-                              ))
+                          .map(
+                            (label) => Text(
+                              label,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                     const SizedBox(width: 8),
@@ -136,14 +141,18 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
 
                                 // Format label
                                 final labelParts = item.label.split(' ');
-                                final displayLabel = labelParts.first; // e.g. "Mei"
-                                final displaySub = labelParts.length > 1 ? '(${labelParts[1]})' : ''; // e.g. "(2026)"
+                                final displayLabel =
+                                    labelParts.first; // e.g. "Mei"
+                                final displaySub = labelParts.length > 1
+                                    ? '(${labelParts[1]})'
+                                    : ''; // e.g. "(2026)"
 
                                 return ChartBarItem(
-                                  valueText: _formatNumber(item.total),
+                                  valueText: NumberFormatHelper.formatWithDots(item.total),
                                   heightPercentage: percentage,
                                   label: displayLabel,
                                   subLabel: displaySub,
+                                  isCurrentMonth: item.isCurrentMonth,
                                 );
                               }).toList(),
                             ),
@@ -166,6 +175,7 @@ class ChartBarItem extends StatelessWidget {
   final double heightPercentage;
   final String label;
   final String subLabel;
+  final bool isCurrentMonth;
 
   const ChartBarItem({
     super.key,
@@ -173,6 +183,7 @@ class ChartBarItem extends StatelessWidget {
     required this.heightPercentage,
     required this.label,
     required this.subLabel,
+    this.isCurrentMonth = false,
   });
 
   @override
@@ -186,10 +197,10 @@ class ChartBarItem extends StatelessWidget {
             // Value text on top of the bar
             Text(
               valueText,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2C6C9C),
+                color: isCurrentMonth ? const Color(0xFFFF9800) : const Color(0xFF2C6C9C),
               ),
             ),
             const SizedBox(height: 6),
@@ -201,13 +212,15 @@ class ChartBarItem extends StatelessWidget {
                   heightFactor: heightPercentage,
                   widthFactor: 1.0,
                   child: Container(
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0xFF4FA8E8), Color(0xFF2C6C9C)],
+                        colors: isCurrentMonth 
+                          ? [const Color(0xFFFFB74D), const Color(0xFFFF9800)]
+                          : [const Color(0xFF4FA8E8), const Color(0xFF2C6C9C)],
                       ),
-                      borderRadius: BorderRadius.only(
+                      borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(6),
                         topRight: Radius.circular(6),
                       ),
@@ -218,14 +231,27 @@ class ChartBarItem extends StatelessWidget {
             ),
             // Spacing at the bottom
             const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-              textAlign: TextAlign.center,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (isCurrentMonth) ...[
+                  const SizedBox(width: 3),
+                  const Icon(
+                    Icons.access_time,
+                    size: 10,
+                    color: Color(0xFFFF9800),
+                  ),
+                ],
+              ],
             ),
             Text(
               subLabel,

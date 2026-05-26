@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../models/dashboard_models.dart';
+import '../helpers/number_format_helper.dart';
 
 class RangkumanUtama extends StatefulWidget {
   const RangkumanUtama({super.key});
@@ -15,12 +17,6 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
   void initState() {
     super.initState();
     _summaryFuture = ApiService.getSummary();
-  }
-
-  // Format numbers with dots as thousands separator
-  String _formatNumber(int number) {
-    RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    return number.toString().replaceAllMapped(reg, (Match match) => '${match[1]}.');
   }
 
   @override
@@ -102,6 +98,55 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
               fontSize: 12,
             ),
           ),
+          
+          // Current Month Warning Badge
+          FutureBuilder<DashboardSummary>(
+            future: _summaryFuture,
+            builder: (context, snapshot) {
+              final data = snapshot.data;
+              if (data != null && data.isCurrentMonth && data.note != null) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0x33FFA726), // Orange with opacity
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFFFF9800),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.info_outline,
+                          color: Color(0xFFFFB74D),
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            data.note!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          
           const SizedBox(height: 12),
 
           // 2x2 Grid of Summary Cards with premium modern rounded Material Icons
@@ -121,8 +166,8 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                 children: [
                   SummaryCard(
                     title: 'Total Asesmen',
-                    value: isSearching ? '...' : _formatNumber(data.totalAsesmen),
-                    trend: '15,7%',
+                    value: isSearching ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesmen),
+                    trend: data.trendAsesmen,
                     subtitle: 'Total Terjadwal',
                     icon: Icons.trending_up_rounded,
                     iconColor: const Color(0xFF5C51DC),
@@ -130,8 +175,8 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                   ),
                   SummaryCard(
                     title: 'Pemegang Sertifikat',
-                    value: isSearching ? '...' : _formatNumber(data.totalPemegangSertifikat),
-                    trend: '12,3%',
+                    value: isSearching ? '...' : NumberFormatHelper.formatWithDots(data.totalPemegangSertifikat),
+                    trend: data.trendPemegangSertifikat,
                     subtitle: 'Asesi Kompeten',
                     icon: Icons.people_alt_rounded,
                     iconColor: const Color(0xFFFFB300),
@@ -139,8 +184,8 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                   ),
                   SummaryCard(
                     title: 'Asesor Aktif',
-                    value: isSearching ? '...' : _formatNumber(data.totalAsesor),
-                    trend: '8,1%',
+                    value: isSearching ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesor),
+                    trend: data.trendAsesor,
                     subtitle: 'Asesor Terverifikasi',
                     icon: Icons.badge_rounded,
                     iconColor: const Color(0xFF00D1B2),
@@ -148,8 +193,8 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                   ),
                   SummaryCard(
                     title: 'Mitra & TUK Aktif',
-                    value: isSearching ? '...' : _formatNumber(data.totalTuk),
-                    trend: '4,5%',
+                    value: isSearching ? '...' : NumberFormatHelper.formatWithDots(data.totalTuk),
+                    trend: data.trendTuk,
                     subtitle: 'Lembaga / TUK',
                     icon: Icons.handshake_rounded,
                     iconColor: const Color(0xFFFF5252),

@@ -1,55 +1,104 @@
 import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
+import '../../models/dashboard_models.dart';
+import '../../helpers/number_format_helper.dart';
 
-class SectorDistributionCard extends StatelessWidget {
+class SectorDistributionCard extends StatefulWidget {
   const SectorDistributionCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0A000000),
-              blurRadius: 12,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Distribusi Berdasarkan Bidang Sektor',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Kategori industri dengan asesi terbanyak',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 20),
+  State<SectorDistributionCard> createState() => _SectorDistributionCardState();
+}
 
-            _buildSectorBar('Teknologi Informasi & Komunikasi', '9.060', 0.35, const Color(0xFF2C6C9C)),
-            _buildSectorBar('Manufaktur & Teknik Industri', '5.695', 0.22, const Color(0xFF3E82B3)),
-            _buildSectorBar('Pariwisata & Perhotelan', '4.660', 0.18, const Color(0xFF4FA8E8)),
-            _buildSectorBar('Bisnis & Keuangan Administrasi', '3.880', 0.15, const Color(0xFF7CB8E6)),
-            _buildSectorBar('Kesehatan & Farmasi', '2.595', 0.10, const Color(0xFFA1D0F5)),
-          ],
-        ),
-      ),
+class _SectorDistributionCardState extends State<SectorDistributionCard> {
+  late Future<List<SectorDistribution>> _sectorFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _sectorFuture = ApiService.getSectorDistribution();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<SectorDistribution>>(
+      future: _sectorFuture,
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        final sectors = snapshot.data ?? [];
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x0A000000),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Distribusi Berdasarkan Bidang Sektor',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Kategori industri dengan asesi terbanyak',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                if (isLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Color(0xFF2C6C9C),
+                      ),
+                    ),
+                  )
+                else
+                  ...sectors.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final sector = entry.value;
+                    final colors = [
+                      const Color(0xFF2C6C9C),
+                      const Color(0xFF3E82B3),
+                      const Color(0xFF4FA8E8),
+                      const Color(0xFF7CB8E6),
+                      const Color(0xFFA1D0F5),
+                    ];
+                    final color = colors[index % colors.length];
+
+                    return _buildSectorBar(
+                      sector.sectorName,
+                      NumberFormatHelper.formatWithDots(sector.count),
+                      sector.percentage,
+                      color,
+                    );
+                  }).toList(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

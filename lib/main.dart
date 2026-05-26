@@ -124,7 +124,7 @@ class DashboardScreen extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Custom Logo Placeholder
+                        // Custom Logo
                         Container(
                           width: 48,
                           height: 48,
@@ -134,14 +134,12 @@ class DashboardScreen extends StatelessWidget {
                               color: const Color(0x66FFFFFF), // white with 0.4 opacity
                               width: 2,
                             ),
-                            color: const Color(0x1AFFFFFF), // white with 0.1 opacity
+                            color: Colors.white,
                           ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.hub_outlined,
-                              color: Colors.white,
-                              size: 26,
-                            ),
+                          padding: const EdgeInsets.all(6),
+                          child: Image.asset(
+                            'assets/logo.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(width: 14),
