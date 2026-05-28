@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../widgets/rangkuman_utama.dart';
 import '../widgets/tren_asesmen_chart.dart';
 import '../widgets/jadwal_asesmen.dart';
+import '../services/api_service.dart';
+import '../models/dashboard_models.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -11,21 +13,50 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  bool _isRefreshing = false;
+  bool _isLoading = true;
+  
+  // State untuk menyimpan data dari API
+  DashboardSummary? _summaryData;
+  List<MonthlyAssessment>? _chartData;
+  List<JadwalOverdue>? _jadwalData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAllData();
+  }
+
+  Future<void> _loadAllData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Panggil semua API secara parallel
+      final results = await Future.wait([
+        ApiService.getSummary(),
+        ApiService.getMonthlyAssessments(),
+        ApiService.getJadwalOutOfDate(),
+      ]);
+
+      setState(() {
+        _summaryData = results[0] as DashboardSummary;
+        _chartData = results[1] as List<MonthlyAssessment>;
+        _jadwalData = results[2] as List<JadwalOverdue>;
+        _isLoading = false;
+      });
+    } catch (e) {
+      // Log error untuk debugging
+      debugPrint('Error loading dashboard data: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-
-    // Simulasi fetch data dari API
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() {
-      _isRefreshing = false;
-    });
-
-    // Tampilkan feedback ke user
+    await _loadAllData();
+    
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -137,26 +168,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     right: 16,
                     bottom: 12, // Set to 12
                   ),
-                  child: const RangkumanUtama(),
+                  child: RangkumanUtama(
+                    data: _summaryData,
+                    isLoading: _isLoading,
+                  ),
                 ),
               ],
             ),
 
             // 2. Tren Asesmen Bulanan Section (Imported chart card widget)
-            const Padding(
-              padding: EdgeInsets.only(
+            Padding(
+              padding: const EdgeInsets.only(
                 left: 16.0,
                 right: 16.0,
                 top: 4.0, // 12 (bottom of previous) + 4 (top of this) = 16px gap
                 bottom: 8.0, // Set to 8
               ),
-              child: TrenAsesmenChart(),
+              child: TrenAsesmenChart(
+                data: _chartData,
+                isLoading: _isLoading,
+              ),
             ),
 
             // 3. Jadwal Asesmen Mendekati Akhir Section (Imported list widget)
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0), // 8 (bottom of previous) + 8 (top of this) = 16px gap
-              child: JadwalAsesmen(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0), // 8 (bottom of previous) + 8 (top of this) = 16px gap
+              child: JadwalAsesmen(
+                data: _jadwalData,
+                isLoading: _isLoading,
+              ),
             ),
           ],
         ),

@@ -68,6 +68,54 @@ class MainNavigator extends StatefulWidget {
 
 class _MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
+  final Set<int> _visitedScreens = {0}; // Track visited screens, start with Dashboard
+
+  Widget _buildScreen(int index) {
+    // Only build screen if it has been visited
+    if (!_visitedScreens.contains(index)) {
+      return const SizedBox.shrink(); // Return empty widget for unvisited screens
+    }
+
+    switch (index) {
+      case 0:
+        return const DashboardScreen();
+      case 1:
+        return StatistikScreen(
+          onBackToHome: () {
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
+        );
+      case 2:
+        return JadwalScreen(
+          onBackToHome: () {
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
+        );
+      case 3:
+        return SertifikatScreen(
+          onBackToHome: () {
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
+        );
+      case 4:
+        return PlaceholderScreen(
+          title: 'Halaman Profil',
+          onBackToHome: () {
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
+        );
+      default:
+        return const DashboardScreen();
+    }
+  }
 
   // We can switch screens here. Index 0 is our beautiful Beranda dashboard.
   @override
@@ -76,45 +124,13 @@ class _MainNavigatorState extends State<MainNavigator> {
       backgroundColor: const Color(0xFFF5F6F8), // Soft grey background matching screenshots
       body: IndexedStack(
         index: _currentIndex,
-        children: [
-          const DashboardScreen(),
-          StatistikScreen(
-            onBackToHome: () {
-              setState(() {
-                _currentIndex = 0;
-              });
-            },
-          ),
-          // Jadwal Screen
-          JadwalScreen(
-            onBackToHome: () {
-              setState(() {
-                _currentIndex = 0;
-              });
-            },
-          ),
-          // Sertifikat Screen
-          SertifikatScreen(
-            onBackToHome: () {
-              setState(() {
-                _currentIndex = 0;
-              });
-            },
-          ),
-          PlaceholderScreen(
-            title: 'Halaman Profil',
-            onBackToHome: () {
-              setState(() {
-                _currentIndex = 0;
-              });
-            },
-          ),
-        ],
+        children: List.generate(5, (index) => _buildScreen(index)),
       ),
       bottomNavigationBar: BottomMenuBar(
         selectedIndex: _currentIndex,
         onTap: (index) {
           setState(() {
+            _visitedScreens.add(index); // Mark screen as visited
             _currentIndex = index;
           });
         },

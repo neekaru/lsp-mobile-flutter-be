@@ -5,23 +5,63 @@ import '../models/dashboard_models.dart';
 import '../helpers/number_format_helper.dart';
 
 class TrenAsesmenChart extends StatefulWidget {
-  const TrenAsesmenChart({super.key});
+  final List<MonthlyAssessment>? data;
+  final bool? isLoading;
+  
+  const TrenAsesmenChart({
+    super.key,
+    this.data,
+    this.isLoading,
+  });
 
   @override
   State<TrenAsesmenChart> createState() => _TrenAsesmenChartState();
 }
 
 class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
-  late Future<List<MonthlyAssessment>> _chartFuture;
+  late Future<List<MonthlyAssessment>>? _chartFuture;
 
   @override
   void initState() {
     super.initState();
-    _chartFuture = ApiService.getMonthlyAssessments();
+    // Hanya fetch jika data tidak disediakan dari parent
+    if (widget.data == null) {
+      _chartFuture = ApiService.getMonthlyAssessments();
+    } else {
+      _chartFuture = null;
+    }
+  }
+
+  @override
+  void didUpdateWidget(TrenAsesmenChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update ketika data dari parent berubah
+    if (widget.data != oldWidget.data) {
+      setState(() {
+        _chartFuture = null;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Gunakan data dari parent jika ada
+    if (widget.data != null) {
+      return _buildContent(widget.data!, widget.isLoading ?? false);
+    }
+    
+    // Fallback: Gunakan FutureBuilder jika standalone
+    return FutureBuilder<List<MonthlyAssessment>>(
+      future: _chartFuture,
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        final data = snapshot.data ?? [];
+        return _buildContent(data, isLoading);
+      },
+    );
+  }
+
+  Widget _buildContent(List<MonthlyAssessment> data, bool isLoading) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -55,113 +95,105 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
           ),
           const SizedBox(height: 16),
 
-          FutureBuilder<List<MonthlyAssessment>>(
-            future: _chartFuture,
-            builder: (context, snapshot) {
-              final isSearching =
-                  snapshot.connectionState == ConnectionState.waiting;
-              final data = snapshot.data ?? [];
+          _buildChart(data, isLoading),
+        ],
+      ),
+    );
+  }
 
-              // Calculate dynamic Y-axis scale based on maximum data value
-              int maxVal = 2500;
-              if (data.isNotEmpty) {
-                int dataMax = data.map((e) => e.total).reduce(max);
-                if (dataMax > 0) {
-                  maxVal =
-                      ((dataMax + 499) ~/ 500) *
-                      500; // Round up to next 500 for clean steps
-                }
-              }
+  Widget _buildChart(List<MonthlyAssessment> data, bool isLoading) {
+    // Calculate dynamic Y-axis scale based on maximum data value
+    int maxVal = 2500;
+    if (data.isNotEmpty) {
+      int dataMax = data.map((e) => e.total).reduce(max);
+      if (dataMax > 0) {
+        maxVal = ((dataMax + 499) ~/ 500) * 500; // Round up to next 500 for clean steps
+      }
+    }
 
-              final yAxisLabels = [
-                NumberFormatHelper.formatWithDots(maxVal),
-                NumberFormatHelper.formatWithDots((maxVal * 0.8).toInt()),
-                NumberFormatHelper.formatWithDots((maxVal * 0.6).toInt()),
-                NumberFormatHelper.formatWithDots((maxVal * 0.4).toInt()),
-                NumberFormatHelper.formatWithDots((maxVal * 0.2).toInt()),
-                '0',
-              ];
+    final yAxisLabels = [
+      NumberFormatHelper.formatWithDots(maxVal),
+      NumberFormatHelper.formatWithDots((maxVal * 0.8).toInt()),
+      NumberFormatHelper.formatWithDots((maxVal * 0.6).toInt()),
+      NumberFormatHelper.formatWithDots((maxVal * 0.4).toInt()),
+      NumberFormatHelper.formatWithDots((maxVal * 0.2).toInt()),
+      '0',
+    ];
 
-              return SizedBox(
-                height: 180,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Y-Axis Labels
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: yAxisLabels
-                          .map(
-                            (label) => Text(
-                              label,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          )
-                          .toList(),
+    return SizedBox(
+      height: 180,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Y-Axis Labels
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: yAxisLabels
+                .map(
+                  (label) => Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey,
                     ),
-                    const SizedBox(width: 8),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(width: 8),
 
-                    // Chart Bars Area
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          // Grid Lines (Horizontal Background Lines)
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: List.generate(6, (index) {
-                              return Container(
-                                height: 1,
-                                color: const Color(0xFFF1F3F5),
-                              );
-                            }),
-                          ),
-
-                          // Bars
-                          if (isSearching)
-                            const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Color(0xFF2C6C9C),
-                              ),
-                            )
-                          else
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: data.map((item) {
-                                // Calculate height factor against rounded maxVal
-                                double percentage = item.total / maxVal;
-                                if (percentage > 1.0) percentage = 1.0;
-                                if (percentage < 0.0) percentage = 0.0;
-
-                                // Format label
-                                final labelParts = item.label.split(' ');
-                                final displayLabel =
-                                    labelParts.first; // e.g. "Mei"
-                                final displaySub = labelParts.length > 1
-                                    ? '(${labelParts[1]})'
-                                    : ''; // e.g. "(2026)"
-
-                                return ChartBarItem(
-                                  valueText: NumberFormatHelper.formatWithDots(item.total),
-                                  heightPercentage: percentage,
-                                  label: displayLabel,
-                                  subLabel: displaySub,
-                                  isCurrentMonth: item.isCurrentMonth,
-                                );
-                              }).toList(),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
+          // Chart Bars Area
+          Expanded(
+            child: Stack(
+              children: [
+                // Grid Lines (Horizontal Background Lines)
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(6, (index) {
+                    return Container(
+                      height: 1,
+                      color: const Color(0xFFF1F3F5),
+                    );
+                  }),
                 ),
-              );
-            },
+
+                // Bars
+                if (isLoading)
+                  const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Color(0xFF2C6C9C),
+                    ),
+                  )
+                else
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: data.map((item) {
+                      // Calculate height factor against rounded maxVal
+                      double percentage = item.total / maxVal;
+                      if (percentage > 1.0) percentage = 1.0;
+                      if (percentage < 0.0) percentage = 0.0;
+
+                      // Format label
+                      final labelParts = item.label.split(' ');
+                      final displayLabel = labelParts.first; // e.g. "Mei"
+                      final displaySub = labelParts.length > 1
+                          ? '(${labelParts[1]})'
+                          : ''; // e.g. "(2026)"
+
+                      return ChartBarItem(
+                        valueText: NumberFormatHelper.formatWithDots(item.total),
+                        heightPercentage: percentage,
+                        label: displayLabel,
+                        subLabel: displaySub,
+                        isCurrentMonth: item.isCurrentMonth,
+                      );
+                    }).toList(),
+                  ),
+              ],
+            ),
           ),
         ],
       ),

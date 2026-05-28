@@ -4,23 +4,63 @@ import '../models/dashboard_models.dart';
 import '../helpers/number_format_helper.dart';
 
 class RangkumanUtama extends StatefulWidget {
-  const RangkumanUtama({super.key});
+  final DashboardSummary? data;
+  final bool? isLoading;
+  
+  const RangkumanUtama({
+    super.key,
+    this.data,
+    this.isLoading,
+  });
 
   @override
   State<RangkumanUtama> createState() => _RangkumanUtamaState();
 }
 
 class _RangkumanUtamaState extends State<RangkumanUtama> {
-  late Future<DashboardSummary> _summaryFuture;
+  late Future<DashboardSummary>? _summaryFuture;
 
   @override
   void initState() {
     super.initState();
-    _summaryFuture = ApiService.getSummary();
+    // Hanya fetch jika data tidak disediakan dari parent
+    if (widget.data == null) {
+      _summaryFuture = ApiService.getSummary();
+    } else {
+      _summaryFuture = null;
+    }
+  }
+
+  @override
+  void didUpdateWidget(RangkumanUtama oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update ketika data dari parent berubah
+    if (widget.data != oldWidget.data) {
+      setState(() {
+        _summaryFuture = null;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Gunakan data dari parent jika ada
+    if (widget.data != null) {
+      return _buildContent(widget.data!, widget.isLoading ?? false);
+    }
+    
+    // Fallback: Gunakan FutureBuilder jika standalone
+    return FutureBuilder<DashboardSummary>(
+      future: _summaryFuture,
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        final data = snapshot.data ?? DashboardSummary.fallback();
+        return _buildContent(data, isLoading);
+      },
+    );
+  }
+
+  Widget _buildContent(DashboardSummary data, bool isLoading) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -100,107 +140,101 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
           ),
           
           // Current Month Warning Badge
-          FutureBuilder<DashboardSummary>(
-            future: _summaryFuture,
-            builder: (context, snapshot) {
-              final data = snapshot.data;
-              if (data != null && data.isCurrentMonth && data.note != null) {
-                return Container(
-                  margin: const EdgeInsets.only(top: 8, bottom: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0x33FFA726), // Orange with opacity
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: const Color(0xFFFF9800),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.info_outline,
-                        color: Color(0xFFFFB74D),
-                        size: 16,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          data.note!,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+          _buildWarningBadge(data),
 
           // 2x2 Grid of Summary Cards with premium modern rounded Material Icons
-          FutureBuilder<DashboardSummary>(
-            future: _summaryFuture,
-            builder: (context, snapshot) {
-              final isSearching = snapshot.connectionState == ConnectionState.waiting;
-              final data = snapshot.data ?? DashboardSummary.fallback();
-
-              return GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                childAspectRatio: 1.32,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                children: [
-                  SummaryCard(
-                    title: 'Total Asesmen',
-                    value: isSearching ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesmen),
-                    trend: data.trendAsesmen,
-                    subtitle: 'Total Terjadwal',
-                    icon: Icons.trending_up_rounded,
-                    iconColor: const Color(0xFF5C51DC),
-                    iconBgColor: const Color(0xFFEEECFD),
-                  ),
-                  SummaryCard(
-                    title: 'Pemegang Sertifikat',
-                    value: isSearching ? '...' : NumberFormatHelper.formatWithDots(data.totalPemegangSertifikat),
-                    trend: data.trendPemegangSertifikat,
-                    subtitle: 'Asesi Kompeten',
-                    icon: Icons.people_alt_rounded,
-                    iconColor: const Color(0xFFFFB300),
-                    iconBgColor: const Color(0xFFFFF9E6),
-                  ),
-                  SummaryCard(
-                    title: 'Asesor Aktif',
-                    value: isSearching ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesor),
-                    trend: data.trendAsesor,
-                    subtitle: 'Asesor Terverifikasi',
-                    icon: Icons.badge_rounded,
-                    iconColor: const Color(0xFF00D1B2),
-                    iconBgColor: const Color(0xFFE6FAF7),
-                  ),
-                  SummaryCard(
-                    title: 'Mitra & TUK Aktif',
-                    value: isSearching ? '...' : NumberFormatHelper.formatWithDots(data.totalTuk),
-                    trend: data.trendTuk,
-                    subtitle: 'Lembaga / TUK',
-                    icon: Icons.handshake_rounded,
-                    iconColor: const Color(0xFFFF5252),
-                    iconBgColor: const Color(0xFFFFEEEE),
-                  ),
-                ],
-              );
-            },
-          ),
+          _buildSummaryGrid(data, isLoading),
         ],
       ),
+    );
+  }
+
+  Widget _buildWarningBadge(DashboardSummary data) {
+    if (data.isCurrentMonth && data.note != null) {
+      return Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0x33FFA726), // Orange with opacity
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: const Color(0xFFFF9800),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.info_outline,
+              color: Color(0xFFFFB74D),
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                data.note!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildSummaryGrid(DashboardSummary data, bool isLoading) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      childAspectRatio: 1.32,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      children: [
+        SummaryCard(
+          title: 'Total Asesmen',
+          value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesmen),
+          trend: data.trendAsesmen,
+          subtitle: 'Total Terjadwal',
+          icon: Icons.trending_up_rounded,
+          iconColor: const Color(0xFF5C51DC),
+          iconBgColor: const Color(0xFFEEECFD),
+        ),
+        SummaryCard(
+          title: 'Pemegang Sertifikat',
+          value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalPemegangSertifikat),
+          trend: data.trendPemegangSertifikat,
+          subtitle: 'Asesi Kompeten',
+          icon: Icons.people_alt_rounded,
+          iconColor: const Color(0xFFFFB300),
+          iconBgColor: const Color(0xFFFFF9E6),
+        ),
+        SummaryCard(
+          title: 'Asesor Aktif',
+          value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesor),
+          trend: data.trendAsesor,
+          subtitle: 'Asesor Terverifikasi',
+          icon: Icons.badge_rounded,
+          iconColor: const Color(0xFF00D1B2),
+          iconBgColor: const Color(0xFFE6FAF7),
+        ),
+        SummaryCard(
+          title: 'Mitra & TUK Aktif',
+          value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalTuk),
+          trend: data.trendTuk,
+          subtitle: 'Lembaga / TUK',
+          icon: Icons.handshake_rounded,
+          iconColor: const Color(0xFFFF5252),
+          iconBgColor: const Color(0xFFFFEEEE),
+        ),
+      ],
     );
   }
 }

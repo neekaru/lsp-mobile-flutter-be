@@ -3,23 +3,63 @@ import '../services/api_service.dart';
 import '../models/dashboard_models.dart';
 
 class JadwalAsesmen extends StatefulWidget {
-  const JadwalAsesmen({super.key});
+  final List<JadwalOverdue>? data;
+  final bool? isLoading;
+  
+  const JadwalAsesmen({
+    super.key,
+    this.data,
+    this.isLoading,
+  });
 
   @override
   State<JadwalAsesmen> createState() => _JadwalAsesmenState();
 }
 
 class _JadwalAsesmenState extends State<JadwalAsesmen> {
-  late Future<List<JadwalOverdue>> _jadwalFuture;
+  late Future<List<JadwalOverdue>>? _jadwalFuture;
 
   @override
   void initState() {
     super.initState();
-    _jadwalFuture = ApiService.getJadwalOutOfDate();
+    // Hanya fetch jika data tidak disediakan dari parent
+    if (widget.data == null) {
+      _jadwalFuture = ApiService.getJadwalOutOfDate();
+    } else {
+      _jadwalFuture = null;
+    }
+  }
+
+  @override
+  void didUpdateWidget(JadwalAsesmen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update ketika data dari parent berubah
+    if (widget.data != oldWidget.data) {
+      setState(() {
+        _jadwalFuture = null;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Gunakan data dari parent jika ada
+    if (widget.data != null) {
+      return _buildContent(widget.data!, widget.isLoading ?? false);
+    }
+    
+    // Fallback: Gunakan FutureBuilder jika standalone
+    return FutureBuilder<List<JadwalOverdue>>(
+      future: _jadwalFuture,
+      builder: (context, snapshot) {
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+        final data = snapshot.data ?? [];
+        return _buildContent(data, isLoading);
+      },
+    );
+  }
+
+  Widget _buildContent(List<JadwalOverdue> data, bool isLoading) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -55,48 +95,46 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
         ),
         const SizedBox(height: 12),
 
-        FutureBuilder<List<JadwalOverdue>>(
-          future: _jadwalFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: Color(0xFF2C6C9C),
-                  ),
-                ),
-              );
-            }
-
-            final data = snapshot.data ?? [];
-            if (data.isEmpty) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Text(
-                    'Tidak ada jadwal mendekati batas',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-                ),
-              );
-            }
-
-            return ListView.separated(
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: data.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final item = data[index];
-                return JadwalItemCard(item: item);
-              },
-            );
-          },
-        ),
+        _buildJadwalList(data, isLoading),
       ],
+    );
+  }
+
+  Widget _buildJadwalList(List<JadwalOverdue> data, bool isLoading) {
+    if (isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            color: Color(0xFF2C6C9C),
+          ),
+        ),
+      );
+    }
+
+    if (data.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Text(
+            'Tidak ada jadwal mendekati batas',
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: EdgeInsets.zero,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: data.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 10),
+      itemBuilder: (context, index) {
+        final item = data[index];
+        return JadwalItemCard(item: item);
+      },
     );
   }
 }
