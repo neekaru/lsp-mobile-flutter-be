@@ -595,9 +595,25 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
       );
     }
 
-    return SkemaChartCard(
-      distribusiData: filteredData,
-      periode: _periode,
+    // Use AnimatedSwitcher for smooth transition when filter changes
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      switchInCurve: Curves.easeInOut,
+      switchOutCurve: Curves.easeInOut,
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.95, end: 1.0).animate(animation),
+            child: child,
+          ),
+        );
+      },
+      child: SkemaChartCard(
+        key: ValueKey(_selectedSkema), // Key for AnimatedSwitcher
+        distribusiData: filteredData,
+        periode: _periode,
+      ),
     );
   }
 }

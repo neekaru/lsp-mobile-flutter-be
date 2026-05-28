@@ -264,16 +264,23 @@ class DonutChartPainter extends CustomPainter {
 
     double startAngle = -math.pi / 2; // Start from top
 
+    // Pre-calculate common values
+    final strokeWidth = radius - innerRadius;
+    final arcRadius = (radius + innerRadius) / 2;
+
     for (var item in data) {
       final sweepAngle = (item.persentase / 100) * 2 * math.pi;
       
+      // Reuse paint object with different colors
       final paint = Paint()
         ..color = Color(int.parse('FF${item.color}', radix: 16))
         ..style = PaintingStyle.stroke
-        ..strokeWidth = radius - innerRadius;
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.butt
+        ..isAntiAlias = true; // Enable anti-aliasing for smooth edges
 
       canvas.drawArc(
-        Rect.fromCircle(center: center, radius: (radius + innerRadius) / 2),
+        Rect.fromCircle(center: center, radius: arcRadius),
         startAngle,
         sweepAngle,
         false,
@@ -283,9 +290,8 @@ class DonutChartPainter extends CustomPainter {
       // Draw segment percentage text inside donut segments
       if (item.persentase > 5) {
         final textAngle = startAngle + sweepAngle / 2;
-        final textRadius = (radius + innerRadius) / 2;
-        final textX = center.dx + textRadius * math.cos(textAngle);
-        final textY = center.dy + textRadius * math.sin(textAngle);
+        final textX = center.dx + arcRadius * math.cos(textAngle);
+        final textY = center.dy + arcRadius * math.sin(textAngle);
 
         final textPainter = TextPainter(
           text: TextSpan(
@@ -324,4 +330,7 @@ class DonutChartPainter extends CustomPainter {
     
     return false;
   }
+
+  @override
+  bool shouldRebuildSemantics(DonutChartPainter oldDelegate) => false;
 }
