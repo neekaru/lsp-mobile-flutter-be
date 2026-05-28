@@ -253,7 +253,7 @@ class SummaryCard extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     color: Color(0xFF2C3E50),
-                    fontSize: 11,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.bold,
                     height: 1.1,
                   ),
@@ -267,7 +267,7 @@ class SummaryCard extends StatelessWidget {
                     value,
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.5,
                     ),
@@ -281,7 +281,7 @@ class SummaryCard extends StatelessWidget {
                       trend.startsWith('-') ? '▼' : '▲',
                       style: TextStyle(
                         color: trend.startsWith('-') ? const Color(0xFFFF5252) : const Color(0xFF3CD278),
-                        fontSize: 8,
+                        fontSize: 9,
                       ),
                     ),
                     const SizedBox(width: 3),
@@ -289,7 +289,7 @@ class SummaryCard extends StatelessWidget {
                       trend,
                       style: TextStyle(
                         color: trend.startsWith('-') ? const Color(0xFFFF5252) : const Color(0xFF3CD278),
-                        fontSize: 9,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -298,7 +298,7 @@ class SummaryCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(color: Colors.grey, fontSize: 8.5),
+                  style: const TextStyle(color: Colors.grey, fontSize: 10),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

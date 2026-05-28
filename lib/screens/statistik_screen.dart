@@ -432,11 +432,11 @@ class _StatistikScreenState extends State<StatistikScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 7.5, color: Colors.grey, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.w600),
                 ),
                 Text(
                   value,
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: iconColor),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: iconColor),
                 ),
               ],
             ),
@@ -445,7 +445,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
         const SizedBox(height: 4),
         Text(
           subtitle,
-          style: const TextStyle(fontSize: 8, color: Colors.grey),
+          style: const TextStyle(fontSize: 9, color: Colors.grey),
         ),
       ],
     );
