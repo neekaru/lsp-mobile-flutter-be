@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../models/dashboard_models.dart';
+import '../models/sertifikat_models.dart';
 import '../helpers/bps_code_helper.dart';
 import '../helpers/api_routes.dart';
 
@@ -523,5 +524,69 @@ class ApiService {
     } catch (e) {
       return [];
     }
+  }
+
+  // ============================================================================
+  // Sertifikat APIs
+  // ============================================================================
+
+  /// Fetch Sertifikat Summary
+  static Future<SertifikatSummary> getSertifikatSummary() async {
+    try {
+      final response = await _dio.get(ApiRoutes.dashboardSertifikatSummary);
+
+      if (response.statusCode == 200 && response.data != null) {
+        return SertifikatSummary.fromJson(response.data);
+      }
+
+      return SertifikatSummary.fallback();
+    } catch (e) {
+      print('🔴 Error fetching sertifikat summary: $e');
+      return SertifikatSummary.fallback();
+    }
+  }
+
+  /// Fetch Sertifikat Per Skema
+  static Future<SertifikatApiResponse> getSertifikatPerSkema({
+    int limit = 10,
+    int? tahun,
+    String sort = 'desc',
+  }) async {
+    try {
+      String url = ApiRoutes.withLimit(
+        ApiRoutes.dashboardSertifikatPerSkema,
+        limit,
+      );
+      
+      if (tahun != null) {
+        url += '&tahun=$tahun';
+      }
+      
+      if (sort != 'desc') {
+        url += '&sort=$sort';
+      }
+
+      final response = await _dio.get(url);
+
+      if (response.statusCode == 200 && response.data != null) {
+        return SertifikatApiResponse.fromJson(response.data);
+      }
+
+      return _getFallbackSertifikatResponse();
+    } catch (e) {
+      print('🔴 Error fetching sertifikat per skema: $e');
+      return _getFallbackSertifikatResponse();
+    }
+  }
+
+  static SertifikatApiResponse _getFallbackSertifikatResponse() {
+    return const SertifikatApiResponse(
+      data: [],
+      meta: SertifikatMeta(
+        totalSkema: 0,
+        totalPemegangSertifikat: 0,
+        limit: 10,
+      ),
+    );
   }
 }

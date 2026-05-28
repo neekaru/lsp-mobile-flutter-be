@@ -5,9 +5,10 @@ class SertifikatSummaryCard extends StatelessWidget {
   final String totalSkema;
   final String topSkemaName;
   final String topSkemaPemegang;
-  final String pemegangPercentage;
-  final String skemaPercentage;
-  final String topSkemaPercentage;
+  final String? trendPemegang;
+  final String? trendSkema;
+  final String? trendPemegangDirection;
+  final String? trendSkemaDirection;
 
   const SertifikatSummaryCard({
     super.key,
@@ -15,9 +16,10 @@ class SertifikatSummaryCard extends StatelessWidget {
     required this.totalSkema,
     required this.topSkemaName,
     required this.topSkemaPemegang,
-    this.pemegangPercentage = '15,7%',
-    this.skemaPercentage = '14,6%',
-    this.topSkemaPercentage = '15,7%',
+    this.trendPemegang,
+    this.trendSkema,
+    this.trendPemegangDirection,
+    this.trendSkemaDirection,
   });
 
   @override
@@ -51,7 +53,8 @@ class SertifikatSummaryCard extends StatelessWidget {
                 value: totalPemegang,
                 valueColor: const Color(0xFF339AF0),
                 sublabel: 'Orang',
-                percentage: pemegangPercentage,
+                percentage: trendPemegang ?? '+0.0%',
+                direction: trendPemegangDirection ?? 'stable',
               ),
             ),
             
@@ -75,7 +78,8 @@ class SertifikatSummaryCard extends StatelessWidget {
                 value: totalSkema,
                 valueColor: const Color(0xFF2ECC71),
                 sublabel: 'Skema',
-                percentage: skemaPercentage,
+                percentage: trendSkema ?? '+0.0%',
+                direction: trendSkemaDirection ?? 'stable',
               ),
             ),
             
@@ -99,7 +103,8 @@ class SertifikatSummaryCard extends StatelessWidget {
                 value: topSkemaName,
                 valueColor: const Color(0xFFE67E22),
                 sublabel: topSkemaPemegang,
-                percentage: topSkemaPercentage,
+                percentage: null, // No trend for top skema
+                direction: 'stable',
                 isTextValue: true,
               ),
             ),
@@ -118,9 +123,25 @@ class SertifikatSummaryCard extends StatelessWidget {
     required String value,
     required Color valueColor,
     required String sublabel,
-    required String percentage,
+    required String? percentage,
+    required String direction,
     bool isTextValue = false,
   }) {
+    // Determine icon and color based on direction
+    IconData trendIcon;
+    Color trendColor;
+    
+    if (direction == 'up') {
+      trendIcon = Icons.arrow_drop_up_rounded;
+      trendColor = const Color(0xFF4CAF50);
+    } else if (direction == 'down') {
+      trendIcon = Icons.arrow_drop_down_rounded;
+      trendColor = const Color(0xFFE74C3C);
+    } else {
+      trendIcon = Icons.remove_rounded;
+      trendColor = const Color(0xFF95A5A6);
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -176,25 +197,27 @@ class SertifikatSummaryCard extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.arrow_drop_up_rounded,
-                    color: Color(0xFF4CAF50),
-                    size: 14,
-                  ),
-                  Text(
-                    percentage,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4CAF50),
+              if (percentage != null) ...[
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      trendIcon,
+                      color: trendColor,
+                      size: 14,
                     ),
-                  ),
-                ],
-              ),
+                    Text(
+                      percentage,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: trendColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

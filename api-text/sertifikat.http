@@ -1,0 +1,194 @@
+### Sertifikat API Testing & Documentation
+### Base URL
+@baseUrl = http://127.0.0.1:3000
+@apiPrefix = /api/dashboard
+
+###############################################################################
+### CURRENT IMPLEMENTATION
+###############################################################################
+
+### Get Sertifikat Per Skema (Default: Top 10)
+GET {{baseUrl}}{{apiPrefix}}/sertifikat-per-skema
+Content-Type: application/json
+
+### Get Sertifikat Per Skema (Top 50)
+GET {{baseUrl}}{{apiPrefix}}/sertifikat-per-skema?limit=50
+Content-Type: application/json
+
+### Get Sertifikat Per Skema (Filter tahun 2025)
+GET {{baseUrl}}{{apiPrefix}}/sertifikat-per-skema?tahun=2025
+Content-Type: application/json
+
+### Get Sertifikat Per Skema (Sort ascending)
+GET {{baseUrl}}{{apiPrefix}}/sertifikat-per-skema?sort=asc&limit=10
+Content-Type: application/json
+
+###############################################################################
+### BACKEND REQUEST - ADDITIONAL FIELDS NEEDED
+###############################################################################
+
+### REQUEST: Tambahkan field berikut ke response API /api/dashboard/sertifikat-per-skema
+### 
+### Current Response Structure:
+### {
+###   "data": [
+###     {
+###       "id_skema": 379,
+###       "kode_skema": "SKK-36-10/2024",
+###       "skema": "Pemasaran Digital",
+###       "kategori": "DIGITAL MARKETING AND IT FUNDAMENTAL",
+###       "total_pemegang": 7631
+###     }
+###   ],
+###   "meta": {
+###     "total_skema": 10,
+###     "total_pemegang_sertifikat": 30948,
+###     "tahun_filter": null,
+###     "limit": 10
+###   }
+### }
+###
+### REQUESTED ADDITIONS TO META:
+### {
+###   "meta": {
+###     "total_skema": 10,
+###     "total_pemegang_sertifikat": 30948,
+###     "tahun_filter": null,
+###     "limit": 10,
+###     
+###     // NEW FIELDS NEEDED:
+###     "periode": "Mei 2026",                    // Format: "Bulan Tahun" (dinamis berdasarkan data terbaru)
+###     "tanggal_update": "2026-05-28",           // Tanggal terakhir data diupdate
+###     
+###     "trends": {
+###       "total_pemegang_sertifikat": {
+###         "current": 30948,                     // Total saat ini
+###         "previous": 28500,                    // Total periode sebelumnya (bulan lalu)
+###         "percentage": 8.6,                    // Persentase perubahan
+###         "direction": "up",                    // "up", "down", atau "stable"
+###         "formatted": "+8.6%"                  // Format untuk display
+###       },
+###       "total_skema": {
+###         "current": 50,
+###         "previous": 48,
+###         "percentage": 4.2,
+###         "direction": "up",
+###         "formatted": "+4.2%"
+###       }
+###     }
+###   }
+### }
+###
+### LOGIC FOR TRENDS:
+### - Compare current month data with previous month
+### - Calculate percentage: ((current - previous) / previous) * 100
+### - Direction: "up" if positive, "down" if negative, "stable" if 0
+### - Formatted: Add "+" for positive, "-" for negative, "+0.0%" for stable
+###
+### USE CASE:
+### - Display "Data diambil per [periode]" instead of hardcoded "Mei 2026"
+### - Show growth indicators in summary cards (e.g., "+8.6%" with up arrow)
+### - Provide context about data freshness to users
+###
+
+###############################################################################
+### REQUEST: New Endpoint for Sertifikat Summary
+###############################################################################
+
+### ENDPOINT: GET /api/dashboard/sertifikat-summary
+### 
+### Expected Response:
+### {
+###   "data": {
+###     "total_pemegang_sertifikat": 39360,
+###     "total_skema": 50,
+###     "top_skema": {
+###       "id_skema": 379,
+###       "skema": "Pemasaran Digital",
+###       "total_pemegang": 7631
+###     },
+###     "trends": {
+###       "pemegang_sertifikat": {
+###         "percentage": 15.7,
+###         "direction": "up",
+###         "formatted": "+15.7%"
+###       },
+###       "skema": {
+###         "percentage": 16.8,
+###         "direction": "up",
+###         "formatted": "+16.8%"
+###       }
+###     }
+###   },
+###   "meta": {
+###     "periode": "Mei 2026",
+###     "comparison_period": "April 2026",
+###     "tanggal_update": "2026-05-28"
+###   }
+### }
+###
+### LOGIC:
+### - total_pemegang_sertifikat: Sum of all certificate holders across all schemas
+### - total_skema: Count of active schemas
+### - top_skema: Schema with highest total_pemegang
+### - trends: Compare with previous month data
+###
+
+###############################################################################
+### REQUEST: Search/Filter Endpoint for Certificate Holders
+###############################################################################
+
+### ENDPOINT: GET /api/sertifikat/search
+### 
+### Query Parameters:
+### - q: Search query (nama pemegang, nomor sertifikat)
+### - skema: Filter by skema name
+### - kategori: Filter by kategori
+### - status: Filter by status (aktif, kadaluarsa, akan_kadaluarsa)
+### - limit: Number of results (default: 20)
+### - offset: Pagination offset (default: 0)
+###
+### Expected Response:
+### {
+###   "data": [
+###     {
+###       "id": 1,
+###       "skema": "Pemasaran Digital",
+###       "pemegang": "Ahmad Rizki",
+###       "nomor_sertifikat": "CERT-2025-001",
+###       "tanggal_terbit": "2025-01-15",
+###       "tanggal_berlaku": "2028-01-15",
+###       "status": "aktif",
+###       "kategori": "DIGITAL MARKETING AND IT FUNDAMENTAL",
+###       "institusi": "LSP Digital Indonesia"
+###     }
+###   ],
+###   "meta": {
+###     "total": 150,
+###     "limit": 20,
+###     "offset": 0,
+###     "has_more": true
+###   }
+### }
+###
+### USE CASE:
+### - Search functionality in sertifikat screen
+### - Filter by skema/kategori dropdown
+### - Display individual certificate holder details
+###
+
+###############################################################################
+### PRIORITY
+###############################################################################
+### 
+### HIGH PRIORITY:
+### 1. Add "periode" and "tanggal_update" to existing /api/dashboard/sertifikat-per-skema meta
+### 2. Add "trends" object to meta for growth indicators
+###
+### MEDIUM PRIORITY:
+### 3. Create /api/dashboard/sertifikat-summary endpoint
+###
+### LOW PRIORITY (Future Enhancement):
+### 4. Create /api/sertifikat/search endpoint for search functionality
+###
+###############################################################################

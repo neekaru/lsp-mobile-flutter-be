@@ -22,6 +22,8 @@ class ApiRoutes {
   static const String dashboardTrends = '/api/dashboard/trends';
   static const String dashboardSertifikatPerSkema =
       '/api/dashboard/sertifikat-per-skema';
+  static const String dashboardSertifikatSummary =
+      '/api/dashboard/sertifikat-summary';
   static const String dashboardAsesorDistribution =
       '/api/dashboard/asesor-distribution';
   static const String dashboardPenyebaranTuk = '/api/dashboard/penyebaran-tuk';

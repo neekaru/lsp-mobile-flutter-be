@@ -4,21 +4,41 @@ import '../../models/sertifikat_models.dart';
 
 class SkemaChartCard extends StatelessWidget {
   final List<SertifikatDistribusi> distribusiData;
+  final String? periode;
 
   const SkemaChartCard({
     super.key,
     required this.distribusiData,
+    this.periode,
   });
+
+  String _getCurrentMonthYear() {
+    if (periode != null && periode!.isNotEmpty) {
+      return periode!;
+    }
+    
+    final now = DateTime.now();
+    final months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return '${months[now.month - 1]} ${now.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
     // Hitung total dari data secara dinamis
-    final int totalCount = distribusiData.fold(0, (sum, item) => sum + item.jumlah);
+    final int totalCount = distribusiData.fold(0, (sum, item) => sum + item.totalPemegang);
     
     // Format ribuan (misal: 3960 menjadi 3.960)
-    final String formattedTotal = totalCount >= 1000
-        ? '${(totalCount ~/ 1000)}.${(totalCount % 1000).toString().padLeft(3, '0')}'
-        : '$totalCount';
+    String formatNumber(int number) {
+      return number.toString().replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (Match m) => '${m[1]}.',
+      );
+    }
+    
+    final String formattedTotal = formatNumber(totalCount);
 
     return Container(
       width: double.infinity,
@@ -48,7 +68,7 @@ class SkemaChartCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     Text(
-                      'Pemegang Sertifikat Perskema (Top 5 Skema)',
+                      'Pemegang Sertifikat Perskema (Top 10 Skema)',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -75,16 +95,16 @@ class SkemaChartCard extends StatelessWidget {
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(
+                  children: [
+                    const Icon(
                       Icons.calendar_today_rounded,
                       size: 14,
                       color: Colors.black87,
                     ),
-                    SizedBox(width: 6),
+                    const SizedBox(width: 6),
                     Text(
-                      'Mei 2025',
-                      style: TextStyle(
+                      _getCurrentMonthYear(),
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
@@ -108,9 +128,14 @@ class SkemaChartCard extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    CustomPaint(
-                      size: const Size(140, 140),
-                      painter: DonutChartPainter(distribusiData),
+                    // Use RepaintBoundary for GPU acceleration
+                    RepaintBoundary(
+                      child: CustomPaint(
+                        size: const Size(140, 140),
+                        painter: DonutChartPainter(distribusiData),
+                        isComplex: true,
+                        willChange: false,
+                      ),
                     ),
                     // Inner Circle Content
                     Column(
@@ -174,7 +199,7 @@ class SkemaChartCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  item.kategori,
+                                  item.skema,
                                   style: const TextStyle(
                                     fontSize: 11,
                                     color: Colors.black87,
@@ -201,17 +226,17 @@ class SkemaChartCard extends StatelessWidget {
 
           // Footer Row
           Row(
-            children: const [
-              Icon(
+            children: [
+              const Icon(
                 Icons.warning_amber_rounded,
                 size: 16,
                 color: Colors.grey,
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Data diambil per Mei 2025',
-                  style: TextStyle(
+                  'Data diambil per ${_getCurrentMonthYear()}',
+                  style: const TextStyle(
                     fontSize: 11,
                     color: Colors.grey,
                   ),
@@ -285,5 +310,18 @@ class DonutChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(DonutChartPainter oldDelegate) {
+    // Repaint if data changes
+    if (oldDelegate.data.length != data.length) return true;
+    
+    for (int i = 0; i < data.length; i++) {
+      if (oldDelegate.data[i].idSkema != data[i].idSkema ||
+          oldDelegate.data[i].totalPemegang != data[i].totalPemegang ||
+          oldDelegate.data[i].persentase != data[i].persentase) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
 }
