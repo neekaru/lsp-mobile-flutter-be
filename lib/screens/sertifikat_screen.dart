@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 import '../models/sertifikat_models.dart';
+import '../widgets/sertifikat/skema_chart_card.dart';
+import '../widgets/sertifikat/sertifikat_summary_card.dart';
+import '../widgets/sertifikat/sertifikat_item_card.dart';
 
 class SertifikatScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -92,34 +94,34 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
 
   final List<SertifikatDistribusi> distribusiData = const [
     SertifikatDistribusi(
-      kategori: 'Digital Marketing',
-      jumlah: 1080,
-      persentase: 27.1,
-      color: '5B47D8', // Purple
+      kategori: 'SMK Media Infomatika - Digital Enginer',
+      jumlah: 1251,
+      persentase: 31.6,
+      color: '0D47A1', // Dark Blue
     ),
     SertifikatDistribusi(
-      kategori: 'Digital Engineer',
-      jumlah: 800,
-      persentase: 20.1,
-      color: '4CAF50', // Green
+      kategori: 'SMK Media Infomatika - Digital Marketing',
+      jumlah: 978,
+      persentase: 24.7,
+      color: '1976D2', // Bright Blue
     ),
     SertifikatDistribusi(
-      kategori: 'Data Analyst',
-      jumlah: 750,
-      persentase: 18.8,
-      color: 'FF9800', // Orange
+      kategori: 'SMK Media Infomatika - Data Analyst',
+      jumlah: 748,
+      persentase: 18.9,
+      color: '42A5F5', // Mid Blue
     ),
     SertifikatDistribusi(
-      kategori: 'Mobile Developer',
-      jumlah: 700,
-      persentase: 17.6,
-      color: '2196F3', // Blue
+      kategori: 'SMK Media Infomatika - Mobile Developer',
+      jumlah: 558,
+      persentase: 14.1,
+      color: '90CAF9', // Light Blue
     ),
     SertifikatDistribusi(
-      kategori: 'UI/UX Designer',
-      jumlah: 650,
-      persentase: 16.3,
-      color: 'E91E63', // Pink
+      kategori: 'SMK Media Infomatika - UI/UX Designer',
+      jumlah: 425,
+      persentase: 10.6,
+      color: 'BBDEFB', // Very Light Blue
     ),
   ];
 
@@ -444,123 +446,11 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
   }
 
   Widget _buildSummaryCards() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSummaryCard(
-            icon: Icons.people,
-            iconColor: const Color(0xFF5B47D8),
-            iconBgColor: const Color(0xFFE8E5FB),
-            title: 'Total Pemegang Sertifikat',
-            value: '3.980',
-            percentage: '+15,7%',
-            isPositive: true,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSummaryCard(
-            icon: Icons.school,
-            iconColor: const Color(0xFF4CAF50),
-            iconBgColor: const Color(0xFFE8F5E9),
-            title: 'Total Skema',
-            value: '2.000',
-            percentage: '+16,8%',
-            isPositive: true,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSummaryCard(
-            icon: Icons.workspace_premium,
-            iconColor: const Color(0xFFFF9800),
-            iconBgColor: const Color(0xFFFFF3E0),
-            title: 'Total Sertifikat Terbit',
-            value: '8.000',
-            percentage: '+18,7%',
-            isPositive: true,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryCard({
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
-    required String title,
-    required String value,
-    required String percentage,
-    required bool isPositive,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 20,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.grey,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            decoration: BoxDecoration(
-              color: isPositive ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              percentage,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: isPositive ? const Color(0xFF4CAF50) : const Color(0xFFF44336),
-              ),
-            ),
-          ),
-        ],
-      ),
+    return const SertifikatSummaryCard(
+      totalPemegang: '22.600',
+      totalSkema: '2.000',
+      topSkemaName: 'Digital\nMarketing',
+      topSkemaPemegang: '1.300 Pemegang',
     );
   }
 
@@ -621,359 +511,16 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
           separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final item = _searchResults[index];
-            return _buildSertifikatCard(item);
+            return SertifikatItemCard(item: item);
           },
         ),
       ],
     );
   }
 
-  Widget _buildSertifikatCard(SertifikatItem item) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8E5FB),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.workspace_premium,
-                  color: Color(0xFF5B47D8),
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.pemegang,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      item.skema,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  item.status.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF4CAF50),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'No. Sertifikat',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.nomorSertifikat,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Berlaku Hingga',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.tanggalBerlaku,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (item.institusi != null) ...[
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(
-                  Icons.business,
-                  size: 14,
-                  color: Colors.grey,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    item.institusi!,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildPemegangSertifikatSection() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Pemegang Sertifikat Perskema (Top 5 Skema)',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Berdasarkan Jumlah Pemegang Sertifikat',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Donut Chart and Legend
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Donut Chart
-              SizedBox(
-                width: 140,
-                height: 140,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CustomPaint(
-                      size: const Size(140, 140),
-                      painter: DonutChartPainter(distribusiData),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          '3.980',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const Text(
-                          'Total',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 24),
-
-              // Legend
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: distribusiData.map((item) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Color(int.parse('FF${item.color}', radix: 16)),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.kategori,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '${item.persentase.toStringAsFixed(1)}%',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFE0E0E0)),
-          const SizedBox(height: 12),
-
-          // Footer note
-          Row(
-            children: [
-              const Icon(
-                Icons.info_outline,
-                size: 14,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 6),
-              const Expanded(
-                child: Text(
-                  'Data diperbarui per Mei 2025',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    return SkemaChartCard(distribusiData: distribusiData);
   }
-}
-
-// Custom Painter untuk Donut Chart
-class DonutChartPainter extends CustomPainter {
-  final List<SertifikatDistribusi> data;
-
-  DonutChartPainter(this.data);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = math.min(size.width, size.height) / 2;
-    final innerRadius = radius * 0.6;
-
-    double startAngle = -math.pi / 2; // Start from top
-
-    for (var item in data) {
-      final sweepAngle = (item.persentase / 100) * 2 * math.pi;
-      
-      final paint = Paint()
-        ..color = Color(int.parse('FF${item.color}', radix: 16))
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = radius - innerRadius;
-
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: (radius + innerRadius) / 2),
-        startAngle,
-        sweepAngle,
-        false,
-        paint,
-      );
-
-      startAngle += sweepAngle;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
