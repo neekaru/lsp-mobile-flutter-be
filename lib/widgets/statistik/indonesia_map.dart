@@ -18,10 +18,14 @@ class IndonesiaMap extends StatefulWidget {
   State<IndonesiaMap> createState() => _IndonesiaMapState();
 }
 
-class _IndonesiaMapState extends State<IndonesiaMap> {
+class _IndonesiaMapState extends State<IndonesiaMap>
+    with AutomaticKeepAliveClientMixin {
   bool _isLoading = true;
   MapShapeSource? _cachedMapSource;
   String? _errorMessage;
+
+  @override
+  bool get wantKeepAlive => true;
 
   // Realistically mapped advisor counts for all provinces
   // Mapping menggunakan ID dari GeoJSON (format: IDXX)
@@ -110,7 +114,9 @@ class _IndonesiaMapState extends State<IndonesiaMap> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    super.build(context); // Required by AutomaticKeepAliveClientMixin
+    return RepaintBoundary(
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         width: double.infinity,
@@ -150,6 +156,7 @@ class _IndonesiaMapState extends State<IndonesiaMap> {
           ],
         ),
       ),
+    ),
     );
   }
 

@@ -329,7 +329,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
     );
   }
 
-  // Schema Sebaran metrics layout (1 horizontal card divided into 4 columns)
+  // Schema Sebaran metrics layout (2x2 grid for better readability)
   Widget _buildSkemaMetrics() {
     return FutureBuilder<SkemaStats>(
       future: _skemaStatsFuture,
@@ -342,112 +342,139 @@ class _StatistikScreenState extends State<StatistikScreen> {
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x05000000),
-                  blurRadius: 6,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildMetricCard4Col(
-                    icon: Icons.assignment_outlined,
-                    iconColor: const Color(0xFF2C6C9C),
-                    title: 'Total Skema',
-                    value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalSkema),
-                    subtitle: 'Semua skema',
+          child: Column(
+            children: [
+              // Top row: Total Skema & Provinsi
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSkemaMetricTile(
+                      icon: Icons.assignment_outlined,
+                      iconColor: const Color(0xFF2C6C9C),
+                      title: 'Total Skema',
+                      value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalSkema),
+                      subtitle: 'Semua skema',
+                    ),
                   ),
-                ),
-                _buildVerticalDivider(),
-                Expanded(
-                  child: _buildMetricCard4Col(
-                    icon: Icons.map_outlined,
-                    iconColor: const Color(0xFF4CAF50),
-                    title: 'Provinsi',
-                    value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.provinsi),
-                    subtitle: 'Tersebar',
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildSkemaMetricTile(
+                      icon: Icons.map_outlined,
+                      iconColor: const Color(0xFF4CAF50),
+                      title: 'Provinsi',
+                      value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.provinsi),
+                      subtitle: 'Tersebar',
+                    ),
                   ),
-                ),
-                _buildVerticalDivider(),
-                Expanded(
-                  child: _buildMetricCard4Col(
-                    icon: Icons.personal_video_outlined,
-                    iconColor: const Color(0xFF2C6C9C),
-                    title: 'Skema Aktif',
-                    value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.skemaAktif),
-                    subtitle: isLoading ? '...' : '${activePct.toStringAsFixed(1).replaceAll('.', ',')}%',
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Bottom row: Skema Aktif & Skema Nonaktif
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSkemaMetricTile(
+                      icon: Icons.personal_video_outlined,
+                      iconColor: const Color(0xFF2C6C9C),
+                      title: 'Skema Aktif',
+                      value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.skemaAktif),
+                      subtitle: isLoading ? '...' : '${activePct.toStringAsFixed(1).replaceAll('.', ',')}%',
+                    ),
                   ),
-                ),
-                _buildVerticalDivider(),
-                Expanded(
-                  child: _buildMetricCard4Col(
-                    icon: Icons.cancel_outlined,
-                    iconColor: const Color(0xFFE53935),
-                    title: 'Skema Nonaktif',
-                    value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.skemaNonaktif),
-                    subtitle: isLoading ? '...' : '${inactivePct.toStringAsFixed(1).replaceAll('.', ',')}%',
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildSkemaMetricTile(
+                      icon: Icons.cancel_outlined,
+                      iconColor: const Color(0xFFE53935),
+                      title: 'Skema Nonaktif',
+                      value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.skemaNonaktif),
+                      subtitle: isLoading ? '...' : '${inactivePct.toStringAsFixed(1).replaceAll('.', ',')}%',
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildVerticalDivider() {
-    return Container(
-      height: 36,
-      width: 0.8,
-      color: Colors.grey[200],
-    );
-  }
-
-  Widget _buildMetricCard4Col({
+  Widget _buildSkemaMetricTile({
     required IconData icon,
     required Color iconColor,
     required String title,
     required String value,
     required String subtitle,
   }) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: iconColor, size: 14),
-            const SizedBox(width: 3),
-            Column(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x05000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: iconColor, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF5F6E7D),
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  value,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: iconColor),
+                const SizedBox(height: 2),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: iconColor,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF8E99A4),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: const TextStyle(fontSize: 9, color: Colors.grey),
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 
