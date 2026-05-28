@@ -93,7 +93,7 @@ class _SectorDistributionCardState extends State<SectorDistributionCard> {
                       sector.percentage,
                       color,
                     );
-                  }).toList(),
+                  }),
               ],
             ),
           ),

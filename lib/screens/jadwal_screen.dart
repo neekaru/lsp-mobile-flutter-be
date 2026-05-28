@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/jadwal_models.dart';
 import '../widgets/jadwal/jadwal_list_item.dart';
+import '../widgets/jadwal/custom_tab_bar.dart';
 import 'jadwal_detail_screen.dart';
 
 class JadwalScreen extends StatefulWidget {
@@ -161,68 +162,9 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
           // Tab Bar
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8EEF5),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TabBar(
+            child: JadwalTabBar(
               controller: _tabController,
-              indicator: BoxDecoration(
-                color: const Color(0xFF5B9FD8),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: Colors.white,
-              unselectedLabelColor: const Color(0xFF6B7280),
-              labelStyle: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-              dividerColor: Colors.transparent,
-              tabs: [
-                Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Flexible(
-                        child: Text(
-                          'Akan Berakhir',
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFF6B6B),
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 20,
-                          minHeight: 20,
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${akanBerakhirList.length}',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1.0,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Tab(text: 'Berjalan'),
-                const Tab(text: 'Selesai'),
-              ],
+              akanBerakhirCount: akanBerakhirList.length,
             ),
           ),
 
@@ -246,6 +188,8 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
       ),
     );
   }
+
+
 
   Widget _buildAkanBerakhirTab() {
     return SingleChildScrollView(
