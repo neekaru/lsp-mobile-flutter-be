@@ -589,4 +589,38 @@ class ApiService {
       ),
     );
   }
+
+  /// Search Sertifikat by query
+  static Future<List<SertifikatItem>> searchSertifikat({
+    required String query,
+    String? skema,
+    String? kategori,
+    String? status,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    try {
+      // Build query parameters
+      final params = <String>[];
+      params.add('q=$query');
+      if (skema != null && skema.isNotEmpty) params.add('skema=$skema');
+      if (kategori != null && kategori.isNotEmpty) params.add('kategori=$kategori');
+      if (status != null && status.isNotEmpty) params.add('status=$status');
+      params.add('limit=$limit');
+      params.add('offset=$offset');
+
+      final url = '${ApiRoutes.sertifikatSearch}?${params.join('&')}';
+      final response = await _dio.get(url);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data.map((item) => SertifikatItem.fromJson(item)).toList();
+      }
+
+      return [];
+    } catch (e) {
+      print('🔴 Error searching sertifikat: $e');
+      return [];
+    }
+  }
 }

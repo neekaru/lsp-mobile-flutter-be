@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/sertifikat_models.dart';
 import '../services/api_service.dart';
@@ -18,11 +19,13 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedSkema = 'Semua Skema';
   bool _isSearching = false;
+  bool _isSearchLoading = false;
   List<SertifikatItem> _searchResults = [];
   bool _isLoading = true;
   List<SertifikatDistribusi> _distribusiData = [];
   SertifikatSummary? _summary;
   String _periode = '';
+  Timer? _debounce;
 
   // Daftar skema untuk filter
   List<String> _skemaList = ['Semua Skema'];
@@ -87,9 +90,6 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
   // Mock data - dalam implementasi nyata, ambil dari API
   final SertifikatRingkasan ringkasan = SertifikatRingkasan.fallback();
 
-  // Mock data untuk hasil pencarian
-  final List<SertifikatItem> _allSertifikat = const [];
-
   // Fungsi untuk filter distribusi data berdasarkan kategori yang dipilih
   List<SertifikatDistribusi> _getFilteredDistribusi() {
     List<SertifikatDistribusi> filtered;
@@ -138,23 +138,51 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
   // Fungsi untuk melakukan pencarian berdasarkan nama pemegang sertifikat
-  void _performSearch(String query) {
+  Future<void> _performSearch(String query) async {
+    // Cancel previous debounce timer
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
     setState(() {
       if (query.isEmpty) {
         _isSearching = false;
         _searchResults = [];
+        _isSearchLoading = false;
       } else {
         _isSearching = true;
-        _searchResults = _allSertifikat.where((sertifikat) {
-          final nameLower = sertifikat.pemegang.toLowerCase();
-          final queryLower = query.toLowerCase();
-          
-          return nameLower.contains(queryLower);
-        }).toList();
+        _isSearchLoading = true;
+      }
+    });
+
+    if (query.isEmpty) return;
+
+    // Debounce: wait 500ms before calling API
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        // Call API untuk search
+        final results = await ApiService.searchSertifikat(
+          query: query,
+          limit: 20,
+        );
+
+        if (mounted) {
+          setState(() {
+            _searchResults = results;
+            _isSearchLoading = false;
+          });
+        }
+      } catch (e) {
+        print('Error searching sertifikat: $e');
+        if (mounted) {
+          setState(() {
+            _searchResults = [];
+            _isSearchLoading = false;
+          });
+        }
       }
     });
   }
@@ -391,7 +419,7 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
               controller: _searchController,
               onChanged: _performSearch,
               decoration: InputDecoration(
-                hintText: 'Cari pemegang sertifikat',
+                hintText: 'Cari nama pemegang (contoh: Budi Santoso)',
                 hintStyle: const TextStyle(
                   color: Color(0xFF9E9E9E),
                   fontSize: 14,
@@ -504,6 +532,24 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
   }
 
   Widget _buildSearchResults() {
+    // Show loading indicator while searching
+    if (_isSearchLoading) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            color: Color(0xFF2C6C9C),
+          ),
+        ),
+      );
+    }
+
     if (_searchResults.isEmpty) {
       return Container(
         width: double.infinity,
