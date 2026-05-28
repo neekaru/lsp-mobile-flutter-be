@@ -70,6 +70,20 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
     }
   }
 
+  Future<void> _handleRefresh() async {
+    await _loadData();
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Data berhasil diperbarui'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   // Mock data - dalam implementasi nyata, ambil dari API
   final SertifikatRingkasan ringkasan = SertifikatRingkasan.fallback();
 
@@ -317,35 +331,39 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
 
           // Content
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Search Bar
-                  _buildSearchBar(),
-                  const SizedBox(height: 16),
+            child: RefreshIndicator(
+              onRefresh: _handleRefresh,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Search Bar
+                    _buildSearchBar(),
+                    const SizedBox(height: 16),
 
-                  // Ringkasan Section
-                  const Text(
-                    'Ringkasan',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                    // Ringkasan Section
+                    const Text(
+                      'Ringkasan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                  // Summary Cards
-                  _buildSummaryCards(),
-                  const SizedBox(height: 24),
+                    // Summary Cards
+                    _buildSummaryCards(),
+                    const SizedBox(height: 24),
 
-                  // Conditional: Show search results or chart section
-                  _isSearching
-                      ? _buildSearchResults()
-                      : _buildPemegangSertifikatSection(),
-                ],
+                    // Conditional: Show search results or chart section
+                    _isSearching
+                        ? _buildSearchResults()
+                        : _buildPemegangSertifikatSection(),
+                  ],
+                ),
               ),
             ),
           ),

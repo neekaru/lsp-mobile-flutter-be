@@ -15,6 +15,7 @@ class JadwalScreen extends StatefulWidget {
 
 class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _isRefreshing = false;
   
   // Mock user role - dalam implementasi nyata, ambil dari auth service
   final UserRole currentUser = const UserRole(
@@ -146,6 +147,30 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
     super.dispose();
   }
 
+  Future<void> _handleRefresh() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    // Simulasi fetch data dari API
+    await Future.delayed(const Duration(seconds: 1));
+
+    setState(() {
+      _isRefreshing = false;
+    });
+
+    // Tampilkan feedback ke user
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Data berhasil diperbarui'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
@@ -192,184 +217,201 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
 
 
   Widget _buildAkanBerakhirTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Statistik Card dengan Line Chart
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x0A000000),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Total Asesmen',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text(
-                            '8.045',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                              height: 1,
-                            ),
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Statistik Card dengan Line Chart
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x0A000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Total Asesmen',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F5E9),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              '↑ 15,7%',
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              '8.045',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 28,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF4CAF50),
+                                color: Colors.black87,
+                                height: 1,
                               ),
                             ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                '↑ 15,7%',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF4CAF50),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'dibanding tahun 2025',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 3,
+                    child: SizedBox(
+                      height: 100,
+                      child: CustomPaint(
+                        painter: MiniLineChartPainter(),
                       ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'dibanding tahun 2025',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // List Jadwal
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: akanBerakhirList.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final item = akanBerakhirList[index];
+                return JadwalListItem(
+                  item: item,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => JadwalDetailScreen(
+                          jadwal: item,
+                          userRole: currentUser,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 3,
-                  child: SizedBox(
-                    height: 100,
-                    child: CustomPaint(
-                      painter: MiniLineChartPainter(),
-                    ),
-                  ),
-                ),
-              ],
+                    );
+                  },
+                );
+              },
             ),
-          ),
 
-          const SizedBox(height: 16),
-
-          // List Jadwal
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: akanBerakhirList.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final item = akanBerakhirList[index];
-              return JadwalListItem(
-                item: item,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => JadwalDetailScreen(
-                        jadwal: item,
-                        userRole: currentUser,
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-
-          const SizedBox(height: 80),
-        ],
+            const SizedBox(height: 80),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildJadwalList(List<JadwalItem> items, String status) {
     if (items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE5F1FC),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.event_busy_rounded,
-                color: Color(0xFF2C6C9C),
-                size: 36,
+      return RefreshIndicator(
+        onRefresh: _handleRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height - 300,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE5F1FC),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.event_busy_rounded,
+                      color: Color(0xFF2C6C9C),
+                      size: 36,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Tidak ada jadwal',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Tidak ada jadwal',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black54,
-              ),
-            ),
-          ],
+          ),
         ),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: items.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return JadwalListItem(
-          item: item,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => JadwalDetailScreen(
-                  jadwal: item,
-                  userRole: currentUser,
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: items.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return JadwalListItem(
+            item: item,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => JadwalDetailScreen(
+                    jadwal: item,
+                    userRole: currentUser,
+                  ),
                 ),
-              ),
-            );
-          },
-        );
-      },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
