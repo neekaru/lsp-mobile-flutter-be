@@ -39,6 +39,10 @@ class _JadwalScreenState extends State<JadwalScreen>
   List<JadwalItem> sedangBerjalanList = [];
   List<JadwalItem> selesaiList = [];
   
+  // Statistics from API
+  int totalAsesmen = 0;
+  String trendPercentage = '+0%';
+  
   // Scroll controllers for pagination
   final ScrollController _scrollControllerAkanBerakhir = ScrollController();
   final ScrollController _scrollControllerSedangBerjalan = ScrollController();
@@ -105,7 +109,7 @@ class _JadwalScreenState extends State<JadwalScreen>
           sortBy: 'tanggal',
           sortOrder: 'desc',
         ),
-        // Tab 2: Berjalan - Status 2 only, sorted by tanggal DESC
+        // Tab 2: Sedang Berjalan - Status 2 only, sorted by tanggal DESC
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: '2',
@@ -126,6 +130,11 @@ class _JadwalScreenState extends State<JadwalScreen>
         akanBerakhirList = _sortJadwalList(results[0]);
         sedangBerjalanList = _sortJadwalList(results[1]);
         selesaiList = _sortJadwalList(results[2]);
+        
+        // Calculate total from all tabs
+        totalAsesmen = akanBerakhirList.length + 
+                       sedangBerjalanList.length + 
+                       selesaiList.length;
         
         // Check if there's more data
         _hasMoreAkanBerakhir = results[0].length >= _pageSize;
@@ -370,7 +379,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Total Asesmen',
+                              'Total Jadwal',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.grey,
@@ -381,9 +390,9 @@ class _JadwalScreenState extends State<JadwalScreen>
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                const Text(
-                                  '8.045',
-                                  style: TextStyle(
+                                Text(
+                                  totalAsesmen.toString(),
+                                  style: const TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black87,
@@ -391,30 +400,31 @@ class _JadwalScreenState extends State<JadwalScreen>
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE8F5E9),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text(
-                                    '↑ 15,7%',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF4CAF50),
+                                if (trendPercentage.isNotEmpty && trendPercentage != '+0%')
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE8F5E9),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      trendPercentage,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF4CAF50),
+                                      ),
                                     ),
                                   ),
-                                ),
                               ],
                             ),
                             const SizedBox(height: 4),
-                            const Text(
-                              'dibanding tahun 2025',
-                              style: TextStyle(fontSize: 11, color: Colors.grey),
+                            Text(
+                              '${akanBerakhirList.length} akan berakhir, ${sedangBerjalanList.length} berjalan',
+                              style: const TextStyle(fontSize: 11, color: Colors.grey),
                             ),
                           ],
                         ),

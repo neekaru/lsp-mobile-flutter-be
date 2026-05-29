@@ -26,9 +26,9 @@ class ApiService {
   static final Dio _dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 10), // Increased from 1s to 10s
-      receiveTimeout: const Duration(seconds: 10), // Increased from 1.5s to 10s
-      sendTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 20), // Increased to 20s
+      receiveTimeout: const Duration(seconds: 20), // Increased to 20s
+      sendTimeout: const Duration(seconds: 20),
     ),
   )..interceptors.add(
     InterceptorsWrapper(
