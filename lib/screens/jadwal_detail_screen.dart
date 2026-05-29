@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../models/jadwal_models.dart';
+import '../services/api_service.dart';
 
 class JadwalDetailScreen extends StatefulWidget {
   final JadwalItem jadwal;
@@ -72,19 +73,71 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
       return;
     }
 
+    // Validate if status changed
+    if (selectedStatus == widget.jadwal.status) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tidak ada perubahan status'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    // Simulasi API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Map status to API rule
+      String rule = _getStatusRule(widget.jadwal.status, selectedStatus!);
+      
+      // Call API to update status
+      final result = await ApiService.updateJadwalStatus(
+        jadwalId: widget.jadwal.id,
+        rule: rule,
+        catatan: _catatanController.text,
+      );
 
-    setState(() {
-      _isLoading = false;
-    });
+      setState(() {
+        _isLoading = false;
+      });
 
-    if (mounted) {
-      _showSuccessDialog();
+      if (mounted) {
+        if (result['success']) {
+          _showSuccessDialog();
+        } else {
+          _showErrorDialog(result['message'] ?? 'Gagal memperbarui status');
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      
+      if (mounted) {
+        _showErrorDialog('Terjadi kesalahan: ${e.toString()}');
+      }
+    }
+  }
+
+  /// Map current status and new status to API rule
+  String _getStatusRule(String currentStatus, String newStatus) {
+    // Map internal status to API status codes
+    // akan_berakhir = status 1 (Terjadwal)
+    // sedang_berjalan = status 2 (Sedang Berlangsung)
+    // selesai = status 3 (Selesai)
+    
+    if (currentStatus == 'akan_berakhir' && newStatus == 'sedang_berjalan') {
+      return 'scheduled_to_ongoing'; // 1 → 2
+    } else if (currentStatus == 'akan_berakhir' && newStatus == 'selesai') {
+      return 'scheduled_to_completed'; // 1 → 3
+    } else if (currentStatus == 'sedang_berjalan' && newStatus == 'selesai') {
+      return 'ongoing_to_completed'; // 2 → 3
+    } else if (currentStatus == 'sedang_berjalan' && newStatus == 'akan_berakhir') {
+      return 'scheduled_to_ongoing'; // Fallback
+    } else {
+      return 'scheduled_to_completed'; // Default fallback
     }
   }
 
@@ -134,6 +187,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
   void _showSuccessDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
@@ -165,10 +219,53 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Back to list
+              Navigator.pop(context, true); // Back to list with refresh flag
             },
             child: const Text(
               'OK',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFEBEE),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                LucideIcons.circle_x,
+                color: Color(0xFFE53935),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Gagal',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(fontSize: 14, color: Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Tutup',
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -512,7 +609,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
 
                         _buildStatusOption('akan_berakhir', 'Akan Berakhir'),
                         const SizedBox(height: 8),
-                        _buildStatusOption('sedang_berjalan', 'Sedang Berjalan'),
+                        _buildStatusOption('sedang_berjalan', 'Berjalan'),
                         const SizedBox(height: 8),
                         _buildStatusOption('selesai', 'Selesai'),
 

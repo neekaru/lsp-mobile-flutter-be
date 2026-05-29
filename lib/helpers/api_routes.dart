@@ -35,6 +35,7 @@ class ApiRoutes {
   // ============================================================================
 
   static const String jadwalOutOfDate = '/api/jadwal/out-of-date';
+  static const String jadwalUpdateStatus = '/api/jadwal/update-status';
 
   // ============================================================================
   // Sertifikat Routes
@@ -105,6 +106,27 @@ class ApiRoutes {
     if (sektor != null) params.add('sektor=$sektor');
     if (idLsp != null) params.add('id_lsp=$idLsp');
     if (idTuk != null) params.add('id_tuk=$idTuk');
+
+    return params.isEmpty ? route : '$route?${params.join('&')}';
+  }
+
+  /// Build URL dengan multiple filters untuk jadwal
+  static String withJadwalFilters(
+    String route, {
+    int? limit,
+    String? statusJadwal,
+    int? idTuk,
+    String? idLsp,
+    String? sortBy,
+    String? sortOrder,
+  }) {
+    final params = <String>[];
+    if (limit != null) params.add('limit=$limit');
+    if (statusJadwal != null) params.add('status_jadwal=$statusJadwal');
+    if (idTuk != null) params.add('id_tuk=$idTuk');
+    if (idLsp != null) params.add('id_lsp=$idLsp');
+    if (sortBy != null) params.add('sort_by=$sortBy');
+    if (sortOrder != null) params.add('sort_order=$sortOrder');
 
     return params.isEmpty ? route : '$route?${params.join('&')}';
   }

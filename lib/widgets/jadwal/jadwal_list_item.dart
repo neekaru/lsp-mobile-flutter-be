@@ -58,6 +58,23 @@ class JadwalListItem extends StatelessWidget {
     }
   }
 
+  String _getDisplayAsesor() {
+    // Backend sudah return asesor name
+    if (item.asesor.isEmpty || item.asesor == '-') {
+      return 'Belum ditentukan';
+    }
+    return item.asesor;
+  }
+
+  String _getDisplayAsesi() {
+    // Backend sudah return jumlah_asesi
+    // Jika 0, kemungkinan memang belum ada peserta
+    if (item.jumlahAsesi == 0) {
+      return '0 Asesi';
+    }
+    return '${item.jumlahAsesi} Asesi';
+  }
+
   bool _shouldShowWarning() {
     return item.status == 'sedang_berjalan' && item.sisaHari <= 3;
   }
@@ -81,14 +98,14 @@ class JadwalListItem extends StatelessWidget {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Icon
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       color: const Color(0xFFE5F1FC),
                       borderRadius: BorderRadius.circular(10),
@@ -96,10 +113,10 @@ class JadwalListItem extends StatelessWidget {
                     child: Icon(
                       LucideIcons.file_text,
                       color: Color(0xFF2C6C9C),
-                      size: 22,
+                      size: 20,
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 12),
 
                   // Content
                   Expanded(
@@ -109,14 +126,14 @@ class JadwalListItem extends StatelessWidget {
                         Text(
                           item.skema,
                           style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Row(
                           children: [
                             Icon(
@@ -138,7 +155,7 @@ class JadwalListItem extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Row(
                           children: [
                             Icon(
@@ -156,7 +173,7 @@ class JadwalListItem extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Row(
                           children: [
                             // Jumlah Asesi
@@ -175,7 +192,7 @@ class JadwalListItem extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${item.jumlahAsesi} Asesi',
+                                    _getDisplayAsesi(),
                                     style: const TextStyle(
                                       fontSize: 10,
                                       color: Color(0xFF666666),
@@ -189,7 +206,7 @@ class JadwalListItem extends StatelessWidget {
                             // Asesor
                             Expanded(
                               child: Text(
-                                'Asesor: ${item.asesor}',
+                                'Asesor: ${_getDisplayAsesor()}',
                                 style: const TextStyle(
                                   fontSize: 10,
                                   color: Colors.grey,
@@ -303,7 +320,7 @@ class JadwalListItem extends StatelessWidget {
                       bottomRight: Radius.circular(12),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../models/dashboard_models.dart';
 import '../models/sertifikat_models.dart';
+import '../models/jadwal_models.dart';
 import '../helpers/bps_code_helper.dart';
 import '../helpers/api_routes.dart';
 
@@ -228,6 +229,83 @@ class ApiService {
       }
     } catch (e) {
       return _getFallbackJadwal();
+    }
+  }
+
+  /// Fetch Jadwal List with filters
+  /// Used for JadwalScreen tabs
+  static Future<List<JadwalItem>> getJadwalList({
+    int limit = 20,
+    String? statusJadwal,
+    int? idTuk,
+    String? idLsp,
+    String? sortBy,
+    String? sortOrder,
+  }) async {
+    try {
+      final url = ApiRoutes.withJadwalFilters(
+        ApiRoutes.jadwalOutOfDate,
+        limit: limit,
+        statusJadwal: statusJadwal,
+        idTuk: idTuk,
+        idLsp: idLsp,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+      );
+
+      final response = await _dio.get(url);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        List<JadwalItem> list = data
+            .map((item) => JadwalItem.fromJson(item as Map<String, dynamic>))
+            .toList();
+
+        return list;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('🔴 Error fetching jadwal list: $e');
+      return [];
+    }
+  }
+
+  /// Update Status Jadwal
+  /// Used for updating specific jadwal status
+  static Future<Map<String, dynamic>> updateJadwalStatus({
+    required int jadwalId,
+    required String rule,
+    String? catatan,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '${ApiRoutes.jadwalUpdateStatus}/apply',
+        data: {
+          'jadwal_ids': [jadwalId],
+          'rules': [rule],
+          if (catatan != null && catatan.isNotEmpty) 'catatan': catatan,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return {
+          'success': true,
+          'message': 'Status berhasil diperbarui',
+          'data': response.data,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': 'Gagal memperbarui status',
+        };
+      }
+    } catch (e) {
+      print('🔴 Error updating jadwal status: $e');
+      return {
+        'success': false,
+        'message': 'Terjadi kesalahan: ${e.toString()}',
+      };
     }
   }
 

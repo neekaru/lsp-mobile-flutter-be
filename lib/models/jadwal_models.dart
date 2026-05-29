@@ -28,16 +28,33 @@ class JadwalItem {
   });
 
   factory JadwalItem.fromJson(Map<String, dynamic> json) {
+    // Map status_jadwal dari API ke status internal
+    String mapStatus(String statusJadwal, int daysOverdue) {
+      switch (statusJadwal) {
+        case '1': // Terjadwal
+          return 'akan_berakhir';
+        case '2': // Sedang Berlangsung
+          return 'sedang_berjalan';
+        case '3': // Selesai
+          return 'selesai';
+        default:
+          return 'sedang_berjalan';
+      }
+    }
+
+    final statusJadwal = json['status_jadwal']?.toString() ?? '1';
+    final daysOverdue = json['days_overdue'] ?? 0;
+
     return JadwalItem(
       id: json['id'] ?? 0,
-      skema: json['skema'] ?? '',
+      skema: json['jadwal'] ?? '', // API uses 'jadwal' field
       tuk: json['tuk'] ?? '',
-      tanggalMulai: json['tanggal_mulai'] ?? '',
-      tanggalSelesai: json['tanggal_selesai'] ?? '',
-      status: json['status'] ?? 'sedang_berjalan',
+      tanggalMulai: json['tanggal'] ?? '',
+      tanggalSelesai: json['tanggal_akhir'] ?? '',
+      status: mapStatus(statusJadwal, daysOverdue),
       jumlahAsesi: json['jumlah_asesi'] ?? 0,
-      asesor: json['asesor'] ?? '',
-      sisaHari: json['sisa_hari'] ?? 0,
+      asesor: json['asesor'] ?? '-',
+      sisaHari: daysOverdue, // days_overdue from API
       catatan: json['catatan'],
     );
   }

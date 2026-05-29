@@ -186,11 +186,342 @@ GET {{baseUrl}}{{apiPrefix}}/out-of-date?id_tuk=42&limit=50&sort_by=tanggal&sort
 Content-Type: application/json
 
 ###############################################################################
-### Notes:
-### - Default limit: 20
-### - Default status_jadwal: 1,2 (Terjadwal, Sedang Berlangsung)
-### - Default sort_by: days_overdue
-### - Default sort_order: desc
-### - Corrupt dates (year 1970 or 0202) are automatically corrected in response
-### - Total count is always returned in meta regardless of limit
 ###############################################################################
+### ACTIVE SCHEDULES API - /api/jadwal/active
+### Description: Get schedules that are currently active (not past deadline)
+###############################################################################
+###############################################################################
+
+###############################################################################
+### Scenario 31: Active - Basic Request (Default Parameters)
+### Expected: 20 active schedules, sorted by tanggal_akhir ASC, status 1,2
+GET {{baseUrl}}{{apiPrefix}}/active
+Content-Type: application/json
+
+###############################################################################
+### Scenario 32: Active - Custom Limit
+### Expected: Top 10 active schedules
+GET {{baseUrl}}{{apiPrefix}}/active?limit=10
+Content-Type: application/json
+
+###############################################################################
+### Scenario 33: Active - Filter by Status "Sedang Berlangsung" (2)
+### Expected: Only active schedules with status 2
+GET {{baseUrl}}{{apiPrefix}}/active?status_jadwal=2
+Content-Type: application/json
+
+###############################################################################
+### Scenario 34: Active - Filter by Status "Terjadwal" (1)
+### Expected: Only active schedules with status 1
+GET {{baseUrl}}{{apiPrefix}}/active?status_jadwal=1
+Content-Type: application/json
+
+###############################################################################
+### Scenario 35: Active - Ending Within 7 Days
+### Expected: Schedules ending in the next 7 days
+GET {{baseUrl}}{{apiPrefix}}/active?days_until_end=7
+Content-Type: application/json
+
+###############################################################################
+### Scenario 36: Active - Ending Within 14 Days
+### Expected: Schedules ending in the next 14 days
+GET {{baseUrl}}{{apiPrefix}}/active?days_until_end=14
+Content-Type: application/json
+
+###############################################################################
+### Scenario 37: Active - Ending Within 30 Days
+### Expected: Schedules ending in the next 30 days
+GET {{baseUrl}}{{apiPrefix}}/active?days_until_end=30
+Content-Type: application/json
+
+###############################################################################
+### Scenario 38: Active - Sort by Tanggal ASC
+### Expected: Oldest start dates first
+GET {{baseUrl}}{{apiPrefix}}/active?sort_by=tanggal&sort_order=asc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 39: Active - Sort by Tanggal DESC
+### Expected: Newest start dates first
+GET {{baseUrl}}{{apiPrefix}}/active?sort_by=tanggal&sort_order=desc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 40: Active - Sort by Tanggal Akhir ASC (Default)
+### Expected: Ending soonest first
+GET {{baseUrl}}{{apiPrefix}}/active?sort_by=tanggal_akhir&sort_order=asc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 41: Active - Sort by Tanggal Akhir DESC
+### Expected: Ending latest first
+GET {{baseUrl}}{{apiPrefix}}/active?sort_by=tanggal_akhir&sort_order=desc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 42: Active - Sort by Jadwal Name ASC
+### Expected: Alphabetically sorted
+GET {{baseUrl}}{{apiPrefix}}/active?sort_by=jadwal&sort_order=asc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 43: Active - Filter by TUK ID
+### Expected: Only active schedules from TUK 4
+GET {{baseUrl}}{{apiPrefix}}/active?id_tuk=4
+Content-Type: application/json
+
+###############################################################################
+### Scenario 44: Active - Filter by LSP ID
+### Expected: Only active schedules from specific LSP
+GET {{baseUrl}}{{apiPrefix}}/active?id_lsp=1
+Content-Type: application/json
+
+###############################################################################
+### Scenario 45: Active - USE CASE: Tab "Akan Berakhir"
+### Expected: Schedules ending within 14 days, sorted by deadline
+GET {{baseUrl}}{{apiPrefix}}/active?status_jadwal=1,2&days_until_end=14&sort_by=tanggal_akhir&sort_order=asc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 46: Active - USE CASE: Tab "Sedang Berjalan"
+### Expected: Currently running schedules, newest first
+GET {{baseUrl}}{{apiPrefix}}/active?status_jadwal=2&sort_by=tanggal&sort_order=desc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 47: Active - Combined Filters
+### Expected: TUK 4, status 1,2, ending within 30 days
+GET {{baseUrl}}{{apiPrefix}}/active?id_tuk=4&status_jadwal=1,2&days_until_end=30
+Content-Type: application/json
+
+###############################################################################
+### Scenario 48: Active - Maximum Limit (100)
+### Expected: Top 100 active schedules
+GET {{baseUrl}}{{apiPrefix}}/active?limit=100
+Content-Type: application/json
+
+###############################################################################
+### Scenario 49: Active - Validation Test - Invalid Limit
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/active?limit=150
+Content-Type: application/json
+
+###############################################################################
+### Scenario 50: Active - Validation Test - Invalid Status
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/active?status_jadwal=9
+Content-Type: application/json
+
+###############################################################################
+### Scenario 51: Active - Validation Test - Invalid Sort By
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/active?sort_by=invalid_field
+Content-Type: application/json
+
+###############################################################################
+###############################################################################
+### COMPLETED SCHEDULES API - /api/jadwal/completed
+### Description: Get schedules that are completed (status = 3)
+###############################################################################
+###############################################################################
+
+###############################################################################
+### Scenario 52: Completed - Basic Request (Default Parameters)
+### Expected: 20 completed schedules, sorted by tanggal_akhir DESC
+GET {{baseUrl}}{{apiPrefix}}/completed
+Content-Type: application/json
+
+###############################################################################
+### Scenario 53: Completed - Custom Limit
+### Expected: Top 10 completed schedules
+GET {{baseUrl}}{{apiPrefix}}/completed?limit=10
+Content-Type: application/json
+
+###############################################################################
+### Scenario 54: Completed - Sort by Tanggal Akhir DESC (Default)
+### Expected: Most recently completed first
+GET {{baseUrl}}{{apiPrefix}}/completed?sort_by=tanggal_akhir&sort_order=desc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 55: Completed - Sort by Tanggal Akhir ASC
+### Expected: Oldest completed first
+GET {{baseUrl}}{{apiPrefix}}/completed?sort_by=tanggal_akhir&sort_order=asc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 56: Completed - Sort by Tanggal DESC
+### Expected: Most recent start dates first
+GET {{baseUrl}}{{apiPrefix}}/completed?sort_by=tanggal&sort_order=desc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 57: Completed - Sort by Jadwal Name ASC
+### Expected: Alphabetically sorted
+GET {{baseUrl}}{{apiPrefix}}/completed?sort_by=jadwal&sort_order=asc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 58: Completed - Filter by TUK ID
+### Expected: Only completed schedules from TUK 4
+GET {{baseUrl}}{{apiPrefix}}/completed?id_tuk=4
+Content-Type: application/json
+
+###############################################################################
+### Scenario 59: Completed - Filter by LSP ID
+### Expected: Only completed schedules from specific LSP
+GET {{baseUrl}}{{apiPrefix}}/completed?id_lsp=1
+Content-Type: application/json
+
+###############################################################################
+### Scenario 60: Completed - Filter by Date Range (From)
+### Expected: Completed schedules starting from 2026-04-01
+GET {{baseUrl}}{{apiPrefix}}/completed?date_from=2026-04-01
+Content-Type: application/json
+
+###############################################################################
+### Scenario 61: Completed - Filter by Date Range (To)
+### Expected: Completed schedules up to 2026-04-30
+GET {{baseUrl}}{{apiPrefix}}/completed?date_to=2026-04-30
+Content-Type: application/json
+
+###############################################################################
+### Scenario 62: Completed - Filter by Date Range (From and To)
+### Expected: Completed schedules between 2026-04-01 and 2026-04-30
+GET {{baseUrl}}{{apiPrefix}}/completed?date_from=2026-04-01&date_to=2026-04-30
+Content-Type: application/json
+
+###############################################################################
+### Scenario 63: Completed - USE CASE: Tab "Selesai"
+### Expected: Recently completed schedules, newest first
+GET {{baseUrl}}{{apiPrefix}}/completed?limit=20&sort_by=tanggal_akhir&sort_order=desc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 64: Completed - Combined Filters
+### Expected: TUK 4, date range, sorted by tanggal_akhir desc
+GET {{baseUrl}}{{apiPrefix}}/completed?id_tuk=4&date_from=2026-04-01&date_to=2026-05-31&sort_by=tanggal_akhir&sort_order=desc
+Content-Type: application/json
+
+###############################################################################
+### Scenario 65: Completed - Maximum Limit (100)
+### Expected: Top 100 completed schedules
+GET {{baseUrl}}{{apiPrefix}}/completed?limit=100
+Content-Type: application/json
+
+###############################################################################
+### Scenario 66: Completed - Validation Test - Invalid Limit
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/completed?limit=150
+Content-Type: application/json
+
+###############################################################################
+### Scenario 67: Completed - Validation Test - Invalid Date Format
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/completed?date_from=2026/04/01
+Content-Type: application/json
+
+###############################################################################
+### Scenario 68: Completed - Validation Test - Invalid Sort By
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/completed?sort_by=invalid_field
+Content-Type: application/json
+
+###############################################################################
+###############################################################################
+### STATISTICS API - /api/jadwal/statistics
+### Description: Get overall schedule statistics
+###############################################################################
+###############################################################################
+
+###############################################################################
+### Scenario 69: Statistics - Get Overall Statistics
+### Expected: Total counts for all schedule categories
+GET {{baseUrl}}{{apiPrefix}}/statistics
+Content-Type: application/json
+
+###############################################################################
+### Scenario 70: Statistics - Verify Statistics (Repeated Call)
+### Expected: Same statistics as previous call
+GET {{baseUrl}}{{apiPrefix}}/statistics
+Content-Type: application/json
+
+###############################################################################
+###############################################################################
+### NOTES & DOCUMENTATION
+###############################################################################
+###############################################################################
+
+### API ENDPOINTS SUMMARY:
+### 1. GET /api/jadwal/out-of-date   - Schedules past their deadline
+### 2. GET /api/jadwal/active        - Schedules currently active (not overdue)
+### 3. GET /api/jadwal/completed     - Schedules with status "Selesai" (3)
+### 4. GET /api/jadwal/statistics    - Overall schedule statistics
+
+### DEFAULT VALUES:
+### out-of-date:
+###   - limit: 20
+###   - status_jadwal: 1,2
+###   - sort_by: days_overdue
+###   - sort_order: desc
+###
+### active:
+###   - limit: 20
+###   - status_jadwal: 1,2
+###   - sort_by: tanggal_akhir
+###   - sort_order: asc
+###
+### completed:
+###   - limit: 20
+###   - sort_by: tanggal_akhir
+###   - sort_order: desc
+
+### QUERY PARAMETERS:
+### Common:
+###   - limit (1-100)
+###   - id_lsp (string)
+###   - id_tuk (integer)
+###   - sort_by (tanggal, tanggal_akhir, jadwal)
+###   - sort_order (asc, desc)
+###
+### Active only:
+###   - status_jadwal (0,1,2,3,4)
+###   - days_until_end (integer)
+###
+### Completed only:
+###   - date_from (YYYY-MM-DD)
+###   - date_to (YYYY-MM-DD)
+
+### RESPONSE FIELDS:
+### out-of-date & active & completed:
+###   - id, jadwal, tanggal, tanggal_akhir
+###   - status_jadwal, status_label
+###   - id_lsp, id_tuk, tuk
+###
+### active only:
+###   - days_remaining (days until deadline)
+###   - jumlah_asesi (nullable)
+###   - asesor (nullable)
+###
+### out-of-date only:
+###   - days_overdue (days past deadline)
+
+### STATUS CODES:
+### 0 = Draft/Baru
+### 1 = Terjadwal
+### 2 = Sedang Berlangsung
+### 3 = Selesai
+### 4 = Dibatalkan
+
+### MOBILE APP USE CASES:
+### Tab "Akan Berakhir":
+###   GET /api/jadwal/active?status_jadwal=1,2&days_until_end=14&sort_by=tanggal_akhir&sort_order=asc
+###
+### Tab "Sedang Berjalan":
+###   GET /api/jadwal/active?status_jadwal=2&sort_by=tanggal&sort_order=desc
+###
+### Tab "Selesai":
+###   GET /api/jadwal/completed?limit=20&sort_by=tanggal_akhir&sort_order=desc
+
+###############################################################################
+s

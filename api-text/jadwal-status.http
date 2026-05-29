@@ -1,0 +1,278 @@
+### Update Status Jadwal API Testing
+### Base URL
+@baseUrl = http://localhost:3000
+@apiPrefix = /api/jadwal/update-status
+
+###############################################################################
+### IMPORTANT NOTES:
+### - Rule names updated to be more readable
+### - Support for specific jadwal_ids to update individual records
+### - Always run PREVIEW before APPLY
+### - APPLY will permanently update the database
+###############################################################################
+
+###############################################################################
+### Scenario 1: Preview Rule - Scheduled to Ongoing
+### Expected: Show ~8 records (Status 1 → 2)
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "rules": ["scheduled_to_ongoing"]
+}
+
+###############################################################################
+### Scenario 2: Preview Rule - Scheduled to Completed
+### Expected: Show ~7165 records (Status 1 → 3)
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "rules": ["scheduled_to_completed"]
+}
+
+###############################################################################
+### Scenario 3: Preview Rule - Ongoing to Completed
+### Expected: Show ~303 records (Status 2 → 3)
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "rules": ["ongoing_to_completed"]
+}
+
+###############################################################################
+### Scenario 4: Preview Rule - Draft to Completed
+### Expected: Show ~58 records (Status 0 → 3)
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "rules": ["draft_to_completed"]
+}
+
+###############################################################################
+### Scenario 5: Preview All Rules (Default)
+### Expected: Show all records that need update
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "rules": [
+    "scheduled_to_ongoing",
+    "scheduled_to_completed",
+    "ongoing_to_completed",
+    "draft_to_completed"
+  ]
+}
+
+###############################################################################
+### Scenario 6: Preview with Specific Jadwal IDs
+### Expected: Only show records with IDs 7494, 7816
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "jadwal_ids": [7494, 7816],
+  "rules": ["scheduled_to_ongoing"]
+}
+
+###############################################################################
+### Scenario 7: Preview with TUK Filter
+### Expected: Only records from TUK 298
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "id_tuk": 298,
+  "rules": ["scheduled_to_completed", "ongoing_to_completed"]
+}
+
+###############################################################################
+### Scenario 8: Preview with LSP Filter
+### Expected: Only records from specific LSP
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "id_lsp": "LSP001",
+  "rules": ["scheduled_to_completed"]
+}
+
+###############################################################################
+### Scenario 9: Preview Multiple Rules
+### Expected: Combined results
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "rules": ["scheduled_to_ongoing", "ongoing_to_completed"]
+}
+
+###############################################################################
+### Scenario 10: Apply - Scheduled to Ongoing (Safe - Small Update)
+### Expected: Update ~8 records
+### CAUTION: This will update the database!
+POST {{baseUrl}}{{apiPrefix}}/apply
+Content-Type: application/json
+
+{
+  "rules": ["scheduled_to_ongoing"]
+}
+
+###############################################################################
+### Scenario 11: Apply - Specific Jadwal IDs Only
+### Expected: Update only specified records
+### CAUTION: This will update the database!
+POST {{baseUrl}}{{apiPrefix}}/apply
+Content-Type: application/json
+
+{
+  "jadwal_ids": [7494, 7816],
+  "rules": ["scheduled_to_ongoing"]
+}
+
+###############################################################################
+### Scenario 12: Apply with TUK Filter
+### Expected: Update only records from TUK 298
+### CAUTION: This will update the database!
+POST {{baseUrl}}{{apiPrefix}}/apply
+Content-Type: application/json
+
+{
+  "id_tuk": 298,
+  "rules": ["scheduled_to_completed"]
+}
+
+###############################################################################
+### Scenario 13: Apply All Rules (CAUTION: Large Update!)
+### Expected: Update ~7534 records
+### CAUTION: This will update the database!
+POST {{baseUrl}}{{apiPrefix}}/apply
+Content-Type: application/json
+
+{
+  "rules": [
+    "scheduled_to_ongoing",
+    "scheduled_to_completed",
+    "ongoing_to_completed",
+    "draft_to_completed"
+  ]
+}
+
+###############################################################################
+### Scenario 14: Validation Test - Invalid Rule
+### Expected: 400 Bad Request
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "rules": ["invalid_rule"]
+}
+
+###############################################################################
+### Scenario 15: Validation Test - Empty Rules
+### Expected: 400 Bad Request
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "rules": []
+}
+
+###############################################################################
+### Scenario 16: Validation Test - Invalid Jadwal ID
+### Expected: 400 Bad Request
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "jadwal_ids": [0, -1],
+  "rules": ["scheduled_to_ongoing"]
+}
+
+###############################################################################
+### WORKFLOW: Safe Update Process
+###############################################################################
+
+### Step 1: Preview first to see what will be updated
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "rules": ["scheduled_to_ongoing"]
+}
+
+### Step 2: Review the response, then apply if satisfied
+POST {{baseUrl}}{{apiPrefix}}/apply
+Content-Type: application/json
+
+{
+  "rules": ["scheduled_to_ongoing"]
+}
+
+###############################################################################
+### WORKFLOW: Update Specific Records Only
+###############################################################################
+
+### Step 1: Preview specific jadwal IDs
+POST {{baseUrl}}{{apiPrefix}}/preview
+Content-Type: application/json
+
+{
+  "jadwal_ids": [7494, 7816, 7989],
+  "rules": ["scheduled_to_ongoing"]
+}
+
+### Step 2: Apply to those specific IDs
+POST {{baseUrl}}{{apiPrefix}}/apply
+Content-Type: application/json
+
+{
+  "jadwal_ids": [7494, 7816, 7989],
+  "rules": ["scheduled_to_ongoing"]
+}
+
+###############################################################################
+### WORKFLOW: Incremental Update by Rule
+###############################################################################
+
+### Step 1: Update Scheduled → Ongoing
+POST {{baseUrl}}{{apiPrefix}}/apply
+Content-Type: application/json
+
+{
+  "rules": ["scheduled_to_ongoing"]
+}
+
+### Step 2: Update Ongoing → Completed
+POST {{baseUrl}}{{apiPrefix}}/apply
+Content-Type: application/json
+
+{
+  "rules": ["ongoing_to_completed"]
+}
+
+### Step 3: Update Scheduled → Completed (bulk)
+POST {{baseUrl}}{{apiPrefix}}/apply
+Content-Type: application/json
+
+{
+  "rules": ["scheduled_to_completed"]
+}
+
+### Step 4: Clean up Draft → Completed
+POST {{baseUrl}}{{apiPrefix}}/apply
+Content-Type: application/json
+
+{
+  "rules": ["draft_to_completed"]
+}
+
+###############################################################################
+### Rule Reference:
+### - scheduled_to_ongoing: Status 1 → 2 (Terjadwal → Sedang Berlangsung)
+### - scheduled_to_completed: Status 1 → 3 (Terjadwal → Selesai)
+### - ongoing_to_completed: Status 2 → 3 (Sedang Berlangsung → Selesai)
+### - draft_to_completed: Status 0 → 3 (Draft → Selesai)
+###############################################################################

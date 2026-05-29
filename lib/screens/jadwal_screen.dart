@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/jadwal_models.dart';
+import '../services/api_service.dart';
 import '../widgets/jadwal/jadwal_list_item.dart';
 import '../widgets/jadwal/custom_tab_bar.dart';
 import 'jadwal_detail_screen.dart';
@@ -13,10 +14,19 @@ class JadwalScreen extends StatefulWidget {
   State<JadwalScreen> createState() => _JadwalScreenState();
 }
 
-class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderStateMixin {
+class _JadwalScreenState extends State<JadwalScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isRefreshing = false;
+  bool _isLoading = true;
   
+  // Pagination state
+  bool _isLoadingMore = false;
+  bool _hasMoreAkanBerakhir = true;
+  bool _hasMoreSedangBerjalan = true;
+  bool _hasMoreSelesai = true;
+  
+  final int _pageSize = 20;
+
   // Mock user role - dalam implementasi nyata, ambil dari auth service
   final UserRole currentUser = const UserRole(
     role: 'admin', // Ubah ke 'asesor' atau 'viewer' untuk testing permission
@@ -24,140 +34,221 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
     email: 'admin@lsp.com',
   );
 
-  // Mock data - dalam implementasi nyata, ambil dari API
-  final JadwalStatistik stats = JadwalStatistik.fallback();
+  // Data dari API
+  List<JadwalItem> akanBerakhirList = [];
+  List<JadwalItem> sedangBerjalanList = [];
+  List<JadwalItem> selesaiList = [];
   
-  final List<JadwalItem> akanBerakhirList = const [
-    JadwalItem(
-      id: 1,
-      skema: 'Skema Junior Web Developer',
-      tuk: 'TUK LSP Pengembangan',
-      tanggalMulai: '2025-05-20',
-      tanggalSelesai: '2025-05-28',
-      status: 'akan_berakhir',
-      jumlahAsesi: 25,
-      asesor: 'Budi Santoso',
-      sisaHari: 2,
-    ),
-    JadwalItem(
-      id: 2,
-      skema: 'Skema Junior Web Developer',
-      tuk: 'TUK LSP Pengembangan',
-      tanggalMulai: '2025-05-18',
-      tanggalSelesai: '2025-05-27',
-      status: 'akan_berakhir',
-      jumlahAsesi: 30,
-      asesor: 'Budi Santoso',
-      sisaHari: 1,
-    ),
-    JadwalItem(
-      id: 3,
-      skema: 'Skema Junior Web Developer',
-      tuk: 'TUK LSP Pengembangan',
-      tanggalMulai: '2025-05-15',
-      tanggalSelesai: '2025-05-29',
-      status: 'akan_berakhir',
-      jumlahAsesi: 28,
-      asesor: 'Budi Santoso',
-      sisaHari: 3,
-    ),
-    JadwalItem(
-      id: 4,
-      skema: 'Skema Junior Web Developer',
-      tuk: 'TUK LSP Pengembangan',
-      tanggalMulai: '2025-05-12',
-      tanggalSelesai: '2025-05-30',
-      status: 'akan_berakhir',
-      jumlahAsesi: 22,
-      asesor: 'Budi Santoso',
-      sisaHari: 4,
-    ),
-    JadwalItem(
-      id: 5,
-      skema: 'Skema Junior Web Developer',
-      tuk: 'TUK LSP Pengembangan',
-      tanggalMulai: '2025-05-10',
-      tanggalSelesai: '2025-06-02',
-      status: 'akan_berakhir',
-      jumlahAsesi: 35,
-      asesor: 'Budi Santoso',
-      sisaHari: 7,
-    ),
-  ];
-
-  final List<JadwalItem> sedangBerjalanList = const [
-    JadwalItem(
-      id: 6,
-      skema: 'Skema Data Analyst',
-      tuk: 'TUK LSP Digital',
-      tanggalMulai: '2025-05-01',
-      tanggalSelesai: '2025-06-15',
-      status: 'sedang_berjalan',
-      jumlahAsesi: 40,
-      asesor: 'Siti Aminah',
-      sisaHari: 20,
-    ),
-    JadwalItem(
-      id: 7,
-      skema: 'Skema Mobile Developer',
-      tuk: 'TUK LSP Teknologi',
-      tanggalMulai: '2025-05-05',
-      tanggalSelesai: '2025-06-20',
-      status: 'sedang_berjalan',
-      jumlahAsesi: 32,
-      asesor: 'Ahmad Rizki',
-      sisaHari: 25,
-    ),
-  ];
-
-  final List<JadwalItem> selesaiList = const [
-    JadwalItem(
-      id: 8,
-      skema: 'Skema UI/UX Designer',
-      tuk: 'TUK LSP Kreatif',
-      tanggalMulai: '2025-04-01',
-      tanggalSelesai: '2025-04-30',
-      status: 'selesai',
-      jumlahAsesi: 28,
-      asesor: 'Dewi Lestari',
-      sisaHari: 0,
-    ),
-    JadwalItem(
-      id: 9,
-      skema: 'Skema Network Administrator',
-      tuk: 'TUK LSP Infrastruktur',
-      tanggalMulai: '2025-03-15',
-      tanggalSelesai: '2025-04-15',
-      status: 'selesai',
-      jumlahAsesi: 20,
-      asesor: 'Eko Prasetyo',
-      sisaHari: 0,
-    ),
-  ];
+  // Scroll controllers for pagination
+  final ScrollController _scrollControllerAkanBerakhir = ScrollController();
+  final ScrollController _scrollControllerSedangBerjalan = ScrollController();
+  final ScrollController _scrollControllerSelesai = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _loadJadwalData();
+    
+    // Setup scroll listeners for pagination
+    _scrollControllerAkanBerakhir.addListener(_onScrollAkanBerakhir);
+    _scrollControllerSedangBerjalan.addListener(_onScrollSedangBerjalan);
+    _scrollControllerSelesai.addListener(_onScrollSelesai);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _scrollControllerAkanBerakhir.dispose();
+    _scrollControllerSedangBerjalan.dispose();
+    _scrollControllerSelesai.dispose();
     super.dispose();
+  }
+  
+  // Scroll listeners for pagination
+  void _onScrollAkanBerakhir() {
+    if (_scrollControllerAkanBerakhir.position.pixels >=
+        _scrollControllerAkanBerakhir.position.maxScrollExtent - 200) {
+      _loadMoreAkanBerakhir();
+    }
+  }
+  
+  void _onScrollSedangBerjalan() {
+    if (_scrollControllerSedangBerjalan.position.pixels >=
+        _scrollControllerSedangBerjalan.position.maxScrollExtent - 200) {
+      _loadMoreSedangBerjalan();
+    }
+  }
+  
+  void _onScrollSelesai() {
+    if (_scrollControllerSelesai.position.pixels >=
+        _scrollControllerSelesai.position.maxScrollExtent - 200) {
+      _loadMoreSelesai();
+    }
+  }
+
+  Future<void> _loadJadwalData() async {
+    setState(() {
+      _isLoading = true;
+      _hasMoreAkanBerakhir = true;
+      _hasMoreSedangBerjalan = true;
+      _hasMoreSelesai = true;
+    });
+
+    try {
+      // Fetch data untuk setiap tab secara parallel
+      final results = await Future.wait([
+        // Tab 1: Akan Berakhir - Status 1,2 sorted by tanggal DESC (terbaru dulu)
+        ApiService.getJadwalList(
+          limit: _pageSize,
+          statusJadwal: '1,2',
+          sortBy: 'tanggal',
+          sortOrder: 'desc',
+        ),
+        // Tab 2: Berjalan - Status 2 only, sorted by tanggal DESC
+        ApiService.getJadwalList(
+          limit: _pageSize,
+          statusJadwal: '2',
+          sortBy: 'tanggal',
+          sortOrder: 'desc',
+        ),
+        // Tab 3: Selesai - Status 3 only, sorted by tanggal DESC
+        ApiService.getJadwalList(
+          limit: _pageSize,
+          statusJadwal: '3',
+          sortBy: 'tanggal',
+          sortOrder: 'desc',
+        ),
+      ]);
+
+      setState(() {
+        // Sort di frontend untuk memastikan urutan konsisten
+        akanBerakhirList = _sortJadwalList(results[0]);
+        sedangBerjalanList = _sortJadwalList(results[1]);
+        selesaiList = _sortJadwalList(results[2]);
+        
+        // Check if there's more data
+        _hasMoreAkanBerakhir = results[0].length >= _pageSize;
+        _hasMoreSedangBerjalan = results[1].length >= _pageSize;
+        _hasMoreSelesai = results[2].length >= _pageSize;
+        
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('🔴 Error loading jadwal data: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  
+  // Load more methods for pagination
+  Future<void> _loadMoreAkanBerakhir() async {
+    if (_isLoadingMore || !_hasMoreAkanBerakhir) return;
+    
+    setState(() {
+      _isLoadingMore = true;
+    });
+    
+    try {
+      final newData = await ApiService.getJadwalList(
+        limit: _pageSize,
+        statusJadwal: '1,2',
+        sortBy: 'tanggal',
+        sortOrder: 'desc',
+      );
+      
+      setState(() {
+        if (newData.length < _pageSize) {
+          _hasMoreAkanBerakhir = false;
+        }
+        akanBerakhirList.addAll(_sortJadwalList(newData));
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      print('🔴 Error loading more data: $e');
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+  
+  Future<void> _loadMoreSedangBerjalan() async {
+    if (_isLoadingMore || !_hasMoreSedangBerjalan) return;
+    
+    setState(() {
+      _isLoadingMore = true;
+    });
+    
+    try {
+      final newData = await ApiService.getJadwalList(
+        limit: _pageSize,
+        statusJadwal: '2',
+        sortBy: 'tanggal',
+        sortOrder: 'desc',
+      );
+      
+      setState(() {
+        if (newData.length < _pageSize) {
+          _hasMoreSedangBerjalan = false;
+        }
+        sedangBerjalanList.addAll(_sortJadwalList(newData));
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      print('🔴 Error loading more data: $e');
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+  
+  Future<void> _loadMoreSelesai() async {
+    if (_isLoadingMore || !_hasMoreSelesai) return;
+    
+    setState(() {
+      _isLoadingMore = true;
+    });
+    
+    try {
+      final newData = await ApiService.getJadwalList(
+        limit: _pageSize,
+        statusJadwal: '3',
+        sortBy: 'tanggal',
+        sortOrder: 'desc',
+      );
+      
+      setState(() {
+        if (newData.length < _pageSize) {
+          _hasMoreSelesai = false;
+        }
+        selesaiList.addAll(_sortJadwalList(newData));
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      print('🔴 Error loading more data: $e');
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+
+  /// Sort jadwal list by tanggal DESC, then by ID DESC for consistent ordering
+  List<JadwalItem> _sortJadwalList(List<JadwalItem> items) {
+    final sorted = List<JadwalItem>.from(items);
+    sorted.sort((a, b) {
+      // Primary sort: by tanggalMulai DESC (terbaru dulu)
+      final dateCompare = b.tanggalMulai.compareTo(a.tanggalMulai);
+      if (dateCompare != 0) return dateCompare;
+      
+      // Secondary sort: by ID DESC (ID lebih besar = data lebih baru)
+      return b.id.compareTo(a.id);
+    });
+    return sorted;
   }
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-
-    // Simulasi fetch data dari API
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() {
-      _isRefreshing = false;
-    });
+    await _loadJadwalData();
 
     // Tampilkan feedback ke user
     if (mounted) {
@@ -180,173 +271,229 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          
+
           // Header dengan style dari statistik_screen
           _buildAppBar(),
 
-          // Tab Bar
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: JadwalTabBar(
-              controller: _tabController,
-              akanBerakhirCount: akanBerakhirList.length,
+          // Loading indicator
+          if (_isLoading)
+            const Expanded(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else ...[
+            // Tab Bar
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: JadwalTabBar(
+                controller: _tabController,
+                akanBerakhirCount: akanBerakhirList.length,
+              ),
             ),
-          ),
 
-          // Tab Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // Tab 1: Akan Berakhir (dengan chart)
-                _buildAkanBerakhirTab(),
-                
-                // Tab 2: Sedang Berjalan
-                _buildJadwalList(sedangBerjalanList, 'sedang_berjalan'),
-                
-                // Tab 3: Selesai
-                _buildJadwalList(selesaiList, 'selesai'),
-              ],
+            // Tab Content with caching
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Tab 1: Akan Berakhir (dengan chart)
+                  _JadwalTabContent(
+                    key: const PageStorageKey('akan_berakhir_tab'),
+                    child: _buildAkanBerakhirTab(),
+                  ),
+
+                  // Tab 2: Berjalan
+                  _JadwalTabContent(
+                    key: const PageStorageKey('sedang_berjalan_tab'),
+                    child: _buildJadwalList(
+                      sedangBerjalanList, 
+                      'sedang_berjalan',
+                      _scrollControllerSedangBerjalan,
+                      _hasMoreSedangBerjalan,
+                    ),
+                  ),
+
+                  // Tab 3: Selesai
+                  _JadwalTabContent(
+                    key: const PageStorageKey('selesai_tab'),
+                    child: _buildJadwalList(
+                      selesaiList, 
+                      'selesai',
+                      _scrollControllerSelesai,
+                      _hasMoreSelesai,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
-
-
   Widget _buildAkanBerakhirTab() {
     return RefreshIndicator(
       onRefresh: _handleRefresh,
-      child: SingleChildScrollView(
+      child: ListView.builder(
+        controller: _scrollControllerAkanBerakhir,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Statistik Card dengan Line Chart
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0A000000),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
+        itemCount: akanBerakhirList.length + 2, // +2 for header and loading indicator
+        itemBuilder: (context, index) {
+          // Header with chart
+          if (index == 0) {
+            return Column(
+              children: [
+                const SizedBox(height: 16),
+                // Statistik Card dengan Line Chart
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x0A000000),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Total Asesmen',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              '8.045',
+                              'Total Asesmen',
                               style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                                height: 1,
+                                fontSize: 13,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE8F5E9),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                '↑ 15,7%',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF4CAF50),
+                            const SizedBox(height: 8),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Text(
+                                  '8.045',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                    height: 1,
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F5E9),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    '↑ 15,7%',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF4CAF50),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'dibanding tahun 2025',
+                              style: TextStyle(fontSize: 11, color: Colors.grey),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'dibanding tahun 2025',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 3,
-                    child: SizedBox(
-                      height: 100,
-                      child: CustomPaint(
-                        painter: MiniLineChartPainter(),
                       ),
-                    ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 3,
+                        child: SizedBox(
+                          height: 100,
+                          child: CustomPaint(painter: MiniLineChartPainter()),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          }
+          
+          // Loading indicator at the end
+          if (index == akanBerakhirList.length + 1) {
+            if (_isLoadingMore) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            } else if (!_hasMoreAkanBerakhir) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: Text(
+                    'Tidak ada data lagi',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ),
+              );
+            } else {
+              return const SizedBox(height: 80);
+            }
+          }
+          
+          // List items
+          final itemIndex = index - 1;
+                final item = akanBerakhirList[itemIndex];
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: itemIndex < akanBerakhirList.length - 1 ? 8 : 0,
             ),
-
-            const SizedBox(height: 16),
-
-            // List Jadwal
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: akanBerakhirList.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final item = akanBerakhirList[index];
-                return JadwalListItem(
-                  item: item,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => JadwalDetailScreen(
-                          jadwal: item,
-                          userRole: currentUser,
-                        ),
-                      ),
-                    );
-                  },
+            child: JadwalListItem(
+              key: ValueKey(item.id),
+              item: item,
+              onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => JadwalDetailScreen(
+                      jadwal: item,
+                      userRole: currentUser,
+                    ),
+                  ),
                 );
+                
+                // Refresh data if status was updated
+                if (result == true) {
+                  _loadJadwalData();
+                }
               },
             ),
-
-            const SizedBox(height: 80),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildJadwalList(List<JadwalItem> items, String status) {
-    if (items.isEmpty) {
+  Widget _buildJadwalList(List<JadwalItem> items, String status, ScrollController controller, bool hasMore) {
+    if (items.isEmpty && !_isLoading) {
       return RefreshIndicator(
         onRefresh: _handleRefresh,
         child: SingleChildScrollView(
@@ -389,26 +536,60 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,
-      child: ListView.separated(
+      child: ListView.builder(
+        controller: controller,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: items.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        itemCount: items.length + 1, // +1 for loading indicator
         itemBuilder: (context, index) {
-          final item = items[index];
-          return JadwalListItem(
-            item: item,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => JadwalDetailScreen(
-                    jadwal: item,
-                    userRole: currentUser,
+          // Loading indicator at the end
+          if (index == items.length) {
+            if (_isLoadingMore) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            } else if (!hasMore) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: Text(
+                    'Tidak ada data lagi',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ),
               );
-            },
+            } else {
+              return const SizedBox(height: 80);
+            }
+          }
+          
+          // List items
+          final item = items[index];
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: index < items.length - 1 ? 8 : 0,
+            ),
+            child: JadwalListItem(
+              key: ValueKey(item.id),
+              item: item,
+              onTap: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        JadwalDetailScreen(jadwal: item, userRole: currentUser),
+                  ),
+                );
+                
+                // Refresh data if status was updated
+                if (result == true) {
+                  _loadJadwalData();
+                }
+              },
+            ),
           );
         },
       ),
@@ -444,7 +625,7 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
               ),
             ),
           ),
-          
+
           // Bold screen title
           const Text(
             'Jadwal Asesmen',
@@ -455,13 +636,9 @@ class _JadwalScreenState extends State<JadwalScreen> with SingleTickerProviderSt
               letterSpacing: -0.2,
             ),
           ),
-          
+
           // More options horizontal ellipsis
-          const Icon(
-            Icons.more_horiz_rounded,
-            color: Colors.black,
-            size: 24,
-          ),
+          const Icon(Icons.more_horiz_rounded, color: Colors.black, size: 24),
         ],
       ),
     );
@@ -473,9 +650,7 @@ class MiniLineChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Data points untuk line chart (simulasi data)
-    final dataPoints = [
-      0.3, 0.5, 0.4, 0.6, 0.8, 0.7, 0.9, 0.85, 1.0
-    ];
+    final dataPoints = [0.3, 0.5, 0.4, 0.6, 0.8, 0.7, 0.9, 0.85, 1.0];
 
     // Bar chart colors
     final barColors = [
@@ -544,3 +719,27 @@ class MiniLineChartPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+// ============================================================================
+// Tab Content Wrapper with AutomaticKeepAlive
+// ============================================================================
+// Wrapper untuk keep tab state agar tidak re-render saat pindah tab
+class _JadwalTabContent extends StatefulWidget {
+  final Widget child;
+
+  const _JadwalTabContent({super.key, required this.child});
+
+  @override
+  State<_JadwalTabContent> createState() => _JadwalTabContentState();
+}
+
+class _JadwalTabContentState extends State<_JadwalTabContent>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context); // Must call super.build for AutomaticKeepAliveClientMixin
+    return widget.child;
+  }
+}
