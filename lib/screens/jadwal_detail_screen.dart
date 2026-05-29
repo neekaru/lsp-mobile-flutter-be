@@ -128,16 +128,27 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     // sedang_berjalan = status 2 (Sedang Berlangsung)
     // selesai = status 3 (Selesai)
     
+    // Forward transitions
     if (currentStatus == 'akan_berakhir' && newStatus == 'sedang_berjalan') {
       return 'scheduled_to_ongoing'; // 1 → 2
     } else if (currentStatus == 'akan_berakhir' && newStatus == 'selesai') {
       return 'scheduled_to_completed'; // 1 → 3
     } else if (currentStatus == 'sedang_berjalan' && newStatus == 'selesai') {
       return 'ongoing_to_completed'; // 2 → 3
-    } else if (currentStatus == 'sedang_berjalan' && newStatus == 'akan_berakhir') {
-      return 'scheduled_to_ongoing'; // Fallback
-    } else {
-      return 'scheduled_to_completed'; // Default fallback
+    }
+    
+    // Backward transitions (rollback)
+    else if (currentStatus == 'sedang_berjalan' && newStatus == 'akan_berakhir') {
+      return 'ongoing_to_scheduled'; // 2 → 1
+    } else if (currentStatus == 'selesai' && newStatus == 'sedang_berjalan') {
+      return 'completed_to_ongoing'; // 3 → 2
+    } else if (currentStatus == 'selesai' && newStatus == 'akan_berakhir') {
+      return 'completed_to_scheduled'; // 3 → 1
+    }
+    
+    // Default fallback
+    else {
+      return 'scheduled_to_ongoing';
     }
   }
 
