@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -18,16 +19,18 @@ void main() async {
   // Load environment variables securely from .env
   try {
     await dotenv.load(fileName: ".env");
-    print('✅ .env loaded successfully');
-    print('📍 BASE_URL: ${dotenv.env['BASE_URL']}');
+    if (kDebugMode) {
+      debugPrint('✅ .env loaded successfully');
+      debugPrint('📍 BASE_URL: ${dotenv.env['BASE_URL']}');
+    }
     
     // Check if BASE_URL is empty or null
     if (dotenv.env['BASE_URL'] == null || dotenv.env['BASE_URL']!.isEmpty) {
-      print('⚠️ WARNING: BASE_URL is null or empty!');
+      debugPrint('⚠️ WARNING: BASE_URL is null or empty!');
     }
   } catch (e) {
-    print('❌ ERROR loading .env: $e');
-    print('⚠️ Using fallback configuration');
+    debugPrint('❌ ERROR loading .env: $e');
+    debugPrint('⚠️ Using fallback configuration');
   }
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -68,14 +71,17 @@ class MainNavigator extends StatefulWidget {
 
 class _MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
-  final Set<int> _visitedScreens = {0}; // Track visited screens, start with Dashboard
+  
+  // Cache screens after first visit so they preserve state.
+  // Unlike IndexedStack, screens are only created on first visit,
+  // not all 5 at startup. This avoids ~10 API calls + heavy map loading.
+  final Map<int, Widget> _screenCache = {};
 
-  Widget _buildScreen(int index) {
-    // Only build screen if it has been visited
-    if (!_visitedScreens.contains(index)) {
-      return const SizedBox.shrink(); // Return empty widget for unvisited screens
-    }
+  Widget _getScreen(int index) {
+    return _screenCache.putIfAbsent(index, () => _createScreen(index));
+  }
 
+  Widget _createScreen(int index) {
     switch (index) {
       case 0:
         return const DashboardScreen();
@@ -117,20 +123,34 @@ class _MainNavigatorState extends State<MainNavigator> {
     }
   }
 
-  // We can switch screens here. Index 0 is our beautiful Beranda dashboard.
+  // Lazy tab navigator: only the active screen is in the widget tree.
+  // Previously visited screens are kept in _screenCache for state preservation.
   @override
   Widget build(BuildContext context) {
+    // Build ONLY the cached screens (visited ones), not all 5.
+    
+    // Ensure current index is always visited
+    if (!_screenCache.containsKey(_currentIndex)) {
+      _getScreen(_currentIndex);
+    }
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8), // Soft grey background matching screenshots
+      backgroundColor: const Color(0xFFF5F6F8),
       body: IndexedStack(
         index: _currentIndex,
-        children: List.generate(5, (index) => _buildScreen(index)),
+        children: List.generate(5, (index) {
+          if (_screenCache.containsKey(index)) {
+            return _screenCache[index]!;
+          }
+          // Unvisited screens get a zero-cost placeholder
+          return const SizedBox.shrink();
+        }),
       ),
       bottomNavigationBar: BottomMenuBar(
         selectedIndex: _currentIndex,
         onTap: (index) {
           setState(() {
-            _visitedScreens.add(index); // Mark screen as visited
+            _getScreen(index); // Create & cache screen on first tap
             _currentIndex = index;
           });
         },

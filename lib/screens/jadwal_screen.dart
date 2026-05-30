@@ -144,7 +144,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         _isLoading = false;
       });
     } catch (e) {
-      print('🔴 Error loading jadwal data: $e');
+      debugPrint('🔴 Error loading jadwal data: $e');
       setState(() {
         _isLoading = false;
       });
@@ -175,7 +175,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         _isLoadingMore = false;
       });
     } catch (e) {
-      print('🔴 Error loading more data: $e');
+      debugPrint('🔴 Error loading more data: $e');
       setState(() {
         _isLoadingMore = false;
       });
@@ -205,7 +205,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         _isLoadingMore = false;
       });
     } catch (e) {
-      print('🔴 Error loading more data: $e');
+      debugPrint('🔴 Error loading more data: $e');
       setState(() {
         _isLoadingMore = false;
       });
@@ -235,7 +235,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         _isLoadingMore = false;
       });
     } catch (e) {
-      print('🔴 Error loading more data: $e');
+      debugPrint('🔴 Error loading more data: $e');
       setState(() {
         _isLoadingMore = false;
       });

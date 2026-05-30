@@ -66,7 +66,7 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading sertifikat data: $e');
+      debugPrint('Error loading sertifikat data: $e');
       setState(() {
         _isLoading = false;
       });
@@ -176,7 +176,7 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
           });
         }
       } catch (e) {
-        print('Error searching sertifikat: $e');
+        debugPrint('Error searching sertifikat: $e');
         if (mounted) {
           setState(() {
             _searchResults = [];

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../models/dashboard_models.dart';
@@ -14,39 +15,49 @@ import '../helpers/api_routes.dart';
 
 class ApiService {
   // ============================================================================
-  // Configuration
+  // Configuration — Lazy Initialization
   // ============================================================================
   
   static String get baseUrl {
     final url = dotenv.env['BASE_URL'] ?? "";
-    print('🌐 ApiService baseUrl: $url');
     return url;
   }
 
-  static final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 20), // Increased to 20s
-      receiveTimeout: const Duration(seconds: 20), // Increased to 20s
-      sendTimeout: const Duration(seconds: 20),
-    ),
-  )..interceptors.add(
-    InterceptorsWrapper(
-      onRequest: (options, handler) {
-        print('🔵 API Request: ${options.method} ${options.uri}');
-        return handler.next(options);
-      },
-      onResponse: (response, handler) {
-        print('🟢 API Response: ${response.statusCode} ${response.requestOptions.uri}');
-        return handler.next(response);
-      },
-      onError: (error, handler) {
-        print('🔴 API Error: ${error.message}');
-        print('🔴 URL: ${error.requestOptions.uri}');
-        return handler.next(error);
-      },
-    ),
-  );
+  // Lazy Dio: only created on first API call, not at class load time.
+  // This avoids triggering dotenv lookup + interceptor setup during startup.
+  static Dio? _dioInstance;
+  static Dio get _dio {
+    return _dioInstance ??= Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+        sendTimeout: const Duration(seconds: 20),
+      ),
+    )..interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          if (kDebugMode) {
+            debugPrint('🔵 API Request: ${options.method} ${options.uri}');
+          }
+          return handler.next(options);
+        },
+        onResponse: (response, handler) {
+          if (kDebugMode) {
+            debugPrint('🟢 API Response: ${response.statusCode} ${response.requestOptions.uri}');
+          }
+          return handler.next(response);
+        },
+        onError: (error, handler) {
+          if (kDebugMode) {
+            debugPrint('🔴 API Error: ${error.message}');
+            debugPrint('🔴 URL: ${error.requestOptions.uri}');
+          }
+          return handler.next(error);
+        },
+      ),
+    );
+  }
 
   // ============================================================================
   // Dashboard APIs
@@ -266,7 +277,7 @@ class ApiService {
         return [];
       }
     } catch (e) {
-      print('🔴 Error fetching jadwal list: $e');
+      debugPrint('🔴 Error fetching jadwal list: $e');
       return [];
     }
   }
@@ -301,7 +312,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('🔴 Error updating jadwal status: $e');
+      debugPrint('🔴 Error updating jadwal status: $e');
       return {
         'success': false,
         'message': 'Terjadi kesalahan: ${e.toString()}',
@@ -326,7 +337,7 @@ class ApiService {
 
       return 0;
     } catch (e) {
-      print('🔴 Error fetching notification count: $e');
+      debugPrint('🔴 Error fetching notification count: $e');
       return 0;
     }
   }
@@ -365,7 +376,7 @@ class ApiService {
         ),
       );
     } catch (e) {
-      print('🔴 Error fetching waiting schedules: $e');
+      debugPrint('🔴 Error fetching waiting schedules: $e');
       return const WaitingScheduleResponse(
         data: [],
         meta: NotificationMeta(
@@ -688,7 +699,7 @@ class ApiService {
 
       return SertifikatSummary.fallback();
     } catch (e) {
-      print('🔴 Error fetching sertifikat summary: $e');
+      debugPrint('🔴 Error fetching sertifikat summary: $e');
       return SertifikatSummary.fallback();
     }
   }
@@ -721,7 +732,7 @@ class ApiService {
 
       return _getFallbackSertifikatResponse();
     } catch (e) {
-      print('🔴 Error fetching sertifikat per skema: $e');
+      debugPrint('🔴 Error fetching sertifikat per skema: $e');
       return _getFallbackSertifikatResponse();
     }
   }
@@ -766,7 +777,7 @@ class ApiService {
 
       return [];
     } catch (e) {
-      print('🔴 Error searching sertifikat: $e');
+      debugPrint('🔴 Error searching sertifikat: $e');
       return [];
     }
   }
