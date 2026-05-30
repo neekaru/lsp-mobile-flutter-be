@@ -87,7 +87,7 @@ class GeoJsonManager {
       shapeDataField: 'id',
       dataCount: _provinces!.length,
       primaryValueMapper: (int index) {
-        if (index < 0 || index >= _provinces!.length) return null;
+        if (index < 0 || index >= _provinces!.length) return '';
         return _provinces![index].id;
       },
       shapeColorValueMapper: (int index) {
