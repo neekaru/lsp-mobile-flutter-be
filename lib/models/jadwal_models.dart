@@ -12,6 +12,7 @@ class JadwalItem {
   final int jumlahAsesi;
   final String asesor;
   final int sisaHari; // untuk status akan_berakhir
+  final int? daysLate; // untuk status sedang_berjalan (status_jadwal = "2")
   final String? catatan;
 
   const JadwalItem({
@@ -24,6 +25,7 @@ class JadwalItem {
     required this.jumlahAsesi,
     required this.asesor,
     this.sisaHari = 0,
+    this.daysLate,
     this.catatan,
   });
 
@@ -44,6 +46,7 @@ class JadwalItem {
 
     final statusJadwal = json['status_jadwal']?.toString() ?? '1';
     final daysOverdue = json['days_overdue'] ?? 0;
+    final daysLate = json['days_late']; // Nullable, hanya untuk status "2"
 
     return JadwalItem(
       id: json['id'] ?? 0,
@@ -55,6 +58,7 @@ class JadwalItem {
       jumlahAsesi: json['jumlah_asesi'] ?? 0,
       asesor: json['asesor'] ?? '-',
       sisaHari: daysOverdue, // days_overdue from API
+      daysLate: daysLate, // days_late from API (only for status "2")
       catatan: json['catatan'],
     );
   }

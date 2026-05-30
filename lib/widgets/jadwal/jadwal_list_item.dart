@@ -50,6 +50,10 @@ class JadwalListItem extends StatelessWidget {
       case 'akan_berakhir':
         return item.sisaHari <= 3 ? 'Sisa ${item.sisaHari} hari lagi' : '${item.sisaHari} hari lagi';
       case 'sedang_berjalan':
+        // Jika ada days_late (terlambat), tampilkan badge terlambat
+        if (item.daysLate != null && item.daysLate! > 0) {
+          return 'Telat ${item.daysLate} hari';
+        }
         return 'Sisa ${item.sisaHari} hari';
       case 'selesai':
         return 'Selesai';
@@ -76,7 +80,18 @@ class JadwalListItem extends StatelessWidget {
   }
 
   bool _shouldShowWarning() {
-    return item.status == 'sedang_berjalan' && item.sisaHari <= 3;
+    // Tampilkan warning jika:
+    // 1. Status sedang_berjalan dan sisa hari <= 3
+    // 2. Status sedang_berjalan dan ada days_late (terlambat)
+    if (item.status == 'sedang_berjalan') {
+      if (item.daysLate != null && item.daysLate! > 0) {
+        return true; // Terlambat
+      }
+      if (item.sisaHari <= 3) {
+        return true; // Segera berakhir
+      }
+    }
+    return false;
   }
 
   @override
@@ -225,7 +240,7 @@ class JadwalListItem extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Warning badge untuk item dengan sisa waktu <= 3 hari
+                      // Warning badge untuk item dengan sisa waktu <= 3 hari atau terlambat
                       if (_shouldShowWarning())
                         Container(
                           margin: const EdgeInsets.only(bottom: 6),
@@ -247,9 +262,11 @@ class JadwalListItem extends StatelessWidget {
                                 color: const Color(0xFFFF6B6B),
                               ),
                               const SizedBox(width: 4),
-                              const Text(
-                                'Segera Berakhir',
-                                style: TextStyle(
+                              Text(
+                                item.daysLate != null && item.daysLate! > 0
+                                    ? 'Terlambat'
+                                    : 'Segera Berakhir',
+                                style: const TextStyle(
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFFFF6B6B),
