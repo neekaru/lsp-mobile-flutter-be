@@ -12,7 +12,6 @@ class NotificationBell extends StatefulWidget {
 
 class _NotificationBellState extends State<NotificationBell> {
   int _notificationCount = 0;
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -202,12 +201,7 @@ class _NotificationPanelState extends State<NotificationPanel> {
                                 schedule: _schedules[index],
                                 onTap: () {
                                   Navigator.pop(context);
-                                  // TODO: Navigate to edit jadwal page
-                                  // Navigator.push(context, MaterialPageRoute(
-                                  //   builder: (context) => EditJadwalScreen(
-                                  //     jadwalId: _schedules[index].id,
-                                  //   ),
-                                  // ));
+                                  // Navigate to edit jadwal page will be implemented later
                                 },
                               );
                             },
