@@ -199,11 +199,11 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
       mainAxisSpacing: 12,
       children: [
         SummaryCard(
-          title: 'Total Asesmen',
+          title: 'Jadwal Asesmen',
           value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesmen),
           trend: data.trendAsesmen,
           subtitle: 'Total Terjadwal',
-          icon: Icons.trending_up_rounded,
+          icon: Icons.calendar_today_rounded,
           iconColor: const Color(0xFF5C51DC),
           iconBgColor: const Color(0xFFEEECFD),
         ),
@@ -226,11 +226,11 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
           iconBgColor: const Color(0xFFE6FAF7),
         ),
         SummaryCard(
-          title: 'Mitra & TUK Aktif',
+          title: 'Tempat Uji Kompetensi',
           value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalTuk),
           trend: data.trendTuk,
-          subtitle: 'Lembaga / TUK',
-          icon: Icons.handshake_rounded,
+          subtitle: 'Jumlah TUK',
+          icon: Icons.location_on_rounded,
           iconColor: const Color(0xFFFF5252),
           iconBgColor: const Color(0xFFFFEEEE),
         ),

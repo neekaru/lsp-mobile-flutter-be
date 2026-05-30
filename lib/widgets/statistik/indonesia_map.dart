@@ -23,6 +23,7 @@ class _IndonesiaMapState extends State<IndonesiaMap>
   bool _isLoading = true;
   MapShapeSource? _cachedMapSource;
   String? _errorMessage;
+  bool _isDisposed = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -74,23 +75,27 @@ class _IndonesiaMapState extends State<IndonesiaMap>
 
   /// Initialize map dengan async loading dan isolate parsing
   Future<void> _initializeMap() async {
+    if (_isDisposed) return;
+    
     try {
       // Initialize GeoJsonManager dengan data optimized
       await GeoJsonManager.instance.initialize(indonesiaGeoJsonOptimized);
 
       // Create MapShapeSource sekali saja (cached)
-      _cachedMapSource = GeoJsonManager.instance.createMapSource(
+      final mapSource = GeoJsonManager.instance.createMapSource(
         provinceData: provinceAdvisors,
         colorMapper: _getColorForCount,
       );
 
-      if (mounted) {
+      if (!_isDisposed && mounted) {
         setState(() {
+          _cachedMapSource = mapSource;
           _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) {
+      debugPrint('Error initializing map: $e');
+      if (!_isDisposed && mounted) {
         setState(() {
           _isLoading = false;
           _errorMessage = 'Gagal memuat peta: $e';
@@ -113,8 +118,23 @@ class _IndonesiaMapState extends State<IndonesiaMap>
   }
 
   @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     super.build(context); // Required by AutomaticKeepAliveClientMixin
+    
+    // Jika map source hilang tapi sudah pernah initialized, re-create
+    if (!_isLoading && _cachedMapSource == null && GeoJsonManager.instance.isInitialized) {
+      _cachedMapSource = GeoJsonManager.instance.createMapSource(
+        provinceData: provinceAdvisors,
+        colorMapper: _getColorForCount,
+      );
+    }
+    
     return RepaintBoundary(
       child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -220,6 +240,19 @@ class _IndonesiaMapState extends State<IndonesiaMap>
 
   /// Map content dengan legend
   Widget _buildMapContent() {
+    // Safety check: jika _cachedMapSource null, coba re-create
+    if (_cachedMapSource == null) {
+      if (GeoJsonManager.instance.isInitialized) {
+        _cachedMapSource = GeoJsonManager.instance.createMapSource(
+          provinceData: provinceAdvisors,
+          colorMapper: _getColorForCount,
+        );
+      } else {
+        // Jika belum initialized, tampilkan loading
+        return _buildLoadingState();
+      }
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [

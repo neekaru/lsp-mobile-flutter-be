@@ -310,6 +310,75 @@ class ApiService {
   }
 
   // ============================================================================
+  // Notification APIs
+  // ============================================================================
+
+  /// Fetch Notification Count
+  /// Get count of waiting schedules for notification badge
+  static Future<int> getNotificationCount() async {
+    try {
+      final response = await _dio.get(ApiRoutes.jadwalNotificationsCount);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final count = NotificationCount.fromJson(response.data);
+        return count.count;
+      }
+
+      return 0;
+    } catch (e) {
+      print('🔴 Error fetching notification count: $e');
+      return 0;
+    }
+  }
+
+  /// Fetch Waiting Schedules
+  /// Get list of schedules with status "Waiting" (status_jadwal = "0")
+  static Future<WaitingScheduleResponse> getWaitingSchedules({
+    int limit = 20,
+    String? idLsp,
+    int? idTuk,
+    String sortBy = 'tanggal',
+    String sortOrder = 'desc',
+  }) async {
+    try {
+      final params = <String>[];
+      params.add('limit=$limit');
+      if (idLsp != null) params.add('id_lsp=$idLsp');
+      if (idTuk != null) params.add('id_tuk=$idTuk');
+      params.add('sort_by=$sortBy');
+      params.add('sort_order=$sortOrder');
+
+      final url = '${ApiRoutes.jadwalWaiting}?${params.join('&')}';
+      final response = await _dio.get(url);
+
+      if (response.statusCode == 200 && response.data != null) {
+        return WaitingScheduleResponse.fromJson(response.data);
+      }
+
+      return const WaitingScheduleResponse(
+        data: [],
+        meta: NotificationMeta(
+          totalWaiting: 0,
+          limit: 20,
+          sortBy: 'tanggal',
+          sortOrder: 'desc',
+        ),
+      );
+    } catch (e) {
+      print('🔴 Error fetching waiting schedules: $e');
+      return const WaitingScheduleResponse(
+        data: [],
+        meta: NotificationMeta(
+          totalWaiting: 0,
+          limit: 20,
+          sortBy: 'tanggal',
+          sortOrder: 'desc',
+        ),
+      );
+    }
+  }
+
+  // ============================================================================
   // Asesor APIs
   // ============================================================================
 

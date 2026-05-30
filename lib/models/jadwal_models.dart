@@ -100,3 +100,106 @@ class UserRole {
   bool get isAdmin => role.toLowerCase() == 'admin';
   bool get canEditSchedule => isAdmin;
 }
+
+// ============================================================================
+// Notification Models
+// ============================================================================
+
+class NotificationCount {
+  final int count;
+
+  const NotificationCount({required this.count});
+
+  factory NotificationCount.fromJson(Map<String, dynamic> json) {
+    return NotificationCount(
+      count: json['count'] ?? 0,
+    );
+  }
+}
+
+class WaitingSchedule {
+  final int id;
+  final String jadwal;
+  final String tanggal;
+  final String? tanggalAkhir;
+  final String statusJadwal;
+  final String statusLabel;
+  final String? idLsp;
+  final int idTuk;
+  final String tuk;
+  final int jumlahAsesi;
+  final String asesor;
+
+  const WaitingSchedule({
+    required this.id,
+    required this.jadwal,
+    required this.tanggal,
+    this.tanggalAkhir,
+    required this.statusJadwal,
+    required this.statusLabel,
+    this.idLsp,
+    required this.idTuk,
+    required this.tuk,
+    required this.jumlahAsesi,
+    required this.asesor,
+  });
+
+  factory WaitingSchedule.fromJson(Map<String, dynamic> json) {
+    return WaitingSchedule(
+      id: json['id'] ?? 0,
+      jadwal: json['jadwal'] ?? '',
+      tanggal: json['tanggal'] ?? '',
+      tanggalAkhir: json['tanggal_akhir'],
+      statusJadwal: json['status_jadwal']?.toString() ?? '0',
+      statusLabel: json['status_label'] ?? 'Draft/Baru',
+      idLsp: json['id_lsp'],
+      idTuk: json['id_tuk'] ?? 0,
+      tuk: json['tuk'] ?? '',
+      jumlahAsesi: json['jumlah_asesi'] ?? 0,
+      asesor: json['asesor'] ?? '-',
+    );
+  }
+}
+
+class WaitingScheduleResponse {
+  final List<WaitingSchedule> data;
+  final NotificationMeta meta;
+
+  const WaitingScheduleResponse({
+    required this.data,
+    required this.meta,
+  });
+
+  factory WaitingScheduleResponse.fromJson(Map<String, dynamic> json) {
+    return WaitingScheduleResponse(
+      data: (json['data'] as List<dynamic>?)
+              ?.map((item) => WaitingSchedule.fromJson(item))
+              .toList() ??
+          [],
+      meta: NotificationMeta.fromJson(json['meta'] ?? {}),
+    );
+  }
+}
+
+class NotificationMeta {
+  final int totalWaiting;
+  final int limit;
+  final String sortBy;
+  final String sortOrder;
+
+  const NotificationMeta({
+    required this.totalWaiting,
+    required this.limit,
+    required this.sortBy,
+    required this.sortOrder,
+  });
+
+  factory NotificationMeta.fromJson(Map<String, dynamic> json) {
+    return NotificationMeta(
+      totalWaiting: json['total_waiting'] ?? 0,
+      limit: json['limit'] ?? 20,
+      sortBy: json['sort_by'] ?? 'tanggal',
+      sortOrder: json['sort_order'] ?? 'desc',
+    );
+  }
+}

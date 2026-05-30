@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/rangkuman_utama.dart';
 import '../widgets/tren_asesmen_chart.dart';
 import '../widgets/jadwal_asesmen.dart';
+import '../widgets/notification_bell.dart';
 import '../services/api_service.dart';
 import '../models/dashboard_models.dart';
 
@@ -125,7 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                    'LSP Monitoring sertifikasi',
+                                    'LSP Teknologi Digital',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
@@ -135,7 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                 SizedBox(height: 2),
                                 Text(
-                                  'Monitoring Sertifikasi Nasional',
+                                  'Dashboard Sertifikasi',
                                   style: TextStyle(
                                     color: Color(0xE6FFFFFF), // white with 0.9 opacity
                                     fontSize: 14,
@@ -146,14 +147,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ),
                           // Notification Bell Icon
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.notifications_none_rounded,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
+                          const NotificationBell(),
                         ],
                       ),
                     ],

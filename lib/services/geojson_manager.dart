@@ -80,12 +80,20 @@ class GeoJsonManager {
       throw StateError('GeoJsonManager not initialized. Call initialize() first.');
     }
 
+    // Selalu create fresh MapShapeSource untuk menghindari issue dengan caching
+    // Syncfusion Maps memerlukan fresh instance untuk render yang konsisten
     return MapShapeSource.memory(
       _geoJsonBytes!,
       shapeDataField: 'id',
       dataCount: _provinces!.length,
-      primaryValueMapper: (int index) => _provinces![index].id,
+      primaryValueMapper: (int index) {
+        if (index < 0 || index >= _provinces!.length) return null;
+        return _provinces![index].id;
+      },
       shapeColorValueMapper: (int index) {
+        if (index < 0 || index >= _provinces!.length) {
+          return const Color(0xFFBFE0FA); // Default color
+        }
         final province = _provinces![index];
         final count = provinceData[province.id] ?? 0;
         return colorMapper(count);
