@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Import screens
+import 'screens/splash_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/statistik_screen.dart';
 import 'screens/jadwal_screen.dart';
@@ -57,7 +58,7 @@ class MainApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Roboto',
       ),
-      home: const MainNavigator(),
+      home: const SplashScreen(),
     );
   }
 }

@@ -7,12 +7,8 @@ import '../helpers/number_format_helper.dart';
 class TrenAsesmenChart extends StatefulWidget {
   final List<MonthlyAssessment>? data;
   final bool? isLoading;
-  
-  const TrenAsesmenChart({
-    super.key,
-    this.data,
-    this.isLoading,
-  });
+
+  const TrenAsesmenChart({super.key, this.data, this.isLoading});
 
   @override
   State<TrenAsesmenChart> createState() => _TrenAsesmenChartState();
@@ -49,7 +45,7 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
     if (widget.data != null) {
       return _buildContent(widget.data!, widget.isLoading ?? false);
     }
-    
+
     // Fallback: Gunakan FutureBuilder jika standalone
     return FutureBuilder<List<MonthlyAssessment>>(
       future: _chartFuture,
@@ -81,7 +77,7 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
         children: [
           // Card Title
           const Text(
-            'Tren Asesmen Bulanan',
+            'Grafik Asesmen',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -107,7 +103,9 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
     if (data.isNotEmpty) {
       int dataMax = data.map((e) => e.total).reduce(max);
       if (dataMax > 0) {
-        maxVal = ((dataMax + 499) ~/ 500) * 500; // Round up to next 500 for clean steps
+        maxVal =
+            ((dataMax + 499) ~/ 500) *
+            500; // Round up to next 500 for clean steps
       }
     }
 
@@ -133,10 +131,7 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
                 .map(
                   (label) => Text(
                     label,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey,
-                    ),
+                    style: const TextStyle(fontSize: 10, color: Colors.grey),
                   ),
                 )
                 .toList(),
@@ -151,10 +146,7 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List.generate(6, (index) {
-                    return Container(
-                      height: 1,
-                      color: const Color(0xFFF1F3F5),
-                    );
+                    return Container(height: 1, color: const Color(0xFFF1F3F5));
                   }),
                 ),
 
@@ -184,7 +176,9 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
                           : ''; // e.g. "(2026)"
 
                       return ChartBarItem(
-                        valueText: NumberFormatHelper.formatWithDots(item.total),
+                        valueText: NumberFormatHelper.formatWithDots(
+                          item.total,
+                        ),
                         heightPercentage: percentage,
                         label: displayLabel,
                         subLabel: displaySub,
@@ -231,7 +225,9 @@ class ChartBarItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: isCurrentMonth ? const Color(0xFFFF9800) : const Color(0xFF2C6C9C),
+                color: isCurrentMonth
+                    ? const Color(0xFFFF9800)
+                    : const Color(0xFF2C6C9C),
               ),
             ),
             const SizedBox(height: 6),
@@ -247,9 +243,12 @@ class ChartBarItem extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: isCurrentMonth 
-                          ? [const Color(0xFFFFB74D), const Color(0xFFFF9800)]
-                          : [const Color(0xFF4FA8E8), const Color(0xFF2C6C9C)],
+                        colors: isCurrentMonth
+                            ? [const Color(0xFFFFB74D), const Color(0xFFFF9800)]
+                            : [
+                                const Color(0xFF4FA8E8),
+                                const Color(0xFF2C6C9C),
+                              ],
                       ),
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(6),

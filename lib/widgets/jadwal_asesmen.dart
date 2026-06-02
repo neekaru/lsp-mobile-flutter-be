@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/dashboard_models.dart';
+import '../screens/jadwal_screen.dart';
 
 class JadwalAsesmen extends StatefulWidget {
   final List<JadwalOverdue>? data;
@@ -76,7 +77,14 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const JadwalScreen(),
+                  ),
+                );
+              },
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: Size.zero,
