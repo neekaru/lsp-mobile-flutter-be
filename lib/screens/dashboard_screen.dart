@@ -7,7 +7,9 @@ import '../services/api_service.dart';
 import '../models/dashboard_models.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final VoidCallback? onNavigateToJadwal;
+
+  const DashboardScreen({super.key, this.onNavigateToJadwal});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -190,6 +192,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: JadwalAsesmen(
                 data: _jadwalData,
                 isLoading: _isLoading,
+                onTapLihatSemua: widget.onNavigateToJadwal,
               ),
             ),
           ],

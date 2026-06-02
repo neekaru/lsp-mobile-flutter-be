@@ -85,7 +85,14 @@ class _MainNavigatorState extends State<MainNavigator> {
   Widget _createScreen(int index) {
     switch (index) {
       case 0:
-        return const DashboardScreen();
+        return DashboardScreen(
+          onNavigateToJadwal: () {
+            setState(() {
+              _getScreen(2);
+              _currentIndex = 2;
+            });
+          },
+        );
       case 1:
         return StatistikScreen(
           onBackToHome: () {

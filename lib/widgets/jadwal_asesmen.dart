@@ -6,11 +6,13 @@ import '../screens/jadwal_screen.dart';
 class JadwalAsesmen extends StatefulWidget {
   final List<JadwalOverdue>? data;
   final bool? isLoading;
+  final VoidCallback? onTapLihatSemua;
   
   const JadwalAsesmen({
     super.key,
     this.data,
     this.isLoading,
+    this.onTapLihatSemua,
   });
 
   @override
@@ -78,12 +80,16 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const JadwalScreen(),
-                  ),
-                );
+                if (widget.onTapLihatSemua != null) {
+                  widget.onTapLihatSemua!();
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const JadwalScreen(),
+                    ),
+                  );
+                }
               },
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
