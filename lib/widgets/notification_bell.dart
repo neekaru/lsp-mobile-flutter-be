@@ -199,6 +199,7 @@ class _NotificationPanelState extends State<NotificationPanel> {
                             itemBuilder: (context, index) {
                               return NotificationCard(
                                 schedule: _schedules[index],
+                                onStatusUpdated: _loadWaitingSchedules,
                                 onTap: () {
                                   Navigator.pop(context);
                                   // Navigate to edit jadwal page will be implemented later
@@ -250,12 +251,164 @@ class _NotificationPanelState extends State<NotificationPanel> {
 class NotificationCard extends StatelessWidget {
   final WaitingSchedule schedule;
   final VoidCallback onTap;
+  final VoidCallback onStatusUpdated;
 
   const NotificationCard({
     super.key,
     required this.schedule,
     required this.onTap,
+    required this.onStatusUpdated,
   });
+
+  void _confirmStatusUpdate(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(
+                Icons.check_circle_outline_rounded,
+                color: Color(0xFF2E7D32),
+                size: 28,
+              ),
+              SizedBox(width: 10),
+              Text(
+                'Konfirmasi Jadwal',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Apakah Anda yakin ingin mengonfirmasi jadwal "${schedule.jadwal}"?\n\nStatus jadwal ini akan berubah menjadi Running.',
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF455A64),
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text(
+                'Batal',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext); // Close dialog
+                _performStatusUpdate(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2E7D32),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Ya, Konfirmasi',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _performStatusUpdate(BuildContext context) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: Card(
+            elevation: 4,
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2E7D32)),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    // Call API
+    final result = await ApiService.updateJadwalStatus(
+      jadwalId: schedule.id,
+      rule: 'draft_to_ongoing',
+    );
+
+    // Hide loading indicator
+    if (context.mounted) {
+      Navigator.pop(context);
+    }
+
+    if (result['success'] == true) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Jadwal "${schedule.jadwal}" berhasil dikonfirmasi ke Running.',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF2E7D32),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+      onStatusUpdated();
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline_rounded, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    result['message'] ?? 'Gagal memperbarui status jadwal.',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFFC62828),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -422,6 +575,42 @@ class NotificationCard extends StatelessWidget {
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+            const Divider(height: 1, thickness: 1, color: Color(0xFFE9ECEF)),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _confirmStatusUpdate(context),
+                  icon: const Icon(
+                    Icons.play_arrow_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    'Konfirmasi Jadwal',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E7D32), // Forest Green
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ],
