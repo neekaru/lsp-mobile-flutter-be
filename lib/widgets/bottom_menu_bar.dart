@@ -41,12 +41,12 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
             ),
             _buildMenuItem(
               index: 1,
-              icon: Icons.insert_chart_outlined_rounded,
+              icon: Icons.bar_chart_rounded,
               label: 'Statistik',
             ),
             _buildMenuItem(
               index: 2,
-              icon: Icons.event_note_rounded,
+              icon: Icons.calendar_month_rounded,
               label: 'Jadwal',
             ),
             _buildMenuItem(
@@ -56,7 +56,7 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
             ),
             _buildMenuItem(
               index: 4,
-              icon: Icons.person_rounded,
+              icon: Icons.account_circle_rounded,
               label: 'Profil',
             ),
           ],
