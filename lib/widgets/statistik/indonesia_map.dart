@@ -7,11 +7,13 @@ import 'indonesia_geojson_optimized.dart';
 class IndonesiaMap extends StatefulWidget {
   final ValueChanged<String> onIslandSelected;
   final ValueChanged<ProvinceModel>? onProvinceSelected;
+  final Map<String, int>? provinceData;
 
   const IndonesiaMap({
     super.key,
     required this.onIslandSelected,
     this.onProvinceSelected,
+    this.provinceData,
   });
 
   @override
@@ -73,6 +75,21 @@ class _IndonesiaMapState extends State<IndonesiaMap>
     _initializeMap();
   }
 
+  @override
+  void didUpdateWidget(covariant IndonesiaMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.provinceData != oldWidget.provinceData) {
+      if (GeoJsonManager.instance.isInitialized) {
+        setState(() {
+          _cachedMapSource = GeoJsonManager.instance.createMapSource(
+            provinceData: widget.provinceData ?? provinceAdvisors,
+            colorMapper: _getColorForCount,
+          );
+        });
+      }
+    }
+  }
+
   /// Initialize map dengan async loading dan isolate parsing
   Future<void> _initializeMap() async {
     if (_isDisposed) return;
@@ -83,7 +100,7 @@ class _IndonesiaMapState extends State<IndonesiaMap>
 
       // Create MapShapeSource sekali saja (cached)
       final mapSource = GeoJsonManager.instance.createMapSource(
-        provinceData: provinceAdvisors,
+        provinceData: widget.provinceData ?? provinceAdvisors,
         colorMapper: _getColorForCount,
       );
 
@@ -130,7 +147,7 @@ class _IndonesiaMapState extends State<IndonesiaMap>
     // Jika map source hilang tapi sudah pernah initialized, re-create
     if (!_isLoading && _cachedMapSource == null && GeoJsonManager.instance.isInitialized) {
       _cachedMapSource = GeoJsonManager.instance.createMapSource(
-        provinceData: provinceAdvisors,
+        provinceData: widget.provinceData ?? provinceAdvisors,
         colorMapper: _getColorForCount,
       );
     }
@@ -244,7 +261,7 @@ class _IndonesiaMapState extends State<IndonesiaMap>
     if (_cachedMapSource == null) {
       if (GeoJsonManager.instance.isInitialized) {
         _cachedMapSource = GeoJsonManager.instance.createMapSource(
-          provinceData: provinceAdvisors,
+          provinceData: widget.provinceData ?? provinceAdvisors,
           colorMapper: _getColorForCount,
         );
       } else {

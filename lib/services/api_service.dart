@@ -421,6 +421,24 @@ class ApiService {
     }
   }
 
+  /// Fetch Sebaran Skema Asesor
+  static Future<List<SebaranSkemaAsesorItem>> getSebaranSkemaAsesor() async {
+    try {
+      final response = await _dio.get(ApiRoutes.dashboardSebaranSkemaAsesor);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data
+            .map((item) => SebaranSkemaAsesorItem.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   /// Fetch Top 5 Provinces by Assessors
   static Future<List<TopProvinsi>> getTopProvinces() async {
     try {

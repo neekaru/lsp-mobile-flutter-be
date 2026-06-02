@@ -29,6 +29,8 @@ class ApiRoutes {
   static const String dashboardPenyebaranTuk = '/api/dashboard/penyebaran-tuk';
   static const String dashboardPenyebaranMitra =
       '/api/dashboard/penyebaran-mitra';
+  static const String dashboardSebaranSkemaAsesor =
+      '/api/dashboard/sebaran-skema-asesor';
 
   // ============================================================================
   // Jadwal Routes

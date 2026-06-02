@@ -289,3 +289,55 @@ class TopProvinsiDetail {
     );
   }
 }
+
+class SkemaAsesorProvinsi {
+  final String provinsiId;
+  final String provinsiNama;
+  final int jumlahAsesor;
+
+  const SkemaAsesorProvinsi({
+    required this.provinsiId,
+    required this.provinsiNama,
+    required this.jumlahAsesor,
+  });
+
+  factory SkemaAsesorProvinsi.fromJson(Map<String, dynamic> json) {
+    return SkemaAsesorProvinsi(
+      provinsiId: json['provinsi_id'] ?? '',
+      provinsiNama: json['provinsi_nama'] ?? '',
+      jumlahAsesor: json['jumlah_asesor'] ?? 0,
+    );
+  }
+}
+
+class SebaranSkemaAsesorItem {
+  final int idSkema;
+  final String kodeSkema;
+  final String skema;
+  final int jumlahAsesor;
+  final String wilayahTerbanyak;
+  final List<SkemaAsesorProvinsi> wilayahDetail;
+
+  const SebaranSkemaAsesorItem({
+    required this.idSkema,
+    required this.kodeSkema,
+    required this.skema,
+    required this.jumlahAsesor,
+    required this.wilayahTerbanyak,
+    required this.wilayahDetail,
+  });
+
+  factory SebaranSkemaAsesorItem.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> details = json['wilayah_detail'] ?? [];
+    return SebaranSkemaAsesorItem(
+      idSkema: json['id_skema'] ?? 0,
+      kodeSkema: json['kode_skema'] ?? '',
+      skema: json['skema'] ?? '',
+      jumlahAsesor: json['jumlah_asesor'] ?? 0,
+      wilayahTerbanyak: json['wilayah_terbanyak'] ?? '',
+      wilayahDetail: details
+          .map((d) => SkemaAsesorProvinsi.fromJson(d as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}

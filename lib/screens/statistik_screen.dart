@@ -16,12 +16,122 @@ class StatistikScreen extends StatefulWidget {
 
 class _StatistikScreenState extends State<StatistikScreen> {
   bool _isActiveAsesorSelected = true; // True for Asesor Aktif, False for Sebaran Skema
-  
   late Future<AsesorStats> _asesorStatsFuture;
   late Future<List<TopProvinsi>> _topProvincesFuture;
-  late Future<SkemaStats> _skemaStatsFuture;
-  late Future<List<TopMitra>> _topMitrasFuture;
   late Future<List<JadwalItem>> _runningJadwalsFuture;
+
+  List<SebaranSkemaAsesorItem> _sebaranSkemaAsesorList = [];
+  bool _isSebaranSkemaAsesorLoading = false;
+  SebaranSkemaAsesorItem? _selectedSkema;
+  String _skemaSearchQuery = '';
+
+  static const Map<String, String> provinsiIdToMapCode = {
+    "11": "IDAC", // Aceh
+    "12": "IDSU", // Sumatera Utara
+    "13": "IDSB", // Sumatera Barat
+    "14": "IDRI", // Riau
+    "15": "IDJA", // Jambi
+    "16": "IDSS", // Sumatera Selatan
+    "17": "IDBE", // Bengkulu
+    "18": "IDLA", // Lampung
+    "19": "IDBB", // Bangka Belitung
+    "21": "IDKR", // Kepulauan Riau
+    "31": "IDJK", // DKI Jakarta
+    "32": "IDJB", // Jawa Barat
+    "33": "IDJT", // Jawa Tengah
+    "34": "IDYO", // DI Yogyakarta
+    "35": "IDJI", // Jawa Timur
+    "36": "IDBT", // Banten
+    "51": "IDBA", // Bali
+    "52": "IDNB", // Nusa Tenggara Barat
+    "53": "IDNT", // Nusa Tenggara Timur
+    "61": "IDKB", // Kalimantan Barat
+    "62": "IDKT", // Kalimantan Tengah
+    "63": "IDKS", // Kalimantan Selatan
+    "64": "IDKI", // Kalimantan Timur
+    "65": "IDKU", // Kalimantan Utara
+    "71": "IDSA", // Sulawesi Utara
+    "72": "IDST", // Sulawesi Tengah
+    "73": "IDSG", // Sulawesi Selatan
+    "74": "IDSN", // Sulawesi Tenggara
+    "75": "IDGO", // Gorontalo
+    "76": "IDSR", // Sulawesi Barat
+    "81": "IDMA", // Maluku
+    "82": "IDMU", // Maluku Utara
+    "91": "IDPB", // Papua Barat
+    "92": "IDPA", // Papua
+  };
+
+  Map<String, int> _getSkemaMapData(SebaranSkemaAsesorItem? skema) {
+    if (skema == null) return {};
+    final Map<String, int> mapData = {};
+    for (var detail in skema.wilayahDetail) {
+      final code = provinsiIdToMapCode[detail.provinsiId];
+      if (code != null) {
+        mapData[code] = detail.jumlahAsesor;
+      }
+    }
+    return mapData;
+  }
+
+  void _showSkemaAsesorDetailDialog(BuildContext context, String skemaName, String provinceName, int count) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.info_outline, color: Color(0xFF2C6C9C)),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Detail Wilayah',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Skema:',
+              style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey[600], fontSize: 12),
+            ),
+            Text(
+              skemaName,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Provinsi:',
+              style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey[600], fontSize: 12),
+            ),
+            Text(
+              provinceName,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Jumlah Asesor:',
+              style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey[600], fontSize: 12),
+            ),
+            Text(
+              '$count Asesor',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C6C9C)),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup', style: TextStyle(color: Color(0xFF2C6C9C), fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -32,9 +142,26 @@ class _StatistikScreenState extends State<StatistikScreen> {
   void _loadData() {
     _asesorStatsFuture = ApiService.getAsesorStats();
     _topProvincesFuture = ApiService.getTopProvinces();
-    _skemaStatsFuture = ApiService.getSkemaStats();
-    _topMitrasFuture = ApiService.getTopMitras();
     _runningJadwalsFuture = ApiService.getJadwalList(statusJadwal: "2");
+    
+    _isSebaranSkemaAsesorLoading = true;
+    ApiService.getSebaranSkemaAsesor().then((value) {
+      if (mounted) {
+        setState(() {
+          _sebaranSkemaAsesorList = value;
+          _isSebaranSkemaAsesorLoading = false;
+          if (value.isNotEmpty) {
+            _selectedSkema = value.first;
+          }
+        });
+      }
+    }).catchError((e) {
+      if (mounted) {
+        setState(() {
+          _isSebaranSkemaAsesorLoading = false;
+        });
+      }
+    });
   }
 
   @override
@@ -75,11 +202,12 @@ class _StatistikScreenState extends State<StatistikScreen> {
               const SizedBox(height: 16),
 
               // 5. Peta Penyebaran Title Header
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+              // 5. Peta Penyebaran Title Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  'Peta Penyebaran Asesor',
-                  style: TextStyle(
+                  _isActiveAsesorSelected ? 'Peta Penyebaran Asesor' : 'Sebaran Asesor berdasarkan Skema',
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -90,19 +218,30 @@ class _StatistikScreenState extends State<StatistikScreen> {
 
               // 6. Interactive choropleth map
               IndonesiaMap(
+                provinceData: _isActiveAsesorSelected ? null : _getSkemaMapData(_selectedSkema),
                 onIslandSelected: (islandId) {
                   debugPrint('Island selected: $islandId');
                 },
                 onProvinceSelected: (province) {
                   debugPrint('Province selected: ${province.name} (ID: ${province.id})');
-                  _showTUKDistributionBottomSheet(context, province.id, province.name);
+                  if (_isActiveAsesorSelected) {
+                    _showTUKDistributionBottomSheet(context, province.id, province.name);
+                  } else {
+                    if (_selectedSkema != null) {
+                      final detail = _selectedSkema!.wilayahDetail.firstWhere(
+                        (d) => d.provinsiId == province.id,
+                        orElse: () => SkemaAsesorProvinsi(provinsiId: province.id, provinsiNama: province.name, jumlahAsesor: 0),
+                      );
+                      _showSkemaAsesorDetailDialog(context, _selectedSkema!.skema, province.name, detail.jumlahAsesor);
+                    }
+                  }
                 },
               ),
 
               const SizedBox(height: 8),
 
               // 7. Dynamic Top 5 Cards at bottom based on active tab
-              _isActiveAsesorSelected ? _buildTopProvinsiCard() : _buildTopMitraCard(),
+              _isActiveAsesorSelected ? _buildTopProvinsiCard() : _buildAllSkemasListCard(),
 
               const SizedBox(height: 24),
             ],
@@ -824,74 +963,289 @@ class _StatistikScreenState extends State<StatistikScreen> {
     );
   }
 
-  // Schema Sebaran metrics layout (2x2 grid for better readability)
+  // Schema Sebaran metrics layout (Enhanced with dynamic Dropdown selector, assessor stats, and regional breakdown list)
   Widget _buildSkemaMetrics() {
-    return FutureBuilder<SkemaStats>(
-      future: _skemaStatsFuture,
-      builder: (context, snapshot) {
-        final data = snapshot.data ?? SkemaStats.fallback();
-        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+    if (_isSebaranSkemaAsesorLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40.0),
+        child: Center(
+          child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF2C6C9C)),
+        ),
+      );
+    }
 
-        double activePct = data.totalSkema > 0 ? (data.skemaAktif / data.totalSkema * 100) : 0.0;
-        double inactivePct = data.totalSkema > 0 ? (data.skemaNonaktif / data.totalSkema * 100) : 0.0;
+    if (_sebaranSkemaAsesorList.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40.0),
+        child: Center(
+          child: Text('Tidak ada data skema yang disetujui.'),
+        ),
+      );
+    }
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            children: [
-              // Top row: Total Skema & Provinsi
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSkemaMetricTile(
-                      icon: Icons.assignment_outlined,
-                      iconColor: const Color(0xFF2C6C9C),
-                      title: 'Total Skema',
-                      value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalSkema),
-                      subtitle: 'Semua skema',
+    // Filter list for dropdown/selector search
+    final filteredDropdownList = _sebaranSkemaAsesorList.where((item) {
+      return item.skema.toLowerCase().contains(_skemaSearchQuery.toLowerCase()) ||
+          item.kodeSkema.toLowerCase().contains(_skemaSearchQuery.toLowerCase());
+    }).toList();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Elegant Dropdown selector for Scheme
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE9ECF0)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x05000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<SebaranSkemaAsesorItem>(
+                value: _selectedSkema != null && _sebaranSkemaAsesorList.contains(_selectedSkema) ? _selectedSkema : null,
+                hint: const Text('Pilih Skema Sertifikasi', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                isExpanded: true,
+                icon: const Icon(Icons.arrow_drop_down_circle_outlined, color: Color(0xFF2C6C9C), size: 20),
+                items: filteredDropdownList.map((item) {
+                  return DropdownMenuItem<SebaranSkemaAsesorItem>(
+                    value: item,
+                    child: Text(
+                      '${item.skema} (${item.jumlahAsesor} Asesor)',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildSkemaMetricTile(
-                      icon: Icons.map_outlined,
-                      iconColor: const Color(0xFF4CAF50),
-                      title: 'Provinsi',
-                      value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.provinsi),
-                      subtitle: 'Tersebar',
-                    ),
-                  ),
-                ],
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSkema = value;
+                  });
+                },
               ),
-              const SizedBox(height: 8),
-              // Bottom row: Skema Aktif & Skema Nonaktif
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSkemaMetricTile(
-                      icon: Icons.personal_video_outlined,
-                      iconColor: const Color(0xFF2C6C9C),
-                      title: 'Skema Aktif',
-                      value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.skemaAktif),
-                      subtitle: isLoading ? '...' : '${activePct.toStringAsFixed(1).replaceAll('.', ',')}%',
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildSkemaMetricTile(
-                      icon: Icons.cancel_outlined,
-                      iconColor: const Color(0xFFE53935),
-                      title: 'Skema Nonaktif',
-                      value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.skemaNonaktif),
-                      subtitle: isLoading ? '...' : '${inactivePct.toStringAsFixed(1).replaceAll('.', ',')}%',
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        );
-      },
+          const SizedBox(height: 12),
+
+          // Scheme metrics cards
+          if (_selectedSkema != null) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: _buildSkemaMetricTile(
+                    icon: Icons.people_outline_rounded,
+                    iconColor: const Color(0xFF2C6C9C),
+                    title: 'Jumlah Asesor',
+                    value: '${_selectedSkema!.jumlahAsesor}',
+                    subtitle: 'Terdaftar',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildSkemaMetricTile(
+                    icon: Icons.star_border_rounded,
+                    iconColor: const Color(0xFF4CAF50),
+                    title: 'Wilayah Terbanyak',
+                    value: _selectedSkema!.wilayahTerbanyak,
+                    subtitle: 'Konsentrasi',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Regional Breakdown List for the selected Scheme
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE9ECF0)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x05000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Lokasi/Wilayah Asesor Skema',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE5F1FC),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${_selectedSkema!.wilayahDetail.length} Provinsi',
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF2C6C9C)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (_selectedSkema!.wilayahDetail.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                      child: Center(
+                        child: Text(
+                          'Tidak ada data wilayah untuk skema ini.',
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _selectedSkema!.wilayahDetail.length > 5 ? 5 : _selectedSkema!.wilayahDetail.length,
+                      itemBuilder: (context, idx) {
+                        final det = _selectedSkema!.wilayahDetail[idx];
+                        double pct = _selectedSkema!.jumlahAsesor > 0 ? (det.jumlahAsesor / _selectedSkema!.jumlahAsesor * 100) : 0.0;
+                        return _buildListItem(_ListModel(
+                          name: det.provinsiNama,
+                          value: '${det.jumlahAsesor} Asesor',
+                          percentage: '${pct.toStringAsFixed(1).replaceAll('.', ',')}%',
+                          color: const Color(0xFF2C6C9C),
+                        ));
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAllSkemasListCard() {
+    // Filter schemes based on search query
+    final filteredList = _sebaranSkemaAsesorList.where((item) {
+      return item.skema.toLowerCase().contains(_skemaSearchQuery.toLowerCase()) ||
+          item.kodeSkema.toLowerCase().contains(_skemaSearchQuery.toLowerCase());
+    }).toList();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x05000000),
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Daftar Sebaran Skema & Asesor',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (_isSebaranSkemaAsesorLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF2C6C9C)),
+                ),
+              )
+            else if (filteredList.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text('Tidak ada skema yang cocok dengan pencarian.'),
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filteredList.length > 8 ? 8 : filteredList.length,
+                itemBuilder: (context, index) {
+                  final item = filteredList[index];
+                  return Column(
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          item.skema,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          item.kodeSkema,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE5F1FC),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${item.jumlahAsesor} Asesor',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2C6C9C),
+                            ),
+                          ),
+                        ),
+                        onTap: () {
+                          setState(() {
+                            _selectedSkema = item;
+                          });
+                        },
+                      ),
+                      Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
+                    ],
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -993,7 +1347,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
                 Icon(Icons.calendar_today_outlined, size: 12, color: Colors.black87),
                 SizedBox(width: 6),
                 Text(
-                  'Mei 2025',
+                  'Juni 2026',
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
               ],
@@ -1011,13 +1365,18 @@ class _StatistikScreenState extends State<StatistikScreen> {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Row(
-              children: const [
-                Icon(Icons.search, size: 16, color: Colors.grey),
-                SizedBox(width: 8),
+              children: [
+                const Icon(Icons.search, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Cari provinsi atau kota...',
+                    onChanged: (value) {
+                      setState(() {
+                        _skemaSearchQuery = value;
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'Cari nama atau kode skema...',
                       hintStyle: TextStyle(fontSize: 11, color: Colors.grey),
                       border: InputBorder.none,
                       isDense: true,
@@ -1092,64 +1451,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
     );
   }
 
-  // Schema Sebaran top 5 mitra perwilayah breakdown list card
-  Widget _buildTopMitraCard() {
-    return FutureBuilder<List<TopMitra>>(
-      future: _topMitrasFuture,
-      builder: (context, snapshot) {
-        final items = snapshot.data ?? [];
-        final isLoading = snapshot.connectionState == ConnectionState.waiting;
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x05000000),
-                  blurRadius: 6,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Top 5 Mitra (Rincian Perwilayah)',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (isLoading)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF2C6C9C)),
-                    ),
-                  )
-                else
-                  ...items.map((item) => _buildListItem(_ListModel(
-                    name: item.name,
-                    value: NumberFormatHelper.formatWithDots(item.value),
-                    percentage: item.percentage,
-                    color: const Color(0xFF0F4C81),
-                  ))),
-                const SizedBox(height: 16),
-                _buildOutlineButton('Lihat Semua Mitra'),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildListItem(_ListModel item) {
     return Column(
