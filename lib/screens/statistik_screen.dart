@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/dashboard_models.dart';
+import '../models/jadwal_models.dart';
 import '../helpers/number_format_helper.dart';
 import '../widgets/statistik/indonesia_map.dart';
 
@@ -20,6 +21,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
   late Future<List<TopProvinsi>> _topProvincesFuture;
   late Future<SkemaStats> _skemaStatsFuture;
   late Future<List<TopMitra>> _topMitrasFuture;
+  late Future<List<JadwalItem>> _runningJadwalsFuture;
 
   @override
   void initState() {
@@ -32,6 +34,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
     _topProvincesFuture = ApiService.getTopProvinces();
     _skemaStatsFuture = ApiService.getSkemaStats();
     _topMitrasFuture = ApiService.getTopMitras();
+    _runningJadwalsFuture = ApiService.getJadwalList(statusJadwal: "2");
   }
 
   @override
@@ -62,6 +65,9 @@ class _StatistikScreenState extends State<StatistikScreen> {
 
               // 3. Dynamic Metrics Cards Layout based on active tab
               _isActiveAsesorSelected ? _buildAsesorMetrics() : _buildSkemaMetrics(),
+
+              // 3.5 Lateness Tracker for Asesor Aktif tab
+              if (_isActiveAsesorSelected) _buildRunningJadwalCard(),
 
               // 4. Additional search & date picker inputs specifically for Sebaran Skema
               if (!_isActiveAsesorSelected) _buildDatePickerAndSearch(),
@@ -224,7 +230,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
     );
   }
 
-  // Active Advisor metrics layout (3-column side-by-side cards)
+  // Active Advisor metrics layout (Enhanced with internal/external assessor breakdown, total TUK, online/offline status)
   Widget _buildAsesorMetrics() {
     return FutureBuilder<AsesorStats>(
       future: _asesorStatsFuture,
@@ -234,27 +240,377 @@ class _StatistikScreenState extends State<StatistikScreen> {
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: _buildMetricCard3Col(
-                  title: 'Total Asesor',
-                  value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesor),
-                  trend: data.trendTotalAsesor,
-                ),
+              // Row 1: Total Asesor (Breakdown) & Total TUK
+              Row(
+                children: [
+                  // Total Asesor Card with Breakdown
+                  Expanded(
+                    flex: 7,
+                    child: Container(
+                      height: 125,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x05000000),
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total Asesor',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF5F6E7D),
+                                ),
+                              ),
+                              if (!isLoading)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F5E9),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    data.trendTotalAsesor,
+                                    style: const TextStyle(
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF4CAF50),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesor),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const Spacer(),
+                          // Internal / External Breakdown
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF2C6C9C),
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Text('Internal', style: TextStyle(fontSize: 9, color: Colors.grey)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    isLoading ? '...' : NumberFormatHelper.formatWithDots(data.asesorInternal),
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE53935),
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Text('External', style: TextStyle(fontSize: 9, color: Colors.grey)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    isLoading ? '...' : NumberFormatHelper.formatWithDots(data.asesorExternal),
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          // Premium Segmented Progress Bar
+                          if (!isLoading && data.totalAsesor > 0)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(2),
+                              child: SizedBox(
+                                height: 4,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: data.asesorInternal,
+                                      child: Container(color: const Color(0xFF2C6C9C)),
+                                    ),
+                                    Expanded(
+                                      flex: data.asesorExternal,
+                                      child: Container(color: const Color(0xFFE53935)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            const SizedBox(height: 4, child: LinearProgressIndicator(value: 0, backgroundColor: Color(0xFFECEFF1))),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // Total TUK Card
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      height: 125,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x05000000),
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE0F2F1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.domain_rounded,
+                              color: Color(0xFF009688),
+                              size: 18,
+                            ),
+                          ),
+                          const Spacer(),
+                          const Text(
+                            'Total TUK',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF5F6E7D),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalTuk),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Tempat Uji Kompetensi',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildMetricCard3Col(
-                  title: 'Asesor Aktif',
-                  value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.asesorAktif),
+              const SizedBox(height: 10),
+              // Row 2: Status Asesmen Card (Online vs Offline)
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x05000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildMetricCard3Col(
-                  title: 'Wilayah Tercover',
-                  value: isLoading ? '...' : '${data.wilayahTercover} Prov',
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Status Asesmen',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2C6C9C),
+                          ),
+                        ),
+                        Icon(
+                          Icons.insights_rounded,
+                          size: 16,
+                          color: Color(0xFF2C6C9C),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        // Online count
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F5E9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.cloud_done_rounded,
+                                  color: Color(0xFF4CAF50),
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Online',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    isLoading ? '...' : NumberFormatHelper.formatWithDots(data.onlineAsesmen),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF4CAF50),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Divider
+                        Container(
+                          height: 30,
+                          width: 1,
+                          color: Colors.grey[200],
+                        ),
+                        const SizedBox(width: 16),
+                        // Offline count
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE5F1FC),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.location_on_rounded,
+                                  color: Color(0xFF2C6C9C),
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Offline',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    isLoading ? '...' : NumberFormatHelper.formatWithDots(data.offlineAsesmen),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2C6C9C),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Segmented Bar for Online / Offline
+                    if (!isLoading && (data.onlineAsesmen + data.offlineAsesmen) > 0)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: SizedBox(
+                          height: 6,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: data.onlineAsesmen,
+                                child: Container(color: const Color(0xFF4CAF50)),
+                              ),
+                              Expanded(
+                                flex: data.offlineAsesmen,
+                                child: Container(color: const Color(0xFF2C6C9C)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      const SizedBox(height: 6, child: LinearProgressIndicator(value: 0, backgroundColor: Color(0xFFECEFF1))),
+                  ],
                 ),
               ),
             ],
@@ -264,68 +620,207 @@ class _StatistikScreenState extends State<StatistikScreen> {
     );
   }
 
-  Widget _buildMetricCard3Col({
-    required String title,
-    required String value,
-    String? trend,
-  }) {
-    return Container(
-      height: 72,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x05000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF2C6C9C),
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              if (trend != null) ...[
-                const SizedBox(width: 3),
-                Text(
-                  trend,
-                  style: TextStyle(
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
-                    color: trend.startsWith('-') ? const Color(0xFFFF5252) : const Color(0xFF4CAF50),
-                  ),
+  // Beautiful Lateness Tracker Widget for Running Schedules
+  Widget _buildRunningJadwalCard() {
+    return FutureBuilder<List<JadwalItem>>(
+      future: _runningJadwalsFuture,
+      builder: (context, snapshot) {
+        final items = snapshot.data ?? [];
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+
+        // Filter only running schedules that are late
+        final lateSchedules = items.where((item) => item.status == 'sedang_berjalan' && item.daysLate != null && item.daysLate! > 0).toList();
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x05000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 3),
                 ),
               ],
-            ],
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(
+                          Icons.warning_rounded,
+                          color: Color(0xFFE53935),
+                          size: 18,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'Keterlambatan Jadwal Running',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (!isLoading && lateSchedules.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFEBEE),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${lateSchedules.length} Jadwal',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFE53935),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (isLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF2C6C9C)),
+                    ),
+                  )
+                else if (lateSchedules.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.check_circle_outline_rounded, color: Color(0xFF4CAF50), size: 20),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Semua jadwal berjalan tepat waktu.',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: Color(0xFF2E7D32),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: lateSchedules.length,
+                    separatorBuilder: (context, index) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final item = lateSchedules[index];
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF9FAFB),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFE53935).withValues(alpha: 0.15)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    item.skema,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFEBEE),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.timer_rounded, color: Color(0xFFE53935), size: 12),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Telat ${item.daysLate} Hari',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFFE53935),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.domain_rounded, color: Colors.grey, size: 13),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    item.tuk,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.black54,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.date_range_rounded, color: Colors.grey, size: 13),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Selesai: ${item.tanggalSelesai}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

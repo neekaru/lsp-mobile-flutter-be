@@ -92,20 +92,35 @@ class JadwalOverdue {
 class AsesorStats {
   final int totalAsesor;
   final int asesorAktif;
+  final int asesorInternal;
+  final int asesorExternal;
+  final int totalTuk;
+  final int onlineAsesmen;
+  final int offlineAsesmen;
   final int wilayahTercover;
   final String trendTotalAsesor;
 
   const AsesorStats({
     required this.totalAsesor,
     required this.asesorAktif,
+    required this.asesorInternal,
+    required this.asesorExternal,
+    required this.totalTuk,
+    required this.onlineAsesmen,
+    required this.offlineAsesmen,
     required this.wilayahTercover,
     this.trendTotalAsesor = '+15,7%',
   });
 
   factory AsesorStats.fallback() {
     return const AsesorStats(
-      totalAsesor: 1456,
+      totalAsesor: 1317,
       asesorAktif: 1200,
+      asesorInternal: 1095,
+      asesorExternal: 222,
+      totalTuk: 45,
+      onlineAsesmen: 1684,
+      offlineAsesmen: 5894,
       wilayahTercover: 34,
       trendTotalAsesor: '+15,7%',
     );

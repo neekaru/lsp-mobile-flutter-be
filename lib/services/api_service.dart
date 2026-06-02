@@ -405,6 +405,11 @@ class ApiService {
         return AsesorStats(
           totalAsesor: data['total_asesor'] ?? 0,
           asesorAktif: data['asesor_aktif'] ?? 0,
+          asesorInternal: data['asesor_internal'] ?? 0,
+          asesorExternal: data['asesor_external'] ?? 0,
+          totalTuk: data['total_tuk'] ?? 0,
+          onlineAsesmen: data['online_asesmen'] ?? 0,
+          offlineAsesmen: data['offline_asesmen'] ?? 0,
           wilayahTercover: data['wilayah_tercover'] ?? 0,
           trendTotalAsesor: trends['total_asesor'] ?? '+0,0%',
         );
