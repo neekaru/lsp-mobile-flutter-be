@@ -166,13 +166,15 @@ class ApiService {
         List<MonthlyAssessment> list = [];
         int maxTotal = 1; // Prevent division by zero
 
+        // Find max value first
         for (var item in data) {
-          int total = (item['total'] as num).toInt();
+          int total = (item['jumlah_asesmen'] as num?)?.toInt() ?? 0;
           if (total > maxTotal) maxTotal = total;
         }
 
+        // Build list with proper field mapping
         for (var item in data) {
-          int total = (item['total'] as num).toInt();
+          int total = (item['jumlah_asesmen'] as num?)?.toInt() ?? 0;
           list.add(
             MonthlyAssessment(
               label: item['label'] ?? '',
@@ -194,6 +196,7 @@ class ApiService {
         return _getFallbackMonthlyAssessments();
       }
     } catch (e) {
+      debugPrint('Error fetching assessment graph: $e');
       return _getFallbackMonthlyAssessments();
     }
   }
