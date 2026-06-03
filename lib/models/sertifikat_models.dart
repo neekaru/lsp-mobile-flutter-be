@@ -189,8 +189,8 @@ class SertifikatMeta {
 class SertifikatSummary {
   final int totalPemegangSertifikat;
   final int totalSkema;
-  final TopSkema topSkema;
-  final SertifikatTrends trends;
+  final TopSkema? topSkema;
+  final SertifikatTrends? trends;
   final String periode;
   final String comparisonPeriod;
   final String tanggalUpdate;
@@ -198,8 +198,8 @@ class SertifikatSummary {
   const SertifikatSummary({
     required this.totalPemegangSertifikat,
     required this.totalSkema,
-    required this.topSkema,
-    required this.trends,
+    this.topSkema,
+    this.trends,
     required this.periode,
     required this.comparisonPeriod,
     required this.tanggalUpdate,
@@ -209,11 +209,24 @@ class SertifikatSummary {
     final data = json['data'];
     final meta = json['meta'];
     
+    // Check if top_skema has meaningful data
+    final topSkemaData = data['top_skema'];
+    final hasTopSkema = topSkemaData != null && 
+                        topSkemaData is Map && 
+                        topSkemaData.isNotEmpty &&
+                        (topSkemaData['id_skema'] != null || topSkemaData['skema'] != null);
+    
+    // Check if trends has meaningful data
+    final trendsData = data['trends'];
+    final hasTrends = trendsData != null && 
+                      trendsData is Map && 
+                      trendsData.isNotEmpty;
+    
     return SertifikatSummary(
       totalPemegangSertifikat: data['total_pemegang_sertifikat'] ?? 0,
       totalSkema: data['total_skema'] ?? 0,
-      topSkema: TopSkema.fromJson(data['top_skema'] ?? {}),
-      trends: SertifikatTrends.fromJson(data['trends'] ?? {}),
+      topSkema: hasTopSkema ? TopSkema.fromJson(Map<String, dynamic>.from(topSkemaData)) : null,
+      trends: hasTrends ? SertifikatTrends.fromJson(Map<String, dynamic>.from(trendsData)) : null,
       periode: meta['periode'] ?? '',
       comparisonPeriod: meta['comparison_period'] ?? '',
       tanggalUpdate: meta['tanggal_update'] ?? '',
@@ -221,11 +234,11 @@ class SertifikatSummary {
   }
 
   factory SertifikatSummary.fallback() {
-    return SertifikatSummary(
+    return const SertifikatSummary(
       totalPemegangSertifikat: 0,
       totalSkema: 0,
-      topSkema: TopSkema.fallback(),
-      trends: SertifikatTrends.fallback(),
+      topSkema: null,
+      trends: null,
       periode: 'N/A',
       comparisonPeriod: 'N/A',
       tanggalUpdate: '',

@@ -510,24 +510,30 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
     }
 
     // Format nama skema untuk display (max 2 baris)
-    String topSkemaName = _summary!.topSkema.skema;
-    if (topSkemaName.length > 30) {
-      // Cari spasi terdekat untuk break line
-      int breakPoint = topSkemaName.indexOf(' ', 15);
-      if (breakPoint > 0 && breakPoint < 30) {
-        topSkemaName = '${topSkemaName.substring(0, breakPoint)}\n${topSkemaName.substring(breakPoint + 1)}';
+    String? topSkemaName;
+    String? topSkemaPemegang;
+    
+    if (_summary!.topSkema != null) {
+      topSkemaName = _summary!.topSkema!.skema;
+      if (topSkemaName.length > 30) {
+        // Cari spasi terdekat untuk break line
+        int breakPoint = topSkemaName.indexOf(' ', 15);
+        if (breakPoint > 0 && breakPoint < 30) {
+          topSkemaName = '${topSkemaName.substring(0, breakPoint)}\n${topSkemaName.substring(breakPoint + 1)}';
+        }
       }
+      topSkemaPemegang = '${formatNumber(_summary!.topSkema!.totalPemegang)} Pemegang';
     }
 
     return SertifikatSummaryCard(
       totalPemegang: formatNumber(_summary!.totalPemegangSertifikat),
       totalSkema: formatNumber(_summary!.totalSkema),
       topSkemaName: topSkemaName,
-      topSkemaPemegang: '${formatNumber(_summary!.topSkema.totalPemegang)} Pemegang',
-      trendPemegang: _summary!.trends.pemegangSertifikat.formatted,
-      trendSkema: _summary!.trends.skema.formatted,
-      trendPemegangDirection: _summary!.trends.pemegangSertifikat.direction,
-      trendSkemaDirection: _summary!.trends.skema.direction,
+      topSkemaPemegang: topSkemaPemegang,
+      trendPemegang: _summary!.trends?.pemegangSertifikat.formatted,
+      trendSkema: _summary!.trends?.skema.formatted,
+      trendPemegangDirection: _summary!.trends?.pemegangSertifikat.direction,
+      trendSkemaDirection: _summary!.trends?.skema.direction,
     );
   }
 

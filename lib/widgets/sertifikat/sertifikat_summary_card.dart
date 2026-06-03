@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class SertifikatSummaryCard extends StatelessWidget {
   final String totalPemegang;
   final String totalSkema;
-  final String topSkemaName;
-  final String topSkemaPemegang;
+  final String? topSkemaName;
+  final String? topSkemaPemegang;
   final String? trendPemegang;
   final String? trendSkema;
   final String? trendPemegangDirection;
@@ -14,8 +14,8 @@ class SertifikatSummaryCard extends StatelessWidget {
     super.key,
     required this.totalPemegang,
     required this.totalSkema,
-    required this.topSkemaName,
-    required this.topSkemaPemegang,
+    this.topSkemaName,
+    this.topSkemaPemegang,
     this.trendPemegang,
     this.trendSkema,
     this.trendPemegangDirection,
@@ -100,9 +100,9 @@ class SertifikatSummaryCard extends StatelessWidget {
                 iconBgColor: const Color(0xFFFDE8D4),
                 title: 'Tren Skema Teratas',
                 titleColor: const Color(0xFFB05B17),
-                value: topSkemaName,
+                value: topSkemaName ?? 'N/A',
                 valueColor: const Color(0xFFE67E22),
-                sublabel: topSkemaPemegang,
+                sublabel: topSkemaPemegang ?? 'Tidak ada data',
                 percentage: null, // No trend for top skema
                 direction: 'stable',
                 isTextValue: true,
