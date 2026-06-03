@@ -42,13 +42,13 @@ class SertifikatSummaryCard extends StatelessWidget {
       child: IntrinsicHeight(
         child: Row(
           children: [
-            // Section 1: Total Pemegang Sertifikat
+            // Section 1: Asesi Aktif
             Expanded(
               child: _buildSummaryColumn(
                 icon: Icons.people_alt_rounded,
                 iconColor: const Color(0xFF1E6CBE),
                 iconBgColor: const Color(0xFFD4E7F9),
-                title: 'Total Pemegang Sertifikat',
+                title: 'Asesi Aktif',
                 titleColor: const Color(0xFF1D5A9E),
                 value: totalPemegang,
                 valueColor: const Color(0xFF339AF0),
