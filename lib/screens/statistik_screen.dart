@@ -1198,45 +1198,48 @@ class _StatistikScreenState extends State<StatistikScreen> {
                   final item = filteredList[index];
                   return Column(
                     children: [
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(
-                          item.skema,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          item.kodeSkema,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE5F1FC),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${item.jumlahAsesor} Asesor',
+                      Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            item.skema,
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2C6C9C),
+                              color: Colors.black87,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            item.kodeSkema,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey,
                             ),
                           ),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE5F1FC),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${item.jumlahAsesor} Asesor',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2C6C9C),
+                              ),
+                            ),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              _selectedSkema = item;
+                            });
+                          },
                         ),
-                        onTap: () {
-                          setState(() {
-                            _selectedSkema = item;
-                          });
-                        },
                       ),
                       Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
                     ],
