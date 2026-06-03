@@ -13,6 +13,12 @@ class DashboardSummary {
   final String trendTuk;
   final bool isCurrentMonth;
   final String? note;
+  
+  // New fields - format "bulan_lalu > bulan_ini"
+  final String jadwalAsesmen;
+  final String sertifikatPerSkema;
+  final String sebaranAsesor;
+  final String tempatUjiKompetensi;
 
   const DashboardSummary({
     required this.totalAsesmen,
@@ -25,6 +31,10 @@ class DashboardSummary {
     this.trendTuk = '+4,5%',
     this.isCurrentMonth = false,
     this.note,
+    this.jadwalAsesmen = '0 > 0',
+    this.sertifikatPerSkema = '0 > 0',
+    this.sebaranAsesor = '0 > 0',
+    this.tempatUjiKompetensi = '0 > 0',
   });
 
   factory DashboardSummary.fallback() {
@@ -38,7 +48,23 @@ class DashboardSummary {
       trendAsesor: '+8,1%',
       trendTuk: '+4,5%',
       isCurrentMonth: false,
+      jadwalAsesmen: '200 > 120',
+      sertifikatPerSkema: '4 > 3',
+      sebaranAsesor: '20 > 10',
+      tempatUjiKompetensi: '10 > 5',
     );
+  }
+  
+  // Helper method to parse "bulan_lalu > bulan_ini" format
+  static Map<String, int> parseComparison(String value) {
+    final parts = value.split('>');
+    if (parts.length == 2) {
+      return {
+        'previous': int.tryParse(parts[0].trim()) ?? 0,
+        'current': int.tryParse(parts[1].trim()) ?? 0,
+      };
+    }
+    return {'previous': 0, 'current': 0};
   }
 }
 

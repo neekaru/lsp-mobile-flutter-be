@@ -85,6 +85,11 @@ class ApiService {
           trendTuk: trends['tuk']?['formatted'] ?? '+0,0%',
           isCurrentMonth: meta?['is_current_month'] ?? false,
           note: meta?['note'],
+          // New fields - format "bulan_lalu > bulan_ini"
+          jadwalAsesmen: data['jadwal_asesmen'] ?? '0 > 0',
+          sertifikatPerSkema: data['sertifikat_per_skema'] ?? '0 > 0',
+          sebaranAsesor: data['sebaran_asesor'] ?? '0 > 0',
+          tempatUjiKompetensi: data['tempat_uji_kompetensi'] ?? '0 > 0',
         );
       }
 

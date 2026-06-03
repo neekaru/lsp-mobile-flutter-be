@@ -6,12 +6,8 @@ import '../helpers/number_format_helper.dart';
 class RangkumanUtama extends StatefulWidget {
   final DashboardSummary? data;
   final bool? isLoading;
-  
-  const RangkumanUtama({
-    super.key,
-    this.data,
-    this.isLoading,
-  });
+
+  const RangkumanUtama({super.key, this.data, this.isLoading});
 
   @override
   State<RangkumanUtama> createState() => _RangkumanUtamaState();
@@ -48,7 +44,7 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
     if (widget.data != null) {
       return _buildContent(widget.data!, widget.isLoading ?? false);
     }
-    
+
     // Fallback: Gunakan FutureBuilder jika standalone
     return FutureBuilder<DashboardSummary>(
       future: _summaryFuture,
@@ -138,7 +134,7 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
               fontSize: 12,
             ),
           ),
-          
+
           // Current Month Warning Badge
           _buildWarningBadge(data),
 
@@ -157,18 +153,11 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
         decoration: BoxDecoration(
           color: const Color(0x33FFA726), // Orange with opacity
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: const Color(0xFFFF9800),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFFFF9800), width: 1),
         ),
         child: Row(
           children: [
-            const Icon(
-              Icons.info_outline,
-              color: Color(0xFFFFB74D),
-              size: 16,
-            ),
+            const Icon(Icons.info_outline, color: Color(0xFFFFB74D), size: 16),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -200,36 +189,48 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
       children: [
         SummaryCard(
           title: 'Jadwal Asesmen',
-          value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesmen),
+          value: isLoading
+              ? '...'
+              : NumberFormatHelper.formatWithDots(data.totalAsesmen),
           trend: data.trendAsesmen,
           subtitle: 'Total Terjadwal',
+          comparison: data.jadwalAsesmen,
           icon: Icons.assignment_rounded,
           iconColor: const Color(0xFF5C51DC),
           iconBgColor: const Color(0xFFEEECFD),
         ),
         SummaryCard(
-          title: 'Pemegang Sertifikat',
-          value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalPemegangSertifikat),
+          title: 'Asesi Aktif',
+          value: isLoading
+              ? '...'
+              : NumberFormatHelper.formatWithDots(data.totalPemegangSertifikat),
           trend: data.trendPemegangSertifikat,
           subtitle: 'Asesi Kompeten',
+          comparison: data.sertifikatPerSkema,
           icon: Icons.verified_rounded,
           iconColor: const Color(0xFFFFB300),
           iconBgColor: const Color(0xFFFFF9E6),
         ),
         SummaryCard(
           title: 'Asesor Aktif',
-          value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalAsesor),
+          value: isLoading
+              ? '...'
+              : NumberFormatHelper.formatWithDots(data.totalAsesor),
           trend: data.trendAsesor,
           subtitle: 'Asesor Terverifikasi',
+          comparison: data.sebaranAsesor,
           icon: Icons.assignment_ind_rounded,
           iconColor: const Color(0xFF00D1B2),
           iconBgColor: const Color(0xFFE6FAF7),
         ),
         SummaryCard(
           title: 'Tempat Uji Kompetensi',
-          value: isLoading ? '...' : NumberFormatHelper.formatWithDots(data.totalTuk),
+          value: isLoading
+              ? '...'
+              : NumberFormatHelper.formatWithDots(data.totalTuk),
           trend: data.trendTuk,
           subtitle: 'Jumlah TUK',
+          comparison: data.tempatUjiKompetensi,
           icon: Icons.domain_rounded,
           iconColor: const Color(0xFFFF5252),
           iconBgColor: const Color(0xFFFFEEEE),
@@ -245,6 +246,7 @@ class SummaryCard extends StatelessWidget {
   final String value;
   final String trend;
   final String subtitle;
+  final String comparison;
   final IconData icon;
   final Color iconColor;
   final Color iconBgColor;
@@ -255,6 +257,7 @@ class SummaryCard extends StatelessWidget {
     required this.value,
     required this.trend,
     required this.subtitle,
+    required this.comparison,
     required this.icon,
     required this.iconColor,
     required this.iconBgColor,
@@ -262,6 +265,11 @@ class SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Parse comparison "bulan_lalu > bulan_ini"
+    final comparisonData = DashboardSummary.parseComparison(comparison);
+    final previous = comparisonData['previous'] ?? 0;
+    final current = comparisonData['current'] ?? 0;
+    
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -314,7 +322,9 @@ class SummaryCard extends StatelessWidget {
                     Text(
                       trend.startsWith('-') ? '▼' : '▲',
                       style: TextStyle(
-                        color: trend.startsWith('-') ? const Color(0xFFFF5252) : const Color(0xFF3CD278),
+                        color: trend.startsWith('-')
+                            ? const Color(0xFFFF5252)
+                            : const Color(0xFF3CD278),
                         fontSize: 9,
                       ),
                     ),
@@ -322,12 +332,31 @@ class SummaryCard extends StatelessWidget {
                     Text(
                       trend,
                       style: TextStyle(
-                        color: trend.startsWith('-') ? const Color(0xFFFF5252) : const Color(0xFF3CD278),
+                        color: trend.startsWith('-')
+                            ? const Color(0xFFFF5252)
+                            : const Color(0xFF3CD278),
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 4),
+                // New comparison display
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '$previous → $current',
+                    style: const TextStyle(
+                      color: Color(0xFF666666),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
