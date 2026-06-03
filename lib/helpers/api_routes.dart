@@ -17,6 +17,8 @@ class ApiRoutes {
   static const String dashboardLspCount = '/api/dashboard/lsp-count';
   static const String dashboardMonthlyAssessments =
       '/api/dashboard/monthly-assessments';
+  static const String dashboardAssessmentGraph =
+      '/api/dashboard/assesmen-graph';
   static const String dashboardPenyebaranRegional =
       '/api/dashboard/penyebaran-regional';
   static const String dashboardTrends = '/api/dashboard/trends';

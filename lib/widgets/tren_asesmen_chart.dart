@@ -16,15 +16,41 @@ class TrenAsesmenChart extends StatefulWidget {
 
 class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
   late Future<List<MonthlyAssessment>>? _chartFuture;
+  int _selectedMonths = 12; // Default 12 months
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     // Hanya fetch jika data tidak disediakan dari parent
     if (widget.data == null) {
-      _chartFuture = ApiService.getMonthlyAssessments();
+      _loadData();
     } else {
       _chartFuture = null;
+    }
+  }
+
+  void _loadData() {
+    setState(() {
+      _isLoading = true;
+      _chartFuture = ApiService.getAssessmentGraph(months: _selectedMonths);
+    });
+    
+    _chartFuture!.then((_) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
+  }
+
+  void _onMonthsChanged(int? newMonths) {
+    if (newMonths != null && newMonths != _selectedMonths) {
+      setState(() {
+        _selectedMonths = newMonths;
+      });
+      _loadData();
     }
   }
 
@@ -75,23 +101,61 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Card Title
-          const Text(
-            'Grafik Asesmen',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Jumlah Asesmen',
-            style: TextStyle(fontSize: 10, color: Colors.grey),
+          // Card Title with Filter Dropdown
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Grafik Asesmen',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Jumlah Asesmen',
+                    style: TextStyle(fontSize: 10, color: Colors.grey),
+                  ),
+                ],
+              ),
+              // Filter Dropdown
+              if (widget.data == null) // Only show filter if not using parent data
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFFE9ECF0)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: _selectedMonths,
+                      isDense: true,
+                      icon: const Icon(Icons.arrow_drop_down, size: 18),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 6, child: Text('6 Bulan')),
+                        DropdownMenuItem(value: 12, child: Text('12 Bulan')),
+                        DropdownMenuItem(value: 18, child: Text('18 Bulan')),
+                        DropdownMenuItem(value: 24, child: Text('24 Bulan')),
+                      ],
+                      onChanged: _onMonthsChanged,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 16),
 
-          _buildChart(data, isLoading),
+          _buildChart(data, isLoading || _isLoading),
         ],
       ),
     );

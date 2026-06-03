@@ -38,7 +38,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // Panggil semua API secara parallel
       final results = await Future.wait([
         ApiService.getSummary(),
-        ApiService.getMonthlyAssessments(),
+        ApiService.getAssessmentGraph(), // Changed to new endpoint
         ApiService.getJadwalOutOfDate(),
       ]);
 

@@ -148,6 +148,56 @@ class ApiService {
     }
   }
 
+  /// Fetch Assessment Graph with Filters (NEW)
+  /// Default: 12 months, Options: 6, 12, 18, 24 months
+  static Future<List<MonthlyAssessment>> getAssessmentGraph({
+    int months = 12,
+  }) async {
+    try {
+      final url = months == 12
+          ? ApiRoutes.dashboardAssessmentGraph
+          : '${ApiRoutes.dashboardAssessmentGraph}?months=$months';
+
+      final response = await _dio.get(url);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+
+        List<MonthlyAssessment> list = [];
+        int maxTotal = 1; // Prevent division by zero
+
+        for (var item in data) {
+          int total = (item['total'] as num).toInt();
+          if (total > maxTotal) maxTotal = total;
+        }
+
+        for (var item in data) {
+          int total = (item['total'] as num).toInt();
+          list.add(
+            MonthlyAssessment(
+              label: item['label'] ?? '',
+              total: total,
+              heightPercentage: total / maxTotal,
+              kompeten: item['kompeten'],
+              belumKompeten: item['belum_kompeten'],
+              isCurrentMonth: item['is_current_month'] ?? false,
+            ),
+          );
+        }
+
+        if (list.isEmpty) {
+          return _getFallbackMonthlyAssessments();
+        }
+
+        return list;
+      } else {
+        return _getFallbackMonthlyAssessments();
+      }
+    } catch (e) {
+      return _getFallbackMonthlyAssessments();
+    }
+  }
+
   // ============================================================================
   // Private Helper Methods - Fallback Data
   // ============================================================================
