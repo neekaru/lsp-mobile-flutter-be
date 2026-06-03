@@ -302,7 +302,7 @@ class SummaryCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
@@ -315,34 +315,8 @@ class SummaryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 2),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      trend.startsWith('-') ? '▼' : '▲',
-                      style: TextStyle(
-                        color: trend.startsWith('-')
-                            ? const Color(0xFFFF5252)
-                            : const Color(0xFF3CD278),
-                        fontSize: 9,
-                      ),
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      trend,
-                      style: TextStyle(
-                        color: trend.startsWith('-')
-                            ? const Color(0xFFFF5252)
-                            : const Color(0xFF3CD278),
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                // New comparison display
+                const SizedBox(height: 6),
+                // Comparison display - replaces trend indicator
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
@@ -358,7 +332,7 @@ class SummaryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   subtitle,
                   style: const TextStyle(color: Colors.grey, fontSize: 10),
