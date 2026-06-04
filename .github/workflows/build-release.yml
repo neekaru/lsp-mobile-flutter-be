@@ -38,6 +38,14 @@ jobs:
         run: |
           echo "BASE_URL=${{ secrets.BASE_URL || 'https://mobile.lspdigital.id/' }}" > .env
 
+      - name: Decode and setup keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=upload-keystore.jks" >> android/key.properties
+
       - name: Get Flutter dependencies
         run: flutter pub get
 
