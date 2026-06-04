@@ -1,15 +1,15 @@
-name: Flutter CI/CD
+name: Build Debug APK
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev", "develop" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build Flutter APKs (Debug & Release)
+  build-debug:
+    name: Build Debug APK
     runs-on: ubuntu-latest
 
     steps:
@@ -38,16 +38,11 @@ jobs:
         run: flutter pub get
 
       - name: Build Debug APK
-        run: flutter build apk --debug
+        run: flutter build apk --debug --no-shrink
 
-      - name: Build Release APK
-        run: flutter build apk --release
-
-      - name: Upload APKs as artifacts
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: flutter-apks
-          path: |
-            build/app/outputs/flutter-apk/app-debug.apk
-            build/app/outputs/flutter-apk/app-release.apk
+          name: debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
