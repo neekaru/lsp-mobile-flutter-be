@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import '../main.dart';
+import '../services/api_service.dart';
+import '../services/token_storage.dart';
+import '../services/auth_repository.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -9,48 +13,94 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Pre-fill the controllers as requested by the user
-  final TextEditingController _emailController = TextEditingController(text: 'user');
-  final TextEditingController _passwordController = TextEditingController(text: 'password123');
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _isLoading = false;
   String? _errorMessage;
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
+    final emailVal = _emailController.text.trim();
+    final passwordVal = _passwordController.text;
+
+    if (emailVal.isEmpty || passwordVal.isEmpty) {
+      setState(() {
+        _errorMessage = 'Akun dan kata sandi wajib diisi.';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
-    // Simulate network delay for a high-end application experience
-    Future.delayed(const Duration(milliseconds: 800), () {
+    // Jalur alternatif (Bypass) untuk testing / demo
+    if (emailVal == 'user' && passwordVal == 'password123') {
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (!mounted) return;
+      
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const MainNavigator(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 600),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final authRepo = AuthRepository(
+        dio: ApiService.dio,
+        tokenStorage: TokenStorage.instance,
+      );
+      
+      await authRepo.login(
+        account: emailVal,
+        password: passwordVal,
+      );
+
       if (!mounted) return;
 
-      final emailVal = _emailController.text.trim();
-      final passwordVal = _passwordController.text;
+      // Successful login - transition smoothly to main dashboard
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const MainNavigator(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 600),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Real API login failed: $e');
 
-      if (emailVal == 'user' && passwordVal == 'password123') {
-        // Successful login - transition smoothly to main dashboard
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const MainNavigator(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 600),
-          ),
-        );
-      } else {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Email/No.Handphone atau Kata Sandi salah';
-        });
-      }
-    });
+      setState(() {
+        _isLoading = false;
+        if (e is DioException) {
+          final statusCode = e.response?.statusCode;
+          if (statusCode == 400) {
+            _errorMessage = 'Akun dan password wajib diisi.';
+          } else if (statusCode == 401) {
+            _errorMessage = 'Akun atau password salah.';
+          } else {
+            _errorMessage = 'Login gagal. Coba lagi nanti.';
+          }
+        } else {
+          _errorMessage = 'Terjadi kesalahan sistem. Coba lagi nanti.';
+        }
+      });
+    }
   }
 
   @override

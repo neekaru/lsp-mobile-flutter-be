@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'token_storage.dart';
 import '../models/dashboard_models.dart';
 import '../models/sertifikat_models.dart';
 import '../models/jadwal_models.dart';
@@ -23,6 +24,9 @@ class ApiService {
     return url;
   }
 
+  // Expose the Dio instance publicly for use by other repositories
+  static Dio get dio => _dio;
+
   // Lazy Dio: only created on first API call, not at class load time.
   // This avoids triggering dotenv lookup + interceptor setup during startup.
   static Dio? _dioInstance;
@@ -36,9 +40,13 @@ class ApiService {
       ),
     )..interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
+        onRequest: (options, handler) async {
           if (kDebugMode) {
             debugPrint('🔵 API Request: ${options.method} ${options.uri}');
+          }
+          final token = await TokenStorage.instance.getAccessToken();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
         },

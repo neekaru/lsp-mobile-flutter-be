@@ -2,6 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../services/api_service.dart';
+import '../services/token_storage.dart';
+import '../services/auth_repository.dart';
+import '../models/auth_models.dart';
+import '../main.dart';
 import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -60,7 +65,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (mounted) {
       setState(() {
         _loadingStatus = "Membaca konfigurasi .env...";
-        _loadingProgress = 0.4;
+        _loadingProgress = 0.3;
       });
     }
 
@@ -73,32 +78,61 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       debugPrint('Splash dotenv read status: $e');
     }
 
-    // Stage 2: Initialize assets / mock delay for premium feel
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Stage 2: Initialize assets / session check
+    await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) {
       setState(() {
-        _loadingStatus = "Menghubungkan ke server LSP...";
-        _loadingProgress = 0.7;
+        _loadingStatus = "Memvalidasi sesi login...";
+        _loadingProgress = 0.6;
       });
     }
 
+    AuthUser? loggedInUser;
+    try {
+      final token = await TokenStorage.instance.getAccessToken();
+      if (token != null && token.isNotEmpty) {
+        final authRepo = AuthRepository(
+          dio: ApiService.dio,
+          tokenStorage: TokenStorage.instance,
+        );
+        loggedInUser = await authRepo.currentUser();
+      }
+    } catch (e) {
+      debugPrint('Session loading failed: $e');
+      try {
+        final authRepo = AuthRepository(
+          dio: ApiService.dio,
+          tokenStorage: TokenStorage.instance,
+        );
+        await authRepo.logout();
+      } catch (ex) {
+        debugPrint('Logout during failed session loading failed: $ex');
+      }
+    }
+
     // Stage 3: Smooth progress completion
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) {
       setState(() {
-        _loadingStatus = "Membuka Dashboard...";
+        _loadingStatus = loggedInUser != null
+            ? "Selamat datang kembali, ${loggedInUser.name}..."
+            : "Menghubungkan ke server LSP...";
         _loadingProgress = 1.0;
       });
     }
 
-    // Smooth transition into OnboardingScreen
-    await Future.delayed(const Duration(milliseconds: 300));
+    // Smooth transition
+    await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) {
+      final Widget nextScreen = loggedInUser != null
+          ? const MainNavigator()
+          : const OnboardingScreen();
+
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 850),
           reverseTransitionDuration: const Duration(milliseconds: 850),
-          pageBuilder: (context, animation, secondaryAnimation) => const OnboardingScreen(),
+          pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: CurvedAnimation(
