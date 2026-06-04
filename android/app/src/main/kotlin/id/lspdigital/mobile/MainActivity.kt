@@ -1,4 +1,4 @@
-package com.example.lsp_digital_mobile
+package id.lspdigital.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 
