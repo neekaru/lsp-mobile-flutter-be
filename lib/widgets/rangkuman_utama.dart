@@ -16,6 +16,24 @@ class RangkumanUtama extends StatefulWidget {
 class _RangkumanUtamaState extends State<RangkumanUtama> {
   late Future<DashboardSummary>? _summaryFuture;
 
+  String get _currentDayMonth {
+    final now = DateTime.now();
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return '${now.day} ${months[now.month - 1]}';
+  }
+
+  String get _todayDate {
+    final now = DateTime.now();
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return '${now.day} ${months[now.month - 1]} ${now.year}';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -91,7 +109,7 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              // "Bulan Ini" Dropdown Pill
+              // Dynamic Day/Month Dropdown Pill
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(
@@ -104,19 +122,19 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                   horizontal: 12,
                   vertical: 6,
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Bulan Ini',
-                      style: TextStyle(
+                      _currentDayMonth,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SizedBox(width: 4),
-                    Icon(
+                    const SizedBox(width: 4),
+                    const Icon(
                       Icons.keyboard_arrow_down_rounded,
                       color: Colors.white,
                       size: 16,
@@ -127,9 +145,9 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Data diperbarui secara real-time',
-            style: TextStyle(
+          Text(
+            'Data diperbarui secara real-time - $_todayDate',
+            style: const TextStyle(
               color: Color(0xB3FFFFFF), // white with 0.7 opacity
               fontSize: 12,
             ),

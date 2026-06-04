@@ -1015,14 +1015,29 @@ class _StatistikScreenState extends State<StatistikScreen> {
                 hint: const Text('Pilih Skema Sertifikasi', style: TextStyle(fontSize: 13, color: Colors.grey)),
                 isExpanded: true,
                 icon: const Icon(Icons.arrow_drop_down_circle_outlined, color: Color(0xFF2C6C9C), size: 20),
+                menuMaxHeight: 350,
+                borderRadius: BorderRadius.circular(12),
+                dropdownColor: Colors.white,
                 items: filteredDropdownList.map((item) {
                   return DropdownMenuItem<SebaranSkemaAsesorItem>(
                     value: item,
-                    child: Text(
-                      '${item.skema} (${item.jumlahAsesor} Asesor)',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.assignment_outlined, size: 16, color: Color(0xFF2C6C9C)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${item.skema} (${item.jumlahAsesor} Asesor)',
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }).toList(),
