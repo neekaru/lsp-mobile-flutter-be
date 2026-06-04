@@ -96,14 +96,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 850),
+          reverseTransitionDuration: const Duration(milliseconds: 850),
           pageBuilder: (context, animation, secondaryAnimation) => const OnboardingScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
-              opacity: animation,
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.fastOutSlowIn,
+              ),
               child: child,
             );
           },
-          transitionDuration: const Duration(milliseconds: 600),
         ),
       );
     }
@@ -178,29 +182,35 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     const Spacer(flex: 3),
                     
                     // Logo with glow & shadow container
-                    Container(
-                      width: 110,
-                      height: 110,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                    Hero(
+                      tag: 'app_logo',
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Container(
+                          width: 110,
+                          height: 110,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                              BoxShadow(
+                                color: const Color(0xFF4FA8E8).withValues(alpha: 0.4),
+                                blurRadius: 30,
+                                spreadRadius: 2,
+                              ),
+                            ],
                           ),
-                          BoxShadow(
-                            color: const Color(0xFF4FA8E8).withValues(alpha: 0.4),
-                            blurRadius: 30,
-                            spreadRadius: 2,
+                          padding: const EdgeInsets.all(16),
+                          child: Image.asset(
+                            'assets/logo.png',
+                            fit: BoxFit.contain,
                           ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Image.asset(
-                        'assets/logo.png',
-                        fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 28),

@@ -74,25 +74,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Logo Avatar
               Center(
-                child: Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFFF8FAFC),
-                    border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                child: Hero(
+                  tag: 'app_logo',
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFF8FAFC),
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(14),
-                  child: Image.asset(
-                    'assets/logo.png',
-                    fit: BoxFit.contain,
+                      padding: const EdgeInsets.all(14),
+                      child: Image.asset(
+                        'assets/logo.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                 ),
               ),

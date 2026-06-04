@@ -32,24 +32,30 @@ class OnboardingScreen extends StatelessWidget {
                 Column(
                   children: [
                     // Circle Logo Avatar
-                    Container(
-                      width: 96,
-                      height: 96,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                    Hero(
+                      tag: 'app_logo',
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Container(
+                          width: 96,
+                          height: 96,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(14),
-                      child: Image.asset(
-                        'assets/logo.png',
-                        fit: BoxFit.contain,
+                          padding: const EdgeInsets.all(14),
+                          child: Image.asset(
+                            'assets/logo.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 18),
@@ -112,12 +118,28 @@ class OnboardingScreen extends StatelessWidget {
                             PageRouteBuilder(
                               pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
                               transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: child,
+                                final slideAnimation = Tween<Offset>(
+                                  begin: const Offset(0.0, 0.15),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.fastOutSlowIn,
+                                  ),
+                                );
+                                final fadeAnimation = CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeIn,
+                                );
+                                return SlideTransition(
+                                  position: slideAnimation,
+                                  child: FadeTransition(
+                                    opacity: fadeAnimation,
+                                    child: child,
+                                  ),
                                 );
                               },
-                              transitionDuration: const Duration(milliseconds: 400),
+                              transitionDuration: const Duration(milliseconds: 550),
                             ),
                           );
                         },
