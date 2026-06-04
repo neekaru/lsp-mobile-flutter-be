@@ -24,7 +24,7 @@ jobs:
         id: version
         run: |
           TAG=${GITHUB_REF#refs/tags/v}
-          VERSION_NAME=$(echo $TAG | cut -d'-' -f1)
+          VERSION_NAME=$(echo $TAG | cut -d'-' -f1 | cut -d'.' -f1-3)
           BUILD_NUMBER=${{ github.run_number }}
           echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
           echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
