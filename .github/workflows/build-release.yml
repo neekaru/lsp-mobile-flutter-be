@@ -1,4 +1,4 @@
-name: Build Release APK
+name: Build Release APK & AAB
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-release:
-    name: Build Release APK
+    name: Build Release APK & AAB
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -52,6 +52,9 @@ jobs:
       - name: Build Release APK
         run: flutter build apk --release --no-shrink
 
+      - name: Build Release AAB (App Bundle)
+        run: flutter build appbundle --release
+
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
@@ -59,11 +62,20 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
 
+      - name: Upload Release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
           draft: false
           prerelease: false
         env:
