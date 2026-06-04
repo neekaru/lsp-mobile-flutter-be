@@ -52,3 +52,6 @@ app.*.map.json
 *.keystore
 key.properties
 keystore-base64.txt
+
+# Internal documentation with sensitive info
+docs/RELEASE_GUIDE.md
