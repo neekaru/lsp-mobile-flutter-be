@@ -98,10 +98,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         );
         loggedInUser = await authRepo.currentUser();
         
-        // Register token if user is an asesi
-        if (loggedInUser.role == 'asesi') {
-          NotificationService.instance.registerCurrentToken();
-        }
+        // Register token for all roles
+        NotificationService.instance.registerCurrentToken();
       }
     } catch (e) {
       debugPrint('Session loading failed: $e');

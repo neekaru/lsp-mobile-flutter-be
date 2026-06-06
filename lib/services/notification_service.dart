@@ -88,10 +88,9 @@ class NotificationService {
 
   Future<void> registerCurrentToken() async {
     final user = AuthRepository.currentUserInstance;
-    // Only register for "asesi" role
-    if (user == null || user.role != 'asesi') {
+    if (user == null) {
       if (kDebugMode) {
-        debugPrint('ℹ️ FCM Token Registration skipped: User is not an Asesi.');
+        debugPrint('ℹ️ FCM Token Registration skipped: User is null.');
       }
       return;
     }
@@ -121,8 +120,7 @@ class NotificationService {
 
   Future<void> unregisterCurrentToken() async {
     final user = AuthRepository.currentUserInstance;
-    // Only unregister if user was an "asesi" (to follow guide rules)
-    if (user == null || user.role != 'asesi') {
+    if (user == null) {
       return;
     }
 

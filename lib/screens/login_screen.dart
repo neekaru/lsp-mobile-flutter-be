@@ -68,10 +68,8 @@ class _LoginScreenState extends State<LoginScreen> {
         password: passwordVal,
       );
 
-      // Trigger token registration if user is an asesi
-      if (AuthRepository.currentUserInstance?.role == 'asesi') {
-        NotificationService.instance.registerCurrentToken();
-      }
+      // Trigger token registration for all roles
+      NotificationService.instance.registerCurrentToken();
 
       if (!mounted) return;
 
