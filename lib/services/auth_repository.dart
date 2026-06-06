@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../models/auth_models.dart';
 import 'token_storage.dart';
 
@@ -14,6 +15,9 @@ class AuthRepository {
 
   // Keep a global static reference of the logged-in user for app-wide UI/role usage
   static AuthUser? currentUserInstance;
+
+  // Hooks to be run before token clearing (e.g. for unregistering FCM token)
+  static final List<Future<void> Function()> preLogoutHooks = [];
 
   Future<LoginResult> login({
     required String account,
@@ -50,6 +54,15 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
+    for (final hook in preLogoutHooks) {
+      try {
+        await hook();
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('❌ Error executing pre-logout hook: $e');
+        }
+      }
+    }
     await _tokenStorage.clear();
     currentUserInstance = null;
   }

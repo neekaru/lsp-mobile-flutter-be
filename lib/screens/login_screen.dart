@@ -4,6 +4,7 @@ import '../main.dart';
 import '../services/api_service.dart';
 import '../services/token_storage.dart';
 import '../services/auth_repository.dart';
+import '../services/notification_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -43,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
       
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const MainNavigator(),
+          pageBuilder: (context, animation, secondaryAnimation) => MainNavigator(key: mainNavigatorKey),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation,
@@ -67,12 +68,17 @@ class _LoginScreenState extends State<LoginScreen> {
         password: passwordVal,
       );
 
+      // Trigger token registration if user is an asesi
+      if (AuthRepository.currentUserInstance?.role == 'asesi') {
+        NotificationService.instance.registerCurrentToken();
+      }
+
       if (!mounted) return;
 
       // Successful login - transition smoothly to main dashboard
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const MainNavigator(),
+          pageBuilder: (context, animation, secondaryAnimation) => MainNavigator(key: mainNavigatorKey),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation,

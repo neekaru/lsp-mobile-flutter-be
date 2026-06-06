@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
+import 'services/notification_service.dart';
 
 // Import screens
 import 'screens/splash_screen.dart';
@@ -16,6 +17,10 @@ import 'screens/placeholder_screen.dart';
 
 // Import widgets
 import 'widgets/bottom_menu_bar.dart';
+
+// Global keys for notification navigation
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<MainNavigatorState> mainNavigatorKey = GlobalKey<MainNavigatorState>();
 
 // Background message handler (must be top-level function)
 @pragma('vm:entry-point')
@@ -45,8 +50,11 @@ void main() async {
     if (kDebugMode) {
       debugPrint('✅ Firebase initialized successfully');
     }
+    
+    // Initialize FCM Notification Service
+    await NotificationService.instance.initialize();
   } catch (e) {
-    debugPrint('❌ ERROR initializing Firebase: $e');
+    debugPrint('❌ ERROR initializing Firebase/Notifications: $e');
   }
   
   // Set background message handler
@@ -83,6 +91,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'LSP Monitoring',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -102,10 +111,10 @@ class MainNavigator extends StatefulWidget {
   const MainNavigator({super.key});
 
   @override
-  State<MainNavigator> createState() => _MainNavigatorState();
+  State<MainNavigator> createState() => MainNavigatorState();
 }
 
-class _MainNavigatorState extends State<MainNavigator> {
+class MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
   
   // Cache screens after first visit so they preserve state.
@@ -164,6 +173,13 @@ class _MainNavigatorState extends State<MainNavigator> {
       default:
         return const DashboardScreen();
     }
+  }
+
+  void setTab(int index) {
+    setState(() {
+      _getScreen(index);
+      _currentIndex = index;
+    });
   }
 
   // Lazy tab navigator: only the active screen is in the widget tree.

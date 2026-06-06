@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../services/api_service.dart';
 import '../services/token_storage.dart';
 import '../services/auth_repository.dart';
+import '../services/notification_service.dart';
 import '../models/auth_models.dart';
 import '../main.dart';
 import 'onboarding_screen.dart';
@@ -96,6 +97,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           tokenStorage: TokenStorage.instance,
         );
         loggedInUser = await authRepo.currentUser();
+        
+        // Register token if user is an asesi
+        if (loggedInUser.role == 'asesi') {
+          NotificationService.instance.registerCurrentToken();
+        }
       }
     } catch (e) {
       debugPrint('Session loading failed: $e');
@@ -125,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) {
       final Widget nextScreen = loggedInUser != null
-          ? const MainNavigator()
+          ? MainNavigator(key: mainNavigatorKey)
           : const OnboardingScreen();
 
       Navigator.of(context).pushReplacement(
