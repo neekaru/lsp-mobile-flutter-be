@@ -19,20 +19,12 @@ class JadwalDetailScreen extends StatefulWidget {
 
 class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
   String? selectedStatus;
-  final TextEditingController _catatanController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     selectedStatus = widget.jadwal.status;
-    _catatanController.text = widget.jadwal.catatan ?? '';
-  }
-
-  @override
-  void dispose() {
-    _catatanController.dispose();
-    super.dispose();
   }
 
   String _formatIndonesianDate(String yyyymmdd) {
@@ -100,7 +92,6 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
       final result = await ApiService.updateJadwalStatus(
         jadwalId: widget.jadwal.id,
         rule: rule,
-        catatan: _catatanController.text,
       );
 
       setState(() {
@@ -855,37 +846,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                         const SizedBox(height: 8),
                         _buildStatusOption('selesai', 'Selesai'),
 
-                        const SizedBox(height: 20),
 
-                        // Catatan
-                        const Text(
-                          'Catatan (Opsional)',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _catatanController,
-                          enabled: widget.userRole.canEditSchedule,
-                          maxLines: 3,
-                          decoration: InputDecoration(
-                            hintText: 'Tambahkan catatan jika diperlukan...',
-                            hintStyle: const TextStyle(fontSize: 13, color: Colors.grey),
-                            filled: true,
-                            fillColor: widget.userRole.canEditSchedule 
-                                ? const Color(0xFFF5F5F5) 
-                                : const Color(0xFFEEEEEE),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.all(16),
-                          ),
-                          style: const TextStyle(fontSize: 13),
-                        ),
                       ],
                     ),
                   ),
