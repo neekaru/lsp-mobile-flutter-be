@@ -2,6 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
 
 // Import screens
 import 'screens/splash_screen.dart';
@@ -14,8 +17,40 @@ import 'screens/placeholder_screen.dart';
 // Import widgets
 import 'widgets/bottom_menu_bar.dart';
 
+// Background message handler (must be top-level function)
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Initialize Firebase if not already initialized
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  if (kDebugMode) {
+    debugPrint('📨 Background message received!');
+    debugPrint('Message ID: ${message.messageId}');
+    debugPrint('Title: ${message.notification?.title}');
+    debugPrint('Body: ${message.notification?.body}');
+    debugPrint('Data: ${message.data}');
+  }
+  
+  // Handle background message here (e.g., show local notification)
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    if (kDebugMode) {
+      debugPrint('✅ Firebase initialized successfully');
+    }
+  } catch (e) {
+    debugPrint('❌ ERROR initializing Firebase: $e');
+  }
+  
+  // Set background message handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   
   // Load environment variables securely from .env
   try {
