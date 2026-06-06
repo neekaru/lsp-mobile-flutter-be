@@ -329,4 +329,14 @@ class NotificationService {
         return 'Ketuk untuk melihat detail selengkapnya.';
     }
   }
+
+  // Simulates an incoming notification (useful for testing/demo)
+  void simulateIncomingNotification(RemoteMessage message) {
+    _showForegroundNotification(message);
+  }
+
+  // Simulates a notification click (useful for testing/demo)
+  void simulateNotificationClick(RemoteMessage message) {
+    _handleNotificationClick(message);
+  }
 }

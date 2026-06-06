@@ -14,6 +14,7 @@ import 'screens/statistik_screen.dart';
 import 'screens/jadwal_screen.dart';
 import 'screens/sertifikat_screen.dart';
 import 'screens/placeholder_screen.dart';
+import 'screens/profile_screen.dart';
 
 // Import widgets
 import 'widgets/bottom_menu_bar.dart';
@@ -162,8 +163,7 @@ class MainNavigatorState extends State<MainNavigator> {
           },
         );
       case 4:
-        return PlaceholderScreen(
-          title: 'Halaman Profil',
+        return ProfileScreen(
           onBackToHome: () {
             setState(() {
               _currentIndex = 0;
