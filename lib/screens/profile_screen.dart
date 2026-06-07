@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -125,29 +126,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
         dio: ApiService.dio,
         tokenStorage: TokenStorage.instance,
       );
-      await authRepo.logout();
-
-      if (!mounted) return;
-
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (route) => false,
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal logout: $e'),
-            backgroundColor: const Color(0xFFD32F2F),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+      
+      // Fetch FCM token to pass to logout
+      String? fcmToken;
+      try {
+        fcmToken = await NotificationService.instance.getToken();
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('⚠️ Error fetching FCM token for logout: $e');
+        }
       }
+
+      await authRepo.logout(deviceToken: fcmToken);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ Unexpected error during logout: $e');
+      }
+      // Guarantee local token storage cleanup in case authRepo.logout failed
+      try {
+        await TokenStorage.instance.clear();
+        AuthRepository.currentUserInstance = null;
+      } catch (_) {}
     } finally {
       if (mounted) {
         setState(() {
           _isLoggingOut = false;
         });
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
       }
     }
   }

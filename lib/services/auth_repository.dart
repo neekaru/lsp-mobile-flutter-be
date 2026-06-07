@@ -53,7 +53,23 @@ class AuthRepository {
     return user;
   }
 
-  Future<void> logout() async {
+  Future<void> logout({String? deviceToken}) async {
+    try {
+      await _dio.post(
+        '/api/auth/logout',
+        data: deviceToken != null ? {
+          'device_token': deviceToken,
+        } : {},
+      );
+      if (kDebugMode) {
+        debugPrint('✅ Logout API called successfully with deviceToken: $deviceToken');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ Error calling logout API: $e');
+      }
+    }
+
     for (final hook in preLogoutHooks) {
       try {
         await hook();

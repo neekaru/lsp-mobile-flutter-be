@@ -53,12 +53,6 @@ class NotificationService {
         _handleNotificationClick(initialMessage);
       });
     }
-
-    // Register pre-logout hook to unregister FCM token before auth token is cleared
-    AuthRepository.preLogoutHooks.add(() async {
-      await unregisterCurrentToken();
-    });
-
     _isInitialized = true;
   }
 
@@ -115,33 +109,6 @@ class NotificationService {
       }
     } catch (e) {
       debugPrint('❌ Error registering FCM Token to backend: $e');
-    }
-  }
-
-  Future<void> unregisterCurrentToken() async {
-    final user = AuthRepository.currentUserInstance;
-    if (user == null) {
-      return;
-    }
-
-    final fcmToken = await getToken();
-    if (fcmToken == null) {
-      debugPrint('⚠️ Cannot unregister FCM token: token is null.');
-      return;
-    }
-
-    try {
-      final response = await ApiService.dio.post(
-        '/api/notifications/unregister',
-        data: {
-          'device_token': fcmToken,
-        },
-      );
-      if (kDebugMode) {
-        debugPrint('✅ FCM Token unregistered successfully: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('❌ Error unregistering FCM Token from backend: $e');
     }
   }
 
