@@ -4,10 +4,10 @@ import '../models/dashboard_models.dart';
 import '../screens/jadwal_screen.dart';
 
 class JadwalAsesmen extends StatefulWidget {
-  final List<JadwalOverdue>? data;
+  final List<JadwalBaru>? data;
   final bool? isLoading;
   final VoidCallback? onTapLihatSemua;
-  
+
   const JadwalAsesmen({
     super.key,
     this.data,
@@ -20,14 +20,14 @@ class JadwalAsesmen extends StatefulWidget {
 }
 
 class _JadwalAsesmenState extends State<JadwalAsesmen> {
-  late Future<List<JadwalOverdue>>? _jadwalFuture;
+  late Future<List<JadwalBaru>>? _jadwalFuture;
 
   @override
   void initState() {
     super.initState();
     // Hanya fetch jika data tidak disediakan dari parent
     if (widget.data == null) {
-      _jadwalFuture = ApiService.getJadwalOutOfDate();
+      _jadwalFuture = ApiService.getJadwalBaru();
     } else {
       _jadwalFuture = null;
     }
@@ -50,9 +50,9 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
     if (widget.data != null) {
       return _buildContent(widget.data!, widget.isLoading ?? false);
     }
-    
+
     // Fallback: Gunakan FutureBuilder jika standalone
-    return FutureBuilder<List<JadwalOverdue>>(
+    return FutureBuilder<List<JadwalBaru>>(
       future: _jadwalFuture,
       builder: (context, snapshot) {
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
@@ -62,7 +62,7 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
     );
   }
 
-  Widget _buildContent(List<JadwalOverdue> data, bool isLoading) {
+  Widget _buildContent(List<JadwalBaru> data, bool isLoading) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -71,7 +71,7 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Jadwal Asesmen Mendekati Akhir',
+              'Jadwal Asesmen Baru',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -114,7 +114,7 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
     );
   }
 
-  Widget _buildJadwalList(List<JadwalOverdue> data, bool isLoading) {
+  Widget _buildJadwalList(List<JadwalBaru> data, bool isLoading) {
     if (isLoading) {
       return const Center(
         child: Padding(
@@ -132,7 +132,7 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 20),
           child: Text(
-            'Tidak ada jadwal mendekati batas',
+            'Tidak ada jadwal baru',
             style: TextStyle(color: Colors.grey, fontSize: 13),
           ),
         ),
@@ -154,29 +154,42 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
 }
 
 class JadwalItemCard extends StatelessWidget {
-  final JadwalOverdue item;
+  final JadwalBaru item;
 
-  const JadwalItemCard({
-    super.key,
-    required this.item,
-  });
+  const JadwalItemCard({super.key, required this.item});
 
-  String _formatIndonesianDate(String yyyymmdd) {
+  String _getMonthAbbreviation(String dateStr) {
     try {
-      final parts = yyyymmdd.split('-');
-      if (parts.length != 3) return yyyymmdd;
-      final year = parts[0];
+      final parts = dateStr.split('-');
+      if (parts.length != 3) return 'Des';
       final monthIndex = int.parse(parts[1]);
-      final day = int.parse(parts[2]).toString();
-
       final months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
       ];
-      final monthName = months[monthIndex - 1];
-      return '$day $monthName $year';
-    } catch (e) {
-      return yyyymmdd;
+      return months[monthIndex - 1];
+    } catch (_) {
+      return 'Des';
+    }
+  }
+
+  String _getDayNumber(String dateStr) {
+    try {
+      final parts = dateStr.split('-');
+      if (parts.length != 3) return '01';
+      return int.parse(parts[2]).toString();
+    } catch (_) {
+      return '01';
     }
   }
 
@@ -199,25 +212,59 @@ class JadwalItemCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Left Icon Box
+          // Left Icon Box: Calendar Sheet showing Date & Month
           Container(
-            width: 44,
-            height: 44,
+            width: 50,
+            height: 52,
             decoration: BoxDecoration(
-              color: const Color(0xFFE5F1FC),
-              borderRadius: BorderRadius.circular(8),
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
             ),
-            child: const Center(
-              child: Icon(
-                Icons.calendar_today_rounded,
-                color: Color(0xFF2C6C9C),
-                size: 22,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Month Header Banner
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF4FA8E8),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    _getMonthAbbreviation(item.tanggal).toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                // Day Number
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      _getDayNumber(item.tanggal),
+                      style: const TextStyle(
+                        color: Color(0xFF1E293B),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        height: 1.1,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 14),
 
-          // Center Text
+          // Center Text: Jadwal & TUK
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,10 +283,7 @@ class JadwalItemCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   item.tuk,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -248,27 +292,38 @@ class JadwalItemCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          // Right Column: Date & Remaining Days
+          // Right Column: Quota Indicator
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                _formatIndonesianDate(item.tanggal),
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey,
+              const Text(
+                'Kuota',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Color(0xFF64748B),
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 3),
-              Text(
-                'Lewat ${item.daysOverdue} hari',
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Color(0xFFE53935), // Red warning text
-                  fontWeight: FontWeight.bold,
-                ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.people_alt_rounded,
+                    size: 14,
+                    color: Color(0xFF4FA8E8),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${item.kuota}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

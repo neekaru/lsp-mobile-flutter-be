@@ -17,11 +17,11 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoading = true;
-  
+
   // State untuk menyimpan data dari API
   DashboardSummary? _summaryData;
   List<MonthlyAssessment>? _chartData;
-  List<JadwalOverdue>? _jadwalData;
+  List<JadwalBaru>? _jadwalData;
 
   @override
   void initState() {
@@ -39,13 +39,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final results = await Future.wait([
         ApiService.getSummary(),
         ApiService.getAssessmentGraph(), // Changed to new endpoint
-        ApiService.getJadwalOutOfDate(),
+        ApiService.getJadwalBaru(),
       ]);
 
       setState(() {
         _summaryData = results[0] as DashboardSummary;
         _chartData = results[1] as List<MonthlyAssessment>;
-        _jadwalData = results[2] as List<JadwalOverdue>;
+        _jadwalData = results[2] as List<JadwalBaru>;
         _isLoading = false;
       });
     } catch (e) {
@@ -59,7 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _handleRefresh() async {
     await _loadAllData();
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -96,7 +96,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       bottomRight: Radius.circular(24),
                     ),
                   ),
-                  padding: EdgeInsets.fromLTRB(20, statusBarHeight + 20, 20, 20),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    statusBarHeight + 20,
+                    20,
+                    20,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -110,7 +115,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: const Color(0x66FFFFFF), // white with 0.4 opacity
+                                color: const Color(
+                                  0x66FFFFFF,
+                                ), // white with 0.4 opacity
                                 width: 2,
                               ),
                               color: Colors.white,
@@ -128,19 +135,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                    'LSP Teknologi Digital',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: -0.3,
-                                    ),
+                                  'LSP Teknologi Digital',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: -0.3,
                                   ),
+                                ),
                                 SizedBox(height: 2),
                                 Text(
                                   'Dashboard Sertifikasi',
                                   style: TextStyle(
-                                    color: Color(0xE6FFFFFF), // white with 0.9 opacity
+                                    color: Color(
+                                      0xE6FFFFFF,
+                                    ), // white with 0.9 opacity
                                     fontSize: 14,
                                     fontWeight: FontWeight.w400,
                                   ),
@@ -177,18 +186,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.only(
                 left: 16.0,
                 right: 16.0,
-                top: 4.0, // 12 (bottom of previous) + 4 (top of this) = 16px gap
+                top:
+                    4.0, // 12 (bottom of previous) + 4 (top of this) = 16px gap
                 bottom: 8.0, // Set to 8
               ),
-              child: TrenAsesmenChart(
-                data: _chartData,
-                isLoading: _isLoading,
-              ),
+              child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
             ),
 
-            // 3. Jadwal Asesmen Mendekati Akhir Section (Imported list widget)
+            // 3. Jadwal Asesmen Mendekati Baru Section (Imported list widget)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0), // 8 (bottom of previous) + 8 (top of this) = 16px gap
+              padding: const EdgeInsets.fromLTRB(
+                16.0,
+                8.0,
+                16.0,
+                32.0,
+              ), // 8 (bottom of previous) + 8 (top of this) = 16px gap
               child: JadwalAsesmen(
                 data: _jadwalData,
                 isLoading: _isLoading,

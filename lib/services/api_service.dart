@@ -18,7 +18,7 @@ class ApiService {
   // ============================================================================
   // Configuration — Lazy Initialization
   // ============================================================================
-  
+
   static String get baseUrl {
     final url = dotenv.env['BASE_URL'] ?? "";
     return url;
@@ -31,40 +31,46 @@ class ApiService {
   // This avoids triggering dotenv lookup + interceptor setup during startup.
   static Dio? _dioInstance;
   static Dio get _dio {
-    return _dioInstance ??= Dio(
-      BaseOptions(
-        baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 20),
-        receiveTimeout: const Duration(seconds: 20),
-        sendTimeout: const Duration(seconds: 20),
-      ),
-    )..interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          if (kDebugMode) {
-            debugPrint('🔵 API Request: ${options.method} ${options.uri}');
-          }
-          final token = await TokenStorage.instance.getAccessToken();
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-          return handler.next(options);
-        },
-        onResponse: (response, handler) {
-          if (kDebugMode) {
-            debugPrint('🟢 API Response: ${response.statusCode} ${response.requestOptions.uri}');
-          }
-          return handler.next(response);
-        },
-        onError: (error, handler) {
-          if (kDebugMode) {
-            debugPrint('🔴 API Error: ${error.message}');
-            debugPrint('🔴 URL: ${error.requestOptions.uri}');
-          }
-          return handler.next(error);
-        },
-      ),
-    );
+    return _dioInstance ??=
+        Dio(
+            BaseOptions(
+              baseUrl: baseUrl,
+              connectTimeout: const Duration(seconds: 20),
+              receiveTimeout: const Duration(seconds: 20),
+              sendTimeout: const Duration(seconds: 20),
+            ),
+          )
+          ..interceptors.add(
+            InterceptorsWrapper(
+              onRequest: (options, handler) async {
+                if (kDebugMode) {
+                  debugPrint(
+                    '🔵 API Request: ${options.method} ${options.uri}',
+                  );
+                }
+                final token = await TokenStorage.instance.getAccessToken();
+                if (token != null && token.isNotEmpty) {
+                  options.headers['Authorization'] = 'Bearer $token';
+                }
+                return handler.next(options);
+              },
+              onResponse: (response, handler) {
+                if (kDebugMode) {
+                  debugPrint(
+                    '🟢 API Response: ${response.statusCode} ${response.requestOptions.uri}',
+                  );
+                }
+                return handler.next(response);
+              },
+              onError: (error, handler) {
+                if (kDebugMode) {
+                  debugPrint('🔴 API Error: ${error.message}');
+                  debugPrint('🔴 URL: ${error.requestOptions.uri}');
+                }
+                return handler.next(error);
+              },
+            ),
+          );
   }
 
   // ============================================================================
@@ -251,6 +257,35 @@ class ApiService {
     ];
   }
 
+  static List<JadwalBaru> _getFallbackJadwalBaru() {
+    return const [
+      JadwalBaru(
+        id: 9048,
+        jadwal: 'Sertifikasi Borneo Engineer - Digital Marketing Batch 2',
+        tanggal: '2025-04-30',
+        kuota: 54,
+        statusJadwal: '0',
+        tuk: 'Borneo Engineer',
+      ),
+      JadwalBaru(
+        id: 9049,
+        jadwal: 'Sertifikasi Campus Digital - Content Creator Batch 1',
+        tanggal: '2025-05-15',
+        kuota: 30,
+        statusJadwal: '0',
+        tuk: 'Campus Digital',
+      ),
+      JadwalBaru(
+        id: 9050,
+        jadwal: 'Asesmen Mandiri Cyber - Ethical Hacker',
+        tanggal: '2025-05-20',
+        kuota: 25,
+        statusJadwal: '0',
+        tuk: 'Mandiri Cyber',
+      ),
+    ];
+  }
+
   static List<TopProvinsi> _getFallbackProvinces() {
     return const [
       TopProvinsi(
@@ -283,7 +318,33 @@ class ApiService {
   // Jadwal APIs
   // ============================================================================
 
-  /// Fetch Jadwal Asesmen Mendekati Akhir (Out of Date Schedules)
+  /// Fetch Jadwal Asesmen Baru
+  static Future<List<JadwalBaru>> getJadwalBaru() async {
+    try {
+      final response = await _dio.get(
+        ApiRoutes.withLimit(ApiRoutes.jadwalBaru, DataLimit.three.value),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        List<JadwalBaru> list = data
+            .map((item) => JadwalBaru.fromJson(item as Map<String, dynamic>))
+            .toList();
+
+        if (list.isEmpty) {
+          return _getFallbackJadwalBaru();
+        }
+
+        return list;
+      } else {
+        return _getFallbackJadwalBaru();
+      }
+    } catch (e) {
+      return _getFallbackJadwalBaru();
+    }
+  }
+
+  /// Fetch Jadwal Asesmen Mendekati Baru
   static Future<List<JadwalOverdue>> getJadwalOutOfDate() async {
     try {
       final response = await _dio.get(
@@ -372,10 +433,7 @@ class ApiService {
           'data': response.data,
         };
       } else {
-        return {
-          'success': false,
-          'message': 'Gagal memperbarui status',
-        };
+        return {'success': false, 'message': 'Gagal memperbarui status'};
       }
     } catch (e) {
       debugPrint('🔴 Error updating jadwal status: $e');
@@ -495,7 +553,10 @@ class ApiService {
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
         return data
-            .map((item) => SebaranSkemaAsesorItem.fromJson(item as Map<String, dynamic>))
+            .map(
+              (item) =>
+                  SebaranSkemaAsesorItem.fromJson(item as Map<String, dynamic>),
+            )
             .toList();
       }
 
@@ -804,11 +865,11 @@ class ApiService {
         ApiRoutes.dashboardSertifikatPerSkema,
         limit,
       );
-      
+
       if (tahun != null) {
         url += '&tahun=$tahun';
       }
-      
+
       if (sort != 'desc') {
         url += '&sort=$sort';
       }
@@ -850,9 +911,15 @@ class ApiService {
       // Build query parameters
       final params = <String>[];
       params.add('q=$query');
-      if (skema != null && skema.isNotEmpty) params.add('skema=$skema');
-      if (kategori != null && kategori.isNotEmpty) params.add('kategori=$kategori');
-      if (status != null && status.isNotEmpty) params.add('status=$status');
+      if (skema != null && skema.isNotEmpty) {
+        params.add('skema=$skema');
+      }
+      if (kategori != null && kategori.isNotEmpty) {
+        params.add('kategori=$kategori');
+      }
+      if (status != null && status.isNotEmpty) {
+        params.add('status=$status');
+      }
       params.add('limit=$limit');
       params.add('offset=$offset');
 

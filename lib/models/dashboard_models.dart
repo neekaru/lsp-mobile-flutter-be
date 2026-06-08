@@ -367,3 +367,32 @@ class SebaranSkemaAsesorItem {
     );
   }
 }
+
+class JadwalBaru {
+  final int id;
+  final String jadwal;
+  final String tanggal;
+  final int kuota;
+  final String statusJadwal;
+  final String tuk;
+
+  const JadwalBaru({
+    required this.id,
+    required this.jadwal,
+    required this.tanggal,
+    required this.kuota,
+    required this.statusJadwal,
+    required this.tuk,
+  });
+
+  factory JadwalBaru.fromJson(Map<String, dynamic> json) {
+    return JadwalBaru(
+      id: json['id'] ?? 0,
+      jadwal: json['jadwal'] ?? 'Jadwal Baru',
+      tanggal: json['tanggal'] ?? '',
+      kuota: json['kuota'] ?? 0,
+      statusJadwal: json['status_jadwal']?.toString() ?? '0',
+      tuk: json['tuk'] ?? 'TUK Pusat',
+    );
+  }
+}
