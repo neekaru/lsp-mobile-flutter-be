@@ -66,7 +66,10 @@ class AppNotificationStorage {
   static final AppNotificationStorage instance = AppNotificationStorage._privateConstructor();
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      resetOnError: true,
+    ),
   );
 
   static const _notificationsKey = 'app_notifications_list';

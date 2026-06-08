@@ -223,6 +223,49 @@ class MainNavigatorState extends State<MainNavigator> {
     });
   }
 
+  Future<bool> _showExitDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text(
+          'Keluar Aplikasi?',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin keluar dari aplikasi LSP Digital Mobile?',
+          style: TextStyle(fontSize: 14, color: Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(
+              'Batal',
+              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF5350),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Keluar',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
   // Lazy tab navigator: only the active screen is in the widget tree.
   // Previously visited screens are kept in _screenCache for state preservation.
   @override
@@ -234,26 +277,42 @@ class MainNavigatorState extends State<MainNavigator> {
       _getScreen(_currentIndex);
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: List.generate(5, (index) {
-          if (_screenCache.containsKey(index)) {
-            return _screenCache[index]!;
-          }
-          // Unvisited screens get a zero-cost placeholder
-          return const SizedBox.shrink();
-        }),
-      ),
-      bottomNavigationBar: BottomMenuBar(
-        selectedIndex: _currentIndex,
-        onTap: (index) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+        if (_currentIndex != 0) {
           setState(() {
-            _getScreen(index); // Create & cache screen on first tap
-            _currentIndex = index;
+            _currentIndex = 0;
           });
-        },
+        } else {
+          final shouldExit = await _showExitDialog();
+          if (shouldExit) {
+            await SystemNavigator.pop();
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F6F8),
+        body: IndexedStack(
+          index: _currentIndex,
+          children: List.generate(5, (index) {
+            if (_screenCache.containsKey(index)) {
+              return _screenCache[index]!;
+            }
+            // Unvisited screens get a zero-cost placeholder
+            return const SizedBox.shrink();
+          }),
+        ),
+        bottomNavigationBar: BottomMenuBar(
+          selectedIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _getScreen(index); // Create & cache screen on first tap
+              _currentIndex = index;
+            });
+          },
+        ),
       ),
     );
   }

@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await Future.delayed(const Duration(milliseconds: 600));
       if (!mounted) return;
       
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => MainNavigator(key: mainNavigatorKey),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -53,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
           },
           transitionDuration: const Duration(milliseconds: 600),
         ),
+        (route) => false,
       );
       return;
     }
@@ -74,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       // Successful login - transition smoothly to main dashboard
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => MainNavigator(key: mainNavigatorKey),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -85,6 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
           },
           transitionDuration: const Duration(milliseconds: 600),
         ),
+        (route) => false,
       );
     } catch (e) {
       debugPrint('Real API login failed: $e');
