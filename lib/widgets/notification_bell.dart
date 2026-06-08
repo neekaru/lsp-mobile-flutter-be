@@ -167,20 +167,6 @@ class _NotificationPanelState extends State<NotificationPanel> {
     }
   }
 
-  void _handleAppNotificationTap(AppNotification notif) async {
-    await AppNotificationStorage.instance.markAsRead(notif.id);
-    if (mounted) {
-      Navigator.pop(context); // Close notifications bottom panel
-    }
-
-    final type = notif.type;
-    if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
-      mainNavigatorKey.currentState?.setTab(3); // Switch to Sertifikat Tab
-    } else if (type == 'rekomendasi_asesor') {
-      mainNavigatorKey.currentState?.setTab(2); // Switch to Jadwal Tab
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -435,7 +421,19 @@ class _NotificationPanelState extends State<NotificationPanel> {
                                   final notif = _appNotifications[index];
                                   return AppNotificationCard(
                                     notification: notif,
-                                    onTap: () => _handleAppNotificationTap(notif),
+                                    onTap: () async {
+                                      await AppNotificationStorage.instance.markAsRead(notif.id);
+                                      _refreshAppNotifications();
+                                    },
+                                    onActionPressed: () {
+                                      Navigator.pop(context); // Close bottom sheet
+                                      final type = notif.type;
+                                      if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
+                                        mainNavigatorKey.currentState?.setTab(3); // Switch to Sertifikat Tab
+                                      } else if (type == 'rekomendasi_asesor') {
+                                        mainNavigatorKey.currentState?.setTab(2); // Switch to Jadwal Tab
+                                      }
+                                    },
                                     onDelete: () async {
                                       await AppNotificationStorage.instance.deleteNotification(notif.id);
                                       _refreshAppNotifications();
@@ -488,20 +486,30 @@ class _NotificationPanelState extends State<NotificationPanel> {
   }
 }
 
-class AppNotificationCard extends StatelessWidget {
+class AppNotificationCard extends StatefulWidget {
   final AppNotification notification;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback? onActionPressed;
 
   const AppNotificationCard({
     super.key,
     required this.notification,
     required this.onTap,
     required this.onDelete,
+    this.onActionPressed,
   });
 
   @override
+  State<AppNotificationCard> createState() => _AppNotificationCardState();
+}
+
+class _AppNotificationCardState extends State<AppNotificationCard> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    final notification = widget.notification;
     IconData iconData = Icons.notifications_active_rounded;
     Color iconColor = const Color(0xFF4A9EDF);
 
@@ -515,6 +523,16 @@ class AppNotificationCard extends StatelessWidget {
       iconData = Icons.workspace_premium_rounded;
       iconColor = const Color(0xFFE0A96D);
     }
+
+    // Mute colors if read
+    if (notification.isRead) {
+      iconColor = const Color(0xFF94A3B8); // Muted grey
+    }
+
+    final hasAction = widget.onActionPressed != null &&
+        (notification.type == 'status_kompeten' ||
+            notification.type == 'rekomendasi_asesor' ||
+            notification.type == 'sertifikat_terbit');
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -532,7 +550,7 @@ class AppNotificationCard extends StatelessWidget {
             color: Color(0xFFC62828),
           ),
         ),
-        onDismissed: (_) => onDelete(),
+        onDismissed: (_) => widget.onDelete(),
         child: Container(
           decoration: BoxDecoration(
             color: notification.isRead ? const Color(0xFFF8F9FA) : const Color(0xFFE3F2FD).withValues(alpha: 0.35),
@@ -543,79 +561,119 @@ class AppNotificationCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: InkWell(
-            onTap: onTap,
+            onTap: () {
+              widget.onTap();
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(14),
-              child: Row(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: iconColor.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      iconData,
-                      color: iconColor,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: iconColor.withValues(alpha: notification.isRead ? 0.05 : 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          iconData,
+                          color: iconColor,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Text(
-                                notification.title,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
-                                  color: const Color(0xFF1E293B),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    notification.title,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
+                                      color: notification.isRead ? const Color(0xFF64748B) : const Color(0xFF1E293B),
+                                    ),
+                                  ),
                                 ),
+                                if (!notification.isRead) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF4A9EDF),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(width: 6),
+                                Icon(
+                                  _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                                  size: 18,
+                                  color: const Color(0xFF94A3B8),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              notification.body,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: notification.isRead ? const Color(0xFF94A3B8) : const Color(0xFF334155),
+                                height: 1.3,
+                              ),
+                              maxLines: _isExpanded ? null : 2,
+                              overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _formatRelativeTime(notification.timestamp),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Color(0xFF94A3B8),
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            if (!notification.isRead) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF4A9EDF),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ],
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          notification.body,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: notification.isRead ? const Color(0xFF64748B) : const Color(0xFF334155),
-                            height: 1.3,
+                      ),
+                    ],
+                  ),
+                  if (_isExpanded && hasAction) ...[
+                    const SizedBox(height: 12),
+                    const Divider(height: 1, thickness: 1, color: Color(0xFFE9ECEF)),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton.icon(
+                          onPressed: widget.onActionPressed,
+                          icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                          label: Text(
+                            notification.type == 'rekomendasi_asesor' ? 'Lihat Jadwal' : 'Buka Sertifikat',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                           ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _formatRelativeTime(notification.timestamp),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Color(0xFF94A3B8),
-                            fontWeight: FontWeight.w500,
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF4A9EDF),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                         ),
                       ],
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),

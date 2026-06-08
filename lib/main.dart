@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'services/notification_service.dart';
+import 'services/app_notification_storage.dart';
 
 // Import screens
 import 'screens/splash_screen.dart';
@@ -36,7 +37,48 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     debugPrint('Data: ${message.data}');
   }
   
-  // Handle background message here (e.g., show local notification)
+  final data = message.data;
+  final type = data['type'] ?? '';
+  
+  String getTitle() {
+    if (message.notification?.title != null) return message.notification!.title!;
+    switch (type) {
+      case 'status_kompeten':
+        return 'Status Kelulusan';
+      case 'rekomendasi_asesor':
+        return 'Rekomendasi Asesor';
+      case 'sertifikat_terbit':
+        return 'Sertifikat Terbit';
+      default:
+        return 'Notifikasi Baru';
+    }
+  }
+
+  String getBody() {
+    if (message.notification?.body != null) return message.notification!.body!;
+    final skema = data['skema'] ?? 'Skema';
+    final asesor = data['asesor'] ?? 'Asesor';
+    switch (type) {
+      case 'status_kompeten':
+        return 'Selamat! Anda dinyatakan kompeten pada skema $skema.';
+      case 'rekomendasi_asesor':
+        return 'Asesor $asesor telah memberikan rekomendasi.';
+      case 'sertifikat_terbit':
+        return 'Sertifikat untuk skema $skema telah diterbitkan.';
+      default:
+        return 'Ketuk untuk melihat detail selengkapnya.';
+    }
+  }
+
+  final title = getTitle();
+  final body = getBody();
+
+  await AppNotificationStorage.instance.saveNotification(
+    title,
+    body,
+    type,
+    data,
+  );
 }
 
 void main() async {
