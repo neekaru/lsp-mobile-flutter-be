@@ -698,12 +698,18 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                         color: Color(0xFF2C6C9C),
                                       ),
                                       const SizedBox(width: 6),
-                                      Text(
-                                        widget.jadwal.asesor,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black87,
+                                      Expanded(
+                                        child: Text(
+                                          widget.jadwal.asesor.isEmpty
+                                              ? 'Belum ditentukan'
+                                              : widget.jadwal.asesor.join(', '),
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],

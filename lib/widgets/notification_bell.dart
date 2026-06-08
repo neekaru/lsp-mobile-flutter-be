@@ -1039,7 +1039,7 @@ class NotificationCard extends StatelessWidget {
                 // Asesor
                 Expanded(
                   child: Text(
-                    'Asesor: ${schedule.asesor}',
+                    'Asesor: ${schedule.asesor.isEmpty ? 'Belum ditentukan' : schedule.asesor.join(', ')}',
                     style: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF757575),

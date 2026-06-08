@@ -2,6 +2,23 @@
 // Jadwal Models
 // ============================================================================
 
+List<String> _parseAsesor(dynamic jsonVal) {
+  if (jsonVal == null) {
+    return [];
+  }
+  if (jsonVal is List) {
+    return jsonVal.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList();
+  }
+  if (jsonVal is String) {
+    final trimmed = jsonVal.trim();
+    if (trimmed.isEmpty || trimmed == '-') {
+      return [];
+    }
+    return [trimmed];
+  }
+  return [];
+}
+
 class JadwalItem {
   final int id;
   final String skema;
@@ -10,7 +27,7 @@ class JadwalItem {
   final String tanggalSelesai;
   final String status; // 'akan_berakhir', 'sedang_berjalan', 'selesai'
   final int jumlahAsesi;
-  final String asesor;
+  final List<String> asesor;
   final int sisaHari; // untuk status akan_berakhir
   final int? daysLate; // untuk status sedang_berjalan (status_jadwal = "2")
   final String? catatan;
@@ -56,7 +73,7 @@ class JadwalItem {
       tanggalSelesai: json['tanggal_akhir'] ?? '',
       status: mapStatus(statusJadwal, daysOverdue),
       jumlahAsesi: json['jumlah_asesi'] ?? 0,
-      asesor: json['asesor'] ?? '-',
+      asesor: _parseAsesor(json['asesor']),
       sisaHari: daysOverdue, // days_overdue from API
       daysLate: daysLate, // days_late from API (only for status "2")
       catatan: json['catatan'],
@@ -132,7 +149,7 @@ class WaitingSchedule {
   final int idTuk;
   final String tuk;
   final int jumlahAsesi;
-  final String asesor;
+  final List<String> asesor;
 
   const WaitingSchedule({
     required this.id,
@@ -160,7 +177,7 @@ class WaitingSchedule {
       idTuk: json['id_tuk'] ?? 0,
       tuk: json['tuk'] ?? '',
       jumlahAsesi: json['jumlah_asesi'] ?? 0,
-      asesor: json['asesor'] ?? '-',
+      asesor: _parseAsesor(json['asesor']),
     );
   }
 }

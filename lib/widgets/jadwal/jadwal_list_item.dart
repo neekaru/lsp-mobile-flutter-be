@@ -63,11 +63,10 @@ class JadwalListItem extends StatelessWidget {
   }
 
   String _getDisplayAsesor() {
-    // Backend sudah return asesor name
-    if (item.asesor.isEmpty || item.asesor == '-') {
+    if (item.asesor.isEmpty) {
       return 'Belum ditentukan';
     }
-    return item.asesor;
+    return item.asesor.join(', ');
   }
 
   String _getDisplayAsesi() {
