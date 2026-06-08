@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/jadwal_models.dart';
 import '../helpers/date_format_helper.dart';
 import '../services/app_notification_storage.dart';
+import '../services/notification_service.dart';
 import '../main.dart';
 
 class NotificationBell extends StatefulWidget {
@@ -14,11 +16,21 @@ class NotificationBell extends StatefulWidget {
 
 class _NotificationBellState extends State<NotificationBell> {
   int _notificationCount = 0;
+  StreamSubscription<void>? _notificationSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadNotificationCount();
+    _notificationSubscription = NotificationService.onNotificationReceived.stream.listen((_) {
+      _loadNotificationCount();
+    });
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadNotificationCount() async {
@@ -101,11 +113,21 @@ class _NotificationPanelState extends State<NotificationPanel> {
   List<AppNotification> _appNotifications = [];
   int _unreadAppCount = 0;
   int _selectedTab = 0; // 0: Jadwal, 1: Aplikasi
+  StreamSubscription<void>? _notificationSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadAllData();
+    _notificationSubscription = NotificationService.onNotificationReceived.stream.listen((_) {
+      _loadAllData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadAllData() async {

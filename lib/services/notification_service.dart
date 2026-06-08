@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,8 @@ import 'app_notification_storage.dart';
 class NotificationService {
   NotificationService._privateConstructor();
   static final NotificationService instance = NotificationService._privateConstructor();
+
+  static final StreamController<void> onNotificationReceived = StreamController<void>.broadcast();
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   bool _isInitialized = false;
@@ -115,10 +118,7 @@ class NotificationService {
     }
   }
 
-  void _showForegroundNotification(RemoteMessage message) {
-    final context = navigatorKey.currentContext;
-    if (context == null) return;
-
+  Future<void> _showForegroundNotification(RemoteMessage message) async {
     final title = message.notification?.title ?? _getTitleFromData(message.data);
     final body = message.notification?.body ?? _getBodyFromData(message.data);
     final type = message.data['type'] ?? '';
@@ -139,12 +139,15 @@ class NotificationService {
     }
 
     // 1. Save to local notifications storage so they can be viewed again
-    AppNotificationStorage.instance.saveNotification(
+    await AppNotificationStorage.instance.saveNotification(
       title,
       body,
       type,
       message.data,
     );
+
+    // Notify listeners that a new notification has been saved
+    onNotificationReceived.add(null);
 
     // Play default notification sound in foreground
     try {
@@ -152,6 +155,10 @@ class NotificationService {
     } catch (e) {
       debugPrint('⚠️ Error playing notification sound: $e');
     }
+
+    // Retrieve active context AFTER the async gap to prevent use_build_context_synchronously warning
+    final context = navigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
 
     // 2. Show top notification banner (overlay)
     TopNotificationBanner.show(
