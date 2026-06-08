@@ -156,13 +156,13 @@ class NotificationService {
       debugPrint('⚠️ Error playing notification sound: $e');
     }
 
-    // Retrieve active context AFTER the async gap to prevent use_build_context_synchronously warning
-    final context = navigatorKey.currentContext;
-    if (context == null || !context.mounted) return;
+    // Retrieve OverlayState using the global navigatorKey to display banner above any active screen/dialog
+    final overlayState = navigatorKey.currentState?.overlay;
+    if (overlayState == null) return;
 
     // 2. Show top notification banner (overlay)
     TopNotificationBanner.show(
-      context: context,
+      overlayState: overlayState,
       title: title,
       body: body,
       icon: iconData,

@@ -23,7 +23,7 @@ class TopNotificationBanner extends StatefulWidget {
   static Timer? _dismissTimer;
 
   static void show({
-    required BuildContext context,
+    required OverlayState overlayState,
     required String title,
     required String body,
     required IconData icon,
@@ -32,8 +32,6 @@ class TopNotificationBanner extends StatefulWidget {
   }) {
     dismiss();
 
-    final overlayState = Overlay.of(context);
-    
     _currentOverlay = OverlayEntry(
       builder: (context) {
         return TopNotificationBanner(
