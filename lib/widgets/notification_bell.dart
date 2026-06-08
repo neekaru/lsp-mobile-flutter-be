@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/jadwal_models.dart';
 import '../helpers/date_format_helper.dart';
+import '../services/app_notification_storage.dart';
+import '../main.dart';
 
 class NotificationBell extends StatefulWidget {
   const NotificationBell({super.key});
@@ -20,10 +22,11 @@ class _NotificationBellState extends State<NotificationBell> {
   }
 
   Future<void> _loadNotificationCount() async {
-    final count = await ApiService.getNotificationCount();
+    final backendCount = await ApiService.getNotificationCount();
+    final unreadLocalCount = await AppNotificationStorage.instance.getUnreadCount();
     if (mounted) {
       setState(() {
-        _notificationCount = count;
+        _notificationCount = backendCount + unreadLocalCount;
       });
     }
   }
@@ -95,25 +98,86 @@ class _NotificationPanelState extends State<NotificationPanel> {
   List<WaitingSchedule> _schedules = [];
   int _totalWaiting = 0;
 
+  List<AppNotification> _appNotifications = [];
+  int _unreadAppCount = 0;
+  int _selectedTab = 0; // 0: Jadwal, 1: Aplikasi
+
   @override
   void initState() {
     super.initState();
-    _loadWaitingSchedules();
+    _loadAllData();
   }
 
-  Future<void> _loadWaitingSchedules() async {
+  Future<void> _loadAllData() async {
     setState(() {
       _isLoading = true;
     });
 
-    final response = await ApiService.getWaitingSchedules(limit: 20);
+    final schedulesResponse = await ApiService.getWaitingSchedules(limit: 20);
+    final localNotifs = await AppNotificationStorage.instance.getNotifications();
+    final unreadLocalCount = await AppNotificationStorage.instance.getUnreadCount();
 
     if (mounted) {
       setState(() {
-        _schedules = response.data;
-        _totalWaiting = response.meta.totalWaiting;
+        _schedules = schedulesResponse.data;
+        _totalWaiting = schedulesResponse.meta.totalWaiting;
+        _appNotifications = localNotifs;
+        _unreadAppCount = unreadLocalCount;
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _refreshAppNotifications() async {
+    final localNotifs = await AppNotificationStorage.instance.getNotifications();
+    final unreadLocalCount = await AppNotificationStorage.instance.getUnreadCount();
+    if (mounted) {
+      setState(() {
+        _appNotifications = localNotifs;
+        _unreadAppCount = unreadLocalCount;
+      });
+    }
+  }
+
+  Future<void> _markAllAsRead() async {
+    await AppNotificationStorage.instance.markAllAsRead();
+    await _refreshAppNotifications();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Semua notifikasi ditandai dibaca'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+    }
+  }
+
+  Future<void> _clearAllNotifications() async {
+    await AppNotificationStorage.instance.clearAll();
+    await _refreshAppNotifications();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Semua notifikasi berhasil dihapus'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+    }
+  }
+
+  void _handleAppNotificationTap(AppNotification notif) async {
+    await AppNotificationStorage.instance.markAsRead(notif.id);
+    if (mounted) {
+      Navigator.pop(context); // Close notifications bottom panel
+    }
+
+    final type = notif.type;
+    if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
+      mainNavigatorKey.currentState?.setTab(3); // Switch to Sertifikat Tab
+    } else if (type == 'rekomendasi_asesor') {
+      mainNavigatorKey.currentState?.setTab(2); // Switch to Jadwal Tab
     }
   }
 
@@ -147,66 +211,238 @@ class _NotificationPanelState extends State<NotificationPanel> {
 
               // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Notifikasi Jadwal',
+                      'Notifikasi',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF2C3E50),
                       ),
                     ),
-                    if (_totalWaiting > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFF5252),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '$_totalWaiting Baru',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                    if (_selectedTab == 1 && _appNotifications.isNotEmpty)
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, color: Color(0xFF64748B)),
+                        onSelected: (value) {
+                          if (value == 'read_all') {
+                            _markAllAsRead();
+                          } else if (value == 'clear_all') {
+                            _clearAllNotifications();
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'read_all',
+                            child: Row(
+                              children: [
+                                Icon(Icons.done_all, size: 18, color: Colors.blue),
+                                SizedBox(width: 8),
+                                Text('Tandai Semua Dibaca'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'clear_all',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_sweep, size: 18, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('Hapus Semua'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+
+              // Segmented Control (Tabs)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    // Tab 0: Jadwal Asesmen
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedTab = 0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _selectedTab == 0 ? Colors.white : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: _selectedTab == 0
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                size: 16,
+                                color: _selectedTab == 0 ? const Color(0xFF4A9EDF) : Colors.grey[600],
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Jadwal',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: _selectedTab == 0 ? const Color(0xFF1E293B) : Colors.grey[600],
+                                ),
+                              ),
+                              if (_totalWaiting > 0) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFFF5252),
+                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                  ),
+                                  child: Text(
+                                    '$_totalWaiting',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ),
+                    ),
+                    // Tab 1: Notifikasi Aplikasi
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedTab = 1),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _selectedTab == 1 ? Colors.white : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: _selectedTab == 1
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.phone_android_rounded,
+                                size: 16,
+                                color: _selectedTab == 1 ? const Color(0xFF4A9EDF) : Colors.grey[600],
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Aplikasi',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: _selectedTab == 1 ? const Color(0xFF1E293B) : Colors.grey[600],
+                                ),
+                              ),
+                              if (_unreadAppCount > 0) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF4A9EDF),
+                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                  ),
+                                  child: Text(
+                                    '$_unreadAppCount',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
 
               const Divider(height: 1),
 
-              // Content
+              // Content Area
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : _schedules.isEmpty
-                        ? _buildEmptyState()
-                        : ListView.separated(
-                            controller: scrollController,
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _schedules.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              return NotificationCard(
-                                schedule: _schedules[index],
-                                onStatusUpdated: _loadWaitingSchedules,
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  // Navigate to edit jadwal page will be implemented later
+                    : _selectedTab == 0
+                        ? (_schedules.isEmpty
+                            ? _buildEmptyState(
+                                icon: Icons.notifications_off_outlined,
+                                title: 'Tidak ada notifikasi jadwal',
+                                subtitle: 'Semua jadwal sudah ditindaklanjuti',
+                              )
+                            : ListView.separated(
+                                controller: scrollController,
+                                padding: const EdgeInsets.all(16),
+                                itemCount: _schedules.length,
+                                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  return NotificationCard(
+                                    schedule: _schedules[index],
+                                    onStatusUpdated: _loadAllData,
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                    },
+                                  );
                                 },
-                              );
-                            },
-                          ),
+                              ))
+                        : (_appNotifications.isEmpty
+                            ? _buildEmptyState(
+                                icon: Icons.message_outlined,
+                                title: 'Tidak ada notifikasi aplikasi',
+                                subtitle: 'Anda akan menerima pemberitahuan penting di sini',
+                              )
+                            : ListView.separated(
+                                controller: scrollController,
+                                padding: const EdgeInsets.all(16),
+                                itemCount: _appNotifications.length,
+                                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final notif = _appNotifications[index];
+                                  return AppNotificationCard(
+                                    notification: notif,
+                                    onTap: () => _handleAppNotificationTap(notif),
+                                    onDelete: () async {
+                                      await AppNotificationStorage.instance.deleteNotification(notif.id);
+                                      _refreshAppNotifications();
+                                    },
+                                  );
+                                },
+                              )),
               ),
             ],
           ),
@@ -215,19 +451,23 @@ class _NotificationPanelState extends State<NotificationPanel> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.notifications_off_outlined,
+            icon,
             size: 80,
             color: Colors.grey[300],
           ),
           const SizedBox(height: 16),
           Text(
-            'Tidak ada notifikasi',
+            title,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -236,7 +476,7 @@ class _NotificationPanelState extends State<NotificationPanel> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Semua jadwal sudah ditindaklanjuti',
+            subtitle,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],
@@ -245,6 +485,157 @@ class _NotificationPanelState extends State<NotificationPanel> {
         ],
       ),
     );
+  }
+}
+
+class AppNotificationCard extends StatelessWidget {
+  final AppNotification notification;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+
+  const AppNotificationCard({
+    super.key,
+    required this.notification,
+    required this.onTap,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    IconData iconData = Icons.notifications_active_rounded;
+    Color iconColor = const Color(0xFF4A9EDF);
+
+    if (notification.type == 'status_kompeten') {
+      iconData = Icons.verified_user_rounded;
+      iconColor = const Color(0xFF2E7D32);
+    } else if (notification.type == 'rekomendasi_asesor') {
+      iconData = Icons.rate_review_rounded;
+      iconColor = const Color(0xFFFF9800);
+    } else if (notification.type == 'sertifikat_terbit') {
+      iconData = Icons.workspace_premium_rounded;
+      iconColor = const Color(0xFFE0A96D);
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Dismissible(
+        key: Key(notification.id),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20),
+          decoration: const BoxDecoration(
+            color: Color(0xFFFFEBEE),
+          ),
+          child: const Icon(
+            Icons.delete_outline_rounded,
+            color: Color(0xFFC62828),
+          ),
+        ),
+        onDismissed: (_) => onDelete(),
+        child: Container(
+          decoration: BoxDecoration(
+            color: notification.isRead ? const Color(0xFFF8F9FA) : const Color(0xFFE3F2FD).withValues(alpha: 0.35),
+            border: Border.all(
+              color: notification.isRead ? const Color(0xFFE9ECEF) : const Color(0xFF90CAF9).withValues(alpha: 0.5),
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: iconColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      iconData,
+                      color: iconColor,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                notification.title,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
+                                  color: const Color(0xFF1E293B),
+                                ),
+                              ),
+                            ),
+                            if (!notification.isRead) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF4A9EDF),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          notification.body,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: notification.isRead ? const Color(0xFF64748B) : const Color(0xFF334155),
+                            height: 1.3,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _formatRelativeTime(notification.timestamp),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Color(0xFF94A3B8),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatRelativeTime(DateTime dateTime) {
+    final difference = DateTime.now().difference(dateTime);
+    if (difference.inMinutes < 1) {
+      return 'Baru saja';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} menit lalu';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} jam lalu';
+    } else {
+      return DateFormatHelper.formatToIndonesian(dateTime.toIso8601String().split('T')[0]);
+    }
   }
 }
 

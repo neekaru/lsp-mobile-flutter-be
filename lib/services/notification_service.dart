@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'auth_repository.dart';
 import '../main.dart';
+import '../widgets/top_notification_banner.dart';
+import 'app_notification_storage.dart';
 
 class NotificationService {
   NotificationService._privateConstructor();
@@ -135,117 +137,24 @@ class NotificationService {
       iconColor = const Color(0xFFE0A96D); // Certificate Gold
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        margin: const EdgeInsets.fromLTRB(16, 16, 16, 30),
-        duration: const Duration(seconds: 5),
-        content: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Type accent bar
-                  Container(
-                    width: 6,
-                    color: iconColor,
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: Row(
-                        children: [
-                          // Leading Circular Icon
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: iconColor.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              iconData,
-                              color: iconColor,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          // Notification Texts
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  title,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  body,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // View Button
-                          TextButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              _handleNotificationClick(message);
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              minimumSize: const Size(60, 36),
-                              backgroundColor: iconColor.withValues(alpha: 0.08),
-                              foregroundColor: iconColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Buka',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    // 1. Save to local notifications storage so they can be viewed again
+    AppNotificationStorage.instance.saveNotification(
+      title,
+      body,
+      type,
+      message.data,
+    );
+
+    // 2. Show top notification banner (overlay)
+    TopNotificationBanner.show(
+      context: context,
+      title: title,
+      body: body,
+      icon: iconData,
+      color: iconColor,
+      onTap: () {
+        _handleNotificationClick(message);
+      },
     );
   }
 
@@ -254,6 +163,17 @@ class NotificationService {
     if (kDebugMode) {
       debugPrint('Handling notification click: type=$type, data=${message.data}');
     }
+
+    final title = message.notification?.title ?? _getTitleFromData(message.data);
+    final body = message.notification?.body ?? _getBodyFromData(message.data);
+
+    // Save notification locally just in case it was a background click and wasn't stored yet
+    AppNotificationStorage.instance.saveNotification(
+      title,
+      body,
+      type,
+      message.data,
+    );
 
     if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
       // Switch to Sertifikat Tab (Index 3)

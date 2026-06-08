@@ -13,7 +13,6 @@ import 'screens/dashboard_screen.dart';
 import 'screens/statistik_screen.dart';
 import 'screens/jadwal_screen.dart';
 import 'screens/sertifikat_screen.dart';
-import 'screens/placeholder_screen.dart';
 import 'screens/profile_screen.dart';
 
 // Import widgets
