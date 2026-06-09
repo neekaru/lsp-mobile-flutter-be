@@ -238,13 +238,13 @@ class ApiService {
 
         // Find max value first
         for (var item in data) {
-          int total = (item['jumlah_asesmen'] as num?)?.toInt() ?? 0;
+          int total = (item['total'] as num?)?.toInt() ?? 0; // Changed from jumlah_asesmen
           if (total > maxTotal) maxTotal = total;
         }
 
         // Build list with proper field mapping
         for (var item in data) {
-          int total = (item['jumlah_asesmen'] as num?)?.toInt() ?? 0;
+          int total = (item['total'] as num?)?.toInt() ?? 0; // Changed from jumlah_asesmen
           list.add(
             MonthlyAssessment(
               label: item['label'] ?? '',
