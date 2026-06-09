@@ -768,7 +768,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
 
         // Filter only running schedules that are late
-        final lateSchedules = items.where((item) => item.status == 'sedang_berjalan' && item.daysLate != null && item.daysLate! > 0).toList();
+        final lateSchedules = items.where((item) => item.status == 'running' && item.daysLate != null && item.daysLate! > 0).toList();
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),

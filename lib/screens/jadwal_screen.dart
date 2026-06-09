@@ -3,6 +3,7 @@ import '../models/jadwal_models.dart';
 import '../services/api_service.dart';
 import '../widgets/jadwal/jadwal_list_item.dart';
 import '../widgets/jadwal/custom_tab_bar.dart';
+import '../services/auth_repository.dart';
 import 'jadwal_detail_screen.dart';
 
 class JadwalScreen extends StatefulWidget {
@@ -28,11 +29,20 @@ class _JadwalScreenState extends State<JadwalScreen>
   final int _pageSize = 20;
 
   // Mock user role - dalam implementasi nyata, ambil dari auth service
-  final UserRole currentUser = const UserRole(
-    role: 'admin', // Ubah ke 'asesor' atau 'viewer' untuk testing permission
-    name: 'Admin User',
-    email: 'admin@lsp.com',
-  );
+  UserRole get currentUser {
+    final user = AuthRepository.currentUserInstance;
+    return UserRole(
+      role: user?.role ?? 'admin',
+      name: user?.name ?? 'Admin User',
+      email: user?.email ?? 'admin@lsp.com',
+    );
+  }
+
+
+
+
+
+
 
   // Data dari API
   List<JadwalItem> akanBerakhirList = [];

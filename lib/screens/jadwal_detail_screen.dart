@@ -50,16 +50,14 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     switch (status) {
       case 'waiting':
         return const Color(0xFFFBC02D); // Yellow
-      case 'akan_berakhir':
-        return const Color(0xFFFF6B6B); // Red
-      case 'sedang_berjalan':
-        return const Color(0xFF2196F3); // Blue
-      case 'selesai':
+      case 'completed':
         return const Color(0xFF4CAF50); // Green
+      case 'canceled':
+        return const Color(0xFFE53935); // Red
+      case 'running':
+        return const Color(0xFF2196F3); // Blue
       case 'pelaporan':
         return const Color(0xFFFF9800); // Orange
-      case 'cancelled':
-        return const Color(0xFF9E9E9E); // Grey
       default:
         return const Color(0xFF2C6C9C);
     }
@@ -126,16 +124,14 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     switch (status) {
       case 'waiting':
         return 'Waiting';
-      case 'akan_berakhir':
-        return 'Scheduled';
-      case 'sedang_berjalan':
-        return 'Running';
-      case 'selesai':
+      case 'completed':
         return 'Completed';
+      case 'canceled':
+        return 'Canceled';
+      case 'running':
+        return 'Running';
       case 'pelaporan':
         return 'Pelaporan';
-      case 'cancelled':
-        return 'Cancelled';
       default:
         return status;
     }
@@ -275,9 +271,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     String toCode(String s) {
       switch (s) {
         case 'waiting': return '0';
-        case 'akan_berakhir': return '1';
-        case 'sedang_berjalan': return '2';
-        case 'selesai': return '3';
+        case 'completed': return '1';
+        case 'canceled': return '2';
+        case 'running': return '3';
         case 'pelaporan': return '4';
         default: return '0';
       }
@@ -863,15 +859,13 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
 
                         _buildStatusOption('waiting', 'Waiting'),
                         const SizedBox(height: 8),
-                        _buildStatusOption('akan_berakhir', 'Scheduled'),
+                        _buildStatusOption('completed', 'Completed'),
                         const SizedBox(height: 8),
-                        _buildStatusOption('sedang_berjalan', 'Running'),
+                        _buildStatusOption('canceled', 'Canceled'),
                         const SizedBox(height: 8),
-                        _buildStatusOption('selesai', 'Completed'),
+                        _buildStatusOption('running', 'Running'),
                         const SizedBox(height: 8),
                         _buildStatusOption('pelaporan', 'Pelaporan'),
-                        const SizedBox(height: 8),
-                        _buildStatusOption('cancelled', 'Cancelled'),
 
 
                       ],

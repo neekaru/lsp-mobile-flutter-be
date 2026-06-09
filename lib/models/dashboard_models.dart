@@ -404,16 +404,13 @@ class JadwalBaru {
         case '0':
           return 'waiting';
         case '1':
-          return 'akan_berakhir';
+          return 'completed';
         case '2':
-          return 'sedang_berjalan';
+          return 'canceled';
         case '3':
-          return 'selesai';
+          return 'running';
         case '4':
           return 'pelaporan';
-        case '5':
-        case '9':
-          return 'cancelled';
         default:
           return 'waiting';
       }

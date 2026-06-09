@@ -4,6 +4,7 @@ import '../models/dashboard_models.dart';
 import '../screens/jadwal_screen.dart';
 import '../screens/jadwal_detail_screen.dart';
 import '../models/jadwal_models.dart';
+import '../services/auth_repository.dart';
 
 class JadwalAsesmen extends StatefulWidget {
   final List<JadwalBaru>? data;
@@ -151,16 +152,18 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
         final item = data[index];
         return GestureDetector(
           onTap: () {
+            final currentUser = AuthRepository.currentUserInstance;
+            final userRole = UserRole(
+              role: currentUser?.role ?? 'admin',
+              name: currentUser?.name ?? 'Admin User',
+              email: currentUser?.email ?? 'admin@lsp.com',
+            );
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => JadwalDetailScreen(
                   jadwal: item.toJadwalItem(),
-                  userRole: const UserRole(
-                    role: 'admin',
-                    name: 'Admin User',
-                    email: 'admin@lsp.com',
-                  ),
+                  userRole: userRole,
                 ),
               ),
             );

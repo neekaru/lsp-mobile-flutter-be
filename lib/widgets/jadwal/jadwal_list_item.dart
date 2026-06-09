@@ -32,33 +32,40 @@ class JadwalListItem extends StatelessWidget {
   }
 
   Color _getStatusColor() {
-    // Untuk status selesai, gunakan warna biru
-    if (item.status == 'selesai') {
-      return const Color(0xFF2C6C9C); // Biru
-    }
-    
-    // Untuk status lainnya, tentukan berdasarkan sisa hari
-    if (item.sisaHari <= 3) {
-      return const Color(0xFFFF6B6B); // Merah
-    } else {
-      return const Color(0xFFFFA726); // Kuning/Orange
+    switch (item.status) {
+      case 'waiting':
+        return const Color(0xFFFBC02D); // Yellow
+      case 'completed':
+        return const Color(0xFF4CAF50); // Green
+      case 'canceled':
+        return const Color(0xFFE53935); // Red
+      case 'running':
+        return const Color(0xFF2196F3); // Blue
+      case 'pelaporan':
+        return const Color(0xFFFF9800); // Orange
+      default:
+        return const Color(0xFF2C6C9C);
     }
   }
 
   String _getStatusText() {
     switch (item.status) {
-      case 'akan_berakhir':
-        return item.sisaHari <= 3 ? 'Sisa ${item.sisaHari} hari lagi' : '${item.sisaHari} hari lagi';
-      case 'sedang_berjalan':
+      case 'waiting':
+        return 'Waiting';
+      case 'completed':
+        return 'Completed';
+      case 'canceled':
+        return 'Canceled';
+      case 'running':
         // Jika ada days_late (terlambat), tampilkan badge terlambat
         if (item.daysLate != null && item.daysLate! > 0) {
           return 'Telat ${item.daysLate} hari';
         }
         return 'Sisa ${item.sisaHari} hari';
-      case 'selesai':
-        return 'Selesai';
+      case 'pelaporan':
+        return 'Pelaporan';
       default:
-        return 'Terjadwal';
+        return item.status;
     }
   }
 
@@ -80,9 +87,9 @@ class JadwalListItem extends StatelessWidget {
 
   bool _shouldShowWarning() {
     // Tampilkan warning jika:
-    // 1. Status sedang_berjalan dan sisa hari <= 3
-    // 2. Status sedang_berjalan dan ada days_late (terlambat)
-    if (item.status == 'sedang_berjalan') {
+    // 1. Status running dan sisa hari <= 3
+    // 2. Status running dan ada days_late (terlambat)
+    if (item.status == 'running') {
       if (item.daysLate != null && item.daysLate! > 0) {
         return true; // Terlambat
       }
@@ -281,8 +288,11 @@ class JadwalListItem extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          item.status == 'akan_berakhir' ? 'Terjadwal' : 
-                          item.status == 'sedang_berjalan' ? 'Berjalan' : 'Selesai',
+                          item.status == 'waiting' ? 'Waiting' : 
+                          item.status == 'completed' ? 'Completed' :
+                          item.status == 'canceled' ? 'Canceled' :
+                          item.status == 'running' ? 'Running' :
+                          item.status == 'pelaporan' ? 'Pelaporan' : item.status,
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -319,8 +329,8 @@ class JadwalListItem extends StatelessWidget {
               ),
             ),
 
-            // Bottom Action Button (hanya untuk akan_berakhir dan sedang_berjalan)
-            if (item.status != 'selesai')
+            // Bottom Action Button (hanya untuk status aktif yang belum selesai/batal)
+            if (item.status != 'completed' && item.status != 'canceled' && item.status != 'pelaporan')
               Container(
                 decoration: const BoxDecoration(
                   border: Border(
