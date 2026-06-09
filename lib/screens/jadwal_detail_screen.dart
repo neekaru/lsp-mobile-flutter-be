@@ -48,12 +48,18 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
 
   Color _getStatusColor(String status) {
     switch (status) {
+      case 'waiting':
+        return const Color(0xFFFBC02D); // Yellow
       case 'akan_berakhir':
-        return const Color(0xFFFF6B6B);
+        return const Color(0xFFFF6B6B); // Red
       case 'sedang_berjalan':
-        return const Color(0xFF4CAF50);
+        return const Color(0xFF2196F3); // Blue
       case 'selesai':
-        return const Color(0xFF9E9E9E);
+        return const Color(0xFF4CAF50); // Green
+      case 'pelaporan':
+        return const Color(0xFFFF9800); // Orange
+      case 'cancelled':
+        return const Color(0xFF9E9E9E); // Grey
       default:
         return const Color(0xFF2C6C9C);
     }
@@ -118,12 +124,18 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
 
   String _getStatusLabel(String status) {
     switch (status) {
+      case 'waiting':
+        return 'Waiting';
       case 'akan_berakhir':
-        return 'Akan Berakhir';
+        return 'Scheduled';
       case 'sedang_berjalan':
-        return 'Sedang Berjalan';
+        return 'Running';
       case 'selesai':
-        return 'Selesai';
+        return 'Completed';
+      case 'pelaporan':
+        return 'Pelaporan';
+      case 'cancelled':
+        return 'Cancelled';
       default:
         return status;
     }
@@ -259,33 +271,36 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     );
   }
   String _getStatusRule(String currentStatus, String newStatus) {
-    // Map internal status to API status codes
-    // akan_berakhir = status 1 (Terjadwal)
-    // sedang_berjalan = status 2 (Sedang Berlangsung)
-    // selesai = status 3 (Selesai)
-    
+    // Convert status strings to numeric string codes for comparison
+    String toCode(String s) {
+      switch (s) {
+        case 'waiting': return '0';
+        case 'akan_berakhir': return '1';
+        case 'sedang_berjalan': return '2';
+        case 'selesai': return '3';
+        case 'pelaporan': return '4';
+        default: return '0';
+      }
+    }
+
+    final from = toCode(currentStatus);
+    final to = toCode(newStatus);
+
     // Forward transitions
-    if (currentStatus == 'akan_berakhir' && newStatus == 'sedang_berjalan') {
-      return 'scheduled_to_ongoing'; // 1 → 2
-    } else if (currentStatus == 'akan_berakhir' && newStatus == 'selesai') {
-      return 'scheduled_to_completed'; // 1 → 3
-    } else if (currentStatus == 'sedang_berjalan' && newStatus == 'selesai') {
-      return 'ongoing_to_completed'; // 2 → 3
-    }
-    
+    if (from == '0' && to == '1') return 'draft_to_scheduled';     // 0 → 1
+    if (from == '1' && to == '2') return 'scheduled_to_ongoing';   // 1 → 2
+    if (from == '1' && to == '3') return 'scheduled_to_completed'; // 1 → 3
+    if (from == '2' && to == '3') return 'ongoing_to_completed';   // 2 → 3
+    if (from == '0' && to == '3') return 'draft_to_completed';     // 0 → 3
+    if (from == '0' && to == '2') return 'draft_to_ongoing';       // 0 → 2
+    if (from == '3' && to == '4') return 'completed_to_reported';  // 3 → 4
+
     // Backward transitions (rollback)
-    else if (currentStatus == 'sedang_berjalan' && newStatus == 'akan_berakhir') {
-      return 'ongoing_to_scheduled'; // 2 → 1
-    } else if (currentStatus == 'selesai' && newStatus == 'sedang_berjalan') {
-      return 'completed_to_ongoing'; // 3 → 2
-    } else if (currentStatus == 'selesai' && newStatus == 'akan_berakhir') {
-      return 'completed_to_scheduled'; // 3 → 1
-    }
-    
-    // Default fallback
-    else {
-      return 'scheduled_to_ongoing';
-    }
+    if (from == '2' && to == '1') return 'ongoing_to_scheduled';   // 2 → 1
+    if (from == '3' && to == '2') return 'completed_to_ongoing';   // 3 → 2
+    if (from == '3' && to == '1') return 'completed_to_scheduled'; // 3 → 1
+
+    return '${currentStatus}_to_$newStatus';
   }
 
   void _showPermissionDeniedDialog() {
@@ -846,11 +861,17 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                         ),
                         const SizedBox(height: 8),
 
-                        _buildStatusOption('akan_berakhir', 'Akan Berakhir'),
+                        _buildStatusOption('waiting', 'Waiting'),
                         const SizedBox(height: 8),
-                        _buildStatusOption('sedang_berjalan', 'Berjalan'),
+                        _buildStatusOption('akan_berakhir', 'Scheduled'),
                         const SizedBox(height: 8),
-                        _buildStatusOption('selesai', 'Selesai'),
+                        _buildStatusOption('sedang_berjalan', 'Running'),
+                        const SizedBox(height: 8),
+                        _buildStatusOption('selesai', 'Completed'),
+                        const SizedBox(height: 8),
+                        _buildStatusOption('pelaporan', 'Pelaporan'),
+                        const SizedBox(height: 8),
+                        _buildStatusOption('cancelled', 'Cancelled'),
 
 
                       ],

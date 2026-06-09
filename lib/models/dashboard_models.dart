@@ -1,3 +1,5 @@
+import 'jadwal_models.dart';
+
 // ============================================================================
 // Dashboard Data Models
 // ============================================================================
@@ -393,6 +395,40 @@ class JadwalBaru {
       kuota: json['kuota'] ?? 0,
       statusJadwal: json['status_jadwal']?.toString() ?? '0',
       tuk: json['tuk'] ?? 'TUK Pusat',
+    );
+  }
+
+  JadwalItem toJadwalItem() {
+    String mapStatus(String statusVal) {
+      switch (statusVal) {
+        case '0':
+          return 'waiting';
+        case '1':
+          return 'akan_berakhir';
+        case '2':
+          return 'sedang_berjalan';
+        case '3':
+          return 'selesai';
+        case '4':
+          return 'pelaporan';
+        case '5':
+        case '9':
+          return 'cancelled';
+        default:
+          return 'waiting';
+      }
+    }
+
+    return JadwalItem(
+      id: id,
+      skema: jadwal,
+      tuk: tuk,
+      tanggalMulai: tanggal,
+      tanggalSelesai: tanggal,
+      status: mapStatus(statusJadwal),
+      jumlahAsesi: kuota,
+      asesor: const [],
+      sisaHari: 0,
     );
   }
 }

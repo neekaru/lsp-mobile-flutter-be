@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/dashboard_models.dart';
 import '../screens/jadwal_screen.dart';
+import '../screens/jadwal_detail_screen.dart';
+import '../models/jadwal_models.dart';
 
 class JadwalAsesmen extends StatefulWidget {
   final List<JadwalBaru>? data;
@@ -147,7 +149,24 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
       separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final item = data[index];
-        return JadwalItemCard(item: item);
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => JadwalDetailScreen(
+                  jadwal: item.toJadwalItem(),
+                  userRole: const UserRole(
+                    role: 'admin',
+                    name: 'Admin User',
+                    email: 'admin@lsp.com',
+                  ),
+                ),
+              ),
+            );
+          },
+          child: JadwalItemCard(item: item),
+        );
       },
     );
   }

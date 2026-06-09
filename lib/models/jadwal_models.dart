@@ -50,14 +50,21 @@ class JadwalItem {
     // Map status_jadwal dari API ke status internal
     String mapStatus(String statusJadwal, int daysOverdue) {
       switch (statusJadwal) {
+        case '0': // Draft / Waiting
+          return 'waiting';
         case '1': // Terjadwal
           return 'akan_berakhir';
         case '2': // Sedang Berlangsung
           return 'sedang_berjalan';
         case '3': // Selesai
           return 'selesai';
+        case '4': // Pelaporan
+          return 'pelaporan';
+        case '5':
+        case '9': // Cancelled
+          return 'cancelled';
         default:
-          return 'sedang_berjalan';
+          return 'waiting';
       }
     }
 
