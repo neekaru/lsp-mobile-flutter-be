@@ -55,3 +55,4 @@ keystore-base64.txt
 
 # Internal documentation with sensitive info
 docs/RELEASE_GUIDE.md
+.agents
