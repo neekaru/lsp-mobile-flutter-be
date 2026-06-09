@@ -193,6 +193,48 @@ class JadwalItemCard extends StatelessWidget {
     }
   }
 
+  Widget _buildStatusText(String dateStr) {
+    try {
+      final sched = DateTime.parse(dateStr);
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final scheduledDate = DateTime(sched.year, sched.month, sched.day);
+      final diff = today.difference(scheduledDate).inDays;
+
+      if (diff > 0) {
+        return Text(
+          'Lewat $diff hari',
+          style: const TextStyle(
+            fontSize: 10.5,
+            color: Color(0xFFE53935), // Red warning text
+            fontWeight: FontWeight.bold,
+          ),
+        );
+      } else if (diff == 0) {
+        return const Text(
+          'Hari ini',
+          style: TextStyle(
+            fontSize: 10.5,
+            color: Color(0xFF2E7D32), // Green text
+            fontWeight: FontWeight.bold,
+          ),
+        );
+      } else {
+        final daysLeft = -diff;
+        return Text(
+          'Sisa $daysLeft hari',
+          style: const TextStyle(
+            fontSize: 10.5,
+            color: Color(0xFF2C6C9C), // Blue info text
+            fontWeight: FontWeight.bold,
+          ),
+        );
+      }
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -292,39 +334,21 @@ class JadwalItemCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          // Right Column: Quota Indicator
+          // Right Column: Quota Indicator & Overdue Status
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                'Kuota',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Color(0xFF64748B),
-                  fontWeight: FontWeight.w500,
+              Text(
+                'Kuota ${item.kuota}',
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 2),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.people_alt_rounded,
-                    size: 14,
-                    color: Color(0xFF4FA8E8),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${item.kuota}',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 3),
+              _buildStatusText(item.tanggal),
             ],
           ),
         ],
