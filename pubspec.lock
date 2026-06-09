@@ -214,14 +214,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.11.0"
-  flutter_ringtone_player:
-    dependency: "direct main"
-    description:
-      name: flutter_ringtone_player
-      sha256: ae4a2caab2cfd14902f3ee5fe0307c454b396f0077fa34700238d6c4bd99cfec
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.0+4"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -320,6 +312,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.19.0"
+  januscaler_flutter_ringtone_player:
+    dependency: "direct main"
+    description:
+      name: januscaler_flutter_ringtone_player
+      sha256: "836a3623ca6eaa0467bd61fe6f815d7af011889de0ae5d6d2d1f8579cbcc6225"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   jni:
     dependency: transitive
     description:

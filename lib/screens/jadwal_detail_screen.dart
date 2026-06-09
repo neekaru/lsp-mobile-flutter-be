@@ -267,34 +267,33 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     );
   }
   String _getStatusRule(String currentStatus, String newStatus) {
-    // Convert status strings to numeric string codes for comparison
     String toCode(String s) {
       switch (s) {
-        case 'waiting': return '0';
+        case 'waiting':   return '0';
         case 'completed': return '1';
-        case 'canceled': return '2';
-        case 'running': return '3';
+        case 'canceled':  return '2';
+        case 'running':   return '3';
         case 'pelaporan': return '4';
-        default: return '0';
+        default:          return '0';
       }
     }
 
     final from = toCode(currentStatus);
-    final to = toCode(newStatus);
+    final to   = toCode(newStatus);
 
     // Forward transitions
-    if (from == '0' && to == '1') return 'draft_to_scheduled';     // 0 → 1
-    if (from == '1' && to == '2') return 'scheduled_to_ongoing';   // 1 → 2
-    if (from == '1' && to == '3') return 'scheduled_to_completed'; // 1 → 3
-    if (from == '2' && to == '3') return 'ongoing_to_completed';   // 2 → 3
-    if (from == '0' && to == '3') return 'draft_to_completed';     // 0 → 3
-    if (from == '0' && to == '2') return 'draft_to_ongoing';       // 0 → 2
-    if (from == '3' && to == '4') return 'completed_to_reported';  // 3 → 4
+    if (from == '0' && to == '1') return 'draft_to_completed';     // 0→1
+    if (from == '0' && to == '2') return 'draft_to_canceled';      // 0→2
+    if (from == '0' && to == '3') return 'draft_to_running';       // 0→3
+    if (from == '1' && to == '2') return 'completed_to_canceled';  // 1→2
+    if (from == '1' && to == '3') return 'completed_to_running';   // 1→3
+    if (from == '2' && to == '3') return 'canceled_to_running';    // 2→3
+    if (from == '3' && to == '4') return 'running_to_pelaporan';   // 3→4
 
     // Backward transitions (rollback)
-    if (from == '2' && to == '1') return 'ongoing_to_scheduled';   // 2 → 1
-    if (from == '3' && to == '2') return 'completed_to_ongoing';   // 3 → 2
-    if (from == '3' && to == '1') return 'completed_to_scheduled'; // 3 → 1
+    if (from == '2' && to == '1') return 'canceled_to_completed';  // 2→1
+    if (from == '3' && to == '2') return 'running_to_canceled';    // 3→2
+    if (from == '3' && to == '1') return 'running_to_completed';   // 3→1
 
     return '${currentStatus}_to_$newStatus';
   }

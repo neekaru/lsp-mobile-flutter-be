@@ -142,7 +142,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
   void _loadData() {
     _asesorStatsFuture = ApiService.getAsesorStats();
     _topProvincesFuture = ApiService.getTopProvinces();
-    _runningJadwalsFuture = ApiService.getJadwalList(statusJadwal: "2");
+    _runningJadwalsFuture = ApiService.getJadwalList(statusJadwal: "3");
     
     _isSebaranSkemaAsesorLoading = true;
     ApiService.getSebaranSkemaAsesor().then((value) {

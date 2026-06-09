@@ -381,8 +381,20 @@ class ApiService {
     String? sortOrder,
   }) async {
     try {
+      // Determine the correct route path based on statusJadwal
+      String routePath = ApiRoutes.jadwalOutOfDate;
+      if (statusJadwal != null) {
+        if (statusJadwal == '3') {
+          // Status Running -> use /api/jadwal/active
+          routePath = '/api/jadwal/active';
+        } else if (statusJadwal.contains('1') || statusJadwal.contains('4')) {
+          // Status Completed/Pelaporan -> use /api/jadwal/completed
+          routePath = '/api/jadwal/completed';
+        }
+      }
+
       final url = ApiRoutes.withJadwalFilters(
-        ApiRoutes.jadwalOutOfDate,
+        routePath,
         limit: limit,
         statusJadwal: statusJadwal,
         idTuk: idTuk,

@@ -115,21 +115,21 @@ class _JadwalScreenState extends State<JadwalScreen>
         // Tab 1: Akan Berakhir - Status 1,2 sorted by tanggal DESC (terbaru dulu)
         ApiService.getJadwalList(
           limit: _pageSize,
-          statusJadwal: '1,2',
+          statusJadwal: '3',
           sortBy: 'tanggal',
           sortOrder: 'desc',
         ),
         // Tab 2: Sedang Berjalan - Status 2 only, sorted by tanggal DESC
         ApiService.getJadwalList(
           limit: _pageSize,
-          statusJadwal: '2',
+          statusJadwal: '3',
           sortBy: 'tanggal',
           sortOrder: 'desc',
         ),
         // Tab 3: Selesai - Status 3 only, sorted by tanggal DESC
         ApiService.getJadwalList(
           limit: _pageSize,
-          statusJadwal: '3',
+          statusJadwal: '1,4',
           sortBy: 'tanggal',
           sortOrder: 'desc',
         ),
@@ -172,7 +172,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
-        statusJadwal: '1,2',
+        statusJadwal: '3',
         sortBy: 'tanggal',
         sortOrder: 'desc',
       );
@@ -202,7 +202,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
-        statusJadwal: '2',
+        statusJadwal: '3',
         sortBy: 'tanggal',
         sortOrder: 'desc',
       );
@@ -232,7 +232,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
-        statusJadwal: '3',
+        statusJadwal: '1,4',
         sortBy: 'tanggal',
         sortOrder: 'desc',
       );
