@@ -5,6 +5,7 @@ import '../widgets/jadwal_asesmen.dart';
 import '../widgets/notification_bell.dart';
 import '../services/api_service.dart';
 import '../models/dashboard_models.dart';
+import '../services/auth_repository.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -193,20 +194,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
             ),
 
-            // 3. Jadwal Asesmen Mendekati Baru Section (Imported list widget)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                16.0,
-                8.0,
-                16.0,
-                32.0,
-              ), // 8 (bottom of previous) + 8 (top of this) = 16px gap
-              child: JadwalAsesmen(
-                data: _jadwalData,
-                isLoading: _isLoading,
-                onTapLihatSemua: widget.onNavigateToJadwal,
-              ),
-            ),
+            // 3. Jadwal Asesmen Mendekati Baru Section (Imported list widget) - Hanya untuk Admin
+            if (AuthRepository.currentUserInstance?.role == 'admin')
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  16.0,
+                  8.0,
+                  16.0,
+                  32.0,
+                ), // 8 (bottom of previous) + 8 (top of this) = 16px gap
+                child: JadwalAsesmen(
+                  data: _jadwalData,
+                  isLoading: _isLoading,
+                  onTapLihatSemua: widget.onNavigateToJadwal,
+                ),
+              )
+            else
+              const SizedBox(height: 32),
           ],
         ),
       ),
