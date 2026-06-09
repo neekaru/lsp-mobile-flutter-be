@@ -27,7 +27,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAllData();
+    // Delay 300ms to let session validation complete first
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _loadAllData();
+      }
+    });
   }
 
   Future<void> _loadAllData() async {

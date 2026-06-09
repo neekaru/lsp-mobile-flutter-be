@@ -80,6 +80,28 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       debugPrint('Splash dotenv read status: $e');
     }
 
+    // Stage 1.5: Health check server (NEW: backend added /api/health endpoint)
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (mounted) {
+      setState(() {
+        _loadingStatus = "Memeriksa koneksi server...";
+        _loadingProgress = 0.45;
+      });
+    }
+
+    bool serverHealthy = await ApiService.healthCheck();
+    if (!serverHealthy) {
+      debugPrint('⚠️ Server health check failed, will use cached data');
+    }
+
+    // Stage 1.6: Readiness check (verify DB connection)
+    if (serverHealthy) {
+      bool serverReady = await ApiService.readyCheck();
+      if (!serverReady) {
+        debugPrint('⚠️ Server not ready (DB issue), will use cached data');
+      }
+    }
+
     // Stage 2: Initialize assets / session check
     await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) {

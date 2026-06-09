@@ -21,7 +21,12 @@ class _NotificationBellState extends State<NotificationBell> {
   @override
   void initState() {
     super.initState();
-    _loadNotificationCount();
+    // Defer notification loading by 1s to avoid initial API burst
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        _loadNotificationCount();
+      }
+    });
     _notificationSubscription = NotificationService.onNotificationReceived.stream.listen((_) {
       _loadNotificationCount();
     });
