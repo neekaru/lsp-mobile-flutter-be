@@ -374,6 +374,7 @@ class ApiService {
   /// Used for JadwalScreen tabs
   static Future<List<JadwalItem>> getJadwalList({
     int limit = 20,
+    int offset = 0,
     String? statusJadwal,
     int? idTuk,
     String? idLsp,
@@ -396,6 +397,7 @@ class ApiService {
       final url = ApiRoutes.withJadwalFilters(
         routePath,
         limit: limit,
+        offset: offset,
         statusJadwal: statusJadwal,
         idTuk: idTuk,
         idLsp: idLsp,

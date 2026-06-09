@@ -38,6 +38,7 @@ class AuthRepository {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
     );
+    await _tokenStorage.saveUserProfile(result.user);
 
     currentUserInstance = result.user;
 
@@ -49,6 +50,7 @@ class AuthRepository {
     final data = response.data?['data'] as Map<String, dynamic>;
     final user = AuthUser.fromJson(data);
     
+    await _tokenStorage.saveUserProfile(user);
     currentUserInstance = user;
     return user;
   }

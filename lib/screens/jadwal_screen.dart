@@ -172,6 +172,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
+        offset: akanBerakhirList.length,
         statusJadwal: '3',
         sortBy: 'tanggal',
         sortOrder: 'desc',
@@ -202,6 +203,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
+        offset: sedangBerjalanList.length,
         statusJadwal: '3',
         sortBy: 'tanggal',
         sortOrder: 'desc',
@@ -232,6 +234,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
+        offset: selesaiList.length,
         statusJadwal: '1,4',
         sortBy: 'tanggal',
         sortOrder: 'desc',

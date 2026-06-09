@@ -121,6 +121,7 @@ class ApiRoutes {
   static String withJadwalFilters(
     String route, {
     int? limit,
+    int? offset,
     String? statusJadwal,
     int? idTuk,
     String? idLsp,
@@ -129,6 +130,7 @@ class ApiRoutes {
   }) {
     final params = <String>[];
     if (limit != null) params.add('limit=$limit');
+    if (offset != null) params.add('offset=$offset');
     if (statusJadwal != null) params.add('status_jadwal=$statusJadwal');
     if (idTuk != null) params.add('id_tuk=$idTuk');
     if (idLsp != null) params.add('id_lsp=$idLsp');

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../services/api_service.dart';
 import '../services/token_storage.dart';
@@ -103,14 +104,37 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       }
     } catch (e) {
       debugPrint('Session loading failed: $e');
-      try {
-        final authRepo = AuthRepository(
-          dio: ApiService.dio,
-          tokenStorage: TokenStorage.instance,
-        );
-        await authRepo.logout();
-      } catch (ex) {
-        debugPrint('Logout during failed session loading failed: $ex');
+      
+      bool shouldForceLogout = false;
+      if (e is DioException) {
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401 || statusCode == 403) {
+          shouldForceLogout = true;
+        }
+      }
+
+      if (shouldForceLogout) {
+        try {
+          final authRepo = AuthRepository(
+            dio: ApiService.dio,
+            tokenStorage: TokenStorage.instance,
+          );
+          await authRepo.logout();
+        } catch (ex) {
+          debugPrint('Logout during failed session loading failed: $ex');
+        }
+      } else {
+        // If it's a server/network error (like 502), try to load cached user from TokenStorage
+        try {
+          final cachedUser = await TokenStorage.instance.getUserProfile();
+          if (cachedUser != null) {
+            loggedInUser = cachedUser;
+            AuthRepository.currentUserInstance = cachedUser;
+            debugPrint('Loaded cached user session: ${cachedUser.name}');
+          }
+        } catch (cacheEx) {
+          debugPrint('Failed to load cached user profile: $cacheEx');
+        }
       }
     }
 
