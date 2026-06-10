@@ -22,8 +22,8 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "id.lspdigital.mobile"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    compileSdk = 35
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -36,8 +36,8 @@ android {
 
     defaultConfig {
         applicationId = "id.lspdigital.mobile"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 23
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
