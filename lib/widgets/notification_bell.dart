@@ -225,51 +225,56 @@ class _NotificationPanelState extends State<NotificationPanel> {
               // Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Notifikasi',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C3E50),
+                child: SizedBox(
+                  height: 48,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Notifikasi',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2C3E50),
+                        ),
                       ),
-                    ),
-                    if (_selectedTab == 1 && _appNotifications.isNotEmpty)
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Color(0xFF64748B)),
-                        onSelected: (value) {
-                          if (value == 'read_all') {
-                            _markAllAsRead();
-                          } else if (value == 'clear_all') {
-                            _clearAllNotifications();
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'read_all',
-                            child: Row(
-                              children: [
-                                Icon(Icons.done_all, size: 18, color: Colors.blue),
-                                SizedBox(width: 8),
-                                Text('Tandai Semua Dibaca'),
-                              ],
+                      if (_selectedTab == 1 && _appNotifications.isNotEmpty)
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert, color: Color(0xFF64748B)),
+                          onSelected: (value) {
+                            if (value == 'read_all') {
+                              _markAllAsRead();
+                            } else if (value == 'clear_all') {
+                              _clearAllNotifications();
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'read_all',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.done_all, size: 18, color: Colors.blue),
+                                  SizedBox(width: 8),
+                                  Text('Tandai Semua Dibaca'),
+                                ],
+                              ),
                             ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'clear_all',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_sweep, size: 18, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text('Hapus Semua'),
-                              ],
+                            const PopupMenuItem(
+                              value: 'clear_all',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_sweep, size: 18, color: Colors.red),
+                                  SizedBox(width: 8),
+                                  Text('Hapus Semua'),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                  ],
+                          ],
+                        )
+                      else
+                        const SizedBox(width: 48, height: 48),
+                    ],
+                  ),
                 ),
               ),
 
