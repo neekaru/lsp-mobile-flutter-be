@@ -259,13 +259,14 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                                 ListView.builder(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
+                                  padding: EdgeInsets.zero,
                                   itemCount: _filteredAsesi.length,
                                   itemBuilder: (context, index) {
                                     final item = _filteredAsesi[index];
                                     return _buildAsesiItem(item);
                                   },
                                 ),
-                              const SizedBox(height: 40),
+                              const SizedBox(height: 20),
                             ],
                           ),
                         ),
