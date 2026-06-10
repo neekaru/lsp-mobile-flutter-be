@@ -19,13 +19,13 @@ class _JadwalScreenState extends State<JadwalScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isLoading = true;
-  
+
   // Pagination state
   bool _isLoadingMore = false;
   bool _hasMoreAkanBerakhir = true;
   bool _hasMoreSedangBerjalan = true;
   bool _hasMoreSelesai = true;
-  
+
   final int _pageSize = 20;
 
   // Mock user role - dalam implementasi nyata, ambil dari auth service
@@ -38,21 +38,15 @@ class _JadwalScreenState extends State<JadwalScreen>
     );
   }
 
-
-
-
-
-
-
   // Data dari API
   List<JadwalItem> akanBerakhirList = [];
   List<JadwalItem> sedangBerjalanList = [];
   List<JadwalItem> selesaiList = [];
-  
+
   // Statistics from API
   int totalAsesmen = 0;
   String trendPercentage = '+0%';
-  
+
   // Scroll controllers for pagination
   final ScrollController _scrollControllerAkanBerakhir = ScrollController();
   final ScrollController _scrollControllerSedangBerjalan = ScrollController();
@@ -63,7 +57,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadJadwalData();
-    
+
     // Setup scroll listeners for pagination
     _scrollControllerAkanBerakhir.addListener(_onScrollAkanBerakhir);
     _scrollControllerSedangBerjalan.addListener(_onScrollSedangBerjalan);
@@ -78,7 +72,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     _scrollControllerSelesai.dispose();
     super.dispose();
   }
-  
+
   // Scroll listeners for pagination
   void _onScrollAkanBerakhir() {
     if (_scrollControllerAkanBerakhir.position.pixels >=
@@ -86,14 +80,14 @@ class _JadwalScreenState extends State<JadwalScreen>
       _loadMoreAkanBerakhir();
     }
   }
-  
+
   void _onScrollSedangBerjalan() {
     if (_scrollControllerSedangBerjalan.position.pixels >=
         _scrollControllerSedangBerjalan.position.maxScrollExtent - 200) {
       _loadMoreSedangBerjalan();
     }
   }
-  
+
   void _onScrollSelesai() {
     if (_scrollControllerSelesai.position.pixels >=
         _scrollControllerSelesai.position.maxScrollExtent - 200) {
@@ -140,17 +134,18 @@ class _JadwalScreenState extends State<JadwalScreen>
         akanBerakhirList = _sortJadwalList(results[0]);
         sedangBerjalanList = _sortJadwalList(results[1]);
         selesaiList = _sortJadwalList(results[2]);
-        
+
         // Calculate total from all tabs
-        totalAsesmen = akanBerakhirList.length + 
-                       sedangBerjalanList.length + 
-                       selesaiList.length;
-        
+        totalAsesmen =
+            akanBerakhirList.length +
+            sedangBerjalanList.length +
+            selesaiList.length;
+
         // Check if there's more data
         _hasMoreAkanBerakhir = results[0].length >= _pageSize;
         _hasMoreSedangBerjalan = results[1].length >= _pageSize;
         _hasMoreSelesai = results[2].length >= _pageSize;
-        
+
         _isLoading = false;
       });
     } catch (e) {
@@ -160,24 +155,24 @@ class _JadwalScreenState extends State<JadwalScreen>
       });
     }
   }
-  
+
   // Load more methods for pagination
   Future<void> _loadMoreAkanBerakhir() async {
     if (_isLoadingMore || !_hasMoreAkanBerakhir) return;
-    
+
     setState(() {
       _isLoadingMore = true;
     });
-    
+
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: akanBerakhirList.length,
-        statusJadwal: '3',
+        statusJadwal: null,
         sortBy: 'tanggal',
         sortOrder: 'desc',
       );
-      
+
       setState(() {
         if (newData.length < _pageSize) {
           _hasMoreAkanBerakhir = false;
@@ -192,14 +187,14 @@ class _JadwalScreenState extends State<JadwalScreen>
       });
     }
   }
-  
+
   Future<void> _loadMoreSedangBerjalan() async {
     if (_isLoadingMore || !_hasMoreSedangBerjalan) return;
-    
+
     setState(() {
       _isLoadingMore = true;
     });
-    
+
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
@@ -208,7 +203,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         sortBy: 'tanggal',
         sortOrder: 'desc',
       );
-      
+
       setState(() {
         if (newData.length < _pageSize) {
           _hasMoreSedangBerjalan = false;
@@ -223,14 +218,14 @@ class _JadwalScreenState extends State<JadwalScreen>
       });
     }
   }
-  
+
   Future<void> _loadMoreSelesai() async {
     if (_isLoadingMore || !_hasMoreSelesai) return;
-    
+
     setState(() {
       _isLoadingMore = true;
     });
-    
+
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
@@ -239,7 +234,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         sortBy: 'tanggal',
         sortOrder: 'desc',
       );
-      
+
       setState(() {
         if (newData.length < _pageSize) {
           _hasMoreSelesai = false;
@@ -262,7 +257,7 @@ class _JadwalScreenState extends State<JadwalScreen>
       // Primary sort: by tanggalMulai DESC (terbaru dulu)
       final dateCompare = b.tanggalMulai.compareTo(a.tanggalMulai);
       if (dateCompare != 0) return dateCompare;
-      
+
       // Secondary sort: by ID DESC (ID lebih besar = data lebih baru)
       return b.id.compareTo(a.id);
     });
@@ -299,11 +294,7 @@ class _JadwalScreenState extends State<JadwalScreen>
 
           // Loading indicator
           if (_isLoading)
-            const Expanded(
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            )
+            const Expanded(child: Center(child: CircularProgressIndicator()))
           else ...[
             // Tab Bar
             Container(
@@ -329,7 +320,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                   _JadwalTabContent(
                     key: const PageStorageKey('sedang_berjalan_tab'),
                     child: _buildJadwalList(
-                      sedangBerjalanList, 
+                      sedangBerjalanList,
                       'sedang_berjalan',
                       _scrollControllerSedangBerjalan,
                       _hasMoreSedangBerjalan,
@@ -340,7 +331,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                   _JadwalTabContent(
                     key: const PageStorageKey('selesai_tab'),
                     child: _buildJadwalList(
-                      selesaiList, 
+                      selesaiList,
                       'selesai',
                       _scrollControllerSelesai,
                       _hasMoreSelesai,
@@ -362,7 +353,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         controller: _scrollControllerAkanBerakhir,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: akanBerakhirList.length + 2, // +2 for header and loading indicator
+        itemCount:
+            akanBerakhirList.length + 2, // +2 for header and loading indicator
         itemBuilder: (context, index) {
           // Header with chart
           if (index == 0) {
@@ -413,7 +405,8 @@ class _JadwalScreenState extends State<JadwalScreen>
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                if (trendPercentage.isNotEmpty && trendPercentage != '+0%')
+                                if (trendPercentage.isNotEmpty &&
+                                    trendPercentage != '+0%')
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 6,
@@ -437,7 +430,10 @@ class _JadwalScreenState extends State<JadwalScreen>
                             const SizedBox(height: 4),
                             Text(
                               '${akanBerakhirList.length} akan berakhir, ${sedangBerjalanList.length} berjalan',
-                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
@@ -457,15 +453,13 @@ class _JadwalScreenState extends State<JadwalScreen>
               ],
             );
           }
-          
+
           // Loading indicator at the end
           if (index == akanBerakhirList.length + 1) {
             if (_isLoadingMore) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               );
             } else if (!_hasMoreAkanBerakhir) {
               return const Padding(
@@ -481,10 +475,10 @@ class _JadwalScreenState extends State<JadwalScreen>
               return const SizedBox(height: 80);
             }
           }
-          
+
           // List items
           final itemIndex = index - 1;
-                final item = akanBerakhirList[itemIndex];
+          final item = akanBerakhirList[itemIndex];
           return Padding(
             padding: EdgeInsets.only(
               bottom: itemIndex < akanBerakhirList.length - 1 ? 8 : 0,
@@ -496,13 +490,11 @@ class _JadwalScreenState extends State<JadwalScreen>
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => JadwalDetailScreen(
-                      jadwal: item,
-                      userRole: currentUser,
-                    ),
+                    builder: (context) =>
+                        JadwalDetailScreen(jadwal: item, userRole: currentUser),
                   ),
                 );
-                
+
                 // Refresh data if status was updated
                 if (result == true) {
                   _loadJadwalData();
@@ -515,7 +507,12 @@ class _JadwalScreenState extends State<JadwalScreen>
     );
   }
 
-  Widget _buildJadwalList(List<JadwalItem> items, String status, ScrollController controller, bool hasMore) {
+  Widget _buildJadwalList(
+    List<JadwalItem> items,
+    String status,
+    ScrollController controller,
+    bool hasMore,
+  ) {
     if (items.isEmpty && !_isLoading) {
       return RefreshIndicator(
         onRefresh: _handleRefresh,
@@ -570,9 +567,7 @@ class _JadwalScreenState extends State<JadwalScreen>
             if (_isLoadingMore) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               );
             } else if (!hasMore) {
               return const Padding(
@@ -588,13 +583,11 @@ class _JadwalScreenState extends State<JadwalScreen>
               return const SizedBox(height: 80);
             }
           }
-          
+
           // List items
           final item = items[index];
           return Padding(
-            padding: EdgeInsets.only(
-              bottom: index < items.length - 1 ? 8 : 0,
-            ),
+            padding: EdgeInsets.only(bottom: index < items.length - 1 ? 8 : 0),
             child: JadwalListItem(
               key: ValueKey(item.id),
               item: item,
@@ -606,7 +599,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                         JadwalDetailScreen(jadwal: item, userRole: currentUser),
                   ),
                 );
-                
+
                 // Refresh data if status was updated
                 if (result == true) {
                   _loadJadwalData();
@@ -762,7 +755,9 @@ class _JadwalTabContentState extends State<_JadwalTabContent>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Must call super.build for AutomaticKeepAliveClientMixin
+    super.build(
+      context,
+    ); // Must call super.build for AutomaticKeepAliveClientMixin
     return widget.child;
   }
 }

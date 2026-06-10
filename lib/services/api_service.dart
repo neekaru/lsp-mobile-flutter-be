@@ -436,11 +436,12 @@ class ApiService {
     String? idLsp,
     String? sortBy,
     String? sortOrder,
+    String? customRoutePath,
   }) async {
     try {
-      // Determine the correct route path based on statusJadwal
-      String routePath = ApiRoutes.jadwalOutOfDate;
-      if (statusJadwal != null) {
+      // Determine the correct route path based on customRoutePath or statusJadwal
+      String routePath = customRoutePath ?? ApiRoutes.jadwalOutOfDate;
+      if (customRoutePath == null && statusJadwal != null) {
         if (statusJadwal == '3') {
           // Status Running -> use /api/jadwal/active
           routePath = '/api/jadwal/active';
