@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../models/jadwal_models.dart';
 import '../services/api_service.dart';
+import 'asesi_list_screen.dart';
 
 class JadwalDetailScreen extends StatefulWidget {
   final JadwalItem jadwal;
@@ -767,6 +768,147 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                               ],
                             ),
                           ],
+                        ),
+                        const Divider(height: 32, thickness: 1, color: Color(0xFFEEEEEE)),
+                        const Text(
+                          'Ringkasan Hasil Asesi',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F6F8),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '${widget.jadwal.totalAsesi}',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Total Asesi',
+                                      style: TextStyle(fontSize: 9, color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F5E9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '${widget.jadwal.jumlahKompeten}',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF2E7D32),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Kompeten',
+                                      style: TextStyle(fontSize: 9, color: Color(0xFF2E7D32)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFEBEE),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '${widget.jadwal.jumlahBelumKompeten}',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFC62828),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Belum Komp.',
+                                      style: TextStyle(fontSize: 9, color: Color(0xFFC62828)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AsesiListScreen(
+                                  jadwalId: widget.jadwal.id,
+                                  jadwalTitle: widget.jadwal.skema,
+                                ),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE5F1FC),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFB3D7F4), width: 1),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  LucideIcons.users,
+                                  size: 14,
+                                  color: Color(0xFF2C6C9C),
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Lihat Daftar Asesi',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2C6C9C),
+                                  ),
+                                ),
+                                const Spacer(),
+                                const Icon(
+                                  LucideIcons.chevron_right,
+                                  size: 14,
+                                  color: Color(0xFF2C6C9C),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),

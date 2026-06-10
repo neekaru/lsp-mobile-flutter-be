@@ -514,6 +514,40 @@ class ApiService {
     }
   }
 
+  /// Fetch list of Asesi for a specific schedule
+  static Future<AsesiListResponse> getAsesiList(int jadwalId) async {
+    try {
+      final response = await _dio.get('/api/jadwal/$jadwalId/asesi');
+
+      if (response.statusCode == 200 && response.data != null) {
+        return AsesiListResponse.fromJson(response.data);
+      }
+
+      return AsesiListResponse(
+        data: [],
+        meta: AsesiMeta(
+          jadwalId: jadwalId,
+          totalAsesi: 0,
+          jumlahKompeten: 0,
+          jumlahBelumKompeten: 0,
+          jumlahBelumDinilai: 0,
+        ),
+      );
+    } catch (e) {
+      debugPrint('🔴 Error fetching asesi list: $e');
+      return AsesiListResponse(
+        data: [],
+        meta: AsesiMeta(
+          jadwalId: jadwalId,
+          totalAsesi: 0,
+          jumlahKompeten: 0,
+          jumlahBelumKompeten: 0,
+          jumlahBelumDinilai: 0,
+        ),
+      );
+    }
+  }
+
   // ============================================================================
   // Notification APIs
   // ============================================================================

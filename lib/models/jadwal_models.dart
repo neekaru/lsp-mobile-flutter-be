@@ -31,6 +31,9 @@ class JadwalItem {
   final int sisaHari; // untuk status akan_berakhir
   final int? daysLate; // untuk status sedang_berjalan (status_jadwal = "2")
   final String? catatan;
+  final int totalAsesi;
+  final int jumlahKompeten;
+  final int jumlahBelumKompeten;
 
   const JadwalItem({
     required this.id,
@@ -44,6 +47,9 @@ class JadwalItem {
     this.sisaHari = 0,
     this.daysLate,
     this.catatan,
+    this.totalAsesi = 0,
+    this.jumlahKompeten = 0,
+    this.jumlahBelumKompeten = 0,
   });
 
   factory JadwalItem.fromJson(Map<String, dynamic> json) {
@@ -68,6 +74,10 @@ class JadwalItem {
     final statusJadwal = json['status_jadwal']?.toString() ?? '1';
     final daysOverdue = json['days_overdue'] ?? 0;
     final daysLate = json['days_late']; // Nullable, hanya untuk status "2"
+    
+    final totalAsesi = json['total_asesi'] ?? json['jumlah_asesi'] ?? 0;
+    final jumlahKompeten = json['jumlah_kompeten'] ?? 0;
+    final jumlahBelumKompeten = json['jumlah_belum_kompeten'] ?? 0;
 
     return JadwalItem(
       id: json['id'] ?? 0,
@@ -76,11 +86,14 @@ class JadwalItem {
       tanggalMulai: json['tanggal'] ?? '',
       tanggalSelesai: json['tanggal_akhir'] ?? '',
       status: mapStatus(statusJadwal, daysOverdue),
-      jumlahAsesi: json['jumlah_asesi'] ?? 0,
+      jumlahAsesi: totalAsesi,
       asesor: _parseAsesor(json['asesor']),
       sisaHari: daysOverdue, // days_overdue from API
       daysLate: daysLate, // days_late from API (only for status "2")
       catatan: json['catatan'],
+      totalAsesi: totalAsesi,
+      jumlahKompeten: jumlahKompeten,
+      jumlahBelumKompeten: jumlahBelumKompeten,
     );
   }
 }
@@ -154,6 +167,9 @@ class WaitingSchedule {
   final String tuk;
   final int jumlahAsesi;
   final List<String> asesor;
+  final int totalAsesi;
+  final int jumlahKompeten;
+  final int jumlahBelumKompeten;
 
   const WaitingSchedule({
     required this.id,
@@ -167,9 +183,16 @@ class WaitingSchedule {
     required this.tuk,
     required this.jumlahAsesi,
     required this.asesor,
+    this.totalAsesi = 0,
+    this.jumlahKompeten = 0,
+    this.jumlahBelumKompeten = 0,
   });
 
   factory WaitingSchedule.fromJson(Map<String, dynamic> json) {
+    final totalAsesi = json['total_asesi'] ?? json['jumlah_asesi'] ?? 0;
+    final jumlahKompeten = json['jumlah_kompeten'] ?? 0;
+    final jumlahBelumKompeten = json['jumlah_belum_kompeten'] ?? 0;
+
     return WaitingSchedule(
       id: json['id'] ?? 0,
       jadwal: json['jadwal'] ?? '',
@@ -180,8 +203,11 @@ class WaitingSchedule {
       idLsp: json['id_lsp'],
       idTuk: json['id_tuk'] ?? 0,
       tuk: json['tuk'] ?? '',
-      jumlahAsesi: json['jumlah_asesi'] ?? 0,
+      jumlahAsesi: totalAsesi,
       asesor: _parseAsesor(json['asesor']),
+      totalAsesi: totalAsesi,
+      jumlahKompeten: jumlahKompeten,
+      jumlahBelumKompeten: jumlahBelumKompeten,
     );
   }
 }
@@ -225,6 +251,76 @@ class NotificationMeta {
       limit: json['limit'] ?? 20,
       sortBy: json['sort_by'] ?? 'tanggal',
       sortOrder: json['sort_order'] ?? 'desc',
+    );
+  }
+}
+
+// ============================================================================
+// Asesi List Models
+// ============================================================================
+
+class AsesiItem {
+  final int id;
+  final String namaLengkap;
+  final String? hasilRekomendasi; // 'K', 'BK', or null
+
+  const AsesiItem({
+    required this.id,
+    required this.namaLengkap,
+    this.hasilRekomendasi,
+  });
+
+  factory AsesiItem.fromJson(Map<String, dynamic> json) {
+    return AsesiItem(
+      id: json['id'] ?? 0,
+      namaLengkap: json['nama_lengkap'] ?? '',
+      hasilRekomendasi: json['hasil_rekomendasi'],
+    );
+  }
+}
+
+class AsesiMeta {
+  final int jadwalId;
+  final int totalAsesi;
+  final int jumlahKompeten;
+  final int jumlahBelumKompeten;
+  final int jumlahBelumDinilai;
+
+  const AsesiMeta({
+    required this.jadwalId,
+    required this.totalAsesi,
+    required this.jumlahKompeten,
+    required this.jumlahBelumKompeten,
+    required this.jumlahBelumDinilai,
+  });
+
+  factory AsesiMeta.fromJson(Map<String, dynamic> json) {
+    return AsesiMeta(
+      jadwalId: json['jadwal_id'] ?? 0,
+      totalAsesi: json['total_asesi'] ?? 0,
+      jumlahKompeten: json['jumlah_kompeten'] ?? 0,
+      jumlahBelumKompeten: json['jumlah_belum_kompeten'] ?? 0,
+      jumlahBelumDinilai: json['jumlah_belum_dinilai'] ?? 0,
+    );
+  }
+}
+
+class AsesiListResponse {
+  final List<AsesiItem> data;
+  final AsesiMeta meta;
+
+  const AsesiListResponse({
+    required this.data,
+    required this.meta,
+  });
+
+  factory AsesiListResponse.fromJson(Map<String, dynamic> json) {
+    return AsesiListResponse(
+      data: (json['data'] as List<dynamic>?)
+              ?.map((item) => AsesiItem.fromJson(item))
+              .toList() ??
+          [],
+      meta: AsesiMeta.fromJson(json['meta'] ?? {}),
     );
   }
 }
