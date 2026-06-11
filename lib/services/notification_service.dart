@@ -119,6 +119,18 @@ class NotificationService {
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
+    final currentUserId = AuthRepository.currentUserInstance?.id;
+    final notifUserId = message.data['user_id']?.toString();
+
+    if (notifUserId != null && notifUserId.isNotEmpty) {
+      if (currentUserId == null || notifUserId != currentUserId) {
+        if (kDebugMode) {
+          debugPrint('⚠️ Ignored foreground notification: user_id mismatch (notif: $notifUserId, current: $currentUserId)');
+        }
+        return;
+      }
+    }
+
     final title = message.notification?.title ?? _getTitleFromData(message.data);
     final body = message.notification?.body ?? _getBodyFromData(message.data);
     final type = message.data['type'] ?? '';
@@ -174,6 +186,18 @@ class NotificationService {
   }
 
   void _handleNotificationClick(RemoteMessage message) {
+    final currentUserId = AuthRepository.currentUserInstance?.id;
+    final notifUserId = message.data['user_id']?.toString();
+
+    if (notifUserId != null && notifUserId.isNotEmpty) {
+      if (currentUserId == null || notifUserId != currentUserId) {
+        if (kDebugMode) {
+          debugPrint('⚠️ Ignored notification click: user_id mismatch (notif: $notifUserId, current: $currentUserId)');
+        }
+        return;
+      }
+    }
+
     final type = message.data['type'] ?? '';
     if (kDebugMode) {
       debugPrint('Handling notification click: type=$type, data=${message.data}');

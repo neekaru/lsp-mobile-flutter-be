@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'services/notification_service.dart';
 import 'services/app_notification_storage.dart';
+import 'services/token_storage.dart';
 
 // Import screens
 import 'screens/splash_screen.dart';
@@ -38,6 +39,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
   
   final data = message.data;
+  final notifUserId = data['user_id']?.toString();
+
+  if (notifUserId != null && notifUserId.isNotEmpty) {
+    final cachedUser = await TokenStorage.instance.getUserProfile();
+    final currentUserId = cachedUser?.id;
+    if (currentUserId == null || notifUserId != currentUserId) {
+      if (kDebugMode) {
+        debugPrint('⚠️ Ignored background notification: user_id mismatch (notif: $notifUserId, current: $currentUserId)');
+      }
+      return;
+    }
+  }
+
   final type = data['type'] ?? '';
   
   String getTitle() {
