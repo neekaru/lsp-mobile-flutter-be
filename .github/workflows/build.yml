@@ -1,17 +1,20 @@
-name: Build Release APK & AAB
+name: Build and Release LSP Mobile
 
 on:
   push:
+    branches: [ "main", "dev", "develop" ]
     tags:
       - 'v*.*.*'
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build-release:
-    name: Build Release APK & AAB
+  build:
+    name: Build & Release Application
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -22,6 +25,7 @@ jobs:
 
       - name: Extract version from tag
         id: version
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           TAG=${GITHUB_REF#refs/tags/v}
           VERSION_NAME=$(echo $TAG | cut -d'-' -f1 | cut -d'.' -f1-3)
@@ -31,6 +35,7 @@ jobs:
           echo "Building version: $VERSION_NAME+$BUILD_NUMBER"
 
       - name: Update pubspec.yaml version
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           sed -i "s/^version: .*/version: ${{ steps.version.outputs.version_name }}+${{ steps.version.outputs.build_number }}/" pubspec.yaml
           echo "Updated pubspec.yaml:"
@@ -55,6 +60,7 @@ jobs:
           echo "BASE_URL=${{ secrets.BASE_URL || 'https://mobile.lspdigital.id/' }}" > .env
 
       - name: Decode and setup keystore
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
@@ -65,18 +71,23 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
+      - name: Build Debug APK
+        run: flutter build apk --debug --no-shrink
+
       - name: Build Release APK
+        if: startsWith(github.ref, 'refs/tags/')
         run: flutter build apk --release --no-shrink
 
       - name: Build Release AAB (App Bundle)
+        if: startsWith(github.ref, 'refs/tags/')
         run: flutter build appbundle --release
-
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           files: |
+            build/app/outputs/flutter-apk/app-debug.apk
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
           draft: false
