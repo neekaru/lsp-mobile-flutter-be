@@ -106,21 +106,22 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       // Fetch data untuk setiap tab secara parallel
       final results = await Future.wait([
-        // Tab 1: Akan Berakhir - Status 1,2 sorted by tanggal DESC (terbaru dulu)
+        // Tab 1: Akan Berakhir - Out of date (status 0,1,2,3) sorted by days_overdue DESC
+        ApiService.getJadwalList(
+          limit: _pageSize,
+          statusJadwal: '0,1,2,3',
+          sortBy: 'days_overdue',
+          sortOrder: 'desc',
+          customRoutePath: '/api/jadwal/out-of-date',
+        ),
+        // Tab 2: Sedang Berjalan - Status 3 (Running), sorted by tanggal DESC
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: '3',
           sortBy: 'tanggal',
           sortOrder: 'desc',
         ),
-        // Tab 2: Sedang Berjalan - Status 2 only, sorted by tanggal DESC
-        ApiService.getJadwalList(
-          limit: _pageSize,
-          statusJadwal: '3',
-          sortBy: 'tanggal',
-          sortOrder: 'desc',
-        ),
-        // Tab 3: Selesai - Status 3 only, sorted by tanggal DESC
+        // Tab 3: Selesai - Status 1,4 (Completed/Pelaporan), sorted by tanggal DESC
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: '1,4',
@@ -168,9 +169,10 @@ class _JadwalScreenState extends State<JadwalScreen>
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: akanBerakhirList.length,
-        statusJadwal: null,
-        sortBy: 'tanggal',
+        statusJadwal: '0,1,2,3',
+        sortBy: 'days_overdue',
         sortOrder: 'desc',
+        customRoutePath: '/api/jadwal/out-of-date',
       );
 
       setState(() {
