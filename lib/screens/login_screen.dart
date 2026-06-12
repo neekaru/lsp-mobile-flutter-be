@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../services/token_storage.dart';
 import '../services/auth_repository.dart';
 import '../services/notification_service.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -505,7 +506,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                        ),
+                      );
+                    },
                     child: const Text(
                       'Daftar sekarang',
                       style: TextStyle(

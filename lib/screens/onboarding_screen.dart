@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import 'register_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -170,7 +171,34 @@ class OnboardingScreen extends StatelessWidget {
                       height: 48,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Placeholder for register
+                          Navigator.of(context).push(
+                            PageRouteBuilder(
+                              pageBuilder: (context, animation, secondaryAnimation) => const RegisterScreen(),
+                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                final slideAnimation = Tween<Offset>(
+                                  begin: const Offset(0.0, 0.15),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: animation,
+                                    curve: Curves.fastOutSlowIn,
+                                  ),
+                                );
+                                final fadeAnimation = CurvedAnimation(
+                                  parent: animation,
+                                  curve: Curves.easeIn,
+                                );
+                                return SlideTransition(
+                                  position: slideAnimation,
+                                  child: FadeTransition(
+                                    opacity: fadeAnimation,
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              transitionDuration: const Duration(milliseconds: 550),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
