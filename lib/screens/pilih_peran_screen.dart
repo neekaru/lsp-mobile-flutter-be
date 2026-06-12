@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
+import 'pengajuan_sertifikat_screen.dart';
 
 class PilihPeranScreen extends StatefulWidget {
   const PilihPeranScreen({super.key});
@@ -29,12 +30,33 @@ class _PilihPeranScreenState extends State<PilihPeranScreen> {
         (route) => false,
       );
     } else {
-      // Role is "Daftar Skema" - show info SnackBar since user requested dashboard first
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Fitur Daftar Skema dalam pengembangan. Silakan pilih "Liat Dashboard" terlebih dahulu.'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 3),
+      // Role is "Daftar Skema" - Navigate to PengajuanSertifikatScreen
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => const PengajuanSertifikatScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final slideAnimation = Tween<Offset>(
+              begin: const Offset(0.0, 0.15),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.fastOutSlowIn,
+              ),
+            );
+            final fadeAnimation = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeIn,
+            );
+            return SlideTransition(
+              position: slideAnimation,
+              child: FadeTransition(
+                opacity: fadeAnimation,
+                child: child,
+              ),
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 550),
         ),
       );
     }
