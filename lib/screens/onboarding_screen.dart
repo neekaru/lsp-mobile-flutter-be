@@ -120,12 +120,12 @@ class OnboardingScreen extends StatelessWidget {
                               pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
                               transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                 final slideAnimation = Tween<Offset>(
-                                  begin: const Offset(0.0, 0.15),
+                                  begin: const Offset(0.0, 0.08),
                                   end: Offset.zero,
                                 ).animate(
                                   CurvedAnimation(
                                     parent: animation,
-                                    curve: Curves.fastOutSlowIn,
+                                    curve: Curves.easeOutCubic,
                                   ),
                                 );
                                 final fadeAnimation = CurvedAnimation(
@@ -140,7 +140,7 @@ class OnboardingScreen extends StatelessWidget {
                                   ),
                                 );
                               },
-                              transitionDuration: const Duration(milliseconds: 550),
+                              transitionDuration: const Duration(milliseconds: 350),
                             ),
                           );
                         },
@@ -176,12 +176,12 @@ class OnboardingScreen extends StatelessWidget {
                               pageBuilder: (context, animation, secondaryAnimation) => const RegisterScreen(),
                               transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                 final slideAnimation = Tween<Offset>(
-                                  begin: const Offset(0.0, 0.15),
+                                  begin: const Offset(0.0, 0.08),
                                   end: Offset.zero,
                                 ).animate(
                                   CurvedAnimation(
                                     parent: animation,
-                                    curve: Curves.fastOutSlowIn,
+                                    curve: Curves.easeOutCubic,
                                   ),
                                 );
                                 final fadeAnimation = CurvedAnimation(
@@ -196,7 +196,7 @@ class OnboardingScreen extends StatelessWidget {
                                   ),
                                 );
                               },
-                              transitionDuration: const Duration(milliseconds: 550),
+                              transitionDuration: const Duration(milliseconds: 350),
                             ),
                           );
                         },

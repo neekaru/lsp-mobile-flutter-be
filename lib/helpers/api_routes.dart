@@ -18,7 +18,7 @@ class ApiRoutes {
   static const String dashboardMonthlyAssessments =
       '/api/dashboard/monthly-assessments';
   static const String dashboardAssessmentGraph =
-      '/api/dashboard/monthly-assessments'; // Fixed: was /assesmen-graph
+      '/api/dashboard/assesmen-graph';
   static const String dashboardPenyebaranRegional =
       '/api/dashboard/penyebaran-regional';
   static const String dashboardTrends = '/api/dashboard/trends';
@@ -41,7 +41,8 @@ class ApiRoutes {
   static const String jadwalOutOfDate = '/api/jadwal/out-of-date';
   static const String jadwalBaru = '/api/jadwal/baru';
   static const String jadwalUpdateStatus = '/api/jadwal/update-status';
-  static const String jadwalNotificationsCount = '/api/jadwal/notifications/count';
+  static const String jadwalNotificationsCount =
+      '/api/jadwal/notifications/count';
   static const String jadwalWaiting = '/api/jadwal/waiting';
 
   // ============================================================================

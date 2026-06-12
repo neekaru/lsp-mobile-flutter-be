@@ -184,12 +184,25 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           reverseTransitionDuration: const Duration(milliseconds: 850),
           pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: CurvedAnimation(
+            final slideAnimation = Tween<Offset>(
+              begin: const Offset(0.0, 0.15),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(
                 parent: animation,
                 curve: Curves.fastOutSlowIn,
               ),
-              child: child,
+            );
+            final fadeAnimation = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeIn,
+            );
+            return SlideTransition(
+              position: slideAnimation,
+              child: FadeTransition(
+                opacity: fadeAnimation,
+                child: child,
+              ),
             );
           },
         ),
