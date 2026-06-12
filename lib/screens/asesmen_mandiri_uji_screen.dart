@@ -253,93 +253,88 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
         const SizedBox(height: 16),
 
         // List of unit cards
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: widget.unitKompetensi.length,
-          itemBuilder: (context, index) {
-            final unit = widget.unitKompetensi[index];
-            final kode = unit['kode'] as String? ?? '';
-            final judul = unit['judul'] as String? ?? '';
+        ...List.generate(widget.unitKompetensi.length, (index) {
+          final unit = widget.unitKompetensi[index];
+          final kode = unit['kode'] as String? ?? '';
+          final judul = unit['judul'] as String? ?? '';
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    _activeUnitIndex = index;
-                  });
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${index + 1}.',
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _activeUnitIndex = index;
+                });
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${index + 1}.',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              kode,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF64748B),
-                              ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            kode,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF64748B),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              judul,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                                height: 1.3,
-                              ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            judul,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                              height: 1.3,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              AsesmenMandiriData.getKukCount(kode),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF94A3B8),
-                              ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            AsesmenMandiriData.getKukCount(kode),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF94A3B8),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      const Align(
-                        alignment: Alignment.center,
-                        child: Icon(
-                          Icons.keyboard_arrow_right_rounded,
-                          color: Color(0xFF378CE7),
-                          size: 22,
-                        ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Align(
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.keyboard_arrow_right_rounded,
+                        color: Color(0xFF378CE7),
+                        size: 22,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        }),
 
         // "Lihat Semua Unit Kompetensi" card
         Container(
