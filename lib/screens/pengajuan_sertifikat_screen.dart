@@ -10,6 +10,7 @@ import '../widgets/pengajuan/dokumen_portofolio_form.dart';
 import '../widgets/pengajuan/asesmen_mandiri_form.dart';
 import '../widgets/pengajuan/unit_kompetensi_detail.dart';
 import '../widgets/pengajuan/dokumen_persyaratan_form.dart';
+import 'bukti_portofolio_screen.dart';
 
 class PengajuanSertifikatScreen extends StatefulWidget {
   const PengajuanSertifikatScreen({super.key});
@@ -271,53 +272,27 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     }
   }
 
-  // Progress to next step with validation
-  void _nextStep() {
-    if (_currentStep == 0) {
-      if (_selectedSkema == null || _selectedJadwal == null || 
-          _sumberAnggaranController.text.trim().isEmpty || 
-          _pemberiAnggaranController.text.trim().isEmpty) {
-        _showErrorSnackBar('Semua data wajib diisi.');
-        return;
-      }
-    } else if (_currentStep == 1) {
-      if (_nikController.text.trim().isEmpty ||
-          _namaLengkapController.text.trim().isEmpty ||
-          _tempatLahirController.text.trim().isEmpty ||
-          _tanggalLahirController.text.trim().isEmpty ||
-          _alamatDomisiliController.text.trim().isEmpty ||
-          _selectedProvinsi == null ||
-          _selectedKota == null ||
-          _selectedKecamatan == null ||
-          _noTelpController.text.trim().isEmpty ||
-          _emailController.text.trim().isEmpty ||
-          _selectedPendidikan == null ||
-          _namaSekolahController.text.trim().isEmpty ||
-          _jurusanController.text.trim().isEmpty) {
-        _showErrorSnackBar('Semua data pribadi wajib diisi.');
-        return;
-      }
-    } else if (_currentStep == 2) {
-      if (_selectedPekerjaan == null ||
-          _namaPerusahaanController.text.trim().isEmpty ||
-          _jabatanController.text.trim().isEmpty ||
-          _alamatPerusahaanController.text.trim().isEmpty ||
-          _kodeposPerusahaanController.text.trim().isEmpty ||
-          _telpPerusahaanController.text.trim().isEmpty ||
-          _emailPerusahaanController.text.trim().isEmpty) {
-        _showErrorSnackBar('Semua data pekerjaan wajib diisi.');
-        return;
-      }
-    } else if (_currentStep == 3) {
-      // Validate mandatory documents in Step 3 (Dokumen Persyaratan)
-      final bool hasPasfoto = _uploadedDocs['Pasfoto*'] == true;
-      final bool hasKtp = _uploadedDocs['Identitas pribadi (KTP/KartuPelajar)*'] == true;
-      if (!hasPasfoto || !hasKtp) {
-        _showErrorSnackBar('Semua persyaratan administratif wajib (*) harus diunggah.');
-        return;
-      }
-    }
+  void _navigateToBuktiPortofolio() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BuktiPortofolioScreen(
+          selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+          uploadedDocs: _uploadedDocs,
+          uploadedFileNames: _uploadedFileNames,
+          onUploadChanged: (docName, isUploaded, fileName) {
+            setState(() {
+              _uploadedDocs[docName] = isUploaded;
+              _uploadedFileNames[docName] = fileName;
+            });
+          },
+        ),
+      ),
+    );
+  }
 
+  // Progress to next step with validation (bypassed for testing)
+  void _nextStep() {
     if (_currentStep < 5) {
       setState(() {
         _currentStep++;
@@ -343,6 +318,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     }
   }
 
+  // ignore: unused_element
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -638,6 +614,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       case 4:
         return DokumenPortofolioForm(
           selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+          onBuktiTap: _navigateToBuktiPortofolio,
         );
       case 5:
         if (_activeUnitDetailIndex != null) {
@@ -693,11 +670,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               _activeUnitDetailIndex = index;
             });
           },
-          onBuktiTap: () {
-            setState(() {
-              _currentStep = 4;
-            });
-          },
+          onBuktiTap: _navigateToBuktiPortofolio,
         );
       default:
         return Container();

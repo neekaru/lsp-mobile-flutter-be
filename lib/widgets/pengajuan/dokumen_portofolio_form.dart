@@ -4,10 +4,12 @@ import 'skema_detail_summary.dart';
 
 class DokumenPortofolioForm extends StatelessWidget {
   final String selectedSkema;
+  final VoidCallback? onBuktiTap;
 
   const DokumenPortofolioForm({
     super.key,
     required this.selectedSkema,
+    this.onBuktiTap,
   });
 
   @override
@@ -22,7 +24,7 @@ class DokumenPortofolioForm extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 1. Asesmen Header Cards (Image 1)
-        const AsesmenHeaderCards(),
+        AsesmenHeaderCards(onBuktiTap: onBuktiTap),
         const SizedBox(height: 20),
 
         // 2. Skema Detail Summary (Image 2)
