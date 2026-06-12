@@ -8,6 +8,7 @@ import '../widgets/pengajuan/data_pribadi_form.dart';
 import '../widgets/pengajuan/data_pekerjaan_form.dart';
 import '../widgets/pengajuan/dokumen_portofolio_form.dart';
 import '../widgets/pengajuan/asesmen_mandiri_form.dart';
+import '../widgets/pengajuan/unit_kompetensi_detail.dart';
 
 class PengajuanSertifikatScreen extends StatefulWidget {
   const PengajuanSertifikatScreen({super.key});
@@ -136,12 +137,24 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
   // Step 4: Dokumen Portofolio State (Simulated upload status)
   final Map<String, bool> _uploadedDocs = {
-    'KTP / Paspor': false,
-    'CV / Daftar Riwayat Hidup': false,
-    'Ijazah Terakhir': false,
-    'Surat Rekomendasi / Keterangan Kerja': false,
-    'Sertifikat Pelatihan Terkait': false,
+    'Ijazah Terakhir / SMA / Sederajat': false,
+    'Sertifikat Pelatihan Berbasis Kompetensi': false,
+    'Surat Keterangan Pengalaman Kerja': false,
+    'Pasfoto': false,
+    'Identitas Pribadi (KTP/Kartu Pelajar)': false,
   };
+
+  final Map<String, String?> _uploadedFileNames = {
+    'Ijazah Terakhir / SMA / Sederajat': null,
+    'Sertifikat Pelatihan Berbasis Kompetensi': null,
+    'Surat Keterangan Pengalaman Kerja': null,
+    'Pasfoto': null,
+    'Identitas Pribadi (KTP/Kartu Pelajar)': null,
+  };
+
+  int? _activeUnitDetailIndex;
+  final Map<String, bool> _kukAssessments = {};
+  final Map<String, String?> _kukEvidence = {};
 
   // Step 5: Asesmen Mandiri State (Dynamic unit kompetensi based on selected schema)
   final Map<String, List<Map<String, dynamic>>> _schemaUnits = {
@@ -172,6 +185,37 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       {'kode': 'DA.620500.003.01', 'judul': 'Melakukan Analisis Statistik Deskriptif', 'kompeten': true},
     ],
   };
+
+  List<String> get _portfolioItems {
+    final skema = _selectedSkema ?? 'Digital Marketing Specialist';
+    if (skema.contains('Programmer')) {
+      return [
+        'Surat Pengalaman kerja',
+        'CV dengan spesialisasi Programmer',
+        'Kode Sumber Aplikasi (GitHub/GitLab)',
+        'Dokumentasi API / Arsitektur Sistem',
+        'Laporan Hasil Pengujian Aplikasi',
+      ];
+    } else if (skema.contains('Cloud')) {
+      return [
+        'Surat Pengalaman kerja',
+        'CV dengan spesialisasi Cloud Admin',
+        'Arsitektur Topologi Cloud',
+        'Dokumentasi Konfigurasi Server/Instance',
+        'Laporan Pengukuran Beban & Biaya',
+      ];
+    } else {
+      return [
+        'Surat Pengalaman kerja',
+        'Testimoni dalam bentuk Video dari Pengguna Jasa Digital Marketing',
+        'CV dengan spesialisasi Digital Marketing',
+        'Laporan Produk & Pasar',
+        'Konten Promosi (Poster, Video, Caption)',
+        'Insight Kampanye',
+        'Interaksi Pelanggan (Chat & Komentar)',
+      ];
+    }
+  }
 
   List<Map<String, dynamic>> _getUnitKompetensi() {
     if (_selectedSkema == null) {
@@ -229,7 +273,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       case 3:
         return 'Dokumen Portofolio';
       case 4:
-        return 'Asesmen Mandiri';
+        return _activeUnitDetailIndex != null ? 'Detail Uji Kompetensi' : 'Asesmen Mandiri';
       default:
         return 'Pengajuan Sertifikat';
     }
@@ -273,8 +317,9 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         return;
       }
     } else if (_currentStep == 3) {
-      if (_uploadedDocs.values.contains(false)) {
-        _showErrorSnackBar('Silakan unggah semua dokumen persyaratan.');
+      bool hasAtLeastOne = _portfolioItems.any((item) => _uploadedDocs[item] == true);
+      if (!hasAtLeastOne) {
+        _showErrorSnackBar('Silakan unggah minimal satu dokumen portofolio sebagai bukti.');
         return;
       }
     }
@@ -289,6 +334,12 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   }
 
   void _previousStep() {
+    if (_currentStep == 4 && _activeUnitDetailIndex != null) {
+      setState(() {
+        _activeUnitDetailIndex = null;
+      });
+      return;
+    }
     if (_currentStep > 0) {
       setState(() {
         _currentStep--;
@@ -412,7 +463,8 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         children: [
           SizedBox(height: statusBarHeight + 8),
           _buildAppBar(),
-          StepIndicator(currentStep: _currentStep),
+          if (_currentStep != 4 || _activeUnitDetailIndex == null)
+            StepIndicator(currentStep: _currentStep),
           Expanded(
             child: RepaintBoundary(
               child: SingleChildScrollView(
@@ -578,19 +630,69 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         );
       case 3:
         return DokumenPortofolioForm(
+          selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+          portfolioItems: _portfolioItems,
           uploadedDocs: _uploadedDocs,
-          onToggleUpload: (docName) {
+          uploadedFileNames: _uploadedFileNames,
+          onUploadChanged: (docName, isUploaded, fileName) {
             setState(() {
-              _uploadedDocs[docName] = !_uploadedDocs[docName]!;
+              _uploadedDocs[docName] = isUploaded;
+              _uploadedFileNames[docName] = fileName;
             });
           },
         );
       case 4:
+        if (_activeUnitDetailIndex != null) {
+          final unit = _getUnitKompetensi()[_activeUnitDetailIndex!];
+          final String kode = unit['kode'] as String? ?? '';
+          final String judul = unit['judul'] as String? ?? '';
+          String kukCount = '11 KUK';
+          if (kode.contains('001')) {
+            kukCount = '8 KUK';
+          } else if (kode.contains('002')) {
+            kukCount = '10 KUK';
+          } else if (kode.contains('003')) {
+            kukCount = '12 KUK';
+          } else if (kode.contains('007')) {
+            kukCount = '13 KUK';
+          }
+
+          return UnitKompetensiDetail(
+            unitKode: kode,
+            unitJudul: judul,
+            kukCount: kukCount,
+            uploadedFileNames: _uploadedFileNames,
+            kukAssessments: _kukAssessments,
+            kukEvidence: _kukEvidence,
+            onAssessmentChanged: (kuk, isK) {
+              setState(() {
+                _kukAssessments[kuk] = isK;
+              });
+            },
+            onEvidenceChanged: (kuk, fileName) {
+              setState(() {
+                _kukEvidence[kuk] = fileName;
+              });
+            },
+            onKembali: () {
+              setState(() {
+                _activeUnitDetailIndex = null;
+              });
+            },
+            onSelesai: () {
+              setState(() {
+                _activeUnitDetailIndex = null;
+              });
+            },
+          );
+        }
+
         return AsesmenMandiriForm(
+          selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
           unitKompetensi: _getUnitKompetensi(),
-          onKompetenChanged: (index, kompeten) {
+          onUnitTap: (index) {
             setState(() {
-              _getUnitKompetensi()[index]['kompeten'] = kompeten;
+              _activeUnitDetailIndex = index;
             });
           },
         );
@@ -600,6 +702,85 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   }
 
   Widget _buildBottomActionButtons() {
+    if (_currentStep == 4 && _activeUnitDetailIndex != null) {
+      return Container(
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: SizedBox(
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _activeUnitDetailIndex = null;
+                      });
+                    },
+                    icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                    label: const Text(
+                      'Kembali',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF64748B),
+                      backgroundColor: const Color(0xFFE2E8F0),
+                      side: BorderSide.none,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 2,
+                child: SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _activeUnitDetailIndex = null;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF378CE7),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Selesai dan Kirim',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_rounded, size: 18),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),

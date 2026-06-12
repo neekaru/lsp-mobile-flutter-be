@@ -1,108 +1,195 @@
 import 'package:flutter/material.dart';
 
 class AsesmenMandiriForm extends StatelessWidget {
+  final String selectedSkema;
   final List<Map<String, dynamic>> unitKompetensi;
-  final Function(int index, bool kompeten) onKompetenChanged;
+  final Function(int index) onUnitTap;
 
   const AsesmenMandiriForm({
     super.key,
+    required this.selectedSkema,
     required this.unitKompetensi,
-    required this.onKompetenChanged,
+    required this.onUnitTap,
   });
+
+  // Helper to generate dynamic mock KUK count label
+  String _getKukCount(String kode) {
+    if (kode.contains('001')) return '8 KUK';
+    if (kode.contains('002')) return '10 KUK';
+    if (kode.contains('003')) return '12 KUK';
+    if (kode.contains('007')) return '13 KUK';
+    return '11 KUK'; // Default matching standard screenshot
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'FR.APL.02 ASESMEN MANDIRI',
-          style: TextStyle(
-            color: Color(0xFF0F4C81),
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+        // Schema Name Header card
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Text(
+            'Skema $selectedSkema',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
           ),
         ),
-        const SizedBox(height: 6),
-        const Text(
-          'Evaluasi diri Anda terhadap unit kompetensi di bawah ini. Nyatakan diri Anda Kompeten (K) jika menguasai kriteria kerja tersebut.',
-          style: TextStyle(
-            color: Color(0xFF64748B),
-            fontSize: 12.5,
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
 
+        // List of unit cards
         ...List.generate(unitKompetensi.length, (index) {
           final unit = unitKompetensi[index];
-          final bool isKompeten = unit['kompeten'] as bool;
+          final kode = unit['kode'] as String? ?? '';
+          final judul = unit['judul'] as String? ?? '';
 
           return Container(
-            margin: const EdgeInsets.only(bottom: 12.0),
-            padding: const EdgeInsets.all(14.0),
+            margin: const EdgeInsets.only(bottom: 12),
+            width: double.infinity,
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  unit['kode'] as String,
-                  style: const TextStyle(
-                    color: Color(0xFF0F4C81),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  unit['judul'] as String,
-                  style: const TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: InkWell(
+              onTap: () => onUnitTap(index),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Apakah Anda Kompeten?',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    Text(
+                      '${index + 1}.',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
                     ),
-                    Row(
-                      children: [
-                        ChoiceChip(
-                          label: const Text('K', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                          selected: isKompeten,
-                          selectedColor: const Color(0xFFE8F5E9),
-                          checkmarkColor: const Color(0xFF2E7D32),
-                          onSelected: (selected) {
-                            onKompetenChanged(index, true);
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        ChoiceChip(
-                          label: const Text('BK', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                          selected: !isKompeten,
-                          selectedColor: const Color(0xFFFFEBEE),
-                          checkmarkColor: const Color(0xFFC62828),
-                          onSelected: (selected) {
-                            onKompetenChanged(index, false);
-                          },
-                        ),
-                      ],
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            kode,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            judul,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                              height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _getKukCount(kode),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Align(
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.keyboard_arrow_right_rounded,
+                        color: Color(0xFF378CE7),
+                        size: 22,
+                      ),
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           );
         }),
+
+        // "Lihat Semua Unit Kompetensi" card
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: InkWell(
+            onTap: () {
+              // Action triggers all list view
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE3F2FD),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.folder_open_rounded,
+                      color: Color(0xFF378CE7),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Lihat Semua Unit Kopetensi',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F4C81),
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          '11 Unit',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF94A3B8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.keyboard_arrow_right_rounded,
+                    color: Color(0xFF378CE7),
+                    size: 22,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
