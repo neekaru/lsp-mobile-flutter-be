@@ -5,11 +5,13 @@ import 'skema_detail_summary.dart';
 class DokumenPortofolioForm extends StatelessWidget {
   final String selectedSkema;
   final VoidCallback? onBuktiTap;
+  final VoidCallback? onUnitTap;
 
   const DokumenPortofolioForm({
     super.key,
     required this.selectedSkema,
     this.onBuktiTap,
+    this.onUnitTap,
   });
 
   @override
@@ -33,6 +35,7 @@ class DokumenPortofolioForm extends StatelessWidget {
           unitCount: unitCount,
           elemenCount: elemenCount,
           kukCount: totalKukCount,
+          onUnitTap: onUnitTap,
         ),
       ],
     );

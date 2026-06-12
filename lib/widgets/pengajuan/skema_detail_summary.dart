@@ -5,6 +5,7 @@ class SkemaDetailSummary extends StatelessWidget {
   final int unitCount;
   final int elemenCount;
   final int kukCount;
+  final VoidCallback? onUnitTap;
 
   const SkemaDetailSummary({
     super.key,
@@ -12,6 +13,7 @@ class SkemaDetailSummary extends StatelessWidget {
     required this.unitCount,
     required this.elemenCount,
     required this.kukCount,
+    this.onUnitTap,
   });
 
   @override
@@ -82,6 +84,7 @@ class SkemaDetailSummary extends StatelessWidget {
           icon: Icons.assignment_outlined,
           title: 'Unit Kompetensi',
           value: '$unitCount Unit',
+          onTap: onUnitTap,
         ),
         const SizedBox(height: 8),
         _buildMetricCard(
@@ -103,10 +106,10 @@ class SkemaDetailSummary extends StatelessWidget {
     required IconData icon,
     required String title,
     required String value,
+    VoidCallback? onTap,
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -119,40 +122,55 @@ class SkemaDetailSummary extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3F2FD),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF2D9CDB),
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1E293B),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE3F2FD),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: const Color(0xFF2D9CDB),
+                  size: 20,
+                ),
               ),
-            ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              if (onTap != null) ...[
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.keyboard_arrow_right_rounded,
+                  color: Color(0xFF378CE7),
+                  size: 20,
+                ),
+              ],
+            ],
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF64748B),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

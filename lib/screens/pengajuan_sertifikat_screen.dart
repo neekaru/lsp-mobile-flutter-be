@@ -11,6 +11,7 @@ import '../widgets/pengajuan/asesmen_mandiri_form.dart';
 import '../widgets/pengajuan/unit_kompetensi_detail.dart';
 import '../widgets/pengajuan/dokumen_persyaratan_form.dart';
 import 'bukti_portofolio_screen.dart';
+import 'asesmen_mandiri_uji_screen.dart';
 
 class PengajuanSertifikatScreen extends StatefulWidget {
   const PengajuanSertifikatScreen({super.key});
@@ -96,7 +97,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       if (newSkema != null) _listSkema = newSkema;
       if (newJadwal != null) _listJadwal = newJadwal;
       if (_selectedSkema != null && !_listSkema.contains(_selectedSkema)) {
-        _selectedSkema = null;
+        _listSkema.add(_selectedSkema!);
       }
       if (_selectedJadwal != null && !_listJadwal.contains(_selectedJadwal)) {
         _selectedJadwal = null;
@@ -156,7 +157,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   };
 
   int? _activeUnitDetailIndex;
-  final Map<String, bool> _kukAssessments = {};
+  final Map<String, bool?> _kukAssessments = {};
   final Map<String, String?> _kukEvidence = {};
 
   // Step 5: Asesmen Mandiri State (Dynamic unit kompetensi based on selected schema)
@@ -205,15 +206,30 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
 
   List<Map<String, dynamic>> _getUnitKompetensi() {
-    if (_selectedSkema == null) {
-      return [];
+    final String targetSkema = _selectedSkema ?? 'Pemasaran Digital';
+    
+    // Check exact key first
+    if (_schemaUnits.containsKey(targetSkema)) {
+      return _schemaUnits[targetSkema]!;
     }
-    if (_schemaUnits.containsKey(_selectedSkema)) {
-      return _schemaUnits[_selectedSkema]!;
+    
+    // Check normalized/contained keys
+    final normalizedTarget = targetSkema.toLowerCase();
+    for (var key in _schemaUnits.keys) {
+      final normalizedKey = key.toLowerCase();
+      if (normalizedTarget == normalizedKey ||
+          normalizedTarget.contains(normalizedKey) ||
+          normalizedKey.contains(normalizedTarget) ||
+          (normalizedKey.contains('pemasaran') && normalizedTarget.contains('marketing')) ||
+          (normalizedKey.contains('marketing') && normalizedTarget.contains('pemasaran')) ||
+          (normalizedKey.contains('programmer') && normalizedTarget.contains('developer')) ||
+          (normalizedKey.contains('developer') && normalizedTarget.contains('programmer'))) {
+        return _schemaUnits[key]!;
+      }
     }
 
     // Generate dynamically based on the selected schema name if not predefined
-    final String name = _selectedSkema!;
+    final String name = targetSkema;
     final List<String> words = name.split(' ');
     final String prefix = words.isNotEmpty ? words.first.substring(0, words.first.length > 2 ? 3 : words.first.length).toUpperCase() : 'SKM';
 
@@ -615,6 +631,35 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         return DokumenPortofolioForm(
           selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
           onBuktiTap: _navigateToBuktiPortofolio,
+          onUnitTap: () async {
+            final completed = await Navigator.push<bool>(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AsesmenMandiriUjiScreen(
+                  selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+                  unitKompetensi: _getUnitKompetensi(),
+                  uploadedFileNames: _uploadedFileNames,
+                  kukAssessments: _kukAssessments,
+                  kukEvidence: _kukEvidence,
+                  onAssessmentChanged: (kuk, isK) {
+                    setState(() {
+                      _kukAssessments[kuk] = isK;
+                    });
+                  },
+                  onEvidenceChanged: (kuk, fileName) {
+                    setState(() {
+                      _kukEvidence[kuk] = fileName;
+                    });
+                  },
+                ),
+              ),
+            );
+            if (completed == true) {
+              setState(() {
+                _currentStep = 5;
+              });
+            }
+          },
         );
       case 5:
         if (_activeUnitDetailIndex != null) {
@@ -757,6 +802,8 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       );
     }
 
+    final bool isStep4 = _currentStep == 4;
+
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -790,41 +837,43 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
             ],
-            Expanded(
-              flex: 2,
-              child: SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _nextStep,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF378CE7),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _currentStep == 5 ? 'Kirim Pengajuan' : 'Selanjutnya',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
+            if (!isStep4) ...[
+              if (_currentStep > 0) const SizedBox(width: 16),
+              Expanded(
+                flex: 2,
+                child: SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: _nextStep,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF378CE7),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      if (_currentStep < 5) ...[
-                        const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward_rounded, size: 18),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _currentStep == 5 ? 'Kirim Pengajuan' : 'Selanjutnya',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (_currentStep < 5) ...[
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward_rounded, size: 18),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),

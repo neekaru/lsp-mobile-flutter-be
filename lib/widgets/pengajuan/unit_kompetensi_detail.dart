@@ -5,9 +5,9 @@ class UnitKompetensiDetail extends StatefulWidget {
   final String unitJudul;
   final String kukCount;
   final Map<String, String?> uploadedFileNames;
-  final Map<String, bool> kukAssessments; // maps KUK text to K/KB status (true = K, false = KB)
+  final Map<String, bool?> kukAssessments; // maps KUK text to K/KB status (true = K, false = KB, null = unselected)
   final Map<String, String?> kukEvidence;   // maps KUK text to linked file name
-  final Function(String kukText, bool isKompeten) onAssessmentChanged;
+  final Function(String kukText, bool? isKompeten) onAssessmentChanged;
   final Function(String kukText, String? fileName) onEvidenceChanged;
   final VoidCallback onKembali;
   final VoidCallback onSelesai;
@@ -307,7 +307,7 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
                   const Divider(color: Color(0xFFE2E8F0), height: 1),
                   ...List.generate((el['kuks'] as List).length, (kukIndex) {
                     final kukText = el['kuks'][kukIndex] as String;
-                    final isK = widget.kukAssessments[kukText] ?? true;
+                    final bool? isK = widget.kukAssessments[kukText];
                     final linkedEvidence = widget.kukEvidence[kukText];
 
                     return Container(
@@ -339,7 +339,7 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
                                   GestureDetector(
                                     onTap: () => widget.onAssessmentChanged(kukText, true),
                                     child: Icon(
-                                      isK ? Icons.radio_button_checked : Icons.radio_button_off,
+                                      isK == true ? Icons.radio_button_checked : Icons.radio_button_off,
                                       color: const Color(0xFF378CE7),
                                       size: 22,
                                     ),
@@ -349,7 +349,7 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
                                   GestureDetector(
                                     onTap: () => widget.onAssessmentChanged(kukText, false),
                                     child: Icon(
-                                      !isK ? Icons.radio_button_checked : Icons.radio_button_off,
+                                      isK == false ? Icons.radio_button_checked : Icons.radio_button_off,
                                       color: const Color(0xFF378CE7),
                                       size: 22,
                                     ),
