@@ -65,6 +65,46 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
     }
   }
 
+  /// Filter data untuk rolling window N bulan dari bulan sekarang
+  /// Contoh: Sekarang Juni 2026, selectedMonths=6
+  /// Return: Juni 2026, Juli 2026, Agustus 2026, September 2026, Oktober 2026, November 2026
+  List<MonthlyAssessment> _filterRollingMonths(List<MonthlyAssessment> data, int selectedMonths) {
+    if (data.isEmpty) return data;
+    
+    final now = DateTime.now();
+    final currentYearMonth = now.year * 12 + now.month;
+    
+    // Filter: ambil hanya data dari bulan sekarang sampai N bulan ke depan
+    return data.where((item) {
+      // Parse label format: "Mei 2026" atau "Mei (2026)"
+      final labelParts = item.label.replaceAll('(', '').replaceAll(')', '').split(' ');
+      if (labelParts.length < 2) return false;
+      
+      final monthName = labelParts[0];
+      final year = int.tryParse(labelParts[1]);
+      if (year == null) return false;
+      
+      // Map nama bulan ke angka
+      final monthMap = {
+        'Januari': 1, 'Februari': 2, 'Maret': 3, 'April': 4,
+        'Mei': 5, 'Juni': 6, 'Juli': 7, 'Agustus': 8,
+        'September': 9, 'Oktober': 10, 'November': 11, 'Desember': 12,
+        'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
+        'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
+        'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+      };
+      
+      final month = monthMap[monthName];
+      if (month == null) return false;
+      
+      final itemYearMonth = year * 12 + month;
+      
+      // Include hanya jika dalam range: currentMonth <= item < currentMonth + selectedMonths
+      return itemYearMonth >= currentYearMonth && 
+             itemYearMonth < currentYearMonth + selectedMonths;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Gunakan data dari parent jika ada
@@ -162,10 +202,13 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
   }
 
   Widget _buildChart(List<MonthlyAssessment> data, bool isLoading) {
+    // Filter data: hanya ambil N bulan ke depan dari bulan sekarang (rolling window)
+    List<MonthlyAssessment> filteredData = _filterRollingMonths(data, _selectedMonths);
+    
     // Calculate dynamic Y-axis scale based on maximum data value
     int maxVal = 2500;
-    if (data.isNotEmpty) {
-      int dataMax = data.map((e) => e.total).reduce(max);
+    if (filteredData.isNotEmpty) {
+      int dataMax = filteredData.map((e) => e.total).reduce(max);
       if (dataMax > 0) {
         maxVal =
             ((dataMax + 499) ~/ 500) *
@@ -222,11 +265,11 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
                       color: Color(0xFF2C6C9C),
                     ),
                   )
-                else
+                 else
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.end,
-                    children: data.map((item) {
+                    children: filteredData.map((item) {
                       // Calculate height factor against rounded maxVal
                       double percentage = item.total / maxVal;
                       if (percentage > 1.0) percentage = 1.0;
