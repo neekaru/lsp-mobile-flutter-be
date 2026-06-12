@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class JadwalTabBar extends StatefulWidget {
   final TabController controller;
-  final int akanBerakhirCount;
+  final int runningCount;
 
   const JadwalTabBar({
     super.key,
     required this.controller,
-    required this.akanBerakhirCount,
+    required this.runningCount,
   });
 
   @override
@@ -48,8 +48,8 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
       children: [
         Expanded(
           child: TabItem(
-            label: 'Akan Berakhir',
-            badgeCount: widget.akanBerakhirCount,
+            label: 'Running',
+            badgeCount: widget.runningCount,
             isSelected: widget.controller.index == 0,
             onTap: () => widget.controller.animateTo(0),
           ),
@@ -57,7 +57,7 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
         const SizedBox(width: 8),
         Expanded(
           child: TabItem(
-            label: 'Berjalan',
+            label: 'Pelaporan',
             isSelected: widget.controller.index == 1,
             onTap: () => widget.controller.animateTo(1),
           ),

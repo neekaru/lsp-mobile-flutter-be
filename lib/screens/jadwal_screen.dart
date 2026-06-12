@@ -22,8 +22,8 @@ class _JadwalScreenState extends State<JadwalScreen>
 
   // Pagination state
   bool _isLoadingMore = false;
-  bool _hasMoreAkanBerakhir = true;
-  bool _hasMoreSedangBerjalan = true;
+  bool _hasMoreRunning = true;
+  bool _hasMorePelaporan = true;
   bool _hasMoreSelesai = true;
 
   final int _pageSize = 20;
@@ -39,8 +39,8 @@ class _JadwalScreenState extends State<JadwalScreen>
   }
 
   // Data dari API
-  List<JadwalItem> akanBerakhirList = [];
-  List<JadwalItem> sedangBerjalanList = [];
+  List<JadwalItem> runningList = [];
+  List<JadwalItem> pelaporanList = [];
   List<JadwalItem> selesaiList = [];
 
   // Statistics from API
@@ -48,8 +48,8 @@ class _JadwalScreenState extends State<JadwalScreen>
   String trendPercentage = '+0%';
 
   // Scroll controllers for pagination
-  final ScrollController _scrollControllerAkanBerakhir = ScrollController();
-  final ScrollController _scrollControllerSedangBerjalan = ScrollController();
+  final ScrollController _scrollControllerRunning = ScrollController();
+  final ScrollController _scrollControllerPelaporan = ScrollController();
   final ScrollController _scrollControllerSelesai = ScrollController();
 
   @override
@@ -59,32 +59,32 @@ class _JadwalScreenState extends State<JadwalScreen>
     _loadJadwalData();
 
     // Setup scroll listeners for pagination
-    _scrollControllerAkanBerakhir.addListener(_onScrollAkanBerakhir);
-    _scrollControllerSedangBerjalan.addListener(_onScrollSedangBerjalan);
+    _scrollControllerRunning.addListener(_onScrollRunning);
+    _scrollControllerPelaporan.addListener(_onScrollPelaporan);
     _scrollControllerSelesai.addListener(_onScrollSelesai);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _scrollControllerAkanBerakhir.dispose();
-    _scrollControllerSedangBerjalan.dispose();
+    _scrollControllerRunning.dispose();
+    _scrollControllerPelaporan.dispose();
     _scrollControllerSelesai.dispose();
     super.dispose();
   }
 
   // Scroll listeners for pagination
-  void _onScrollAkanBerakhir() {
-    if (_scrollControllerAkanBerakhir.position.pixels >=
-        _scrollControllerAkanBerakhir.position.maxScrollExtent - 200) {
-      _loadMoreAkanBerakhir();
+  void _onScrollRunning() {
+    if (_scrollControllerRunning.position.pixels >=
+        _scrollControllerRunning.position.maxScrollExtent - 200) {
+      _loadMoreRunning();
     }
   }
 
-  void _onScrollSedangBerjalan() {
-    if (_scrollControllerSedangBerjalan.position.pixels >=
-        _scrollControllerSedangBerjalan.position.maxScrollExtent - 200) {
-      _loadMoreSedangBerjalan();
+  void _onScrollPelaporan() {
+    if (_scrollControllerPelaporan.position.pixels >=
+        _scrollControllerPelaporan.position.maxScrollExtent - 200) {
+      _loadMorePelaporan();
     }
   }
 
@@ -98,53 +98,55 @@ class _JadwalScreenState extends State<JadwalScreen>
   Future<void> _loadJadwalData() async {
     setState(() {
       _isLoading = true;
-      _hasMoreAkanBerakhir = true;
-      _hasMoreSedangBerjalan = true;
+      _hasMoreRunning = true;
+      _hasMorePelaporan = true;
       _hasMoreSelesai = true;
     });
 
     try {
       // Fetch data untuk setiap tab secara parallel
       final results = await Future.wait([
-        // Tab 1: Akan Berakhir - Out of date (status 0,1,2,3) sorted by days_overdue DESC
-        ApiService.getJadwalList(
-          limit: _pageSize,
-          statusJadwal: '0,1,2,3',
-          sortBy: 'days_overdue',
-          sortOrder: 'desc',
-          customRoutePath: '/api/jadwal/out-of-date',
-        ),
-        // Tab 2: Sedang Berjalan - Status 3 (Running), sorted by tanggal DESC
+        // Tab 1: Running - Status 3 (Sedang Berjalan), sorted by tanggal DESC
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: '3',
           sortBy: 'tanggal',
           sortOrder: 'desc',
+          customRoutePath: '/api/jadwal/active',
         ),
-        // Tab 3: Selesai - Status 1,4 (Completed/Pelaporan), sorted by tanggal DESC
+        // Tab 2: Pelaporan - Status 4 (Pelaporan), sorted by tanggal DESC
         ApiService.getJadwalList(
           limit: _pageSize,
-          statusJadwal: '1,4',
+          statusJadwal: '4',
           sortBy: 'tanggal',
           sortOrder: 'desc',
+          customRoutePath: '/api/jadwal/completed',
+        ),
+        // Tab 3: Selesai - Status 1 (Completed), sorted by tanggal DESC
+        ApiService.getJadwalList(
+          limit: _pageSize,
+          statusJadwal: '1',
+          sortBy: 'tanggal',
+          sortOrder: 'desc',
+          customRoutePath: '/api/jadwal/completed',
         ),
       ]);
 
       setState(() {
         // Sort di frontend untuk memastikan urutan konsisten
-        akanBerakhirList = _sortJadwalList(results[0]);
-        sedangBerjalanList = _sortJadwalList(results[1]);
+        runningList = _sortJadwalList(results[0]);
+        pelaporanList = _sortJadwalList(results[1]);
         selesaiList = _sortJadwalList(results[2]);
 
         // Calculate total from all tabs
         totalAsesmen =
-            akanBerakhirList.length +
-            sedangBerjalanList.length +
+            runningList.length +
+            pelaporanList.length +
             selesaiList.length;
 
         // Check if there's more data
-        _hasMoreAkanBerakhir = results[0].length >= _pageSize;
-        _hasMoreSedangBerjalan = results[1].length >= _pageSize;
+        _hasMoreRunning = results[0].length >= _pageSize;
+        _hasMorePelaporan = results[1].length >= _pageSize;
         _hasMoreSelesai = results[2].length >= _pageSize;
 
         _isLoading = false;
@@ -158,8 +160,8 @@ class _JadwalScreenState extends State<JadwalScreen>
   }
 
   // Load more methods for pagination
-  Future<void> _loadMoreAkanBerakhir() async {
-    if (_isLoadingMore || !_hasMoreAkanBerakhir) return;
+  Future<void> _loadMoreRunning() async {
+    if (_isLoadingMore || !_hasMoreRunning) return;
 
     setState(() {
       _isLoadingMore = true;
@@ -168,7 +170,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
-        offset: akanBerakhirList.length,
+        offset: runningList.length,
         statusJadwal: '0,1,2,3',
         sortBy: 'days_overdue',
         sortOrder: 'desc',
@@ -177,9 +179,9 @@ class _JadwalScreenState extends State<JadwalScreen>
 
       setState(() {
         if (newData.length < _pageSize) {
-          _hasMoreAkanBerakhir = false;
+          _hasMoreRunning = false;
         }
-        akanBerakhirList.addAll(_sortJadwalList(newData));
+        runningList.addAll(_sortJadwalList(newData));
         _isLoadingMore = false;
       });
     } catch (e) {
@@ -190,8 +192,8 @@ class _JadwalScreenState extends State<JadwalScreen>
     }
   }
 
-  Future<void> _loadMoreSedangBerjalan() async {
-    if (_isLoadingMore || !_hasMoreSedangBerjalan) return;
+  Future<void> _loadMorePelaporan() async {
+    if (_isLoadingMore || !_hasMorePelaporan) return;
 
     setState(() {
       _isLoadingMore = true;
@@ -200,7 +202,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
-        offset: sedangBerjalanList.length,
+        offset: pelaporanList.length,
         statusJadwal: '3',
         sortBy: 'tanggal',
         sortOrder: 'desc',
@@ -208,9 +210,9 @@ class _JadwalScreenState extends State<JadwalScreen>
 
       setState(() {
         if (newData.length < _pageSize) {
-          _hasMoreSedangBerjalan = false;
+          _hasMorePelaporan = false;
         }
-        sedangBerjalanList.addAll(_sortJadwalList(newData));
+        pelaporanList.addAll(_sortJadwalList(newData));
         _isLoadingMore = false;
       });
     } catch (e) {
@@ -303,7 +305,7 @@ class _JadwalScreenState extends State<JadwalScreen>
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: JadwalTabBar(
                 controller: _tabController,
-                akanBerakhirCount: akanBerakhirList.length,
+                runningCount: runningList.length,
               ),
             ),
 
@@ -322,10 +324,10 @@ class _JadwalScreenState extends State<JadwalScreen>
                   _JadwalTabContent(
                     key: const PageStorageKey('sedang_berjalan_tab'),
                     child: _buildJadwalList(
-                      sedangBerjalanList,
+                      pelaporanList,
                       'sedang_berjalan',
-                      _scrollControllerSedangBerjalan,
-                      _hasMoreSedangBerjalan,
+                      _scrollControllerPelaporan,
+                      _hasMorePelaporan,
                     ),
                   ),
 
@@ -352,11 +354,11 @@ class _JadwalScreenState extends State<JadwalScreen>
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       child: ListView.builder(
-        controller: _scrollControllerAkanBerakhir,
+        controller: _scrollControllerRunning,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount:
-            akanBerakhirList.length + 2, // +2 for header and loading indicator
+            runningList.length + 2, // +2 for header and loading indicator
         itemBuilder: (context, index) {
           // Header with chart
           if (index == 0) {
@@ -431,7 +433,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${akanBerakhirList.length} akan berakhir, ${sedangBerjalanList.length} berjalan',
+                              '${runningList.length} akan berakhir, ${pelaporanList.length} berjalan',
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey,
@@ -457,13 +459,13 @@ class _JadwalScreenState extends State<JadwalScreen>
           }
 
           // Loading indicator at the end
-          if (index == akanBerakhirList.length + 1) {
+          if (index == runningList.length + 1) {
             if (_isLoadingMore) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Center(child: CircularProgressIndicator()),
               );
-            } else if (!_hasMoreAkanBerakhir) {
+            } else if (!_hasMoreRunning) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Center(
@@ -480,10 +482,10 @@ class _JadwalScreenState extends State<JadwalScreen>
 
           // List items
           final itemIndex = index - 1;
-          final item = akanBerakhirList[itemIndex];
+          final item = runningList[itemIndex];
           return Padding(
             padding: EdgeInsets.only(
-              bottom: itemIndex < akanBerakhirList.length - 1 ? 8 : 0,
+              bottom: itemIndex < runningList.length - 1 ? 8 : 0,
             ),
             child: JadwalListItem(
               key: ValueKey(item.id),

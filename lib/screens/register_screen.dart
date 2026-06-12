@@ -20,19 +20,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _agreeToTerms = false;
   bool _isLoading = false;
   String? _errorMessage;
-  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    // Defer heavy initialization to next frame to avoid blocking main thread
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
-        });
-      }
-    });
   }
 
   void _handleRegister() {
