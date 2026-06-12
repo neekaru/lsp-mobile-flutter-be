@@ -9,6 +9,7 @@ import '../widgets/pengajuan/data_pekerjaan_form.dart';
 import '../widgets/pengajuan/dokumen_portofolio_form.dart';
 import '../widgets/pengajuan/asesmen_mandiri_form.dart';
 import '../widgets/pengajuan/unit_kompetensi_detail.dart';
+import '../widgets/pengajuan/dokumen_persyaratan_form.dart';
 
 class PengajuanSertifikatScreen extends StatefulWidget {
   const PengajuanSertifikatScreen({super.key});
@@ -20,6 +21,7 @@ class PengajuanSertifikatScreen extends StatefulWidget {
 class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   // Lists of schemas and schedules loaded dynamically from the API/Database
   List<String> _listSkema = [
+    'Pemasaran Digital',
     'Programmer (Web & Mobile Developer)',
     'Cloud Computing Administrator',
     'Digital Marketing Specialist',
@@ -158,6 +160,16 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
   // Step 5: Asesmen Mandiri State (Dynamic unit kompetensi based on selected schema)
   final Map<String, List<Map<String, dynamic>>> _schemaUnits = {
+    'Pemasaran Digital': [
+      {'kode': 'M.70MKT00.010.2', 'judul': 'Mengolah Data Riset', 'kompeten': true},
+      {'kode': 'M.70MKT00.013.1', 'judul': 'Melaksanakan Kegiatan Analisis di Media Sosial dan Media Bisnis Digital', 'kompeten': true},
+      {'kode': 'G.46RIT00.055.1', 'judul': 'Melakukan Aktivitas Pemasaran Digital untuk Bisnis Ritel', 'kompeten': true},
+      {'kode': 'M.70MKT00.012.1', 'judul': 'Menggunakan Media Sosial dan Aplikasi Daring(Online Tools)', 'kompeten': true},
+      {'kode': 'M.70MKT00.014.1', 'judul': 'Mempersiapkan Konten Digital', 'kompeten': true},
+      {'kode': 'M.70MKT00.009.1', 'judul': 'Merancang Strategi Pemasaran Digital', 'kompeten': true},
+      {'kode': 'M.70MKT00.015.1', 'judul': 'Mengelola Hubungan Pelanggan secara Digital', 'kompeten': true},
+      {'kode': 'M.70MKT00.016.1', 'judul': 'Mengukur Efektivitas Pemasaran Digital', 'kompeten': true},
+    ],
     'Programmer (Web & Mobile Developer)': [
       {'kode': 'J.620100.001.01', 'judul': 'Mengimplementasikan Algoritma Pemrograman', 'kompeten': true},
       {'kode': 'J.620100.002.01', 'judul': 'Menggunakan Struktur Data', 'kompeten': true},
@@ -170,9 +182,12 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       {'kode': 'C.620200.003.02', 'judul': 'Konfigurasi Virtual Private Network (VPC)', 'kompeten': true},
     ],
     'Digital Marketing Specialist': [
-      {'kode': 'D.620300.001.01', 'judul': 'Merencanakan Strategi Kampanye Digital', 'kompeten': true},
-      {'kode': 'D.620300.002.01', 'judul': 'Mengoptimalkan Media Sosial untuk Bisnis', 'kompeten': true},
-      {'kode': 'D.620300.003.01', 'judul': 'Menganalisis Kinerja Search Engine Optimization (SEO)', 'kompeten': true},
+      {'kode': 'M.70MKT00.010.2', 'judul': 'Mengolah Data Riset', 'kompeten': true},
+      {'kode': 'M.70MKT00.013.1', 'judul': 'Melaksanakan Kegiatan Analisis di Media Sosial dan Media Bisnis Digital', 'kompeten': true},
+      {'kode': 'G.46RIT00.055.1', 'judul': 'Melakukan Aktivitas Pemasaran Digital untuk Bisnis Ritel', 'kompeten': true},
+      {'kode': 'M.70MKT00.012.1', 'judul': 'Menggunakan Media Sosial dan Aplikasi Daring(Online Tools)', 'kompeten': true},
+      {'kode': 'M.70MKT00.014.1', 'judul': 'Mempersiapkan Konten Digital', 'kompeten': true},
+      {'kode': 'M.70MKT00.009.1', 'judul': 'Merancang Strategi Pemasaran Digital', 'kompeten': true},
     ],
     'Network Security Engineer': [
       {'kode': 'N.620400.001.03', 'judul': 'Mengonfigurasi Firewalls dan IDS/IPS', 'kompeten': true},
@@ -234,6 +249,11 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       {'kode': '$prefix.620100.001.01', 'judul': 'Mempersiapkan Lingkungan Kerja untuk $name', 'kompeten': true},
       {'kode': '$prefix.620100.002.01', 'judul': 'Mengimplementasikan Fitur Utama pada $name', 'kompeten': true},
       {'kode': '$prefix.620100.003.01', 'judul': 'Melakukan Pengujian dan Dokumentasi Hasil Kerja $name', 'kompeten': true},
+      {'kode': '$prefix.620100.004.01', 'judul': 'Mengelola Keamanan Sistem Informasi untuk $name', 'kompeten': true},
+      {'kode': '$prefix.620100.005.01', 'judul': 'Melakukan Pemeliharaan Rutin pada Sistem $name', 'kompeten': true},
+      {'kode': '$prefix.620100.006.01', 'judul': 'Menganalisis Kebutuhan Operasional Terkait $name', 'kompeten': true},
+      {'kode': '$prefix.620100.007.01', 'judul': 'Mengevaluasi Kinerja dan Integritas Sistem $name', 'kompeten': true},
+      {'kode': '$prefix.620100.008.01', 'judul': 'Menyusun Dokumen Akhir Penerapan $name', 'kompeten': true},
     ];
 
     _schemaUnits[name] = generated;
@@ -269,10 +289,11 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         return 'Pengajuan Sertifikat';
       case 1:
       case 2:
-        return 'Profil Peserta';
       case 3:
-        return 'Dokumen Portofolio';
+        return 'Profil Peserta';
       case 4:
+        return 'Dokumen Portofolio';
+      case 5:
         return _activeUnitDetailIndex != null ? 'Detail Uji Kompetensi' : 'Asesmen Mandiri';
       default:
         return 'Pengajuan Sertifikat';
@@ -317,6 +338,15 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         return;
       }
     } else if (_currentStep == 3) {
+      // Validate mandatory documents in Step 3 (Dokumen Persyaratan)
+      final bool hasPasfoto = _uploadedDocs['Pasfoto*'] == true;
+      final bool hasKtp = _uploadedDocs['Identitas pribadi (KTP/KartuPelajar)*'] == true;
+      if (!hasPasfoto || !hasKtp) {
+        _showErrorSnackBar('Semua persyaratan administratif wajib (*) harus diunggah.');
+        return;
+      }
+    } else if (_currentStep == 4) {
+      // Validate Dokumen Portofolio
       bool hasAtLeastOne = _portfolioItems.any((item) => _uploadedDocs[item] == true);
       if (!hasAtLeastOne) {
         _showErrorSnackBar('Silakan unggah minimal satu dokumen portofolio sebagai bukti.');
@@ -324,7 +354,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       }
     }
 
-    if (_currentStep < 4) {
+    if (_currentStep < 5) {
       setState(() {
         _currentStep++;
       });
@@ -334,7 +364,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   }
 
   void _previousStep() {
-    if (_currentStep == 4 && _activeUnitDetailIndex != null) {
+    if (_currentStep == 5 && _activeUnitDetailIndex != null) {
       setState(() {
         _activeUnitDetailIndex = null;
       });
@@ -463,7 +493,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         children: [
           SizedBox(height: statusBarHeight + 8),
           _buildAppBar(),
-          if (_currentStep != 4 || _activeUnitDetailIndex == null)
+          if (_currentStep != 5 || _activeUnitDetailIndex == null)
             StepIndicator(currentStep: _currentStep),
           Expanded(
             child: RepaintBoundary(
@@ -629,6 +659,19 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           },
         );
       case 3:
+        return DokumenPersyaratanForm(
+          selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+          unitKompetensi: _getUnitKompetensi(),
+          uploadedDocs: _uploadedDocs,
+          uploadedFileNames: _uploadedFileNames,
+          onUploadChanged: (docName, isUploaded, fileName) {
+            setState(() {
+              _uploadedDocs[docName] = isUploaded;
+              _uploadedFileNames[docName] = fileName;
+            });
+          },
+        );
+      case 4:
         return DokumenPortofolioForm(
           selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
           portfolioItems: _portfolioItems,
@@ -641,7 +684,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             });
           },
         );
-      case 4:
+      case 5:
         if (_activeUnitDetailIndex != null) {
           final unit = _getUnitKompetensi()[_activeUnitDetailIndex!];
           final String kode = unit['kode'] as String? ?? '';
@@ -702,7 +745,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   }
 
   Widget _buildBottomActionButtons() {
-    if (_currentStep == 4 && _activeUnitDetailIndex != null) {
+    if (_currentStep == 5 && _activeUnitDetailIndex != null) {
       return Container(
         color: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -834,13 +877,13 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _currentStep == 4 ? 'Kirim Pengajuan' : 'Selanjutnya',
+                        _currentStep == 5 ? 'Kirim Pengajuan' : 'Selanjutnya',
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (_currentStep < 4) ...[
+                      if (_currentStep < 5) ...[
                         const SizedBox(width: 8),
                         const Icon(Icons.arrow_forward_rounded, size: 18),
                       ],

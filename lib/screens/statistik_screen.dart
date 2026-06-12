@@ -1011,7 +1011,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<SebaranSkemaAsesorItem>(
-                value: _selectedSkema != null && _sebaranSkemaAsesorList.contains(_selectedSkema) ? _selectedSkema : null,
+                value: _selectedSkema != null && filteredDropdownList.contains(_selectedSkema) ? _selectedSkema : null,
                 hint: const Text('Pilih Skema Sertifikasi', style: TextStyle(fontSize: 13, color: Colors.grey)),
                 isExpanded: true,
                 icon: const Icon(Icons.arrow_drop_down_circle_outlined, color: Color(0xFF2C6C9C), size: 20),

@@ -17,15 +17,15 @@ class StepIndicator extends StatelessWidget {
       {'title': 'Asesmen Mandiri', 'icon': Icons.help_outline_rounded},
     ];
 
-    // Map internal 5 steps to the 4 indicators:
-    // currentStep = 0 -> active index 0
-    // currentStep = 1 or 2 -> active index 1
-    // currentStep = 3 -> active index 2
-    // currentStep = 4 -> active index 3
+    // Map internal 6 steps to the 4 indicators:
+    // currentStep = 0 -> active index 0 (Data Pengajuan)
+    // currentStep = 1, 2, or 3 -> active index 1 (Profil Peserta)
+    // currentStep = 4 -> active index 2 (Dokumen Portofolio)
+    // currentStep = 5 -> active index 3 (Asesmen Mandiri)
     int getIndicatorIndex() {
       if (currentStep == 0) return 0;
-      if (currentStep == 1 || currentStep == 2) return 1;
-      if (currentStep == 3) return 2;
+      if (currentStep == 1 || currentStep == 2 || currentStep == 3) return 1;
+      if (currentStep == 4) return 2;
       return 3;
     }
 

@@ -145,7 +145,23 @@ class CustomDropdownSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<String> uniqueItems = items.toSet().toList();
-    final String? effectiveValue = (value != null && uniqueItems.contains(value)) ? value : null;
+    
+    // Highly robust value resolution: try exact match, then try trimmed case-insensitive match, fallback to null
+    String? effectiveValue;
+    if (value != null) {
+      if (uniqueItems.contains(value)) {
+        effectiveValue = value;
+      } else {
+        final String trimmedValue = value!.trim().toLowerCase();
+        try {
+          effectiveValue = uniqueItems.firstWhere(
+            (item) => item.trim().toLowerCase() == trimmedValue,
+          );
+        } catch (_) {
+          effectiveValue = null;
+        }
+      }
+    }
 
     return Container(
       decoration: const BoxDecoration(
@@ -160,6 +176,7 @@ class CustomDropdownSelector extends StatelessWidget {
         ],
       ),
       child: DropdownButtonFormField<String>(
+        key: ValueKey('${hint}_${uniqueItems.join(',')}_$effectiveValue'),
         value: effectiveValue,
         isExpanded: true,
         hint: Text(
