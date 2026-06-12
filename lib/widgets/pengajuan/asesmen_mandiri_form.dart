@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'skema_detail_summary.dart';
+import 'asesmen_header_cards.dart';
 
 class AsesmenMandiriForm extends StatelessWidget {
   final String selectedSkema;
   final List<Map<String, dynamic>> unitKompetensi;
   final Function(int index) onUnitTap;
+  final VoidCallback? onBuktiTap;
 
   const AsesmenMandiriForm({
     super.key,
     required this.selectedSkema,
     required this.unitKompetensi,
     required this.onUnitTap,
+    this.onBuktiTap,
   });
 
   // Helper to generate dynamic mock KUK count label
@@ -23,29 +27,27 @@ class AsesmenMandiriForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determine the metric counts for the SkemaDetailSummary based on the scheme
+    final isProgrammer = selectedSkema.toLowerCase().contains('programmer');
+    final unitCount = isProgrammer ? 5 : 11;
+    final elemenCount = isProgrammer ? 20 : 48;
+    final totalKukCount = isProgrammer ? 65 : 120;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Schema Name Header card
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Text(
-            'Skema $selectedSkema',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
+        // 1. Asesmen Header Cards (Separated Widget)
+        AsesmenHeaderCards(onBuktiTap: onBuktiTap),
+        const SizedBox(height: 20),
+
+        // 3. Separated Skema Detail Summary Widget (from Image 2)
+        SkemaDetailSummary(
+          selectedSkema: selectedSkema,
+          unitCount: unitCount,
+          elemenCount: elemenCount,
+          kukCount: totalKukCount,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
 
         // List of unit cards
         ...List.generate(unitKompetensi.length, (index) {

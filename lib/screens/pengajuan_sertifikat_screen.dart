@@ -201,36 +201,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     ],
   };
 
-  List<String> get _portfolioItems {
-    final skema = _selectedSkema ?? 'Digital Marketing Specialist';
-    if (skema.contains('Programmer')) {
-      return [
-        'Surat Pengalaman kerja',
-        'CV dengan spesialisasi Programmer',
-        'Kode Sumber Aplikasi (GitHub/GitLab)',
-        'Dokumentasi API / Arsitektur Sistem',
-        'Laporan Hasil Pengujian Aplikasi',
-      ];
-    } else if (skema.contains('Cloud')) {
-      return [
-        'Surat Pengalaman kerja',
-        'CV dengan spesialisasi Cloud Admin',
-        'Arsitektur Topologi Cloud',
-        'Dokumentasi Konfigurasi Server/Instance',
-        'Laporan Pengukuran Beban & Biaya',
-      ];
-    } else {
-      return [
-        'Surat Pengalaman kerja',
-        'Testimoni dalam bentuk Video dari Pengguna Jasa Digital Marketing',
-        'CV dengan spesialisasi Digital Marketing',
-        'Laporan Produk & Pasar',
-        'Konten Promosi (Poster, Video, Caption)',
-        'Insight Kampanye',
-        'Interaksi Pelanggan (Chat & Komentar)',
-      ];
-    }
-  }
+
 
   List<Map<String, dynamic>> _getUnitKompetensi() {
     if (_selectedSkema == null) {
@@ -343,13 +314,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       final bool hasKtp = _uploadedDocs['Identitas pribadi (KTP/KartuPelajar)*'] == true;
       if (!hasPasfoto || !hasKtp) {
         _showErrorSnackBar('Semua persyaratan administratif wajib (*) harus diunggah.');
-        return;
-      }
-    } else if (_currentStep == 4) {
-      // Validate Dokumen Portofolio
-      bool hasAtLeastOne = _portfolioItems.any((item) => _uploadedDocs[item] == true);
-      if (!hasAtLeastOne) {
-        _showErrorSnackBar('Silakan unggah minimal satu dokumen portofolio sebagai bukti.');
         return;
       }
     }
@@ -674,15 +638,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       case 4:
         return DokumenPortofolioForm(
           selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
-          portfolioItems: _portfolioItems,
-          uploadedDocs: _uploadedDocs,
-          uploadedFileNames: _uploadedFileNames,
-          onUploadChanged: (docName, isUploaded, fileName) {
-            setState(() {
-              _uploadedDocs[docName] = isUploaded;
-              _uploadedFileNames[docName] = fileName;
-            });
-          },
         );
       case 5:
         if (_activeUnitDetailIndex != null) {
@@ -736,6 +691,11 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           onUnitTap: (index) {
             setState(() {
               _activeUnitDetailIndex = index;
+            });
+          },
+          onBuktiTap: () {
+            setState(() {
+              _currentStep = 4;
             });
           },
         );
