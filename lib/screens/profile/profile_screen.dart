@@ -8,6 +8,7 @@ import '../../services/token_storage.dart';
 import '../../services/notification_service.dart';
 import '../auth/login_screen.dart';
 import 'data_diri_screen.dart';
+import 'edit_instansi_screen.dart';
 import '../../widgets/profile/ringkasan_widget.dart';
 import '../../widgets/profile/menu_profil_widget.dart';
 
@@ -24,6 +25,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _fcmToken;
   bool _isCopied = false;
   bool _isLoggingOut = false;
+  bool _isInstansiExpanded = false;
+  String _instansiType = 'Mahasiswa';
+  Map<String, String> _instansiData = {
+    'Nama Perguruan Tinggi': 'Politeknik Sampit',
+    'Falkutas': 'Teknologi Informasi',
+    'Program Studi': 'Sisitem Informasi',
+    'NIM': '087685674568',
+    'Alamat': 'Jl. Wengga Metropolitan',
+  };
 
   @override
   void initState() {
@@ -839,10 +849,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       );
                     },
+                    isInstansiExpanded: _isInstansiExpanded,
+                    instansiType: _instansiType,
+                    instansiData: _instansiData,
                     onInstansiTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Menu Instansi / Lembaga dipilih'),
+                      setState(() {
+                        _isInstansiExpanded = !_isInstansiExpanded;
+                      });
+                    },
+                    onInstansiEditTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditInstansiScreen(
+                            currentType: _instansiType,
+                            currentData: _instansiData,
+                            onSave: (type, data) {
+                              setState(() {
+                                _instansiType = type;
+                                _instansiData = data;
+                              });
+                            },
+                          ),
                         ),
                       );
                     },

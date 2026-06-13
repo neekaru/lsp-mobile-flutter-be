@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 class MenuProfilWidget extends StatelessWidget {
   final VoidCallback? onDataDiriTap;
   final VoidCallback? onInstansiTap;
+  final VoidCallback? onInstansiEditTap;
+  final bool isInstansiExpanded;
+  final String instansiType;
+  final Map<String, String> instansiData;
   final VoidCallback? onKeamananTap;
   final VoidCallback? onSertifikasiTap;
   final VoidCallback? onKeluarTap;
@@ -11,6 +15,10 @@ class MenuProfilWidget extends StatelessWidget {
     super.key,
     this.onDataDiriTap,
     this.onInstansiTap,
+    this.onInstansiEditTap,
+    this.isInstansiExpanded = false,
+    this.instansiType = 'Mahasiswa',
+    this.instansiData = const {},
     this.onKeamananTap,
     this.onSertifikasiTap,
     this.onKeluarTap,
@@ -43,6 +51,7 @@ class MenuProfilWidget extends StatelessWidget {
           ),
           child: Material(
             color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
             clipBehavior: Clip.antiAlias,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -65,8 +74,87 @@ class MenuProfilWidget extends StatelessWidget {
                   title: 'Instansi / Lembaga',
                   iconColor: const Color(0xFF378CE7),
                   onTap: onInstansiTap,
+                  trailing: Icon(
+                    isInstansiExpanded
+                        ? Icons.keyboard_arrow_down_rounded
+                        : Icons.chevron_right_rounded,
+                    color: const Color(0xFF378CE7),
+                    size: 22,
+                  ),
                 ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                if (isInstansiExpanded) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Informasi Instansi',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: onInstansiEditTap,
+                                child: const Icon(
+                                  Icons.edit_note_rounded,
+                                  color: Color(0xFF378CE7),
+                                  size: 22,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 20, color: Color(0xFFF1F5F9)),
+                          ...instansiData.entries.map((entry) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: 140,
+                                    child: Text(
+                                      entry.key,
+                                      style: const TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      entry.value,
+                                      style: const TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                ],
                 _buildMenuItem(
                   icon: Icons.shield_rounded,
                   title: 'Keamanan',
@@ -104,6 +192,7 @@ class MenuProfilWidget extends StatelessWidget {
     Color textColor = const Color(0xFF1E293B),
     required VoidCallback? onTap,
     bool showChevron = true,
+    Widget? trailing,
   }) {
     return ListTile(
       leading: Container(
@@ -126,13 +215,13 @@ class MenuProfilWidget extends StatelessWidget {
           color: textColor,
         ),
       ),
-      trailing: showChevron
+      trailing: trailing ?? (showChevron
           ? Icon(
               Icons.chevron_right_rounded,
               color: iconColor,
               size: 22,
             )
-          : null,
+          : null),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       shape: RoundedRectangleBorder(
