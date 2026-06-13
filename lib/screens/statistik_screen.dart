@@ -1164,7 +1164,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
     }).toList();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1256,7 +1256,8 @@ class _StatistikScreenState extends State<StatistikScreen> {
                           },
                         ),
                       ),
-                      Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
+                      if (index < (filteredList.length > 8 ? 8 : filteredList.length) - 1)
+                        Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
                     ],
                   );
                 },

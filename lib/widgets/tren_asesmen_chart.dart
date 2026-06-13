@@ -65,16 +65,16 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
     }
   }
 
-  /// Filter data untuk rolling window N bulan dari bulan sekarang
+  /// Filter data untuk N bulan terakhir (historical data)
   /// Contoh: Sekarang Juni 2026, selectedMonths=6
-  /// Return: Juni 2026, Juli 2026, Agustus 2026, September 2026, Oktober 2026, November 2026
+  /// Return: Jan 2026, Feb 2026, Mar 2026, Apr 2026, Mei 2026, Juni 2026
   List<MonthlyAssessment> _filterRollingMonths(List<MonthlyAssessment> data, int selectedMonths) {
     if (data.isEmpty) return data;
     
     final now = DateTime.now();
     final currentYearMonth = now.year * 12 + now.month;
     
-    // Filter: ambil hanya data dari bulan sekarang sampai N bulan ke depan
+    // Filter: ambil N bulan terakhir (past months) sampai bulan sekarang
     return data.where((item) {
       // Parse label format: "Mei 2026" atau "Mei (2026)"
       final labelParts = item.label.replaceAll('(', '').replaceAll(')', '').split(' ');
@@ -99,9 +99,9 @@ class _TrenAsesmenChartState extends State<TrenAsesmenChart> {
       
       final itemYearMonth = year * 12 + month;
       
-      // Include hanya jika dalam range: currentMonth <= item < currentMonth + selectedMonths
-      return itemYearMonth >= currentYearMonth && 
-             itemYearMonth < currentYearMonth + selectedMonths;
+      // Include jika dalam range: currentMonth - selectedMonths < item <= currentMonth
+      return itemYearMonth > currentYearMonth - selectedMonths && 
+             itemYearMonth <= currentYearMonth;
     }).toList();
   }
 
