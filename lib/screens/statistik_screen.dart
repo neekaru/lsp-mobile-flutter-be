@@ -1256,8 +1256,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
                           },
                         ),
                       ),
-                      if (index < (filteredList.length > 8 ? 8 : filteredList.length) - 1)
-                        Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
+                      Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
                     ],
                   );
                 },
