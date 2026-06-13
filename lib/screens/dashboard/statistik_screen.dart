@@ -863,6 +863,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
                 else
                   ListView.separated(
                     shrinkWrap: true,
+                    padding: EdgeInsets.zero,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: lateSchedules.length,
                     separatorBuilder: (context, index) => const SizedBox(height: 10),
@@ -1134,6 +1135,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
                   else
                     ListView.builder(
                       shrinkWrap: true,
+                      padding: EdgeInsets.zero,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _selectedSkema!.wilayahDetail.length > 5 ? 5 : _selectedSkema!.wilayahDetail.length,
                       itemBuilder: (context, idx) {
@@ -1207,6 +1209,7 @@ class _StatistikScreenState extends State<StatistikScreen> {
             else
               ListView.builder(
                 shrinkWrap: true,
+                padding: EdgeInsets.zero,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: filteredList.length > 8 ? 8 : filteredList.length,
                 itemBuilder: (context, index) {

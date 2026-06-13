@@ -32,12 +32,7 @@ class MenuProfilWidget extends StatelessWidget {
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFFF1F5F9),
-              width: 1.5,
-            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.02),
@@ -46,45 +41,57 @@ class MenuProfilWidget extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            children: [
-              _buildMenuItem(
-                icon: Icons.person_rounded,
-                title: 'Data Diri',
-                iconColor: const Color(0xFF378CE7),
-                onTap: onDataDiriTap,
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(
+                color: Color(0xFFF1F5F9),
+                width: 1.5,
               ),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _buildMenuItem(
-                icon: Icons.apartment_rounded,
-                title: 'Instansi / Lembaga',
-                iconColor: const Color(0xFF378CE7),
-                onTap: onInstansiTap,
-              ),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _buildMenuItem(
-                icon: Icons.shield_rounded,
-                title: 'Keamanan',
-                iconColor: const Color(0xFF378CE7),
-                onTap: onKeamananTap,
-              ),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _buildMenuItem(
-                icon: Icons.stars_rounded,
-                title: 'Sertifikasi',
-                iconColor: const Color(0xFF378CE7),
-                onTap: onSertifikasiTap,
-              ),
-              const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              _buildMenuItem(
-                icon: Icons.logout_rounded,
-                title: 'Keluar',
-                iconColor: const Color(0xFFEF4444),
-                textColor: const Color(0xFFEF4444),
-                onTap: onKeluarTap,
-                showChevron: true,
-              ),
-            ],
+            ),
+            child: Column(
+              children: [
+                _buildMenuItem(
+                  icon: Icons.person_rounded,
+                  title: 'Data Diri',
+                  iconColor: const Color(0xFF378CE7),
+                  onTap: onDataDiriTap,
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                _buildMenuItem(
+                  icon: Icons.apartment_rounded,
+                  title: 'Instansi / Lembaga',
+                  iconColor: const Color(0xFF378CE7),
+                  onTap: onInstansiTap,
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                _buildMenuItem(
+                  icon: Icons.shield_rounded,
+                  title: 'Keamanan',
+                  iconColor: const Color(0xFF378CE7),
+                  onTap: onKeamananTap,
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                _buildMenuItem(
+                  icon: Icons.stars_rounded,
+                  title: 'Sertifikasi',
+                  iconColor: const Color(0xFF378CE7),
+                  onTap: onSertifikasiTap,
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                _buildMenuItem(
+                  icon: Icons.logout_rounded,
+                  title: 'Keluar',
+                  iconColor: const Color(0xFFEF4444),
+                  textColor: const Color(0xFFEF4444),
+                  onTap: onKeluarTap,
+                  showChevron: true,
+                ),
+              ],
+            ),
           ),
         ),
       ],
