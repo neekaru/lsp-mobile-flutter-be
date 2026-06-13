@@ -6,6 +6,7 @@ import '../widgets/notification_bell.dart';
 import '../services/api_service.dart';
 import '../models/dashboard_models.dart';
 import '../services/auth_repository.dart';
+import '../widgets/mulai_sertifikasi_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -187,14 +188,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
 
+            // 1.5. Mulai Skema Sertifikasi Section
+            const Padding(
+              padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 4.0,
+                bottom: 8.0,
+              ),
+              child: MulaiSertifikasiCard(),
+            ),
+
             // 2. Tren Asesmen Bulanan Section (Imported chart card widget)
             Padding(
               padding: const EdgeInsets.only(
                 left: 16.0,
                 right: 16.0,
-                top:
-                    4.0, // 12 (bottom of previous) + 4 (top of this) = 16px gap
-                bottom: 8.0, // Set to 8
+                top: 8.0,
+                bottom: 8.0,
               ),
               child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
             ),
