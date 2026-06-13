@@ -8,6 +8,8 @@ import 'firebase_options.dart';
 import 'services/notification_service.dart';
 import 'services/app_notification_storage.dart';
 import 'services/token_storage.dart';
+import 'services/geojson_manager.dart';
+import 'widgets/statistik/indonesia_geojson_optimized.dart';
 
 // Import screens
 import 'screens/auth/splash_screen.dart';
@@ -138,6 +140,14 @@ void main() async {
     statusBarIconBrightness: Brightness.light,
     statusBarBrightness: Brightness.dark,
   ));
+
+  // Pre-warm GeoJSON parsing di background (fire-and-forget). Saat user buka
+  // layar Statistik, peta sudah siap render -> mengurangi jeda "abu-abu dulu
+  // baru biru". Tidak di-await agar tidak menunda runApp.
+  GeoJsonManager.instance.initialize(indonesiaGeoJsonOptimized).catchError(
+    (e) => debugPrint('⚠️ GeoJSON pre-warm failed: $e'),
+  );
+
   runApp(const MainApp());
 }
 

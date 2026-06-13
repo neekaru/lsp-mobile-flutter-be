@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,39 +17,38 @@ class GeoJsonManager {
   Uint8List? _geoJsonBytes;
   List<ProvinceModel>? _provinces;
   bool _isInitialized = false;
-  bool _isInitializing = false;
+  Future<void>? _initFuture;
 
   /// Check apakah sudah initialized
   bool get isInitialized => _isInitialized;
 
   /// Initialize GeoJSON data dengan parsing di isolate (background thread)
-  /// untuk menghindari blocking UI thread
-  Future<void> initialize(String geoJsonString) async {
-    // Jika sudah initialized, skip
-    if (_isInitialized) return;
+  /// untuk menghindari blocking UI thread.
+  ///
+  /// Semua pemanggil meng-await Future yang SAMA (shared). Tidak ada busy-wait
+  /// `while (_isInitializing)` yang bisa menggantung selamanya. Jika parsing
+  /// gagal, error di-propagate ke semua pemanggil dan future di-reset agar
+  /// percobaan berikutnya bisa mengulang dari awal.
+  Future<void> initialize(String geoJsonString) {
+    // Sudah selesai -> langsung return future yang sudah complete.
+    if (_isInitialized) return Future.value();
 
-    // Jika sedang initializing, tunggu sampai selesai
-    if (_isInitializing) {
-      while (_isInitializing) {
-        await Future.delayed(const Duration(milliseconds: 50));
-      }
-      return;
-    }
+    // Sedang berjalan ATAU belum mulai -> kembalikan/buat shared future.
+    return _initFuture ??= _runInitialize(geoJsonString);
+  }
 
-    _isInitializing = true;
-
+  Future<void> _runInitialize(String geoJsonString) async {
     try {
       // Parse GeoJSON di isolate (background thread)
       final result = await compute(_parseGeoJson, geoJsonString);
-
       _geoJsonBytes = result.bytes;
       _provinces = result.provinces;
       _isInitialized = true;
     } catch (e) {
       debugPrint('Error initializing GeoJSON: $e');
+      // Reset agar pemanggil berikutnya bisa retry dari nol.
+      _initFuture = null;
       rethrow;
-    } finally {
-      _isInitializing = false;
     }
   }
 
@@ -106,7 +106,7 @@ class GeoJsonManager {
     _geoJsonBytes = null;
     _provinces = null;
     _isInitialized = false;
-    _isInitializing = false;
+    _initFuture = null;
   }
 }
 
