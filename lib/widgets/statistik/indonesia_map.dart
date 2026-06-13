@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
@@ -78,7 +79,10 @@ class _IndonesiaMapState extends State<IndonesiaMap>
   @override
   void didUpdateWidget(covariant IndonesiaMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.provinceData != oldWidget.provinceData) {
+    // Compare by CONTENT, not reference. Reference equality flips true on every
+    // parent rebuild -> recreates MapShapeSource -> Syncfusion re-parses async
+    // every frame (flicker / intermittent stuck render).
+    if (!mapEquals(widget.provinceData, oldWidget.provinceData)) {
       if (GeoJsonManager.instance.isInitialized) {
         setState(() {
           _cachedMapSource = GeoJsonManager.instance.createMapSource(
@@ -95,8 +99,12 @@ class _IndonesiaMapState extends State<IndonesiaMap>
     if (_isDisposed) return;
     
     try {
-      // Initialize GeoJsonManager dengan data optimized
-      await GeoJsonManager.instance.initialize(indonesiaGeoJsonOptimized);
+      // Initialize GeoJsonManager dengan data optimized.
+      // Timeout guard: if the isolate parse stalls, fail into the error state
+      // instead of leaving _isLoading=true forever ("Memuat peta..." stuck).
+      await GeoJsonManager.instance
+          .initialize(indonesiaGeoJsonOptimized)
+          .timeout(const Duration(seconds: 10));
 
       // Create MapShapeSource sekali saja (cached)
       final mapSource = GeoJsonManager.instance.createMapSource(
@@ -143,15 +151,7 @@ class _IndonesiaMapState extends State<IndonesiaMap>
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required by AutomaticKeepAliveClientMixin
-    
-    // Jika map source hilang tapi sudah pernah initialized, re-create
-    if (!_isLoading && _cachedMapSource == null && GeoJsonManager.instance.isInitialized) {
-      _cachedMapSource = GeoJsonManager.instance.createMapSource(
-        provinceData: widget.provinceData ?? provinceAdvisors,
-        colorMapper: _getColorForCount,
-      );
-    }
-    
+
     return RepaintBoundary(
       child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -257,10 +257,12 @@ class _IndonesiaMapState extends State<IndonesiaMap>
 
   /// Map content dengan legend
   Widget _buildMapContent() {
-    // Safety check: jika _cachedMapSource null, coba re-create
-    if (_cachedMapSource == null) {
+    // Resolve the source into a LOCAL var. Do NOT mutate _cachedMapSource here:
+    // build() must be pure. If still null and not initialized, show loading.
+    MapShapeSource? mapSource = _cachedMapSource;
+    if (mapSource == null) {
       if (GeoJsonManager.instance.isInitialized) {
-        _cachedMapSource = GeoJsonManager.instance.createMapSource(
+        mapSource = GeoJsonManager.instance.createMapSource(
           provinceData: widget.provinceData ?? provinceAdvisors,
           colorMapper: _getColorForCount,
         );
@@ -281,7 +283,7 @@ class _IndonesiaMapState extends State<IndonesiaMap>
             child: SfMaps(
               layers: [
                 MapShapeLayer(
-                  source: _cachedMapSource!,
+                  source: mapSource,
                   showDataLabels: false,
                   strokeColor: Colors.white,
                   strokeWidth: 0.8,

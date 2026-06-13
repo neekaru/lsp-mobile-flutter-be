@@ -62,8 +62,23 @@ class _StatistikScreenState extends State<StatistikScreen> {
     "92": "IDPA", // Papua
   };
 
+  // Memoize: cache map data per skema instance to keep a STABLE Map identity
+  // across rebuilds. Recreating the Map every build forces IndonesiaMap to
+  // recreate its MapShapeSource, which makes Syncfusion re-parse/re-bind the
+  // GeoJSON asynchronously on every frame -> flicker / stuck loading.
+  SebaranSkemaAsesorItem? _cachedSkemaForMap;
+  Map<String, int>? _cachedSkemaMapData;
+
   Map<String, int> _getSkemaMapData(SebaranSkemaAsesorItem? skema) {
-    if (skema == null) return {};
+    if (skema == null) {
+      _cachedSkemaForMap = null;
+      _cachedSkemaMapData = const {};
+      return const {};
+    }
+    // Return cached instance if same skema -> stable identity.
+    if (identical(skema, _cachedSkemaForMap) && _cachedSkemaMapData != null) {
+      return _cachedSkemaMapData!;
+    }
     final Map<String, int> mapData = {};
     for (var detail in skema.wilayahDetail) {
       final code = provinsiIdToMapCode[detail.provinsiId];
@@ -71,6 +86,8 @@ class _StatistikScreenState extends State<StatistikScreen> {
         mapData[code] = detail.jumlahAsesor;
       }
     }
+    _cachedSkemaForMap = skema;
+    _cachedSkemaMapData = mapData;
     return mapData;
   }
 
