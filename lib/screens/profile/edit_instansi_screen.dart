@@ -251,6 +251,7 @@ class _EditInstansiScreenState extends State<EditInstansiScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
@@ -268,7 +269,6 @@ class _EditInstansiScreenState extends State<EditInstansiScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
                   const Text(
                     'Edit Instansi / Lembaga',
                     style: TextStyle(
@@ -277,6 +277,7 @@ class _EditInstansiScreenState extends State<EditInstansiScreen> {
                       color: Colors.black87,
                     ),
                   ),
+                  const SizedBox(width: 32, height: 32),
                 ],
               ),
             ),
