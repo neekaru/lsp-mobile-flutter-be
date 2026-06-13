@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/pengajuan_sertifikat_screen.dart';
+import '../screens/pengajuan/pengajuan_sertifikat_screen.dart';
 
 class MulaiSertifikasiCard extends StatelessWidget {
   const MulaiSertifikasiCard({super.key});

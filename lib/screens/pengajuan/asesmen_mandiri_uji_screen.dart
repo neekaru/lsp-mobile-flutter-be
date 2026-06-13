@@ -1,8 +1,8 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
-import '../widgets/pengajuan/step_indicator.dart';
-import '../widgets/pengajuan/evidence_picker_sheet.dart';
-import '../utils/asesmen_mandiri_data.dart';
+import '../../widgets/pengajuan/step_indicator.dart';
+import '../../widgets/pengajuan/evidence_picker_sheet.dart';
+import '../../utils/asesmen_mandiri_data.dart';
 
 class AsesmenMandiriUjiScreen extends StatefulWidget {
   final String selectedSkema;
@@ -502,9 +502,8 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                             Text(
                               el['kukCount'] as String,
                               style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF94A3B8),
-                              ),
+                                  fontSize: 11,
+                                  color: Color(0xFF94A3B8)),
                             ),
                           ],
                         ),
@@ -706,7 +705,7 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                       final unit = widget.unitKompetensi[_activeUnitIndex!];
                       final elements = AsesmenMandiriData.getElementsForUnit(unit['kode'] as String);
                       bool allSelectedK = true;
-                      
+
                       for (var el in elements) {
                         for (var kuk in el['kuks']) {
                           final assessment = widget.kukAssessments[kuk];
@@ -797,41 +796,6 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context, true), // Complete sub-flow returning true
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF378CE7),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Text(
-                          'Selanjutnya',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(width: 6),
-                        Icon(Icons.arrow_forward_rounded, size: 18),
                       ],
                     ),
                   ),

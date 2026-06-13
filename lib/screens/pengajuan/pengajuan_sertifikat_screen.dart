@@ -1,15 +1,15 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 
-import '../services/api_service.dart';
-import '../widgets/pengajuan/step_indicator.dart';
-import '../widgets/pengajuan/data_pengajuan_form.dart';
-import '../widgets/pengajuan/data_pribadi_form.dart';
-import '../widgets/pengajuan/data_pekerjaan_form.dart';
-import '../widgets/pengajuan/dokumen_portofolio_form.dart';
-import '../widgets/pengajuan/asesmen_mandiri_form.dart';
-import '../widgets/pengajuan/unit_kompetensi_detail.dart';
-import '../widgets/pengajuan/dokumen_persyaratan_form.dart';
+import '../../services/api_service.dart';
+import '../../widgets/pengajuan/step_indicator.dart';
+import '../../widgets/pengajuan/data_pengajuan_form.dart';
+import '../../widgets/pengajuan/data_pribadi_form.dart';
+import '../../widgets/pengajuan/data_pekerjaan_form.dart';
+import '../../widgets/pengajuan/dokumen_portofolio_form.dart';
+import '../../widgets/pengajuan/asesmen_mandiri_form.dart';
+import '../../widgets/pengajuan/unit_kompetensi_detail.dart';
+import '../../widgets/pengajuan/dokumen_persyaratan_form.dart';
 import 'bukti_portofolio_screen.dart';
 import 'asesmen_mandiri_uji_screen.dart';
 
@@ -202,8 +202,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       {'kode': 'DA.620500.003.01', 'judul': 'Melakukan Analisis Statistik Deskriptif', 'kompeten': true},
     ],
   };
-
-
 
   List<Map<String, dynamic>> _getUnitKompetensi() {
     final String targetSkema = _selectedSkema ?? 'Pemasaran Digital';

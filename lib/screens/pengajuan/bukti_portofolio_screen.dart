@@ -201,6 +201,9 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
+                                /*******************************************************************************
+                                 * Browse Button: Mock File Picker
+                                 *******************************************************************************/
                                 SizedBox(
                                   width: 120,
                                   height: 36,
@@ -492,7 +495,7 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
               ),
             ),
           ),
-          
+
           // Bottom button
           Padding(
             padding: const EdgeInsets.all(16),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
-import 'pengajuan_sertifikat_screen.dart';
+import 'pengajuan/pengajuan_sertifikat_screen.dart';
 
 class PilihPeranScreen extends StatefulWidget {
   const PilihPeranScreen({super.key});
