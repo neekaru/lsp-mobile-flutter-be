@@ -314,10 +314,10 @@ class _JadwalScreenState extends State<JadwalScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  // Tab 1: Akan Berakhir (dengan chart)
+                  // Tab 1: Sedang Berjalan
                   _JadwalTabContent(
-                    key: const PageStorageKey('akan_berakhir_tab'),
-                    child: _buildAkanBerakhirTab(),
+                    key: const PageStorageKey('sedang_berjalan_tab'),
+                    child: _buildSedangBerjalanTab(),
                   ),
 
                   // Tab 2: Berjalan
@@ -350,7 +350,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     );
   }
 
-  Widget _buildAkanBerakhirTab() {
+  Widget _buildSedangBerjalanTab() {
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       child: ListView.builder(
@@ -360,12 +360,12 @@ class _JadwalScreenState extends State<JadwalScreen>
         itemCount:
             runningList.length + 2, // +2 for header and loading indicator
         itemBuilder: (context, index) {
-          // Header with chart
+          // Header without chart (only statistics text)
           if (index == 0) {
             return Column(
               children: [
                 const SizedBox(height: 16),
-                // Statistik Card dengan Line Chart
+                // Statistik Card tanpa chart
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -380,74 +380,59 @@ class _JadwalScreenState extends State<JadwalScreen>
                       ),
                     ],
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Total Jadwal',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  totalAsesmen.toString(),
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                    height: 1,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                if (trendPercentage.isNotEmpty &&
-                                    trendPercentage != '+0%')
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFE8F5E9),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      trendPercentage,
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF4CAF50),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${runningList.length} akan berakhir, ${pelaporanList.length} berjalan',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
+                      const Text(
+                        'Total Jadwal',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 3,
-                        child: SizedBox(
-                          height: 100,
-                          child: CustomPaint(painter: MiniLineChartPainter()),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            totalAsesmen.toString(),
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                              height: 1,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (trendPercentage.isNotEmpty &&
+                              trendPercentage != '+0%')
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                trendPercentage,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF4CAF50),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${runningList.length} sedang berjalan, ${pelaporanList.length} pelaporan',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey,
                         ),
                       ),
                     ],

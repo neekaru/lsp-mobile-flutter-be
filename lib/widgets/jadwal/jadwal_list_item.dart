@@ -53,7 +53,7 @@ class JadwalListItem extends StatelessWidget {
       case 'waiting':
         return 'Waiting';
       case 'completed':
-        return 'Completed';
+        return ''; // Hidden - no bottom status text for completed
       case 'canceled':
         return 'Canceled';
       case 'running':
