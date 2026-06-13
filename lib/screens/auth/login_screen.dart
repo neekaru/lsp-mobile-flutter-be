@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import '../main.dart';
-import '../services/api_service.dart';
-import '../services/token_storage.dart';
-import '../services/auth_repository.dart';
-import '../services/notification_service.dart';
+import '../../main.dart';
+import '../../services/api_service.dart';
+import '../../services/token_storage.dart';
+import '../../services/auth_repository.dart';
+import '../../services/notification_service.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {

@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import '../services/auth_repository.dart';
-import '../services/api_service.dart';
-import '../services/token_storage.dart';
-import '../services/notification_service.dart';
-import 'login_screen.dart';
+import '../../services/auth_repository.dart';
+import '../../services/api_service.dart';
+import '../../services/token_storage.dart';
+import '../../services/notification_service.dart';
+import '../auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;

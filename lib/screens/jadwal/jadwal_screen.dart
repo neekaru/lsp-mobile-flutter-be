@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/jadwal_models.dart';
-import '../services/api_service.dart';
-import '../widgets/jadwal/jadwal_list_item.dart';
-import '../widgets/jadwal/custom_tab_bar.dart';
-import '../services/auth_repository.dart';
+import '../../models/jadwal_models.dart';
+import '../../services/api_service.dart';
+import '../../widgets/jadwal/jadwal_list_item.dart';
+import '../../widgets/jadwal/custom_tab_bar.dart';
+import '../../services/auth_repository.dart';
 import 'jadwal_detail_screen.dart';
 
 class JadwalScreen extends StatefulWidget {

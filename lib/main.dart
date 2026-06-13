@@ -10,12 +10,12 @@ import 'services/app_notification_storage.dart';
 import 'services/token_storage.dart';
 
 // Import screens
-import 'screens/splash_screen.dart';
-import 'screens/dashboard_screen.dart';
-import 'screens/statistik_screen.dart';
-import 'screens/jadwal_screen.dart';
-import 'screens/sertifikat_screen.dart';
-import 'screens/profile_screen.dart';
+import 'screens/auth/splash_screen.dart';
+import 'screens/dashboard/dashboard_screen.dart';
+import 'screens/dashboard/statistik_screen.dart';
+import 'screens/jadwal/jadwal_screen.dart';
+import 'screens/sertifikat/sertifikat_screen.dart';
+import 'screens/profile/profile_screen.dart';
 
 // Import widgets
 import 'widgets/bottom_menu_bar.dart';

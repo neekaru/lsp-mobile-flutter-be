@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../services/api_service.dart';
-import '../services/token_storage.dart';
-import '../services/auth_repository.dart';
-import '../services/notification_service.dart';
-import '../models/auth_models.dart';
-import '../main.dart';
+import '../../services/api_service.dart';
+import '../../services/token_storage.dart';
+import '../../services/auth_repository.dart';
+import '../../services/notification_service.dart';
+import '../../models/auth_models.dart';
+import '../../main.dart';
 import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {

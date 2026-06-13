@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import '../models/jadwal_models.dart';
-import '../services/api_service.dart';
+import '../../models/jadwal_models.dart';
+import '../../services/api_service.dart';
 import 'asesi_list_screen.dart';
 
 class JadwalDetailScreen extends StatefulWidget {
