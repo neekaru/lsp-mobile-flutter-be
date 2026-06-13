@@ -172,7 +172,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _isLoggingOut = false;
         });
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              final slideAnimation = Tween<Offset>(
+                begin: const Offset(0.0, 0.08),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                ),
+              );
+              final fadeAnimation = CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeIn,
+              );
+              return SlideTransition(
+                position: slideAnimation,
+                child: FadeTransition(
+                  opacity: fadeAnimation,
+                  child: child,
+                ),
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 350),
+          ),
           (route) => false,
         );
       }
