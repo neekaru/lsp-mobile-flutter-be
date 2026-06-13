@@ -96,7 +96,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     switch (type) {
       case 'status_kompeten':
         title = 'Status Kelulusan Diperbarui';
-        body = 'Selamat! Anda dinyatakan KOMPETEN pada skema Sertifikasi Pemrogram Mobile.';
+        body =
+            'Selamat! Anda dinyatakan KOMPETEN pada skema Sertifikasi Pemrogram Mobile.';
         data = {
           'type': 'status_kompeten',
           'skema': 'Sertifikasi Pemrogram Mobile',
@@ -106,7 +107,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         break;
       case 'rekomendasi_asesor':
         title = 'Rekomendasi Asesor Baru';
-        body = 'Asesor Drs. H. Mulyono telah memberikan rekomendasi asesmen untuk jadwal Anda.';
+        body =
+            'Asesor Drs. H. Mulyono telah memberikan rekomendasi asesmen untuk jadwal Anda.';
         data = {
           'type': 'rekomendasi_asesor',
           'skema': 'Sertifikasi Pemrogram Mobile',
@@ -116,7 +118,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         break;
       case 'sertifikat_terbit':
         title = 'Sertifikat Kompetensi Terbit';
-        body = 'Sertifikat Anda untuk skema Sertifikasi Pemrogram Mobile telah terbit.';
+        body =
+            'Sertifikat Anda untuk skema Sertifikasi Pemrogram Mobile telah terbit.';
         data = {
           'type': 'sertifikat_terbit',
           'skema': 'Sertifikasi Pemrogram Mobile',
@@ -128,10 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final message = RemoteMessage(
       data: data,
-      notification: RemoteNotification(
-        title: title,
-        body: body,
-      ),
+      notification: RemoteNotification(title: title, body: body),
     );
 
     NotificationService.instance.simulateIncomingNotification(message);
@@ -147,7 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         dio: ApiService.dio,
         tokenStorage: TokenStorage.instance,
       );
-      
+
       String? fcmToken;
       try {
         fcmToken = await NotificationService.instance.getToken();
@@ -173,29 +173,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              final slideAnimation = Tween<Offset>(
-                begin: const Offset(0.0, 0.08),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeOutCubic,
-                ),
-              );
-              final fadeAnimation = CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeIn,
-              );
-              return SlideTransition(
-                position: slideAnimation,
-                child: FadeTransition(
-                  opacity: fadeAnimation,
-                  child: child,
-                ),
-              );
-            },
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const LoginScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  final slideAnimation =
+                      Tween<Offset>(
+                        begin: const Offset(0.0, 0.08),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        ),
+                      );
+                  final fadeAnimation = CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeIn,
+                  );
+                  return SlideTransition(
+                    position: slideAnimation,
+                    child: FadeTransition(opacity: fadeAnimation, child: child),
+                  );
+                },
             transitionDuration: const Duration(milliseconds: 350),
           ),
           (route) => false,
@@ -246,10 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const Text(
                   'Apakah Anda yakin ingin keluar dari akun ini?',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -338,7 +335,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Color(0xFFE3F2FD),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.photo_library_rounded, color: Color(0xFF378CE7)),
+                  child: const Icon(
+                    Icons.photo_library_rounded,
+                    color: Color(0xFF378CE7),
+                  ),
                 ),
                 title: const Text('Pilih dari Galeri'),
                 onTap: () {
@@ -355,7 +355,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Color(0xFFE3F2FD),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.camera_alt_rounded, color: Color(0xFF378CE7)),
+                  child: const Icon(
+                    Icons.camera_alt_rounded,
+                    color: Color(0xFF378CE7),
+                  ),
                 ),
                 title: const Text('Ambil Foto'),
                 onTap: () {
@@ -413,7 +416,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const Divider(color: Color(0xFFE2E8F0), height: 24),
-                  
+
                   // FCM Token Section
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -422,7 +425,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.vpn_key_outlined, color: Color(0xFF378CE7), size: 20),
+                            Icon(
+                              Icons.vpn_key_outlined,
+                              color: Color(0xFF378CE7),
+                              size: 20,
+                            ),
                             SizedBox(width: 8),
                             Text(
                               'Firebase FCM Device Token',
@@ -458,15 +465,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: _fcmToken != null ? () {
-                              _copyToClipboard();
-                              setModalState(() {});
-                            } : null,
+                            onPressed: _fcmToken != null
+                                ? () {
+                                    _copyToClipboard();
+                                    setModalState(() {});
+                                  }
+                                : null,
                             icon: Icon(
                               _isCopied ? Icons.check : Icons.copy_rounded,
                               size: 16,
                             ),
-                            label: Text(_isCopied ? 'Tersalin!' : 'Salin Token FCM'),
+                            label: Text(
+                              _isCopied ? 'Tersalin!' : 'Salin Token FCM',
+                            ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFF378CE7),
                               side: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -479,9 +490,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  
+
                   const Divider(color: Color(0xFFE2E8F0), height: 32),
-                  
+
                   // Simulator Section
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -490,7 +501,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.dashboard_customize_outlined, color: Color(0xFF378CE7), size: 20),
+                            Icon(
+                              Icons.dashboard_customize_outlined,
+                              color: Color(0xFF378CE7),
+                              size: 20,
+                            ),
                             SizedBox(width: 8),
                             Text(
                               'Demo & Simulasi Push Notifikasi',
@@ -514,7 +529,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 16),
                         _buildSimulateTile(
                           title: 'Notifikasi Kelulusan (Kompeten)',
-                          subtitle: 'Simulasikan asesi lulus uji kompetensi skema',
+                          subtitle:
+                              'Simulasikan asesi lulus uji kompetensi skema',
                           color: const Color(0xFF2E7D32),
                           icon: Icons.verified_user_rounded,
                           onTap: () {
@@ -658,14 +674,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Row(
                         children: [
-                          if (widget.onBackToHome != null || Navigator.canPop(context))
-                            GestureDetector(
-                              onTap: widget.onBackToHome ?? () => Navigator.pop(context),
-                              child: const Padding(
-                                padding: EdgeInsets.only(right: 8.0),
-                                child: Icon(Icons.arrow_back_rounded, color: Colors.white, size: 24),
-                              ),
-                            ),
                           const Text(
                             'Profil Saya',
                             style: TextStyle(
@@ -677,13 +685,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                       IconButton(
-                        icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                        icon: const Icon(
+                          Icons.settings_outlined,
+                          color: Colors.white,
+                        ),
                         onPressed: _showKeamananBottomSheet,
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Profile Image Avatar Stack
                   Stack(
                     children: [
@@ -695,7 +706,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 3),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              width: 3,
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.1),
@@ -742,7 +756,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // User Name
                   Text(
                     userName,
@@ -754,10 +768,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  
+
                   // TUK Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(20),
@@ -772,7 +789,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // ID TUK Copyable Row
                   GestureDetector(
                     onTap: _copyTukId,
@@ -799,7 +816,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            
+
             // Content Body Section
             Padding(
               padding: const EdgeInsets.all(20.0),
@@ -820,16 +837,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                     onInstansiTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Menu Instansi / Lembaga dipilih')),
+                        const SnackBar(
+                          content: Text('Menu Instansi / Lembaga dipilih'),
+                        ),
                       );
                     },
                     onKeamananTap: _showKeamananBottomSheet,
                     onSertifikasiTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Menu Sertifikasi dipilih')),
+                        const SnackBar(
+                          content: Text('Menu Sertifikasi dipilih'),
+                        ),
                       );
                     },
-                    onKeluarTap: _isLoggingOut ? null : _showLogoutConfirmDialog,
+                    onKeluarTap: _isLoggingOut
+                        ? null
+                        : _showLogoutConfirmDialog,
                   ),
                 ],
               ),
