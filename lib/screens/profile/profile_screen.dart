@@ -7,6 +7,7 @@ import '../../services/api_service.dart';
 import '../../services/token_storage.dart';
 import '../../services/notification_service.dart';
 import '../auth/login_screen.dart';
+import 'data_diri_screen.dart';
 import '../../widgets/profile/ringkasan_widget.dart';
 import '../../widgets/profile/menu_profil_widget.dart';
 
@@ -831,8 +832,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
                   MenuProfilWidget(
                     onDataDiriTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Menu Data Diri dipilih')),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DataDiriScreen(),
+                        ),
                       );
                     },
                     onInstansiTap: () {
