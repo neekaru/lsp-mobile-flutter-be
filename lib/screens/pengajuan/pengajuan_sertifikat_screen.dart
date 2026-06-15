@@ -107,6 +107,9 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
     // Fetch master data for Provinsi dropdown
     _fetchProvinsi();
+
+    // Fetch master data for Skema dropdown
+    _fetchMasterSkema();
   }
 
   Future<void> _fetchProvinsi() async {
@@ -178,14 +181,66 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     }
   }
 
+  Future<void> _fetchMasterSkema() async {
+    setState(() {
+      _isLoadingSkema = true;
+    });
+    try {
+      final list = await ApiService.getMasterSkemaList();
+      if (mounted) {
+        setState(() {
+          _masterSkemaList = list;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching master skema: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingSkema = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchMasterJadwal(int idSkema) async {
+    setState(() {
+      _isLoadingJadwal = true;
+      _masterJadwalList = [];
+    });
+    try {
+      final list = await ApiService.getMasterJadwalList(idSkema);
+      if (mounted) {
+        setState(() {
+          _masterJadwalList = list;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching master jadwal: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingJadwal = false;
+        });
+      }
+    }
+  }
+
   // Current active step
   int _currentStep = 0;
 
   // Step 1: Data Pengajuan State
+  int? _selectedSkemaId;
+  int? _selectedJadwalId;
   String? _selectedSkema;
   String? _selectedJadwal;
   final TextEditingController _sumberAnggaranController = TextEditingController();
   final TextEditingController _pemberiAnggaranController = TextEditingController();
+
+  List<MasterSkema> _masterSkemaList = [];
+  List<MasterJadwal> _masterJadwalList = [];
+  bool _isLoadingSkema = false;
+  bool _isLoadingJadwal = false;
 
   // Step 2: Profil Peserta - Data Pribadi State
   final TextEditingController _nikController = TextEditingController();
@@ -600,22 +655,48 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     switch (_currentStep) {
       case 0:
         return DataPengajuanForm(
-          selectedSkema: _selectedSkema,
-          selectedJadwal: _selectedJadwal,
+          selectedSkema: _selectedSkemaId,
+          selectedJadwal: _selectedJadwalId,
           sumberAnggaranController: _sumberAnggaranController,
           pemberiAnggaranController: _pemberiAnggaranController,
-          listSkema: _listSkema,
-          listJadwal: _listJadwal,
+          listSkema: _masterSkemaList,
+          listJadwal: _masterJadwalList,
+          isLoadingSkema: _isLoadingSkema,
+          isLoadingJadwal: _isLoadingJadwal,
           onSkemaChanged: (val) {
             setState(() {
-              _selectedSkema = val;
-              // Reset dependent fields/selections to keep form consistent
+              _selectedSkemaId = val;
+              _selectedJadwalId = null;
               _selectedJadwal = null;
+              _masterJadwalList = [];
+              if (val != null) {
+                try {
+                  final selected = _masterSkemaList.firstWhere((item) => item.id == val);
+                  _selectedSkema = selected.namaSkema;
+                } catch (_) {
+                  _selectedSkema = null;
+                }
+              } else {
+                _selectedSkema = null;
+              }
             });
+            if (val != null) {
+              _fetchMasterJadwal(val);
+            }
           },
           onJadwalChanged: (val) {
             setState(() {
-              _selectedJadwal = val;
+              _selectedJadwalId = val;
+              if (val != null) {
+                try {
+                  final selected = _masterJadwalList.firstWhere((item) => item.id == val);
+                  _selectedJadwal = selected.displayName;
+                } catch (_) {
+                  _selectedJadwal = null;
+                }
+              } else {
+                _selectedJadwal = null;
+              }
             });
           },
         );

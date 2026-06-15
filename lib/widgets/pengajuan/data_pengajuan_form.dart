@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'form_fields.dart';
+import '../../models/master_models.dart';
 
 class DataPengajuanForm extends StatelessWidget {
-  final String? selectedSkema;
-  final String? selectedJadwal;
+  final int? selectedSkema;
+  final int? selectedJadwal;
   final TextEditingController sumberAnggaranController;
   final TextEditingController pemberiAnggaranController;
-  final ValueChanged<String?> onSkemaChanged;
-  final ValueChanged<String?> onJadwalChanged;
+  final ValueChanged<int?> onSkemaChanged;
+  final ValueChanged<int?> onJadwalChanged;
 
-  // Mock list defaults to make it highly dynamic
-  final List<String> listSkema;
-  final List<String> listJadwal;
+  final List<MasterSkema> listSkema;
+  final List<MasterJadwal> listJadwal;
+  final bool isLoadingSkema;
+  final bool isLoadingJadwal;
 
   const DataPengajuanForm({
     super.key,
@@ -21,18 +23,10 @@ class DataPengajuanForm extends StatelessWidget {
     required this.pemberiAnggaranController,
     required this.onSkemaChanged,
     required this.onJadwalChanged,
-    this.listSkema = const [
-      'Programmer (Web & Mobile Developer)',
-      'Cloud Computing Administrator',
-      'Digital Marketing Specialist',
-      'Network Security Engineer',
-      'Data Analyst Specialist',
-    ],
-    this.listJadwal = const [
-      'Sertifikasi Kompetensi TIK Programmer - Batch 2 (TUK Campus Digital)',
-      'Asesmen Cloud Computing - Batch 1 (TUK Sewaktu LSP)',
-      'Digital Marketing Sertifikasi - Batch 3 (TUK Borneo Engineer)',
-    ],
+    required this.listSkema,
+    required this.listJadwal,
+    required this.isLoadingSkema,
+    required this.isLoadingJadwal,
   });
 
   @override
@@ -61,20 +55,32 @@ class DataPengajuanForm extends StatelessWidget {
 
         // Dropdown Skema
         const CustomFieldLabel(label: 'Skema'),
-        CustomDropdownSelector(
+        CustomKeyValueDropdownSelectorGeneric<int>(
           hint: 'Pilih skema',
           value: selectedSkema,
-          items: listSkema,
+          items: listSkema
+              .map((item) => DropdownItemData<int>(
+                    value: item.id,
+                    label: '${item.kodeSkema} - ${item.namaSkema}',
+                  ))
+              .toList(),
+          isLoading: isLoadingSkema,
           onChanged: onSkemaChanged,
         ),
         const SizedBox(height: 20),
 
         // Dropdown Jadwal Uji Kompetensi
         const CustomFieldLabel(label: 'Jadwal Uji Kompetensi'),
-        CustomDropdownSelector(
+        CustomKeyValueDropdownSelectorGeneric<int>(
           hint: 'Jadwal uji kompetensi',
           value: selectedJadwal,
-          items: listJadwal,
+          items: listJadwal
+              .map((item) => DropdownItemData<int>(
+                    value: item.id,
+                    label: '${item.jadwal} (${item.tuk})',
+                  ))
+              .toList(),
+          isLoading: isLoadingJadwal,
           onChanged: onJadwalChanged,
         ),
         const SizedBox(height: 6),

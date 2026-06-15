@@ -306,3 +306,97 @@ class CustomKeyValueDropdownSelector extends StatelessWidget {
     );
   }
 }
+
+class DropdownItemData<T> {
+  final T value;
+  final String label;
+
+  const DropdownItemData({required this.value, required this.label});
+}
+
+class CustomKeyValueDropdownSelectorGeneric<T> extends StatelessWidget {
+  final String hint;
+  final T? value;
+  final List<DropdownItemData<T>> items;
+  final ValueChanged<T?> onChanged;
+  final bool isLoading;
+
+  const CustomKeyValueDropdownSelectorGeneric({
+    super.key,
+    required this.hint,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Highly robust value resolution
+    T? effectiveValue;
+    if (value != null && items.any((item) => item.value == value)) {
+      effectiveValue = value;
+    }
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8FAFC),
+        borderRadius: _kBorderRadius,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x03000000), // black with 1% opacity
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<T>(
+        key: ValueKey('${hint}_${items.map((e) => e.value.toString()).join(',')}_$effectiveValue'),
+        value: effectiveValue,
+        isExpanded: true,
+        hint: Text(
+          isLoading ? 'Memuat data...' : hint,
+          style: TextStyle(
+            color: isLoading ? const Color(0xFF0F4C81) : const Color(0xFF94A3B8),
+            fontSize: 13,
+          ),
+        ),
+        icon: isLoading
+            ? const Padding(
+                padding: EdgeInsets.only(right: 4.0),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F4C81)),
+                  ),
+                ),
+              )
+            : const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Color(0xFF0F4C81),
+              ),
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: _kBorder,
+          enabledBorder: _kEnabledBorder,
+          focusedBorder: _kFocusedBorder,
+        ),
+        items: isLoading
+            ? []
+            : items.map((DropdownItemData<T> item) {
+                return DropdownMenuItem<T>(
+                  value: item.value,
+                  child: Text(
+                    item.label,
+                    style: const TextStyle(fontSize: 13.5, color: Color(0xFF1E293B)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+        onChanged: isLoading ? null : onChanged,
+      ),
+    );
+  }
+}

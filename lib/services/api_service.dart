@@ -1100,4 +1100,37 @@ class ApiService {
       return [];
     }
   }
+
+  /// Fetch list of Master Skema
+  static Future<List<MasterSkema>> getMasterSkemaList() async {
+    try {
+      final response = await _dio.get(ApiRoutes.masterSkema);
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data.map((item) => MasterSkema.fromJson(item as Map<String, dynamic>)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error fetching master skema: $e');
+      return [];
+    }
+  }
+
+  /// Fetch list of Master Jadwal by skema ID
+  static Future<List<MasterJadwal>> getMasterJadwalList(int idSkema) async {
+    try {
+      final response = await _dio.get(
+        ApiRoutes.masterJadwal,
+        queryParameters: {'id_skema': idSkema},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data.map((item) => MasterJadwal.fromJson(item as Map<String, dynamic>)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error fetching master jadwal: $e');
+      return [];
+    }
+  }
 }
