@@ -16,7 +16,7 @@ import 'screens/auth/splash_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/dashboard/statistik_screen.dart';
 import 'screens/jadwal/jadwal_screen.dart';
-import 'screens/sertifikat/sertifikat_screen.dart';
+import 'screens/common/placeholder_screen.dart';
 import 'screens/profile/profile_screen.dart';
 
 // Import widgets
@@ -197,42 +197,53 @@ class MainNavigatorState extends State<MainNavigator> {
       case 0:
         return DashboardScreen(
           onNavigateToJadwal: () {
-            setState(() {
-              _getScreen(2);
-              _currentIndex = 2;
-            });
+            if (mounted) {
+              setState(() {
+                _getScreen(2);
+                _currentIndex = 2;
+              });
+            }
           },
         );
       case 1:
         return StatistikScreen(
           onBackToHome: () {
-            setState(() {
-              _currentIndex = 0;
-            });
+            if (mounted) {
+              setState(() {
+                _currentIndex = 0;
+              });
+            }
           },
         );
       case 2:
         return JadwalScreen(
           onBackToHome: () {
-            setState(() {
-              _currentIndex = 0;
-            });
+            if (mounted) {
+              setState(() {
+                _currentIndex = 0;
+              });
+            }
           },
         );
       case 3:
-        return SertifikatScreen(
+        return PlaceholderScreen(
+          title: 'Sertifikat',
           onBackToHome: () {
-            setState(() {
-              _currentIndex = 0;
-            });
+            if (mounted) {
+              setState(() {
+                _currentIndex = 0;
+              });
+            }
           },
         );
       case 4:
         return ProfileScreen(
           onBackToHome: () {
-            setState(() {
-              _currentIndex = 0;
-            });
+            if (mounted) {
+              setState(() {
+                _currentIndex = 0;
+              });
+            }
           },
         );
       default:
@@ -241,10 +252,12 @@ class MainNavigatorState extends State<MainNavigator> {
   }
 
   void setTab(int index) {
-    setState(() {
-      _getScreen(index);
-      _currentIndex = index;
-    });
+    if (mounted) {
+      setState(() {
+        _getScreen(index);
+        _currentIndex = index;
+      });
+    }
   }
 
   Future<bool> _showExitDialog() async {
@@ -306,9 +319,11 @@ class MainNavigatorState extends State<MainNavigator> {
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
         if (_currentIndex != 0) {
-          setState(() {
-            _currentIndex = 0;
-          });
+          if (mounted) {
+            setState(() {
+              _currentIndex = 0;
+            });
+          }
         } else {
           final shouldExit = await _showExitDialog();
           if (shouldExit) {
@@ -331,10 +346,12 @@ class MainNavigatorState extends State<MainNavigator> {
         bottomNavigationBar: BottomMenuBar(
           selectedIndex: _currentIndex,
           onTap: (index) {
-            setState(() {
-              _getScreen(index); // Create & cache screen on first tap
-              _currentIndex = index;
-            });
+            if (mounted) {
+              setState(() {
+                _getScreen(index); // Create & cache screen on first tap
+                _currentIndex = index;
+              });
+            }
           },
         ),
       ),

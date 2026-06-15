@@ -4,6 +4,7 @@ import '../../models/dashboard_models.dart';
 import '../../models/jadwal_models.dart';
 import '../../helpers/number_format_helper.dart';
 import '../../widgets/statistik/indonesia_map.dart';
+import 'sertifikat_statistik_screen.dart';
 
 class StatistikScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -15,6 +16,47 @@ class StatistikScreen extends StatefulWidget {
 }
 
 class _StatistikScreenState extends State<StatistikScreen> {
+  String _currentView = 'distribusi'; // 'distribusi' atau 'sertifikat'
+
+  @override
+  Widget build(BuildContext context) {
+    if (_currentView == 'sertifikat') {
+      return SertifikatStatistikScreen(
+        onBackToHome: widget.onBackToHome,
+        onSwitchView: (view) {
+          if (mounted) {
+            setState(() {
+              _currentView = view;
+            });
+          }
+        },
+      );
+    }
+
+    return StatistikDistribusiView(
+      onBackToHome: widget.onBackToHome,
+      onSwitchView: (view) {
+        if (mounted) {
+          setState(() {
+            _currentView = view;
+          });
+        }
+      },
+    );
+  }
+}
+
+class StatistikDistribusiView extends StatefulWidget {
+  final VoidCallback? onBackToHome;
+  final ValueChanged<String>? onSwitchView;
+
+  const StatistikDistribusiView({super.key, this.onBackToHome, this.onSwitchView});
+
+  @override
+  State<StatistikDistribusiView> createState() => _StatistikDistribusiViewState();
+}
+
+class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
   bool _isActiveAsesorSelected = true; // True for Asesor Aktif, False for Sebaran Skema
   late Future<AsesorStats> _asesorStatsFuture;
   late Future<List<TopProvinsi>> _topProvincesFuture;
@@ -309,11 +351,75 @@ class _StatistikScreenState extends State<StatistikScreen> {
             ),
           ),
           
-          // More options horizontal ellipsis
-          const Icon(
-            Icons.more_horiz_rounded,
-            color: Colors.black,
-            size: 24,
+          // More options horizontal ellipsis menu
+          Theme(
+            data: Theme.of(context).copyWith(
+              dividerTheme: const DividerThemeData(color: Color(0xFFF1F5F9)),
+            ),
+            child: PopupMenuButton<String>(
+              icon: const Icon(
+                Icons.more_horiz_rounded,
+                color: Colors.black,
+                size: 24,
+              ),
+              offset: const Offset(0, 40),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              color: Colors.white,
+              elevation: 3,
+              onSelected: (String value) {
+                if (value == 'sertifikat') {
+                  if (widget.onSwitchView != null) {
+                    widget.onSwitchView!('sertifikat');
+                  }
+                } else if (value == 'distribusi') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Anda sudah berada di halaman ini'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'sertifikat',
+                  child: Row(
+                    children: [
+                      Icon(Icons.assignment_turned_in_rounded, size: 18, color: Color(0xFF2C6C9C)),
+                      SizedBox(width: 8),
+                      Text(
+                        'Skema Pemegang Sertifikat',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem<String>(
+                  value: 'distribusi',
+                  child: Row(
+                    children: [
+                      Icon(Icons.map_rounded, size: 18, color: Color(0xFF64748B)),
+                      SizedBox(width: 8),
+                      Text(
+                        'Distribusi Asesor & Skema',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
