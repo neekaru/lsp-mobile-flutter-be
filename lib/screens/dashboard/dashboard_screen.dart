@@ -64,6 +64,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _refreshJadwalData() async {
+    try {
+      final jadwalData = await ApiService.getJadwalBaru();
+      if (mounted) {
+        setState(() {
+          _jadwalData = jadwalData;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error refreshing jadwal data: $e');
+    }
+  }
+
   Future<void> _handleRefresh() async {
     await _loadAllData();
 
@@ -223,6 +236,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   data: _jadwalData,
                   isLoading: _isLoading,
                   onTapLihatSemua: widget.onNavigateToJadwal,
+                  onRefreshNeeded: () => _refreshJadwalData(),
                 ),
               )
             else

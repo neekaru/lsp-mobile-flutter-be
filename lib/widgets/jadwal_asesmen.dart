@@ -10,12 +10,14 @@ class JadwalAsesmen extends StatefulWidget {
   final List<JadwalBaru>? data;
   final bool? isLoading;
   final VoidCallback? onTapLihatSemua;
+  final VoidCallback? onRefreshNeeded;
 
   const JadwalAsesmen({
     super.key,
     this.data,
     this.isLoading,
     this.onTapLihatSemua,
+    this.onRefreshNeeded,
   });
 
   @override
@@ -151,14 +153,14 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
       itemBuilder: (context, index) {
         final item = data[index];
         return GestureDetector(
-          onTap: () {
+          onTap: () async {
             final currentUser = AuthRepository.currentUserInstance;
             final userRole = UserRole(
               role: currentUser?.role ?? 'admin',
               name: currentUser?.name ?? 'Admin User',
               email: currentUser?.email ?? 'admin@lsp.com',
             );
-            Navigator.push(
+            final result = await Navigator.push<bool>(
               context,
               MaterialPageRoute(
                 builder: (context) => JadwalDetailScreen(
@@ -167,6 +169,14 @@ class _JadwalAsesmenState extends State<JadwalAsesmen> {
                 ),
               ),
             );
+            if (result == true) {
+              widget.onRefreshNeeded?.call();
+              if (widget.data == null) {
+                setState(() {
+                  _jadwalFuture = ApiService.getJadwalBaru();
+                });
+              }
+            }
           },
           child: JadwalItemCard(item: item),
         );
