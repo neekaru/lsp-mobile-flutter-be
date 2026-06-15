@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'form_fields.dart';
+import '../../models/master_models.dart';
 
 class DataPribadiForm extends StatelessWidget {
   final TextEditingController nikController;
@@ -18,6 +19,13 @@ class DataPribadiForm extends StatelessWidget {
   final String? selectedPendidikan;
   final TextEditingController namaSekolahController;
   final TextEditingController jurusanController;
+
+  final List<MasterItem> listProvinsi;
+  final List<MasterItem> listKabupaten;
+  final List<MasterItem> listKecamatan;
+  final bool isLoadingProvinsi;
+  final bool isLoadingKabupaten;
+  final bool isLoadingKecamatan;
 
   final ValueChanged<String?> onJenisKelaminChanged;
   final ValueChanged<String?> onProvinsiChanged;
@@ -42,6 +50,12 @@ class DataPribadiForm extends StatelessWidget {
     required this.selectedPendidikan,
     required this.namaSekolahController,
     required this.jurusanController,
+    required this.listProvinsi,
+    required this.listKabupaten,
+    required this.listKecamatan,
+    required this.isLoadingProvinsi,
+    required this.isLoadingKabupaten,
+    required this.isLoadingKecamatan,
     required this.onJenisKelaminChanged,
     required this.onProvinsiChanged,
     required this.onKotaChanged,
@@ -199,28 +213,27 @@ class DataPribadiForm extends StatelessWidget {
 
         // Provinsi/Kota/Kecamatan
         const CustomFieldLabel(label: 'Provinsi/Kota/Kecamatan'),
-        CustomDropdownSelector(
+        CustomKeyValueDropdownSelector(
           hint: '--Pilih Provinsi--',
           value: selectedProvinsi,
-          items: const ['DKI Jakarta', 'Jawa Barat', 'Jawa Tengah', 'Jawa Timur', 'Kalimantan Tengah'],
+          items: listProvinsi,
+          isLoading: isLoadingProvinsi,
           onChanged: onProvinsiChanged,
         ),
         const SizedBox(height: 10),
-        CustomDropdownSelector(
+        CustomKeyValueDropdownSelector(
           hint: '--Pilih Kota/Kabupaten--',
           value: selectedKota,
-          items: selectedProvinsi == null
-              ? []
-              : const ['Jakarta Pusat', 'Bandung', 'Semarang', 'Surabaya', 'Kotawaringin Timur'],
+          items: listKabupaten,
+          isLoading: isLoadingKabupaten,
           onChanged: onKotaChanged,
         ),
         const SizedBox(height: 10),
-        CustomDropdownSelector(
+        CustomKeyValueDropdownSelector(
           hint: '--Pilih Kecamatan--',
           value: selectedKecamatan,
-          items: selectedKota == null
-              ? []
-              : const ['Gambir', 'Coblong', 'Banyumanik', 'Gubeng', 'Mentawa Baru Ketapang'],
+          items: listKecamatan,
+          isLoading: isLoadingKecamatan,
           onChanged: onKecamatanChanged,
         ),
         const SizedBox(height: 20),

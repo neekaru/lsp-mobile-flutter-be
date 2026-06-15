@@ -52,10 +52,13 @@ class ApiRoutes {
   static const String sertifikatSearch = '/api/sertifikat/search';
 
   // ============================================================================
-  // Wilayah Routes
+  // Wilayah/Master Routes
   // ============================================================================
 
   static const String wilayahTukPerKabupaten = '/api/wilayah/tuk-per-kabupaten';
+  static const String masterProvinsi = '/api/master/provinsi';
+  static const String masterKabupaten = '/api/master/kabupaten';
+  static const String masterKecamatan = '/api/master/kecamatan';
 
   // ============================================================================
   // Helper Methods untuk build URL dengan query parameters

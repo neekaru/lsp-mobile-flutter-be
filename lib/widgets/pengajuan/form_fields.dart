@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../models/master_models.dart';
 
 // ─── Shared cached border objects ────────────────────────────────────────────
 // These are created once and reused across all text inputs and dropdowns
@@ -207,6 +208,100 @@ class CustomDropdownSelector extends StatelessWidget {
           );
         }).toList(),
         onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+class CustomKeyValueDropdownSelector extends StatelessWidget {
+  final String hint;
+  final String? value;
+  final List<MasterItem> items;
+  final ValueChanged<String?> onChanged;
+  final bool isLoading;
+
+  const CustomKeyValueDropdownSelector({
+    super.key,
+    required this.hint,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Make sure we have unique keys
+    final Map<String, String> uniqueItems = {};
+    for (var item in items) {
+      if (item.id.isNotEmpty) {
+        uniqueItems[item.id] = item.name;
+      }
+    }
+
+    String? effectiveValue;
+    if (value != null && uniqueItems.containsKey(value)) {
+      effectiveValue = value;
+    }
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8FAFC),
+        borderRadius: _kBorderRadius,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x03000000), // black with 1% opacity
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        key: ValueKey('${hint}_${uniqueItems.keys.join(',')}_$effectiveValue'),
+        value: effectiveValue,
+        isExpanded: true,
+        hint: Text(
+          isLoading ? 'Memuat data...' : hint,
+          style: TextStyle(
+            color: isLoading ? const Color(0xFF0F4C81) : const Color(0xFF94A3B8),
+            fontSize: 13,
+          ),
+        ),
+        icon: isLoading
+            ? const Padding(
+                padding: EdgeInsets.only(right: 4.0),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F4C81)),
+                  ),
+                ),
+              )
+            : const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Color(0xFF0F4C81),
+              ),
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: _kBorder,
+          enabledBorder: _kEnabledBorder,
+          focusedBorder: _kFocusedBorder,
+        ),
+        items: isLoading
+            ? []
+            : uniqueItems.entries.map((entry) {
+                return DropdownMenuItem<String>(
+                  value: entry.key,
+                  child: Text(
+                    entry.value,
+                    style: const TextStyle(fontSize: 13.5, color: Color(0xFF1E293B)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+        onChanged: isLoading ? null : onChanged,
       ),
     );
   }

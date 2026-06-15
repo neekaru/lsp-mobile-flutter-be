@@ -12,6 +12,7 @@ import '../../widgets/pengajuan/unit_kompetensi_detail.dart';
 import '../../widgets/pengajuan/dokumen_persyaratan_form.dart';
 import 'bukti_portofolio_screen.dart';
 import 'asesmen_mandiri_uji_screen.dart';
+import '../../models/master_models.dart';
 
 class PengajuanSertifikatScreen extends StatefulWidget {
   const PengajuanSertifikatScreen({super.key});
@@ -103,6 +104,78 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         _selectedJadwal = null;
       }
     });
+
+    // Fetch master data for Provinsi dropdown
+    _fetchProvinsi();
+  }
+
+  Future<void> _fetchProvinsi() async {
+    setState(() {
+      _isLoadingProvinsi = true;
+    });
+    try {
+      final list = await ApiService.getProvinsiList();
+      if (mounted) {
+        setState(() {
+          _listProvinsi = list;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching provinsi: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingProvinsi = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchKabupaten(String provinceId) async {
+    setState(() {
+      _isLoadingKabupaten = true;
+      _listKabupaten = [];
+      _listKecamatan = [];
+    });
+    try {
+      final list = await ApiService.getKabupatenList(provinceId);
+      if (mounted) {
+        setState(() {
+          _listKabupaten = list;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching kabupaten: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingKabupaten = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchKecamatan(String kabupatenId) async {
+    setState(() {
+      _isLoadingKecamatan = true;
+      _listKecamatan = [];
+    });
+    try {
+      final list = await ApiService.getKecamatanList(kabupatenId);
+      if (mounted) {
+        setState(() {
+          _listKecamatan = list;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching kecamatan: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingKecamatan = false;
+        });
+      }
+    }
   }
 
   // Current active step
@@ -124,6 +197,14 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   String? _selectedProvinsi;
   String? _selectedKota;
   String? _selectedKecamatan;
+
+  // Master lists and loading indicators for Profil Peserta dynamic dropdowns
+  List<MasterItem> _listProvinsi = [];
+  List<MasterItem> _listKabupaten = [];
+  List<MasterItem> _listKecamatan = [];
+  bool _isLoadingProvinsi = false;
+  bool _isLoadingKabupaten = false;
+  bool _isLoadingKecamatan = false;
   final TextEditingController _noTelpController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   String? _selectedPendidikan;
@@ -554,6 +635,12 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           selectedPendidikan: _selectedPendidikan,
           namaSekolahController: _namaSekolahController,
           jurusanController: _jurusanController,
+          listProvinsi: _listProvinsi,
+          listKabupaten: _listKabupaten,
+          listKecamatan: _listKecamatan,
+          isLoadingProvinsi: _isLoadingProvinsi,
+          isLoadingKabupaten: _isLoadingKabupaten,
+          isLoadingKecamatan: _isLoadingKecamatan,
           onJenisKelaminChanged: (val) {
             setState(() {
               _jenisKelamin = val!;
@@ -564,13 +651,22 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               _selectedProvinsi = val;
               _selectedKota = null;
               _selectedKecamatan = null;
+              _listKabupaten = [];
+              _listKecamatan = [];
             });
+            if (val != null) {
+              _fetchKabupaten(val);
+            }
           },
           onKotaChanged: (val) {
             setState(() {
               _selectedKota = val;
               _selectedKecamatan = null;
+              _listKecamatan = [];
             });
+            if (val != null) {
+              _fetchKecamatan(val);
+            }
           },
           onKecamatanChanged: (val) {
             setState(() {
