@@ -164,6 +164,10 @@ class CustomDropdownSelector extends StatelessWidget {
       }
     }
 
+    // PERF: Use lightweight key based on item count + selected value only.
+    // Previous key joined ALL items into one massive string on every rebuild.
+    final dropdownKey = ValueKey('${hint}_${uniqueItems.length}_$effectiveValue');
+
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFFF8FAFC),
@@ -177,9 +181,10 @@ class CustomDropdownSelector extends StatelessWidget {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        key: ValueKey('${hint}_${uniqueItems.join(',')}_$effectiveValue'),
+        key: dropdownKey,
         value: effectiveValue,
         isExpanded: true,
+        menuMaxHeight: MediaQuery.of(context).size.height * 0.4,
         hint: Text(
           hint,
           style: const TextStyle(
@@ -244,6 +249,10 @@ class CustomKeyValueDropdownSelector extends StatelessWidget {
       effectiveValue = value;
     }
 
+    // PERF: Lightweight key — only item count + selected value.
+    // Previous key joined ALL keys into one massive string on every rebuild.
+    final dropdownKey = ValueKey('${hint}_${uniqueItems.length}_$effectiveValue');
+
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFFF8FAFC),
@@ -257,9 +266,10 @@ class CustomKeyValueDropdownSelector extends StatelessWidget {
         ],
       ),
       child: DropdownButtonFormField<String>(
-        key: ValueKey('${hint}_${uniqueItems.keys.join(',')}_$effectiveValue'),
+        key: dropdownKey,
         value: effectiveValue,
         isExpanded: true,
+        menuMaxHeight: MediaQuery.of(context).size.height * 0.4,
         hint: Text(
           isLoading ? 'Memuat data...' : hint,
           style: TextStyle(
@@ -338,6 +348,10 @@ class CustomKeyValueDropdownSelectorGeneric<T> extends StatelessWidget {
       effectiveValue = value;
     }
 
+    // PERF: Lightweight key — only item count + selected value.
+    // Previous key joined ALL item values into one massive string on every rebuild.
+    final dropdownKey = ValueKey('${hint}_${items.length}_$effectiveValue');
+
     return Container(
       decoration: const BoxDecoration(
         color: Color(0xFFF8FAFC),
@@ -351,9 +365,10 @@ class CustomKeyValueDropdownSelectorGeneric<T> extends StatelessWidget {
         ],
       ),
       child: DropdownButtonFormField<T>(
-        key: ValueKey('${hint}_${items.map((e) => e.value.toString()).join(',')}_$effectiveValue'),
+        key: dropdownKey,
         value: effectiveValue,
         isExpanded: true,
+        menuMaxHeight: MediaQuery.of(context).size.height * 0.4,
         hint: Text(
           isLoading ? 'Memuat data...' : hint,
           style: TextStyle(

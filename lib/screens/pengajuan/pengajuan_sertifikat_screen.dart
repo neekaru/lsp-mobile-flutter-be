@@ -41,6 +41,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   @override
   void initState() {
     super.initState();
+    _cachedUnitKompetensi = _getUnitKompetensi();
     _loadInitialData();
   }
 
@@ -296,6 +297,11 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   final Map<String, bool?> _kukAssessments = {};
   final Map<String, String?> _kukEvidence = {};
 
+  // PERF: Cached unit kompetensi list — recomputed only when skema changes,
+  // not on every build() call. Previously _getUnitKompetensi() ran loop +
+  // string normalization + map mutation on every setState (e.g. radio tap).
+  List<Map<String, dynamic>> _cachedUnitKompetensi = [];
+
   // Step 5: Asesmen Mandiri State (Dynamic unit kompetensi based on selected schema)
   final Map<String, List<Map<String, dynamic>>> _schemaUnits = {
     'Pemasaran Digital': [
@@ -380,6 +386,11 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
     _schemaUnits[name] = generated;
     return generated;
+  }
+
+  /// PERF: Refresh the cached unit list. Call this only when _selectedSkema changes.
+  void _refreshUnitKompetensiCache() {
+    _cachedUnitKompetensi = _getUnitKompetensi();
   }
 
   @override
@@ -679,6 +690,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               } else {
                 _selectedSkema = null;
               }
+              _refreshUnitKompetensiCache();
             });
             if (val != null) {
               _fetchMasterJadwal(val);
@@ -792,7 +804,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       case 3:
         return DokumenPersyaratanForm(
           selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
-          unitKompetensi: _getUnitKompetensi(),
+          unitKompetensi: _cachedUnitKompetensi,
           uploadedDocs: _uploadedDocs,
           uploadedFileNames: _uploadedFileNames,
           onUploadChanged: (docName, isUploaded, fileName) {
@@ -812,7 +824,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               MaterialPageRoute(
                 builder: (context) => AsesmenMandiriUjiScreen(
                   selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
-                  unitKompetensi: _getUnitKompetensi(),
+                  unitKompetensi: _cachedUnitKompetensi,
                   uploadedFileNames: _uploadedFileNames,
                   kukAssessments: _kukAssessments,
                   kukEvidence: _kukEvidence,
@@ -838,7 +850,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         );
       case 5:
         if (_activeUnitDetailIndex != null) {
-          final unit = _getUnitKompetensi()[_activeUnitDetailIndex!];
+          final unit = _cachedUnitKompetensi[_activeUnitDetailIndex!];
           final String kode = unit['kode'] as String? ?? '';
           final String judul = unit['judul'] as String? ?? '';
           String kukCount = '11 KUK';
@@ -884,7 +896,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
         return AsesmenMandiriForm(
           selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
-          unitKompetensi: _getUnitKompetensi(),
+          unitKompetensi: _cachedUnitKompetensi,
           onUnitTap: (index) {
             setState(() {
               _activeUnitDetailIndex = index;
@@ -907,7 +919,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           child: Row(
             children: [
               Expanded(
-                flex: 1,
+                flex: 2,
                 child: SizedBox(
                   height: 48,
                   child: OutlinedButton.icon(
@@ -937,7 +949,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: SizedBox(
                   height: 48,
                   child: ElevatedButton(
@@ -988,7 +1000,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           children: [
             if (_currentStep > 0) ...[
               Expanded(
-                flex: 1,
+                flex: 2,
                 child: SizedBox(
                   height: 48,
                   child: OutlinedButton.icon(
@@ -1016,7 +1028,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             if (!isStep4) ...[
               if (_currentStep > 0) const SizedBox(width: 16),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: SizedBox(
                   height: 48,
                   child: ElevatedButton(

@@ -531,11 +531,12 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                   final bool? isK = widget.kukAssessments[kukText];
                   final linkedEvidence = widget.kukEvidence[kukText];
 
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
-                    ),
+                  return RepaintBoundary(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                      ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -553,32 +554,39 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                               ),
                             ),
                             const SizedBox(width: 16),
-                            // K / KB Radio options
+                            // K / KB Radio options — tap area ≥44px to win gesture arena vs scroll
                             Row(
                               children: [
                                 // K Radio Button
                                 GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
                                   onTap: () {
                                     widget.onAssessmentChanged(kukText, true);
                                     setState(() {});
                                   },
-                                  child: Icon(
-                                    isK == true ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
-                                    color: const Color(0xFF378CE7),
-                                    size: 22,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(11),
+                                    child: Icon(
+                                      isK == true ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                                      color: const Color(0xFF378CE7),
+                                      size: 22,
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(width: 22),
                                 // KB Radio Button
                                 GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
                                   onTap: () {
                                     widget.onAssessmentChanged(kukText, false);
                                     setState(() {});
                                   },
-                                  child: Icon(
-                                    isK == false ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
-                                    color: const Color(0xFF378CE7),
-                                    size: 22,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(11),
+                                    child: Icon(
+                                      isK == false ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                                      color: const Color(0xFF378CE7),
+                                      size: 22,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -591,7 +599,7 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                         Row(
                           children: [
                             SizedBox(
-                              height: 32,
+                              height: 40,
                               child: ElevatedButton(
                                 onPressed: () => _showEvidencePickerSheet(context, kukText),
                                 style: ElevatedButton.styleFrom(
@@ -636,6 +644,7 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                         ),
                       ],
                     ),
+                  ),
                   );
                 }),
               ],

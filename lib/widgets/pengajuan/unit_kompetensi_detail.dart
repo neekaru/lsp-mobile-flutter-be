@@ -310,11 +310,12 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
                     final bool? isK = widget.kukAssessments[kukText];
                     final linkedEvidence = widget.kukEvidence[kukText];
 
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
-                      ),
+                    return RepaintBoundary(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: const BoxDecoration(
+                          border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                        ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -332,26 +333,33 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              // Radio choices
+                              // Radio choices — tap area ≥44px to win gesture arena vs scroll
                               Row(
                                 children: [
                                   // K
                                   GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
                                     onTap: () => widget.onAssessmentChanged(kukText, true),
-                                    child: Icon(
-                                      isK == true ? Icons.radio_button_checked : Icons.radio_button_off,
-                                      color: const Color(0xFF378CE7),
-                                      size: 22,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(11),
+                                      child: Icon(
+                                        isK == true ? Icons.radio_button_checked : Icons.radio_button_off,
+                                        color: const Color(0xFF378CE7),
+                                        size: 22,
+                                      ),
                                     ),
                                   ),
-                                  const SizedBox(width: 20),
                                   // KB
                                   GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
                                     onTap: () => widget.onAssessmentChanged(kukText, false),
-                                    child: Icon(
-                                      isK == false ? Icons.radio_button_checked : Icons.radio_button_off,
-                                      color: const Color(0xFF378CE7),
-                                      size: 22,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(11),
+                                      child: Icon(
+                                        isK == false ? Icons.radio_button_checked : Icons.radio_button_off,
+                                        color: const Color(0xFF378CE7),
+                                        size: 22,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -364,7 +372,7 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
                           Row(
                             children: [
                               SizedBox(
-                                height: 28,
+                                height: 40,
                                 child: ElevatedButton.icon(
                                   onPressed: () => _showEvidencePicker(context, kukText),
                                   icon: const Icon(Icons.attach_file, size: 12),
@@ -401,6 +409,7 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
                           ),
                         ],
                       ),
+                    ),
                     );
                   }),
                 ],
