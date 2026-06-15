@@ -49,7 +49,7 @@ class ApiRoutes {
   // Sertifikat Routes
   // ============================================================================
 
-  static const String sertifikatSearch = '/api/sertifikat/search';
+  static const String sertifikatSearch = '/api/sertifikat-status/search';
 
   // ============================================================================
   // Wilayah/Master Routes
