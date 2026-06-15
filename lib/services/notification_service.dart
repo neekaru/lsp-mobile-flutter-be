@@ -214,12 +214,20 @@ class NotificationService {
       message.data,
     );
 
+    // Defensive: only call setTab if MainNavigator is alive and mounted.
+    // Prevents "setState() called after dispose()" when FCM fires after logout.
+    final state = mainNavigatorKey.currentState;
+    if (state == null || !state.mounted) {
+      if (kDebugMode) {
+        debugPrint('⚠️ MainNavigator not mounted, skipping setTab for notification');
+      }
+      return;
+    }
+
     if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
-      // Switch to Sertifikat Tab (Index 3)
-      mainNavigatorKey.currentState?.setTab(3);
+      state.setTab(3);
     } else if (type == 'rekomendasi_asesor') {
-      // Switch to Jadwal Tab (Index 2)
-      mainNavigatorKey.currentState?.setTab(2);
+      state.setTab(2);
     }
   }
 

@@ -460,10 +460,12 @@ class _NotificationPanelState extends State<NotificationPanel> {
                                     onActionPressed: () {
                                       Navigator.pop(context); // Close bottom sheet
                                       final type = notif.type;
+                                      final state = mainNavigatorKey.currentState;
+                                      if (state == null || !state.mounted) return;
                                       if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
-                                        mainNavigatorKey.currentState?.setTab(3); // Switch to Sertifikat Tab
+                                        state.setTab(3); // Switch to Sertifikat Tab
                                       } else if (type == 'rekomendasi_asesor') {
-                                        mainNavigatorKey.currentState?.setTab(2); // Switch to Jadwal Tab
+                                        state.setTab(2); // Switch to Jadwal Tab
                                       }
                                     },
                                     onDelete: () async {

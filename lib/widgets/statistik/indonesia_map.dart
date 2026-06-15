@@ -145,6 +145,7 @@ class _IndonesiaMapState extends State<IndonesiaMap>
   @override
   void dispose() {
     _isDisposed = true;
+    _cachedMapSource = null; // release Syncfusion source + GeoJSON bytes ref
     super.dispose();
   }
 
@@ -257,19 +258,26 @@ class _IndonesiaMapState extends State<IndonesiaMap>
 
   /// Map content dengan legend
   Widget _buildMapContent() {
-    // Resolve the source into a LOCAL var. Do NOT mutate _cachedMapSource here:
-    // build() must be pure. If still null and not initialized, show loading.
-    MapShapeSource? mapSource = _cachedMapSource;
+    final MapShapeSource? mapSource = _cachedMapSource;
+
+    // _cachedMapSource is null only if initState hasn't finished yet.
+    // Schedule a state update for the next frame instead of creating
+    // MapShapeSource inside build() — keeps build() pure and prevents
+    // Syncfusion from re-parsing GeoJSON on every rebuild.
     if (mapSource == null) {
-      if (GeoJsonManager.instance.isInitialized) {
-        mapSource = GeoJsonManager.instance.createMapSource(
-          provinceData: widget.provinceData ?? provinceAdvisors,
-          colorMapper: _getColorForCount,
-        );
-      } else {
-        // Jika belum initialized, tampilkan loading
-        return _buildLoadingState();
+      if (GeoJsonManager.instance.isInitialized && !_isDisposed) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!_isDisposed && mounted) {
+            setState(() {
+              _cachedMapSource = GeoJsonManager.instance.createMapSource(
+                provinceData: widget.provinceData ?? provinceAdvisors,
+                colorMapper: _getColorForCount,
+              );
+            });
+          }
+        });
       }
+      return _buildLoadingState();
     }
 
     return Row(

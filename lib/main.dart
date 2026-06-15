@@ -182,69 +182,39 @@ class MainNavigator extends StatefulWidget {
 
 class MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
-  
-  // Cache screens after first visit so they preserve state.
-  // Unlike IndexedStack, screens are only created on first visit,
-  // not all 5 at startup. This avoids ~10 API calls + heavy map loading.
-  final Map<int, Widget> _screenCache = {};
+  bool _isDisposed = false;
 
-  Widget _getScreen(int index) {
-    return _screenCache.putIfAbsent(index, () => _createScreen(index));
-  }
+  // Game-style screen management:
+  // - Screens are created lazily on first visit (no upfront cost).
+  // - Once created, they stay in the widget tree but are hidden via Offstage
+  //   so their state (scroll, data, etc.) is fully preserved.
+  // - TickerMode(enabled: false) pauses all animations on hidden screens,
+  //   preventing wasted CPU/GPU work — exactly like a game pausing off-screen scenes.
+  // - Only the active screen is visible and ticking.
+  final Set<int> _visitedTabs = {};
 
-  Widget _createScreen(int index) {
+  Widget _buildScreen(int index) {
     switch (index) {
       case 0:
         return DashboardScreen(
-          onNavigateToJadwal: () {
-            if (mounted) {
-              setState(() {
-                _getScreen(2);
-                _currentIndex = 2;
-              });
-            }
-          },
+          onNavigateToJadwal: () => setTab(2),
         );
       case 1:
         return StatistikScreen(
-          onBackToHome: () {
-            if (mounted) {
-              setState(() {
-                _currentIndex = 0;
-              });
-            }
-          },
+          onBackToHome: () => setTab(0),
         );
       case 2:
         return JadwalScreen(
-          onBackToHome: () {
-            if (mounted) {
-              setState(() {
-                _currentIndex = 0;
-              });
-            }
-          },
+          onBackToHome: () => setTab(0),
         );
       case 3:
         return PlaceholderScreen(
           title: 'Sertifikat',
-          onBackToHome: () {
-            if (mounted) {
-              setState(() {
-                _currentIndex = 0;
-              });
-            }
-          },
+          onBackToHome: () => setTab(0),
         );
       case 4:
         return ProfileScreen(
-          onBackToHome: () {
-            if (mounted) {
-              setState(() {
-                _currentIndex = 0;
-              });
-            }
-          },
+          onBackToHome: () => setTab(0),
         );
       default:
         return const DashboardScreen();
@@ -252,12 +222,26 @@ class MainNavigatorState extends State<MainNavigator> {
   }
 
   void setTab(int index) {
-    if (mounted) {
-      setState(() {
-        _getScreen(index);
-        _currentIndex = index;
-      });
-    }
+    // Guard: never call setState on a disposed or unmounted state.
+    if (_isDisposed || !mounted) return;
+    if (_currentIndex == index) return; // no-op
+    setState(() {
+      _visitedTabs.add(index);
+      _currentIndex = index;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-warm Dashboard immediately so it's ready on first frame.
+    _visitedTabs.add(0);
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 
   Future<bool> _showExitDialog() async {
@@ -303,27 +287,17 @@ class MainNavigatorState extends State<MainNavigator> {
     ) ?? false;
   }
 
-  // Lazy tab navigator: only the active screen is in the widget tree.
-  // Previously visited screens are kept in _screenCache for state preservation.
   @override
   Widget build(BuildContext context) {
-    // Build ONLY the cached screens (visited ones), not all 5.
-    
-    // Ensure current index is always visited
-    if (!_screenCache.containsKey(_currentIndex)) {
-      _getScreen(_currentIndex);
-    }
+    // Mark current tab as visited so its screen enters the tree.
+    _visitedTabs.add(_currentIndex);
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
         if (_currentIndex != 0) {
-          if (mounted) {
-            setState(() {
-              _currentIndex = 0;
-            });
-          }
+          setTab(0);
         } else {
           final shouldExit = await _showExitDialog();
           if (shouldExit) {
@@ -333,26 +307,30 @@ class MainNavigatorState extends State<MainNavigator> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F6F8),
-        body: IndexedStack(
-          index: _currentIndex,
+        body: Stack(
+          fit: StackFit.expand,
           children: List.generate(5, (index) {
-            if (_screenCache.containsKey(index)) {
-              return _screenCache[index]!;
+            // Unvisited tabs: zero-cost placeholder, never built.
+            if (!_visitedTabs.contains(index)) {
+              return const SizedBox.shrink();
             }
-            // Unvisited screens get a zero-cost placeholder
-            return const SizedBox.shrink();
+            final isActive = index == _currentIndex;
+            return Offstage(
+              // Offstage hides the widget but keeps it alive in the tree
+              // (state, scroll position, loaded data all preserved).
+              offstage: !isActive,
+              child: TickerMode(
+                // Pause all animations/tickers on hidden screens —
+                // same trick game engines use for off-screen scenes.
+                enabled: isActive,
+                child: _buildScreen(index),
+              ),
+            );
           }),
         ),
         bottomNavigationBar: BottomMenuBar(
           selectedIndex: _currentIndex,
-          onTap: (index) {
-            if (mounted) {
-              setState(() {
-                _getScreen(index); // Create & cache screen on first tap
-                _currentIndex = index;
-              });
-            }
-          },
+          onTap: setTab,
         ),
       ),
     );
