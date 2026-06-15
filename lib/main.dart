@@ -16,8 +16,8 @@ import 'screens/auth/splash_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/dashboard/statistik_screen.dart';
 import 'screens/jadwal/jadwal_screen.dart';
-import 'screens/common/placeholder_screen.dart';
 import 'screens/profile/profile_screen.dart';
+import 'screens/sertifikat/sertifikat_screen.dart';
 
 // Import widgets
 import 'widgets/bottom_menu_bar.dart';
@@ -208,8 +208,7 @@ class MainNavigatorState extends State<MainNavigator> {
           onBackToHome: () => setTab(0),
         );
       case 3:
-        return PlaceholderScreen(
-          title: 'Sertifikat',
+        return SertifikatScreen(
           onBackToHome: () => setTab(0),
         );
       case 4:
