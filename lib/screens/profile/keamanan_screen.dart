@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../widgets/bottom_menu_bar.dart';
 import '../../main.dart';
+import '../../services/api_service.dart';
+import '../../services/notification_service.dart';
+import '../../models/auth_models.dart';
 
 class KeamananScreen extends StatefulWidget {
   const KeamananScreen({super.key});
@@ -10,6 +14,140 @@ class KeamananScreen extends StatefulWidget {
 }
 
 class _KeamananScreenState extends State<KeamananScreen> {
+  List<LoginSession> _sessions = [];
+  bool _isLoadingSessions = true;
+  String? _localDeviceToken;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSessions();
+    _loadLocalDeviceToken();
+  }
+
+  Future<void> _loadLocalDeviceToken() async {
+    try {
+      final token = await NotificationService.instance.getToken();
+      if (mounted) {
+        setState(() {
+          _localDeviceToken = token;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading local device token: $e');
+    }
+  }
+
+  Future<void> _loadSessions() async {
+    setState(() {
+      _isLoadingSessions = true;
+    });
+    final sessions = await ApiService.getActiveSessions();
+    if (mounted) {
+      setState(() {
+        _sessions = sessions;
+        _isLoadingSessions = false;
+      });
+    }
+  }
+
+  Future<void> _handleDeleteSession(LoginSession session) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hapus Sesi'),
+        content: Text('Apakah Anda yakin ingin menghapus sesi login di perangkat ${session.deviceHint}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal', style: TextStyle(color: Color(0xFF64748B))),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 12),
+              Text('Menghapus sesi...'),
+            ],
+          ),
+          duration: Duration(days: 1),
+        ),
+      );
+
+      final String tokenToSend = (session.active && _localDeviceToken != null) 
+          ? _localDeviceToken!
+          : 'device_token_${session.deviceHint}_${session.id}';
+
+      final success = await ApiService.deleteSession(tokenToSend);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text('Sesi ${session.deviceHint} berhasil dihapus!'),
+                ],
+              ),
+              backgroundColor: const Color(0xFF2E7D32),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+          _loadSessions();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline_rounded, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text('Gagal menghapus sesi. Silakan coba lagi.'),
+                ],
+              ),
+              backgroundColor: const Color(0xFFD32F2F),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  String _formatDateTime(String utcString) {
+    try {
+      final dateTime = DateTime.parse(utcString);
+      final formatter = DateFormat('dd MMM yyyy, HH:mm', 'id_ID');
+      return formatter.format(dateTime.toLocal());
+    } catch (_) {
+      return utcString;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
@@ -116,7 +254,6 @@ class _KeamananScreenState extends State<KeamananScreen> {
                   // Login Terakhir Card
                   Container(
                     width: double.infinity,
-                    height: 160,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -135,19 +272,211 @@ class _KeamananScreenState extends State<KeamananScreen> {
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Login Terakhir',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Login Terakhir',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            if (!_isLoadingSessions)
+                              GestureDetector(
+                                onTap: _loadSessions,
+                                child: const Icon(
+                                  Icons.refresh_rounded,
+                                  size: 18,
+                                  color: Color(0xFF378CE7),
+                                ),
+                              ),
+                          ],
                         ),
+                        const SizedBox(height: 16),
+                        
+                        if (_isLoadingSessions)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24.0),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                color: Color(0xFF378CE7),
+                              ),
+                            ),
+                          )
+                        else if (_sessions.isEmpty)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24.0),
+                              child: Text(
+                                'Tidak ada riwayat login aktif.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          // Table container
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Table(
+                                columnWidths: const {
+                                  0: FlexColumnWidth(1.2),
+                                  1: FlexColumnWidth(1.6),
+                                  2: FixedColumnWidth(60),
+                                },
+                                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                                children: [
+                                  // Table Header Row
+                                  TableRow(
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFF8FAFC),
+                                    ),
+                                    children: const [
+                                      Padding(
+                                        padding: EdgeInsets.all(10.0),
+                                        child: Text(
+                                          'Perangkat',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF475569),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.all(10.0),
+                                        child: Text(
+                                          'Terakhir Aktif',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF475569),
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.all(10.0),
+                                        child: Center(
+                                          child: Text(
+                                            'Aksi',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF475569),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  // Table Body Rows
+                                  ..._sessions.map((session) {
+                                    final isAndroid = session.platform.toLowerCase().contains('android');
+                                    final isIos = session.platform.toLowerCase().contains('ios') || session.platform.toLowerCase().contains('iphone');
+                                    final platformIcon = isAndroid 
+                                        ? Icons.phone_android_rounded 
+                                        : (isIos ? Icons.phone_iphone_rounded : Icons.computer_rounded);
+                                    final platformColor = isAndroid 
+                                        ? const Color(0xFF3DDC84) 
+                                        : (isIos ? Colors.black87 : const Color(0xFF378CE7));
+
+                                    return TableRow(
+                                      decoration: const BoxDecoration(
+                                        border: Border(
+                                          top: BorderSide(color: Color(0xFFE2E8F0)),
+                                        ),
+                                      ),
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+                                          child: Row(
+                                            children: [
+                                              Icon(platformIcon, color: platformColor, size: 16),
+                                              const SizedBox(width: 6),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      session.deviceHint,
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Color(0xFF1E293B),
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                    if (session.active)
+                                                      Container(
+                                                        margin: const EdgeInsets.only(top: 2),
+                                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                                        decoration: BoxDecoration(
+                                                          color: const Color(0xFFDCFCE7),
+                                                          borderRadius: BorderRadius.circular(4),
+                                                        ),
+                                                        child: const Text(
+                                                          'Aktif',
+                                                          style: TextStyle(
+                                                            fontSize: 8,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: Color(0xFF15803D),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Text(
+                                            _formatDateTime(session.updatedAt),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF475569),
+                                            ),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                          child: Center(
+                                            child: IconButton(
+                                              icon: const Icon(
+                                                Icons.delete_outline_rounded,
+                                                color: Color(0xFFEF4444),
+                                                size: 18,
+                                              ),
+                                              onPressed: () => _handleDeleteSession(session),
+                                              constraints: const BoxConstraints(),
+                                              padding: EdgeInsets.zero,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }),
+                                ],
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 120), // Spacing before buttons
+                  const SizedBox(height: 24), // Spacing before buttons
                   
                   // Action Buttons (Batal & Simpan)
                   Row(

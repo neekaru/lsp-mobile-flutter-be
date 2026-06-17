@@ -59,3 +59,32 @@ class LoginResult {
     );
   }
 }
+
+class LoginSession {
+  final int id;
+  final String platform;
+  final String deviceHint;
+  final String createdAt;
+  final String updatedAt;
+  final bool active;
+
+  LoginSession({
+    required this.id,
+    required this.platform,
+    required this.deviceHint,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.active,
+  });
+
+  factory LoginSession.fromJson(Map<String, dynamic> json) {
+    return LoginSession(
+      id: json['id'] as int? ?? 0,
+      platform: json['platform'] as String? ?? '',
+      deviceHint: json['device_hint'] as String? ?? '',
+      createdAt: json['created_at'] as String? ?? '',
+      updatedAt: json['updated_at'] as String? ?? '',
+      active: json['active'] as bool? ?? false,
+    );
+  }
+}

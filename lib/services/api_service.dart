@@ -9,6 +9,7 @@ import '../models/jadwal_models.dart';
 import '../helpers/bps_code_helper.dart';
 import '../helpers/api_routes.dart';
 import '../models/master_models.dart';
+import '../models/auth_models.dart';
 
 // ============================================================================
 // API Service
@@ -1131,6 +1132,42 @@ class ApiService {
     } catch (e) {
       debugPrint('🔴 Error fetching master jadwal: $e');
       return [];
+    }
+  }
+
+  // ============================================================================
+  // Session APIs
+  // ============================================================================
+
+  /// Fetch active login sessions
+  static Future<List<LoginSession>> getActiveSessions() async {
+    try {
+      final response = await _dio.get('/api/sessions');
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data.map((item) => LoginSession.fromJson(item as Map<String, dynamic>)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error fetching active sessions: $e');
+      return [];
+    }
+  }
+
+  /// Delete a login session by device token
+  static Future<bool> deleteSession(String deviceToken) async {
+    try {
+      final response = await _dio.delete(
+        '/api/sessions',
+        data: {'device_token': deviceToken},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('🔴 Error deleting session: $e');
+      return false;
     }
   }
 }
