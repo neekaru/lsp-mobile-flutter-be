@@ -18,50 +18,38 @@ class _KeamananScreenState extends State<KeamananScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Flat Header bar matching screenshot
-          Container(
-            width: double.infinity,
-            color: const Color(0xFFF5F5F5), // Light grey background for header band
-            padding: EdgeInsets.only(
-              top: statusBarHeight + 8,
-              bottom: 12,
-              left: 16,
-              right: 16,
-            ),
+          SizedBox(height: statusBarHeight + 8),
+          // Header Bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF1E293B),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.chevron_left_rounded,
-                          color: Color(0xFF1E293B),
-                          size: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Keamanan',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                    ],
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.keyboard_arrow_left_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                 ),
+                const Text(
+                  'Keamanan',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(width: 32, height: 32),
               ],
             ),
           ),
