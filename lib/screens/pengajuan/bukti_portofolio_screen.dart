@@ -43,10 +43,27 @@ class PortfolioSection {
 
 class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
   late List<PortfolioSection> _sections;
+  late Map<String, String> _verificationStatuses;
+  late Map<String, String> _rejectionComments;
 
   @override
   void initState() {
     super.initState();
+    
+    // Initialize verification statuses matching the mockup design
+    _verificationStatuses = {
+      'Identitas Pribadi (KTP/Kartu Pelajar)': 'Terverifikasi',
+      'Pasfoto': 'Ditolak',
+      'Ijazah Terakhir / SMA / Sederajat': 'Menunggu Verifikasi',
+      'Surat Keterangan Pengalaman Kerja': 'Belum Diunggah',
+      'Link Portofolio / GitHub': 'Terverifikasi',
+      'Sertifikat Pelatihan Berbasis Kompetensi': 'Terverifikasi',
+    };
+
+    _rejectionComments = {
+      'Pasfoto': 'Foto buram & latar harus merah',
+    };
+
     _sections = [
       PortfolioSection(
         title: 'a. Dokumen Identitas & Administrasi',
@@ -305,11 +322,14 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
           .replaceAll('/', '_')
           .replaceAll(' ', '_')
           .toLowerCase();
-      final extension = docKey.contains('Pasfoto') ? 'png' : 'pdf';
+      final extension = docKey.contains('Pasfoto') ? 'JPG' : 'PDF';
       final fileName = '${cleanName}_bukti.$extension';
 
       widget.onUploadChanged(docKey, true, fileName);
-      setState(() {});
+      setState(() {
+        _verificationStatuses[docKey] = 'Menunggu Verifikasi';
+        _rejectionComments.remove(docKey);
+      });
     });
   }
 
@@ -404,11 +424,17 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
                         final val = controller.text.trim();
                         if (val.isNotEmpty) {
                           widget.onUploadChanged(docKey, true, val);
+                          setState(() {
+                            _verificationStatuses[docKey] = 'Terverifikasi';
+                            _rejectionComments.remove(docKey);
+                          });
                         } else {
                           widget.onUploadChanged(docKey, false, null);
+                          setState(() {
+                            _verificationStatuses[docKey] = 'Belum Diunggah';
+                          });
                         }
                         Navigator.pop(context);
-                        setState(() {});
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF378CE7),
@@ -434,6 +460,55 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
   Widget _buildItemCard(PortfolioItem item) {
     final isUploaded = widget.uploadedDocs[item.key] ?? false;
     final fileName = widget.uploadedFileNames[item.key];
+
+    // Determine status text
+    String statusText = 'Belum Diunggah';
+    if (isUploaded) {
+      statusText = _verificationStatuses[item.key] ?? 'Menunggu Verifikasi';
+    }
+
+    // Determine badge colors based on status
+    Color badgeBgColor;
+    Color badgeTextColor;
+    switch (statusText) {
+      case 'Terverifikasi':
+        badgeBgColor = const Color(0xFFC6F6D5);
+        badgeTextColor = const Color(0xFF22543D);
+        break;
+      case 'Ditolak':
+        badgeBgColor = const Color(0xFFFED7D7);
+        badgeTextColor = const Color(0xFF9B2C2C);
+        break;
+      case 'Menunggu Verifikasi':
+        badgeBgColor = const Color(0xFFFEEBC8);
+        badgeTextColor = const Color(0xFF7B341E);
+        break;
+      case 'Belum Diunggah':
+      default:
+        badgeBgColor = const Color(0xFFEDF2F7);
+        badgeTextColor = const Color(0xFF4A5568);
+        break;
+    }
+
+    // Check rejection comment
+    String? rejectionComment;
+    if (statusText == 'Ditolak') {
+      rejectionComment = _rejectionComments[item.key];
+    }
+
+    // Determine button colors and labels
+    final bool isUnuploaded = statusText == 'Belum Diunggah';
+    final Color buttonBgColor = isUnuploaded ? const Color(0xFFE2E8F0) : const Color(0xFF378CE7);
+    final Color buttonTextColor = isUnuploaded ? const Color(0xFF64748B) : Colors.white;
+
+    String buttonLabel = item.isLink ? 'Simpan Tautan' : 'Unggah Dokumen';
+    if (!isUnuploaded) {
+      if (item.isLink) {
+        buttonLabel = 'Edit Tautan';
+      } else if (statusText == 'Ditolak') {
+        buttonLabel = 'Unggah Ulang';
+      }
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -467,7 +542,7 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
                 if (item.isRequired)
                   const TextSpan(
                     text: ' *',
-                    style: TextStyle(color: Colors.red),
+                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                   ),
               ],
             ),
@@ -476,6 +551,7 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
 
           // Status & Icon Row
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
@@ -490,143 +566,128 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'Status : ',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isUploaded
-                              ? (item.isLink ? const Color(0xFFE0F2FE) : const Color(0xFFDCFCE7))
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          isUploaded
-                              ? (item.isLink ? 'Tautan Disimpan' : 'Sudah Diunggah')
-                              : 'Belum Diunggah',
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Status Badge
+                    Row(
+                      children: [
+                        const Text(
+                          'Status :   ',
                           style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: isUploaded
-                                ? (item.isLink ? const Color(0xFF0369A1) : const Color(0xFF15803D))
-                                : const Color(0xFF64748B),
+                            fontSize: 13,
+                            color: Color(0xFF64748B),
                           ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: badgeBgColor,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            statusText,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: badgeTextColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Rejection Comment
+                    if (rejectionComment != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '($rejectionComment)',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: Colors.grey[600],
                         ),
                       ),
                     ],
-                  ),
-                ],
+                    // File name
+                    if (fileName != null && !isUnuploaded) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'File     :   ',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                          Expanded(
+                            child: item.isLink
+                                ? Text(
+                                    fileName,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Color(0xFF1976D2),
+                                      decoration: TextDecoration.underline,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                : Text(
+                                    fileName,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Color(0xFF334155),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Upload/Action Area
-          if (!isUploaded) ...[
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: ElevatedButton.icon(
-                onPressed: () => item.isLink
-                    ? _showLinkBottomSheet(context, item.key)
-                    : _simulateUpload(context, item.key),
-                icon: Icon(
-                  item.isLink ? Icons.link_rounded : Icons.cloud_upload_outlined,
-                  color: Colors.white,
-                  size: 18,
+          // Upload/Action Button
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton.icon(
+              onPressed: () => item.isLink
+                  ? _showLinkBottomSheet(context, item.key)
+                  : _simulateUpload(context, item.key),
+              icon: Icon(
+                item.isLink
+                    ? (isUnuploaded ? Icons.link_rounded : Icons.edit_rounded)
+                    : Icons.cloud_upload_outlined,
+                color: buttonTextColor,
+                size: 18,
+              ),
+              label: Text(
+                buttonLabel,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: buttonTextColor,
                 ),
-                label: Text(
-                  item.isLink ? 'Simpan Tautan' : 'Unggah Dokumen',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF378CE7),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: buttonBgColor,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
-          ] else ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    item.isLink ? Icons.link_rounded : Icons.insert_drive_file_rounded,
-                    color: const Color(0xFF64748B),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      fileName ?? '',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF334155),
-                        fontWeight: FontWeight.w500,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                    onPressed: () {
-                      widget.onUploadChanged(item.key, false, null);
-                      setState(() {});
-                    },
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              height: 40,
-              child: OutlinedButton.icon(
-                onPressed: () => item.isLink
-                    ? _showLinkBottomSheet(context, item.key)
-                    : _simulateUpload(context, item.key),
-                icon: Icon(item.isLink ? Icons.edit_rounded : Icons.sync_rounded, size: 16),
-                label: Text(
-                  item.isLink ? 'Ubah Tautan' : 'Ubah Dokumen',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF378CE7),
-                  side: const BorderSide(color: Color(0xFF378CE7)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
 
           // Hint Text if present
-          if (item.hint != null) ...[
+          if (item.hint != null && isUnuploaded) ...[
             const SizedBox(height: 10),
             Text(
               item.hint!,

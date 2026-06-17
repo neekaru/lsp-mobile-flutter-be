@@ -278,21 +278,21 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
   // Step 4: Dokumen Portofolio State (Simulated upload status)
   final Map<String, bool> _uploadedDocs = {
-    'Ijazah Terakhir / SMA / Sederajat': false,
-    'Sertifikat Pelatihan Berbasis Kompetensi': false,
+    'Ijazah Terakhir / SMA / Sederajat': true,
+    'Sertifikat Pelatihan Berbasis Kompetensi': true,
     'Surat Keterangan Pengalaman Kerja': false,
-    'Pasfoto': false,
-    'Identitas Pribadi (KTP/Kartu Pelajar)': false,
-    'Link Portofolio / GitHub': false,
+    'Pasfoto': true,
+    'Identitas Pribadi (KTP/Kartu Pelajar)': true,
+    'Link Portofolio / GitHub': true,
   };
 
   final Map<String, String?> _uploadedFileNames = {
-    'Ijazah Terakhir / SMA / Sederajat': null,
-    'Sertifikat Pelatihan Berbasis Kompetensi': null,
+    'Ijazah Terakhir / SMA / Sederajat': 'Ijasah_S1_Teknik_Informatika.PDF',
+    'Sertifikat Pelatihan Berbasis Kompetensi': 'Sertifikat_digital_marketing.PDF',
     'Surat Keterangan Pengalaman Kerja': null,
-    'Pasfoto': null,
-    'Identitas Pribadi (KTP/Kartu Pelajar)': null,
-    'Link Portofolio / GitHub': null,
+    'Pasfoto': 'Pas_foto_Hanafi.JPG',
+    'Identitas Pribadi (KTP/Kartu Pelajar)': 'KTP_Hanafi.PDF',
+    'Link Portofolio / GitHub': 'https://github.com/MuhammadHanafi',
   };
 
   int? _activeUnitDetailIndex;
