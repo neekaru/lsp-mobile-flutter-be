@@ -1154,12 +1154,12 @@ class ApiService {
     }
   }
 
-  /// Delete a login session by device token
-  static Future<bool> deleteSession(String deviceToken) async {
+  /// Delete a login session by session ID
+  static Future<bool> deleteSession(int id) async {
     try {
       final response = await _dio.delete(
         '/api/sessions',
-        data: {'device_token': deviceToken},
+        data: {'id': id},
       );
       if (response.statusCode == 200 && response.data != null) {
         return response.data['data'] == true;

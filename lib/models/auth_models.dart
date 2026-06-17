@@ -65,7 +65,7 @@ class LoginSession {
   final String platform;
   final String deviceHint;
   final String createdAt;
-  final String updatedAt;
+  final String? updatedAt;
   final bool active;
 
   LoginSession({
@@ -73,7 +73,7 @@ class LoginSession {
     required this.platform,
     required this.deviceHint,
     required this.createdAt,
-    required this.updatedAt,
+    this.updatedAt,
     required this.active,
   });
 
@@ -83,7 +83,7 @@ class LoginSession {
       platform: json['platform'] as String? ?? '',
       deviceHint: json['device_hint'] as String? ?? '',
       createdAt: json['created_at'] as String? ?? '',
-      updatedAt: json['updated_at'] as String? ?? '',
+      updatedAt: json['updated_at'] as String?,
       active: json['active'] as bool? ?? false,
     );
   }

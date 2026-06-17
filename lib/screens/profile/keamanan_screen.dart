@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import '../../widgets/bottom_menu_bar.dart';
 import '../../main.dart';
 import '../../services/api_service.dart';
-import '../../services/notification_service.dart';
 import '../../models/auth_models.dart';
 
 class KeamananScreen extends StatefulWidget {
@@ -16,26 +15,11 @@ class KeamananScreen extends StatefulWidget {
 class _KeamananScreenState extends State<KeamananScreen> {
   List<LoginSession> _sessions = [];
   bool _isLoadingSessions = true;
-  String? _localDeviceToken;
 
   @override
   void initState() {
     super.initState();
     _loadSessions();
-    _loadLocalDeviceToken();
-  }
-
-  Future<void> _loadLocalDeviceToken() async {
-    try {
-      final token = await NotificationService.instance.getToken();
-      if (mounted) {
-        setState(() {
-          _localDeviceToken = token;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading local device token: $e');
-    }
   }
 
   Future<void> _loadSessions() async {
@@ -52,15 +36,41 @@ class _KeamananScreenState extends State<KeamananScreen> {
   }
 
   Future<void> _handleDeleteSession(LoginSession session) async {
+    final String deviceLabel = session.deviceHint.isNotEmpty 
+        ? session.deviceHint 
+        : (session.platform.isNotEmpty ? session.platform : 'Perangkat Tidak Dikenal');
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus Sesi'),
-        content: Text('Apakah Anda yakin ingin menghapus sesi login di perangkat ${session.deviceHint}?'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text(
+          'Hapus Sesi',
+          style: TextStyle(
+            color: Color(0xFF1E293B),
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus sesi login di perangkat $deviceLabel?',
+          style: const TextStyle(
+            color: Color(0xFF475569),
+            fontSize: 14,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal', style: TextStyle(color: Color(0xFF64748B))),
+            child: const Text(
+              'Batal',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -68,8 +78,17 @@ class _KeamananScreenState extends State<KeamananScreen> {
               backgroundColor: const Color(0xFFEF4444),
               foregroundColor: Colors.white,
               elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
-            child: const Text('Hapus'),
+            child: const Text(
+              'Hapus',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -94,11 +113,7 @@ class _KeamananScreenState extends State<KeamananScreen> {
         ),
       );
 
-      final String tokenToSend = (session.active && _localDeviceToken != null) 
-          ? _localDeviceToken!
-          : 'device_token_${session.deviceHint}_${session.id}';
-
-      final success = await ApiService.deleteSession(tokenToSend);
+      final success = await ApiService.deleteSession(session.id);
 
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
@@ -109,7 +124,7 @@ class _KeamananScreenState extends State<KeamananScreen> {
                 children: [
                   const Icon(Icons.check_circle_rounded, color: Colors.white),
                   const SizedBox(width: 8),
-                  Text('Sesi ${session.deviceHint} berhasil dihapus!'),
+                  Text('Sesi $deviceLabel berhasil dihapus!'),
                 ],
               ),
               backgroundColor: const Color(0xFF2E7D32),
@@ -138,7 +153,10 @@ class _KeamananScreenState extends State<KeamananScreen> {
     }
   }
 
-  String _formatDateTime(String utcString) {
+  String _formatDateTime(String? utcString) {
+    if (utcString == null || utcString.isEmpty) {
+      return '-';
+    }
     try {
       final dateTime = DateTime.parse(utcString);
       final formatter = DateFormat('dd MMM yyyy, HH:mm', 'id_ID');
@@ -391,6 +409,10 @@ class _KeamananScreenState extends State<KeamananScreen> {
                                         ? const Color(0xFF3DDC84) 
                                         : (isIos ? Colors.black87 : const Color(0xFF378CE7));
 
+                                    final String deviceLabel = session.deviceHint.isNotEmpty 
+                                        ? session.deviceHint 
+                                        : (session.platform.isNotEmpty ? session.platform : 'Perangkat Tidak Dikenal');
+
                                     return TableRow(
                                       decoration: const BoxDecoration(
                                         border: Border(
@@ -409,7 +431,7 @@ class _KeamananScreenState extends State<KeamananScreen> {
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
-                                                      session.deviceHint,
+                                                      deviceLabel,
                                                       style: const TextStyle(
                                                         fontSize: 12,
                                                         fontWeight: FontWeight.bold,
@@ -444,7 +466,7 @@ class _KeamananScreenState extends State<KeamananScreen> {
                                         Padding(
                                           padding: const EdgeInsets.all(10.0),
                                           child: Text(
-                                            _formatDateTime(session.updatedAt),
+                                            _formatDateTime(session.updatedAt ?? session.createdAt),
                                             style: const TextStyle(
                                               fontSize: 11,
                                               color: Color(0xFF475569),
