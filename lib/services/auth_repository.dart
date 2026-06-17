@@ -13,11 +13,11 @@ class AuthRepository {
   final Dio _dio;
   final TokenStorage _tokenStorage;
 
-  // Keep a global static reference of the logged-in user for app-wide UI/role usage
   static AuthUser? currentUserInstance;
 
-  // Hooks to be run before token clearing (e.g. for unregistering FCM token)
   static final List<Future<void> Function()> preLogoutHooks = [];
+
+  static final List<void Function()> onTokenExpiredCallbacks = [];
 
   Future<LoginResult> login({
     required String account,
@@ -83,5 +83,28 @@ class AuthRepository {
     }
     await _tokenStorage.clear();
     currentUserInstance = null;
+  }
+
+  static void notifyTokenExpired() {
+    if (kDebugMode) {
+      debugPrint('🔴 Token expired - notifying ${onTokenExpiredCallbacks.length} callbacks');
+    }
+    for (final callback in onTokenExpiredCallbacks) {
+      try {
+        callback();
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('❌ Error executing token expired callback: $e');
+        }
+      }
+    }
+  }
+
+  static void registerTokenExpiredCallback(void Function() callback) {
+    onTokenExpiredCallbacks.add(callback);
+  }
+
+  static void unregisterTokenExpiredCallback(void Function() callback) {
+    onTokenExpiredCallbacks.remove(callback);
   }
 }

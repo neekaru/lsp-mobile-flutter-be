@@ -8,11 +8,13 @@ import 'firebase_options.dart';
 import 'services/notification_service.dart';
 import 'services/app_notification_storage.dart';
 import 'services/token_storage.dart';
+import 'services/auth_repository.dart';
 import 'services/geojson_manager.dart';
 import 'widgets/statistik/indonesia_geojson_optimized.dart';
 
 // Import screens
 import 'screens/auth/splash_screen.dart';
+import 'screens/auth/login_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/dashboard/statistik_screen.dart';
 import 'screens/jadwal/jadwal_screen.dart';
@@ -184,14 +186,47 @@ class MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
   bool _isDisposed = false;
 
-  // Game-style screen management:
-  // - Screens are created lazily on first visit (no upfront cost).
-  // - Once created, they stay in the widget tree but are hidden via Offstage
-  //   so their state (scroll, data, etc.) is fully preserved.
-  // - TickerMode(enabled: false) pauses all animations on hidden screens,
-  //   preventing wasted CPU/GPU work — exactly like a game pausing off-screen scenes.
-  // - Only the active screen is visible and ticking.
   final Set<int> _visitedTabs = {};
+
+  @override
+  void initState() {
+    super.initState();
+    AuthRepository.registerTokenExpiredCallback(_handleTokenExpired);
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    AuthRepository.unregisterTokenExpiredCallback(_handleTokenExpired);
+    super.dispose();
+  }
+
+  void _handleTokenExpired() {
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Sesi Berakhir'),
+        content: const Text(
+          'Sesi login Anda telah berakhir. Silakan login kembali untuk melanjutkan.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+            },
+            child: const Text('Login Kembali'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildScreen(int index) {
     switch (index) {

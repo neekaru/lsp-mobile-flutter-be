@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'token_storage.dart';
+import 'auth_repository.dart';
 import '../models/dashboard_models.dart';
 import '../models/sertifikat_models.dart';
 import '../models/jadwal_models.dart';
@@ -32,6 +33,7 @@ class ApiService {
   // Lazy Dio: only created on first API call, not at class load time.
   // This avoids triggering dotenv lookup + interceptor setup during startup.
   static Dio? _dioInstance;
+  static bool _isRefreshing = false;
   static Dio get _dio {
     return _dioInstance ??=
         Dio(
@@ -64,11 +66,54 @@ class ApiService {
                 }
                 return handler.next(response);
               },
-              onError: (error, handler) {
+              onError: (error, handler) async {
                 if (kDebugMode) {
                   debugPrint('🔴 API Error: ${error.message}');
                   debugPrint('🔴 URL: ${error.requestOptions.uri}');
                 }
+                
+                if (error.response?.statusCode == 401 && !_isRefreshing) {
+                  _isRefreshing = true;
+                  try {
+                    final refreshToken = await TokenStorage.instance.getRefreshToken();
+                    if (refreshToken != null && refreshToken.isNotEmpty) {
+                      final refreshResponse = await Dio(BaseOptions(baseUrl: baseUrl))
+                          .post(
+                        '/api/auth/refresh',
+                        data: {'refresh_token': refreshToken},
+                      );
+
+                      if (refreshResponse.statusCode == 200) {
+                        final newAccessToken = refreshResponse.data['data']['access_token'];
+                        await TokenStorage.instance.saveTokens(
+                          newAccessToken,
+                          refreshToken,
+                        );
+
+                        error.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+                        final opts = Options(
+                          method: error.requestOptions.method,
+                          headers: error.requestOptions.headers,
+                        );
+                        _isRefreshing = false;
+                        
+                        if (kDebugMode) {
+                          debugPrint('🔄 Token refreshed successfully, retrying request');
+                        }
+                        return handler.resolve(await _dio.fetch(error.requestOptions));
+                      }
+                    }
+                  } catch (e) {
+                    if (kDebugMode) {
+                      debugPrint('🔴 Token refresh failed: $e');
+                    }
+                    await TokenStorage.instance.clear();
+                    AuthRepository.notifyTokenExpired();
+                  } finally {
+                    _isRefreshing = false;
+                  }
+                }
+                
                 return handler.next(error);
               },
             ),
