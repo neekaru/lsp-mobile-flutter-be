@@ -118,164 +118,289 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
     ];
   }
 
-  void _simulateUpload(BuildContext context, String docKey) {
+  void _simulateUpload(BuildContext context, String docKey, String docLabel) {
+    String? localFileName;
+    bool isPicking = false;
+
+    // Get specific description for each item
+    String description = '';
+    if (docKey.contains('KTP') || docKey.contains('Identitas')) {
+      description = 'Upload Kartu Tanda Penduduk (KTP) Anda untuk verifikasi identitas diri.';
+    } else if (docKey.contains('Pasfoto') || docKey.contains('Foto')) {
+      description = 'Upload pas foto terbaru berwarna dengan latar belakang merah.';
+    } else if (docKey.contains('Ijazah') || docKey.contains('Ijasah')) {
+      description = 'Upload ijasah terakhir atau transkip nilai Anda untuk membuktikan riwayat pendidikan.';
+    } else if (docKey.contains('Kerja')) {
+      description = 'Upload surat keterangan kerja dari perusahaan untuk membuktikan pengalaman kerja.';
+    } else {
+      description = 'Upload sertifikat pelatihan berbasis kompetensi di bidang digital marketing.';
+    }
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       backgroundColor: Colors.white,
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Unggah $docKey',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                top: 8,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Horizontal drag handle indicator
+                  Center(
+                    child: Container(
+                      width: 48,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Color(0xFF64748B)),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Pilih sumber dokumen Anda:',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF64748B),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                          _processUpload(docKey);
-                        },
+                  const SizedBox(height: 16),
+                  
+                  // Title
+                  const Text(
+                    'Upload Portofolio',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(color: Color(0xFFE2E8F0), height: 1),
+                  const SizedBox(height: 20),
+
+                  // Header Row with Document Name
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.description_outlined,
+                          color: Color(0xFF378CE7),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt_rounded,
-                                color: Color(0xFF3B82F6),
-                                size: 28,
+                            Text(
+                              docLabel,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Kamera',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF334155),
+                            const SizedBox(height: 4),
+                            Text(
+                              description,
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                color: Color(0xFF64748B),
+                                height: 1.3,
                               ),
                             ),
                           ],
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // File Uploader Area
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                          _processUpload(docKey);
-                        },
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF0FDF4),
-                                borderRadius: BorderRadius.circular(12),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Upload icon
+                        const Icon(
+                          Icons.cloud_upload_outlined,
+                          color: Color(0xFF378CE7),
+                          size: 64,
+                        ),
+                        const SizedBox(height: 12),
+                        
+                        // Text file name or status
+                        Text(
+                          localFileName ?? 'Tidak ada file terpilih',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: localFileName != null ? const Color(0xFF1E293B) : const Color(0xFF64748B),
+                            fontWeight: localFileName != null ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Pilih File button
+                        SizedBox(
+                          height: 36,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setModalState(() {
+                                isPicking = true;
+                              });
+                              // Simulate file selection
+                              Future.delayed(const Duration(milliseconds: 600), () {
+                                if (!context.mounted) return;
+                                final cleanName = docKey
+                                    .replaceAll('*', '')
+                                    .replaceAll('(', '_')
+                                    .replaceAll(')', '_')
+                                    .replaceAll('/', '_')
+                                    .replaceAll(' ', '_')
+                                    .toLowerCase();
+                                final extension = docKey.contains('Pasfoto') ? 'JPG' : 'PDF';
+                                setModalState(() {
+                                  localFileName = '${cleanName}_bukti.$extension';
+                                  isPicking = false;
+                                });
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF5AADEF),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Icon(
-                                Icons.photo_library_rounded,
-                                color: Color(0xFF22C55E),
-                                size: 28,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
                             ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Galeri Foto',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF334155),
-                              ),
-                            ),
-                          ],
+                            child: isPicking
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  )
+                                : const Text(
+                                    'Pilih File',
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Format Info line
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        color: Color(0xFFED8936),
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Format : PDF, JPG, PNG. Maksimal 2MB',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                          _processUpload(docKey);
-                        },
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFAF5FF),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.folder_open_rounded,
-                                color: Color(0xFFA855F7),
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Pilih Dokumen',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF334155),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Action Buttons (Batal / Upload)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFCBD5E1),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                          ],
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: localFileName == null
+                                ? null
+                                : () {
+                                    Navigator.pop(context);
+                                    _processUpload(docKey, localFileName!);
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF378CE7),
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: const Color(0xFF93C5FD),
+                              disabledForegroundColor: Colors.white.withOpacity(0.6),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Upload',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  void _processUpload(String docKey) {
+  void _processUpload(String docKey, String fileName) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -314,16 +439,6 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (!mounted) return;
       Navigator.pop(context); // Close loading dialog
-
-      final cleanName = docKey
-          .replaceAll('*', '')
-          .replaceAll('(', '_')
-          .replaceAll(')', '_')
-          .replaceAll('/', '_')
-          .replaceAll(' ', '_')
-          .toLowerCase();
-      final extension = docKey.contains('Pasfoto') ? 'JPG' : 'PDF';
-      final fileName = '${cleanName}_bukti.$extension';
 
       widget.onUploadChanged(docKey, true, fileName);
       setState(() {
@@ -660,7 +775,7 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
             child: ElevatedButton.icon(
               onPressed: () => item.isLink
                   ? _showLinkBottomSheet(context, item.key)
-                  : _simulateUpload(context, item.key),
+                  : _simulateUpload(context, item.key, item.label),
               icon: Icon(
                 item.isLink
                     ? (isUnuploaded ? Icons.link_rounded : Icons.edit_rounded)
