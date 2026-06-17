@@ -283,6 +283,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     'Surat Keterangan Pengalaman Kerja': false,
     'Pasfoto': false,
     'Identitas Pribadi (KTP/Kartu Pelajar)': false,
+    'Link Portofolio / GitHub': false,
   };
 
   final Map<String, String?> _uploadedFileNames = {
@@ -291,6 +292,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     'Surat Keterangan Pengalaman Kerja': null,
     'Pasfoto': null,
     'Identitas Pribadi (KTP/Kartu Pelajar)': null,
+    'Link Portofolio / GitHub': null,
   };
 
   int? _activeUnitDetailIndex;
