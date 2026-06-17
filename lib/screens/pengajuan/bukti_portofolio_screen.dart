@@ -375,7 +375,7 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
                               backgroundColor: const Color(0xFF378CE7),
                               foregroundColor: Colors.white,
                               disabledBackgroundColor: const Color(0xFF93C5FD),
-                              disabledForegroundColor: Colors.white.withOpacity(0.6),
+                              disabledForegroundColor: Colors.white60,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
