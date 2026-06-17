@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../services/auth_repository.dart';
 import '../../services/api_service.dart';
 import '../../services/token_storage.dart';
@@ -9,6 +8,7 @@ import '../../services/notification_service.dart';
 import '../auth/login_screen.dart';
 import 'data_diri_screen.dart';
 import 'edit_instansi_screen.dart';
+import 'keamanan_screen.dart';
 import '../../widgets/profile/ringkasan_widget.dart';
 import '../../widgets/profile/menu_profil_widget.dart';
 
@@ -22,8 +22,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String? _fcmToken;
-  bool _isCopied = false;
   bool _isLoggingOut = false;
   bool _isInstansiExpanded = false;
   String _instansiType = 'Mahasiswa';
@@ -34,51 +32,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     'NIM': '087685674568',
     'Alamat': 'Jl. Wengga Metropolitan',
   };
-
-  @override
-  void initState() {
-    super.initState();
-    _loadToken();
-  }
-
-  Future<void> _loadToken() async {
-    final token = await NotificationService.instance.getToken();
-    if (mounted) {
-      setState(() {
-        _fcmToken = token;
-      });
-    }
-  }
-
-  void _copyToClipboard() {
-    if (_fcmToken == null) return;
-    Clipboard.setData(ClipboardData(text: _fcmToken!));
-    setState(() {
-      _isCopied = true;
-    });
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isCopied = false;
-        });
-      }
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle_outline, color: Colors.white),
-            SizedBox(width: 8),
-            Text('FCM Token disalin ke clipboard!'),
-          ],
-        ),
-        backgroundColor: const Color(0xFF2E7D32),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
 
   void _copyTukId() {
     Clipboard.setData(const ClipboardData(text: 'DM-2026-000123'));
@@ -97,55 +50,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         duration: const Duration(seconds: 2),
       ),
     );
-  }
-
-  void _simulateNotification(String type) {
-    String title = '';
-    String body = '';
-    Map<String, String> data = {};
-
-    switch (type) {
-      case 'status_kompeten':
-        title = 'Status Kelulusan Diperbarui';
-        body =
-            'Selamat! Anda dinyatakan KOMPETEN pada skema Sertifikasi Pemrogram Mobile.';
-        data = {
-          'type': 'status_kompeten',
-          'skema': 'Sertifikasi Pemrogram Mobile',
-          'tuk': 'TUK Campus Digital Jakarta',
-          'asesor': 'Drs. H. Mulyono, M.T.',
-        };
-        break;
-      case 'rekomendasi_asesor':
-        title = 'Rekomendasi Asesor Baru';
-        body =
-            'Asesor Drs. H. Mulyono telah memberikan rekomendasi asesmen untuk jadwal Anda.';
-        data = {
-          'type': 'rekomendasi_asesor',
-          'skema': 'Sertifikasi Pemrogram Mobile',
-          'tuk': 'TUK Campus Digital Jakarta',
-          'asesor': 'Drs. H. Mulyono, M.T.',
-        };
-        break;
-      case 'sertifikat_terbit':
-        title = 'Sertifikat Kompetensi Terbit';
-        body =
-            'Sertifikat Anda untuk skema Sertifikasi Pemrogram Mobile telah terbit.';
-        data = {
-          'type': 'sertifikat_terbit',
-          'skema': 'Sertifikasi Pemrogram Mobile',
-          'tuk': 'TUK Campus Digital Jakarta',
-          'asesor': 'Drs. H. Mulyono, M.T.',
-        };
-        break;
-    }
-
-    final message = RemoteMessage(
-      data: data,
-      notification: RemoteNotification(title: title, body: body),
-    );
-
-    NotificationService.instance.simulateIncomingNotification(message);
   }
 
   Future<void> _handleLogout() async {
@@ -386,265 +290,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showKeamananBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              padding: const EdgeInsets.only(top: 10, bottom: 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 48,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'Keamanan & Developer Options',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                  ),
-                  const Divider(color: Color(0xFFE2E8F0), height: 24),
 
-                  // FCM Token Section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(
-                              Icons.vpn_key_outlined,
-                              color: Color(0xFF378CE7),
-                              size: 20,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Firebase FCM Device Token',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Text(
-                            _fcmToken ?? 'Memuat FCM Token...',
-                            style: const TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 11,
-                              color: Color(0xFF475569),
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: _fcmToken != null
-                                ? () {
-                                    _copyToClipboard();
-                                    setModalState(() {});
-                                  }
-                                : null,
-                            icon: Icon(
-                              _isCopied ? Icons.check : Icons.copy_rounded,
-                              size: 16,
-                            ),
-                            label: Text(
-                              _isCopied ? 'Tersalin!' : 'Salin Token FCM',
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF378CE7),
-                              side: const BorderSide(color: Color(0xFFCBD5E1)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Divider(color: Color(0xFFE2E8F0), height: 32),
-
-                  // Simulator Section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(
-                              Icons.dashboard_customize_outlined,
-                              color: Color(0xFF378CE7),
-                              size: 20,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Demo & Simulasi Push Notifikasi',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Simulasikan push notifikasi untuk mengetes tampilan in-app SnackBar dan sistem navigasi otomatis saat notifikasi ditekan.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF64748B),
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildSimulateTile(
-                          title: 'Notifikasi Kelulusan (Kompeten)',
-                          subtitle:
-                              'Simulasikan asesi lulus uji kompetensi skema',
-                          color: const Color(0xFF2E7D32),
-                          icon: Icons.verified_user_rounded,
-                          onTap: () {
-                            _simulateNotification('status_kompeten');
-                            Navigator.pop(context);
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        _buildSimulateTile(
-                          title: 'Notifikasi Rekomendasi Asesor',
-                          subtitle: 'Simulasikan asesor mengirim rekomendasi',
-                          color: const Color(0xFFFF9800),
-                          icon: Icons.rate_review_rounded,
-                          onTap: () {
-                            _simulateNotification('rekomendasi_asesor');
-                            Navigator.pop(context);
-                          },
-                        ),
-                        const SizedBox(height: 10),
-                        _buildSimulateTile(
-                          title: 'Notifikasi Sertifikat Terbit',
-                          subtitle: 'Simulasikan sertifikat siap diunduh',
-                          color: const Color(0xFFE0A96D),
-                          icon: Icons.workspace_premium_rounded,
-                          onTap: () {
-                            _simulateNotification('sertifikat_terbit');
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildSimulateTile({
-    required String title,
-    required String subtitle,
-    required Color color,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.play_arrow_rounded,
-              color: Color(0xFF378CE7),
-              size: 20,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -700,7 +346,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Icons.settings_outlined,
                           color: Colors.white,
                         ),
-                        onPressed: _showKeamananBottomSheet,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const KeamananScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -874,7 +527,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       );
                     },
-                    onKeamananTap: _showKeamananBottomSheet,
+                    onKeamananTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const KeamananScreen(),
+                        ),
+                      );
+                    },
                     onSertifikasiTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
