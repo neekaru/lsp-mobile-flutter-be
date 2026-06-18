@@ -71,9 +71,6 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Build Debug APK
-        run: flutter build apk --debug --no-shrink
-
       - name: Build Release APK
         if: startsWith(github.ref, 'refs/tags/')
         run: flutter build apk --release --no-shrink
@@ -87,7 +84,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            build/app/outputs/flutter-apk/app-debug.apk
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
           draft: false
