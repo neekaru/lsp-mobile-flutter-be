@@ -86,21 +86,17 @@ class ApiService {
                       if (refreshResponse.statusCode == 200) {
                         final newAccessToken = refreshResponse.data['data']['access_token'];
                         await TokenStorage.instance.saveTokens(
-                          newAccessToken,
-                          refreshToken,
+                          accessToken: newAccessToken,
+                          refreshToken: refreshToken,
                         );
 
                         error.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-                        final opts = Options(
-                          method: error.requestOptions.method,
-                          headers: error.requestOptions.headers,
-                        );
                         _isRefreshing = false;
                         
                         if (kDebugMode) {
                           debugPrint('🔄 Token refreshed successfully, retrying request');
                         }
-                        return handler.resolve(await _dio.fetch(error.requestOptions));
+                        return handler.resolve(await _dioInstance!.fetch(error.requestOptions));
                       }
                     }
                   } catch (e) {

@@ -192,6 +192,8 @@ class MainNavigatorState extends State<MainNavigator> {
   void initState() {
     super.initState();
     AuthRepository.registerTokenExpiredCallback(_handleTokenExpired);
+    // Pre-warm Dashboard immediately so it's ready on first frame.
+    _visitedTabs.add(0);
   }
 
   @override
@@ -265,18 +267,7 @@ class MainNavigatorState extends State<MainNavigator> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    // Pre-warm Dashboard immediately so it's ready on first frame.
-    _visitedTabs.add(0);
-  }
 
-  @override
-  void dispose() {
-    _isDisposed = true;
-    super.dispose();
-  }
 
   Future<bool> _showExitDialog() async {
     return await showDialog<bool>(
