@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +11,6 @@ import 'services/app_notification_storage.dart';
 import 'services/token_storage.dart';
 import 'services/auth_repository.dart';
 import 'services/geojson_manager.dart';
-import 'widgets/statistik/indonesia_geojson_optimized.dart';
 
 // Import screens
 import 'screens/auth/splash_screen.dart';
@@ -146,7 +146,7 @@ void main() async {
   // Pre-warm GeoJSON parsing di background (fire-and-forget). Saat user buka
   // layar Statistik, peta sudah siap render -> mengurangi jeda "abu-abu dulu
   // baru biru". Tidak di-await agar tidak menunda runApp.
-  GeoJsonManager.instance.initialize(indonesiaGeoJsonOptimized).catchError(
+  GeoJsonManager.instance.initialize().catchError(
     (e) => debugPrint('⚠️ GeoJSON pre-warm failed: $e'),
   );
 
@@ -184,6 +184,8 @@ class MainNavigator extends StatefulWidget {
 
 class MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
+  final Queue<int> _recentTabs = Queue();
+  static const _maxCachedTabs = 2;
   bool _isDisposed = false;
 
   final Set<int> _visitedTabs = {};
@@ -258,11 +260,16 @@ class MainNavigatorState extends State<MainNavigator> {
   }
 
   void setTab(int index) {
-    // Guard: never call setState on a disposed or unmounted state.
     if (_isDisposed || !mounted) return;
-    if (_currentIndex == index) return; // no-op
+    if (_currentIndex == index) return;
+    
     setState(() {
-      _visitedTabs.add(index);
+      _recentTabs.add(index);
+      
+      if (_recentTabs.length > _maxCachedTabs) {
+        _recentTabs.removeFirst();
+      }
+      
       _currentIndex = index;
     });
   }
@@ -314,9 +321,6 @@ class MainNavigatorState extends State<MainNavigator> {
 
   @override
   Widget build(BuildContext context) {
-    // Mark current tab as visited so its screen enters the tree.
-    _visitedTabs.add(_currentIndex);
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
@@ -335,18 +339,14 @@ class MainNavigatorState extends State<MainNavigator> {
         body: Stack(
           fit: StackFit.expand,
           children: List.generate(5, (index) {
-            // Unvisited tabs: zero-cost placeholder, never built.
-            if (!_visitedTabs.contains(index)) {
+            if (!_recentTabs.contains(index) && index != _currentIndex) {
               return const SizedBox.shrink();
             }
             final isActive = index == _currentIndex;
             return Offstage(
-              // Offstage hides the widget but keeps it alive in the tree
-              // (state, scroll position, loaded data all preserved).
+              key: ValueKey('tab_$index'),
               offstage: !isActive,
               child: TickerMode(
-                // Pause all animations/tickers on hidden screens —
-                // same trick game engines use for off-screen scenes.
                 enabled: isActive,
                 child: _buildScreen(index),
               ),

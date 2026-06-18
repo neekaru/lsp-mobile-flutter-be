@@ -40,3 +40,4 @@ flutter:
     - .env
     - assets/logo.png
     - assets/onboarding_illustration.png
+    - assets/indonesia.geojson

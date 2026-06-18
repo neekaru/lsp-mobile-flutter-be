@@ -432,16 +432,15 @@ class ApiService {
             .map((item) => JadwalBaru.fromJson(item as Map<String, dynamic>))
             .toList();
 
-        if (list.isEmpty) {
-          return _getFallbackJadwalBaru();
-        }
-
         return list;
       } else {
-        return _getFallbackJadwalBaru();
+        if (kDebugMode) return _getFallbackJadwalBaru();
+        return [];
       }
     } catch (e) {
-      return _getFallbackJadwalBaru();
+      if (kDebugMode) return _getFallbackJadwalBaru();
+      debugPrint('Error fetching jadwal baru: $e');
+      return [];
     }
   }
 
@@ -454,20 +453,16 @@ class ApiService {
 
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        List<JadwalOverdue> list = data
+        return data
             .map((item) => JadwalOverdue.fromJson(item as Map<String, dynamic>))
             .toList();
-
-        if (list.isEmpty) {
-          return _getFallbackJadwal();
-        }
-
-        return list;
-      } else {
-        return _getFallbackJadwal();
       }
+      if (kDebugMode) return _getFallbackJadwal();
+      return [];
     } catch (e) {
-      return _getFallbackJadwal();
+      if (kDebugMode) return _getFallbackJadwal();
+      debugPrint('Error fetching jadwal out of date: $e');
+      return [];
     }
   }
 

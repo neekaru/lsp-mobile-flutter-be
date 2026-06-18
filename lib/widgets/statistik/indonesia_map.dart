@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
 import '../../services/geojson_manager.dart';
-import 'indonesia_geojson_optimized.dart';
 
 class IndonesiaMap extends StatefulWidget {
   final ValueChanged<String> onIslandSelected;
@@ -99,11 +98,8 @@ class _IndonesiaMapState extends State<IndonesiaMap>
     if (_isDisposed) return;
     
     try {
-      // Initialize GeoJsonManager dengan data optimized.
-      // Timeout guard: if the isolate parse stalls, fail into the error state
-      // instead of leaving _isLoading=true forever ("Memuat peta..." stuck).
       await GeoJsonManager.instance
-          .initialize(indonesiaGeoJsonOptimized)
+          .initialize()
           .timeout(const Duration(seconds: 10));
 
       // Create MapShapeSource sekali saja (cached)

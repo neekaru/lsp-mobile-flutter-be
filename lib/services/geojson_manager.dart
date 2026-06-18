@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
 /// Singleton service untuk manage GeoJSON data dengan caching dan isolate parsing
@@ -22,31 +23,41 @@ class GeoJsonManager {
   /// Check apakah sudah initialized
   bool get isInitialized => _isInitialized;
 
-  /// Initialize GeoJSON data dengan parsing di isolate (background thread)
+  /// Initialize GeoJSON data dari asset dengan parsing di isolate (background thread)
   /// untuk menghindari blocking UI thread.
-  ///
-  /// Semua pemanggil meng-await Future yang SAMA (shared). Tidak ada busy-wait
-  /// `while (_isInitializing)` yang bisa menggantung selamanya. Jika parsing
-  /// gagal, error di-propagate ke semua pemanggil dan future di-reset agar
-  /// percobaan berikutnya bisa mengulang dari awal.
-  Future<void> initialize(String geoJsonString) {
-    // Sudah selesai -> langsung return future yang sudah complete.
+  Future<void> initialize() {
     if (_isInitialized) return Future.value();
-
-    // Sedang berjalan ATAU belum mulai -> kembalikan/buat shared future.
-    return _initFuture ??= _runInitialize(geoJsonString);
+    return _initFuture ??= _runInitialize();
   }
 
-  Future<void> _runInitialize(String geoJsonString) async {
+  Future<void> _runInitialize() async {
     try {
-      // Parse GeoJSON di isolate (background thread)
+      final geoJsonString = await rootBundle.loadString('assets/indonesia.geojson');
       final result = await compute(_parseGeoJson, geoJsonString);
       _geoJsonBytes = result.bytes;
       _provinces = result.provinces;
       _isInitialized = true;
     } catch (e) {
       debugPrint('Error initializing GeoJSON: $e');
-      // Reset agar pemanggil berikutnya bisa retry dari nol.
+      _initFuture = null;
+      rethrow;
+    }
+  }
+
+  @Deprecated('Use initialize() instead - GeoJSON now loaded from asset')
+  Future<void> initializeWithString(String geoJsonString) {
+    if (_isInitialized) return Future.value();
+    return _initFuture ??= _runInitializeWithString(geoJsonString);
+  }
+
+  Future<void> _runInitializeWithString(String geoJsonString) async {
+    try {
+      final result = await compute(_parseGeoJson, geoJsonString);
+      _geoJsonBytes = result.bytes;
+      _provinces = result.provinces;
+      _isInitialized = true;
+    } catch (e) {
+      debugPrint('Error initializing GeoJSON: $e');
       _initFuture = null;
       rethrow;
     }
