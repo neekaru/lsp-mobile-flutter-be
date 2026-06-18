@@ -984,15 +984,17 @@ class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
                     ),
                   )
                 else
-                  ListView.separated(
-                    shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: lateSchedules.length,
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 520),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      padding: EdgeInsets.zero,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: lateSchedules.length,
                     separatorBuilder: (context, index) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final item = lateSchedules[index];
-                      return Container(
+                      itemBuilder: (context, index) {
+                        final item = lateSchedules[index];
+                        return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF9FAFB),
@@ -1078,6 +1080,7 @@ class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
                         ),
                       );
                     },
+                  ),
                   ),
               ],
             ),
