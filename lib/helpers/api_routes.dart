@@ -50,6 +50,26 @@ class ApiRoutes {
   // ============================================================================
 
   static const String sertifikatSearch = '/api/sertifikat/search';
+  static const String sertifikatValidate = '/api/sertifikat/validate';
+
+  // ============================================================================
+  // Session Routes
+  // ============================================================================
+
+  static const String sessions = '/api/sessions';
+
+  // ============================================================================
+  // Berita Routes
+  // ============================================================================
+
+  static const String berita = '/api/berita';
+
+  // ============================================================================
+  // Health Routes
+  // ============================================================================
+
+  static const String health = '/api/health';
+  static const String ready = '/api/ready';
 
   // ============================================================================
   // Wilayah/Master Routes
