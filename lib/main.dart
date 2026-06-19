@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,14 +25,15 @@ import 'widgets/bottom_menu_bar.dart';
 
 // Global keys for notification navigation
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-GlobalKey<MainNavigatorState> mainNavigatorKey = GlobalKey<MainNavigatorState>();
+GlobalKey<MainNavigatorState> mainNavigatorKey =
+    GlobalKey<MainNavigatorState>();
 
 // Background message handler (must be top-level function)
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Initialize Firebase if not already initialized
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  
+
   if (kDebugMode) {
     debugPrint('📨 Background message received!');
     debugPrint('Message ID: ${message.messageId}');
@@ -41,7 +41,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     debugPrint('Body: ${message.notification?.body}');
     debugPrint('Data: ${message.data}');
   }
-  
+
   final data = message.data;
   final notifUserId = data['user_id']?.toString();
 
@@ -50,16 +50,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final currentUserId = cachedUser?.id;
     if (currentUserId == null || notifUserId != currentUserId) {
       if (kDebugMode) {
-        debugPrint('⚠️ Ignored background notification: user_id mismatch (notif: $notifUserId, current: $currentUserId)');
+        debugPrint(
+          '⚠️ Ignored background notification: user_id mismatch (notif: $notifUserId, current: $currentUserId)',
+        );
       }
       return;
     }
   }
 
   final type = data['type'] ?? '';
-  
+
   String getTitle() {
-    if (message.notification?.title != null) return message.notification!.title!;
+    if (message.notification?.title != null)
+      return message.notification!.title!;
     switch (type) {
       case 'status_kompeten':
         return 'Status Kelulusan';
@@ -101,7 +104,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
   try {
     await Firebase.initializeApp(
@@ -110,16 +113,16 @@ void main() async {
     if (kDebugMode) {
       debugPrint('✅ Firebase initialized successfully');
     }
-    
+
     // Initialize FCM Notification Service
     await NotificationService.instance.initialize();
   } catch (e) {
     debugPrint('❌ ERROR initializing Firebase/Notifications: $e');
   }
-  
+
   // Set background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  
+
   // Load environment variables securely from .env
   try {
     await dotenv.load(fileName: ".env");
@@ -127,7 +130,7 @@ void main() async {
       debugPrint('✅ .env loaded successfully');
       debugPrint('📍 BASE_URL: ${dotenv.env['BASE_URL']}');
     }
-    
+
     // Check if BASE_URL is empty or null
     if (dotenv.env['BASE_URL'] == null || dotenv.env['BASE_URL']!.isEmpty) {
       debugPrint('⚠️ WARNING: BASE_URL is null or empty!');
@@ -137,11 +140,13 @@ void main() async {
     debugPrint('⚠️ Using fallback configuration');
   }
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    statusBarBrightness: Brightness.dark,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+    ),
+  );
 
   // Pre-warm GeoJSON parsing di background (fire-and-forget). Saat user buka
   // layar Statistik, peta sudah siap render -> mengurangi jeda "abu-abu dulu
@@ -184,18 +189,22 @@ class MainNavigator extends StatefulWidget {
 
 class MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
-  final Queue<int> _recentTabs = Queue();
-  static const _maxCachedTabs = 2;
   bool _isDisposed = false;
 
-  final Set<int> _visitedTabs = {};
+  // Screens created ONCE and kept alive — never re-instantiated on rebuild.
+  late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
     AuthRepository.registerTokenExpiredCallback(_handleTokenExpired);
-    // Pre-warm Dashboard immediately so it's ready on first frame.
-    _visitedTabs.add(0);
+    _screens = [
+      DashboardScreen(onNavigateToJadwal: () => setTab(2)),
+      StatistikScreen(onBackToHome: () => setTab(0)),
+      JadwalScreen(onBackToHome: () => setTab(0)),
+      SertifikatScreen(onBackToHome: () => setTab(0)),
+      ProfileScreen(onBackToHome: () => setTab(0)),
+    ];
   }
 
   @override
@@ -207,7 +216,7 @@ class MainNavigatorState extends State<MainNavigator> {
 
   void _handleTokenExpired() {
     if (!mounted) return;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -232,91 +241,57 @@ class MainNavigatorState extends State<MainNavigator> {
     );
   }
 
-  Widget _buildScreen(int index) {
-    switch (index) {
-      case 0:
-        return DashboardScreen(
-          onNavigateToJadwal: () => setTab(2),
-        );
-      case 1:
-        return StatistikScreen(
-          onBackToHome: () => setTab(0),
-        );
-      case 2:
-        return JadwalScreen(
-          onBackToHome: () => setTab(0),
-        );
-      case 3:
-        return SertifikatScreen(
-          onBackToHome: () => setTab(0),
-        );
-      case 4:
-        return ProfileScreen(
-          onBackToHome: () => setTab(0),
-        );
-      default:
-        return const DashboardScreen();
-    }
-  }
-
   void setTab(int index) {
     if (_isDisposed || !mounted) return;
     if (_currentIndex == index) return;
-    
-    setState(() {
-      _recentTabs.add(index);
-      
-      if (_recentTabs.length > _maxCachedTabs) {
-        _recentTabs.removeFirst();
-      }
-      
-      _currentIndex = index;
-    });
+    setState(() => _currentIndex = index);
   }
-
-
 
   Future<bool> _showExitDialog() async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Text(
-          'Keluar Aplikasi?',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        content: const Text(
-          'Apakah Anda yakin ingin keluar dari aplikasi LSP Digital Mobile?',
-          style: TextStyle(fontSize: 14, color: Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
-              'Batal',
-              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF5350),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+            title: const Text(
+              'Keluar Aplikasi?',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            content: const Text(
+              'Apakah Anda yakin ingin keluar dari aplikasi LSP Digital Mobile?',
+              style: TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'Batal',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-            ),
-            child: const Text(
-              'Keluar',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEF5350),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Keluar',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   @override
@@ -336,23 +311,7 @@ class MainNavigatorState extends State<MainNavigator> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F6F8),
-        body: Stack(
-          fit: StackFit.expand,
-          children: List.generate(5, (index) {
-            if (!_recentTabs.contains(index) && index != _currentIndex) {
-              return const SizedBox.shrink();
-            }
-            final isActive = index == _currentIndex;
-            return Offstage(
-              key: ValueKey('tab_$index'),
-              offstage: !isActive,
-              child: TickerMode(
-                enabled: isActive,
-                child: _buildScreen(index),
-              ),
-            );
-          }),
-        ),
+        body: IndexedStack(index: _currentIndex, children: _screens),
         bottomNavigationBar: BottomMenuBar(
           selectedIndex: _currentIndex,
           onTap: setTab,
