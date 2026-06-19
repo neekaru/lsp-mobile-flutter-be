@@ -11,6 +11,7 @@ import '../helpers/bps_code_helper.dart';
 import '../helpers/api_routes.dart';
 import '../models/master_models.dart';
 import '../models/auth_models.dart';
+import '../models/berita_model.dart';
 
 // ============================================================================
 // API Service
@@ -1204,6 +1205,45 @@ class ApiService {
     } catch (e) {
       debugPrint('🔴 Error deleting session: $e');
       return false;
+    }
+  }
+
+  // ============================================================================
+  // Berita APIs
+  // ============================================================================
+
+  /// Fetch Paginated News List
+  static Future<List<BeritaItem>> getBerita({int page = 1, int size = 10}) async {
+    try {
+      final response = await _dio.get(
+        '/api/berita',
+        queryParameters: {'page': page, 'size': size},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data.map((item) => BeritaItem.fromJson(item as Map<String, dynamic>)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error fetching berita: $e');
+      return [];
+    }
+  }
+
+  /// Fetch News Detail
+  static Future<BeritaDetail?> getBeritaDetail(int id) async {
+    try {
+      final response = await _dio.get('/api/berita/$id');
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'];
+        if (data != null) {
+          return BeritaDetail.fromJson(data as Map<String, dynamic>);
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching berita detail: $e');
+      return null;
     }
   }
 }

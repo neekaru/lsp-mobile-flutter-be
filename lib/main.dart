@@ -19,6 +19,7 @@ import 'screens/dashboard/statistik_screen.dart';
 import 'screens/jadwal/jadwal_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/sertifikat/sertifikat_screen.dart';
+import 'screens/dashboard/berita_screen.dart';
 
 // Import widgets
 import 'widgets/bottom_menu_bar.dart';
@@ -61,8 +62,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final type = data['type'] ?? '';
 
   String getTitle() {
-    if (message.notification?.title != null)
+    if (message.notification?.title != null) {
       return message.notification!.title!;
+    }
     switch (type) {
       case 'status_kompeten':
         return 'Status Kelulusan';
@@ -76,7 +78,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 
   String getBody() {
-    if (message.notification?.body != null) return message.notification!.body!;
+    if (message.notification?.body != null) {
+      return message.notification!.body!;
+    }
     final skema = data['skema'] ?? 'Skema';
     final asesor = data['asesor'] ?? 'Asesor';
     switch (type) {
@@ -198,13 +202,24 @@ class MainNavigatorState extends State<MainNavigator> {
   void initState() {
     super.initState();
     AuthRepository.registerTokenExpiredCallback(_handleTokenExpired);
-    _screens = [
-      DashboardScreen(onNavigateToJadwal: () => setTab(2)),
-      StatistikScreen(onBackToHome: () => setTab(0)),
-      JadwalScreen(onBackToHome: () => setTab(0)),
-      SertifikatScreen(onBackToHome: () => setTab(0)),
-      ProfileScreen(onBackToHome: () => setTab(0)),
-    ];
+    
+    final isGuest = AuthRepository.currentUserInstance == null;
+    if (isGuest) {
+      _screens = [
+        DashboardScreen(onNavigateToJadwal: () {}),
+        BeritaScreen(onBackToHome: () => setTab(0)),
+        SertifikatScreen(onBackToHome: () => setTab(0)),
+        ProfileScreen(onBackToHome: () => setTab(0)),
+      ];
+    } else {
+      _screens = [
+        DashboardScreen(onNavigateToJadwal: () => setTab(2)),
+        StatistikScreen(onBackToHome: () => setTab(0)),
+        JadwalScreen(onBackToHome: () => setTab(0)),
+        SertifikatScreen(onBackToHome: () => setTab(0)),
+        ProfileScreen(onBackToHome: () => setTab(0)),
+      ];
+    }
   }
 
   @override
