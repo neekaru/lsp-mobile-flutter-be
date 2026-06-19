@@ -19,6 +19,7 @@ import 'screens/dashboard/statistik_screen.dart';
 import 'screens/jadwal/jadwal_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/sertifikat/sertifikat_screen.dart';
+import 'screens/sertifikat/validasi_sertifikat_screen.dart';
 import 'screens/dashboard/berita_screen.dart';
 
 // Import widgets
@@ -208,7 +209,7 @@ class MainNavigatorState extends State<MainNavigator> {
       _screens = [
         DashboardScreen(onNavigateToJadwal: () {}),
         BeritaScreen(onBackToHome: () => setTab(0)),
-        SertifikatScreen(onBackToHome: () => setTab(0)),
+        ValidasiSertifikatScreen(onBackToHome: () => setTab(0)),
         ProfileScreen(onBackToHome: () => setTab(0)),
       ];
     } else {

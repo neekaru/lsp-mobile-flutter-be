@@ -984,6 +984,33 @@ class ApiService {
   // Sertifikat APIs
   // ============================================================================
 
+  /// Validate Certificate by Certificate Number or Registration Number
+  static Future<SertifikatValidationResult> validateSertifikat(String noDokumen) async {
+    try {
+      final response = await _dio.post(
+        '/api/sertifikat/validate',
+        data: {'no_dokumen': noDokumen},
+      );
+
+      if (response.data != null) {
+        return SertifikatValidationResult.fromJson(response.data);
+      }
+      return const SertifikatValidationResult(valid: false, message: 'Format response tidak valid.');
+    } on DioException catch (e) {
+      debugPrint('🔴 Error validating certificate: $e');
+      if (e.response != null && e.response!.data != null && e.response!.data is Map) {
+        return SertifikatValidationResult.fromJson(e.response!.data);
+      }
+      return SertifikatValidationResult(
+        valid: false,
+        message: e.response?.data?['message'] ?? e.message ?? 'Terjadi kesalahan pada server.',
+      );
+    } catch (e) {
+      debugPrint('🔴 Error validating certificate: $e');
+      return SertifikatValidationResult(valid: false, message: 'Terjadi kesalahan: ${e.toString()}');
+    }
+  }
+
   /// Fetch Sertifikat Summary
   static Future<SertifikatSummary> getSertifikatSummary() async {
     try {
