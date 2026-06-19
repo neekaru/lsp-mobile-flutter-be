@@ -26,7 +26,7 @@ import 'widgets/bottom_menu_bar.dart';
 
 // Global keys for notification navigation
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<MainNavigatorState> mainNavigatorKey = GlobalKey<MainNavigatorState>();
+GlobalKey<MainNavigatorState> mainNavigatorKey = GlobalKey<MainNavigatorState>();
 
 // Background message handler (must be top-level function)
 @pragma('vm:entry-point')

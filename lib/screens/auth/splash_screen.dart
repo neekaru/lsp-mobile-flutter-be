@@ -9,7 +9,6 @@ import '../../services/auth_repository.dart';
 import '../../services/notification_service.dart';
 import '../../models/auth_models.dart';
 import '../../main.dart';
-import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -174,9 +173,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Smooth transition
     await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) {
-      final Widget nextScreen = loggedInUser != null
-          ? MainNavigator(key: mainNavigatorKey)
-          : const OnboardingScreen();
+      final Widget nextScreen = MainNavigator(key: mainNavigatorKey);
 
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(

@@ -16,6 +16,7 @@ class _PilihPeranScreenState extends State<PilihPeranScreen> {
   void _handleNext() {
     if (_selectedRole == 2) {
       // Navigate to main dashboard and clear navigation stack
+      mainNavigatorKey = GlobalKey<MainNavigatorState>();
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => MainNavigator(key: mainNavigatorKey),

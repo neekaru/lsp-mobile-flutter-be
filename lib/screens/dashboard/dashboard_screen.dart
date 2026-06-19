@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../widgets/rangkuman_utama.dart';
 import '../../widgets/tren_asesmen_chart.dart';
@@ -19,6 +20,8 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _isLoading = true;
+  bool _isDisposed = false;
+  Timer? _initTimer;
 
   // State untuk menyimpan data dari API
   DashboardSummary? _summaryData;
@@ -29,14 +32,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     // Delay 300ms to let session validation complete first
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
+    _initTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!_isDisposed && mounted) {
         _loadAllData();
       }
     });
   }
 
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _initTimer?.cancel();
+    super.dispose();
+  }
+
   Future<void> _loadAllData() async {
+    if (_isDisposed || !mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -49,6 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ApiService.getJadwalBaru(),
       ]);
 
+      if (_isDisposed || !mounted) return;
       setState(() {
         _summaryData = results[0] as DashboardSummary;
         _chartData = results[1] as List<MonthlyAssessment>;
@@ -58,6 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       // Log error untuk debugging
       debugPrint('Error loading dashboard data: $e');
+      if (_isDisposed || !mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -67,7 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _refreshJadwalData() async {
     try {
       final jadwalData = await ApiService.getJadwalBaru();
-      if (mounted) {
+      if (!_isDisposed && mounted) {
         setState(() {
           _jadwalData = jadwalData;
         });
@@ -80,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _handleRefresh() async {
     await _loadAllData();
 
-    if (mounted) {
+    if (!_isDisposed && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Data berhasil diperbarui'),
