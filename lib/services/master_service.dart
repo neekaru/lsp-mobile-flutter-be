@@ -12,13 +12,20 @@ import '../models/master_models.dart';
 class MasterService {
   static Dio get _dio => ApiClient.dio;
 
+  // In-memory cache — avoids redundant network round-trips
+  static List<MasterSkema>? _skemaCache;
+  static final Map<int, List<MasterJadwal>> _jadwalCache = {};
+
   /// Fetch list of Provinsi
   static Future<List<MasterItem>> getProvinsiList() async {
     try {
       final response = await _dio.get(ApiRoutes.masterProvinsi);
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((item) => MasterItem.fromJson(item as Map<String, dynamic>)).toList();
+        return List<MasterItem>.generate(
+          data.length,
+          (i) => MasterItem.fromJson(data[i] as Map<String, dynamic>),
+        );
       }
       return [];
     } catch (e) {
@@ -36,7 +43,10 @@ class MasterService {
       );
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((item) => MasterItem.fromJson(item as Map<String, dynamic>)).toList();
+        return List<MasterItem>.generate(
+          data.length,
+          (i) => MasterItem.fromJson(data[i] as Map<String, dynamic>),
+        );
       }
       return [];
     } catch (e) {
@@ -54,7 +64,10 @@ class MasterService {
       );
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((item) => MasterItem.fromJson(item as Map<String, dynamic>)).toList();
+        return List<MasterItem>.generate(
+          data.length,
+          (i) => MasterItem.fromJson(data[i] as Map<String, dynamic>),
+        );
       }
       return [];
     } catch (e) {
@@ -63,13 +76,18 @@ class MasterService {
     }
   }
 
-  /// Fetch list of Master Skema
+  /// Fetch list of Master Skema (cached in-memory)
   static Future<List<MasterSkema>> getMasterSkemaList() async {
+    if (_skemaCache != null) return _skemaCache!;
     try {
       final response = await _dio.get(ApiRoutes.masterSkema);
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((item) => MasterSkema.fromJson(item as Map<String, dynamic>)).toList();
+        _skemaCache = List<MasterSkema>.generate(
+          data.length,
+          (i) => MasterSkema.fromJson(data[i] as Map<String, dynamic>),
+        );
+        return _skemaCache!;
       }
       return [];
     } catch (e) {
@@ -78,8 +96,9 @@ class MasterService {
     }
   }
 
-  /// Fetch list of Master Jadwal by skema ID
+  /// Fetch list of Master Jadwal by skema ID (cached in-memory)
   static Future<List<MasterJadwal>> getMasterJadwalList(int idSkema) async {
+    if (_jadwalCache.containsKey(idSkema)) return _jadwalCache[idSkema]!;
     try {
       final response = await _dio.get(
         ApiRoutes.masterJadwal,
@@ -87,12 +106,22 @@ class MasterService {
       );
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((item) => MasterJadwal.fromJson(item as Map<String, dynamic>)).toList();
+        _jadwalCache[idSkema] = List<MasterJadwal>.generate(
+          data.length,
+          (i) => MasterJadwal.fromJson(data[i] as Map<String, dynamic>),
+        );
+        return _jadwalCache[idSkema]!;
       }
       return [];
     } catch (e) {
       debugPrint('🔴 Error fetching master jadwal: $e');
       return [];
     }
+  }
+
+  /// Clear all cached master data (call on logout or pull-to-refresh)
+  static void clearCache() {
+    _skemaCache = null;
+    _jadwalCache.clear();
   }
 }

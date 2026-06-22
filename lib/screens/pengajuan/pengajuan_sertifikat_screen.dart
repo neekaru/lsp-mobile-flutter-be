@@ -191,11 +191,11 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       if (mounted) {
         setState(() {
           _masterSkemaList = list;
+          _isLoadingSkema = false;
         });
       }
     } catch (e) {
       debugPrint('Error fetching master skema: $e');
-    } finally {
       if (mounted) {
         setState(() {
           _isLoadingSkema = false;
@@ -214,11 +214,11 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       if (mounted) {
         setState(() {
           _masterJadwalList = list;
+          _isLoadingJadwal = false;
         });
       }
     } catch (e) {
       debugPrint('Error fetching master jadwal: $e');
-    } finally {
       if (mounted) {
         setState(() {
           _isLoadingJadwal = false;

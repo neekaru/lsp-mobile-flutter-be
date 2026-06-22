@@ -59,12 +59,13 @@ class DataPengajuanForm extends StatelessWidget {
           title: 'Skema',
           hint: 'Pilih skema',
           value: selectedSkema,
-          items: listSkema
-              .map((item) => DropdownItemData<int>(
-                    value: item.id,
-                    label: '${item.kodeSkema} - ${item.namaSkema}',
-                  ))
-              .toList(),
+          items: List<DropdownItemData<int>>.generate(
+            listSkema.length,
+            (i) => DropdownItemData<int>(
+              value: listSkema[i].id,
+              label: '${listSkema[i].kodeSkema} - ${listSkema[i].namaSkema}',
+            ),
+          ),
           isLoading: isLoadingSkema,
           onChanged: onSkemaChanged,
         ),
@@ -76,12 +77,13 @@ class DataPengajuanForm extends StatelessWidget {
           title: 'Jadwal Uji Kompetensi',
           hint: 'Jadwal uji kompetensi',
           value: selectedJadwal,
-          items: listJadwal
-              .map((item) => DropdownItemData<int>(
-                    value: item.id,
-                    label: '${item.jadwal} (${item.tuk})',
-                  ))
-              .toList(),
+          items: List<DropdownItemData<int>>.generate(
+            listJadwal.length,
+            (i) => DropdownItemData<int>(
+              value: listJadwal[i].id,
+              label: '${listJadwal[i].jadwal} (${listJadwal[i].tuk})',
+            ),
+          ),
           isLoading: isLoadingJadwal,
           onChanged: onJadwalChanged,
         ),

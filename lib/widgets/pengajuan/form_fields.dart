@@ -1,4 +1,5 @@
 // ignore_for_file: deprecated_member_use
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/master_models.dart';
@@ -553,6 +554,7 @@ class _SearchModalContent<T> extends StatefulWidget {
 class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
   late TextEditingController _searchController;
   List<DropdownItemData<T>> _filteredItems = [];
+  Timer? _debounce;
 
   // PERF: Pre-cached decoration objects — avoids heap allocation per-item per-frame.
   // BorderRadius.circular(8) creates a new object each call; caching eliminates GC pressure.
@@ -587,12 +589,18 @@ class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 200), _applyFilter);
+  }
+
+  void _applyFilter() {
     final query = _searchController.text.trim().toLowerCase();
     setState(() {
       if (query.isEmpty) {
@@ -760,10 +768,7 @@ class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
                         bottom: 24,
                       ),
                       itemCount: _filteredItems.length,
-                      // PERF: Disable automatic keep-alives and repaint boundaries
-                      // per-item — they add overhead for simple list tiles.
                       addAutomaticKeepAlives: false,
-                      addRepaintBoundaries: false,
                       separatorBuilder: (context, index) => const Divider(
                         height: 1,
                         color: Color(0xFFF1F5F9),
