@@ -458,7 +458,7 @@ class SearchableModalSelectorGeneric<T> extends StatelessWidget {
         ],
       ),
       child: InkWell(
-        onTap: isLoading ? null : () => _showSearchModal(context),
+        onTap: (isLoading || items.isEmpty) ? null : () => _showSearchModal(context),
         borderRadius: _kBorderRadius,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -468,14 +468,18 @@ class SearchableModalSelectorGeneric<T> extends StatelessWidget {
                 child: Text(
                   isLoading
                       ? 'Memuat data...'
-                      : (selectedItem != null ? selectedItem.label : hint),
+                      : (!isLoading && items.isEmpty)
+                          ? 'Tidak ada data'
+                          : (selectedItem != null ? selectedItem.label : hint),
                   style: TextStyle(
                     fontSize: 13.5,
                     color: isLoading
                         ? const Color(0xFF0F4C81)
-                        : (selectedItem != null
-                            ? const Color(0xFF1E293B)
-                            : const Color(0xFF94A3B8)),
+                        : (!isLoading && items.isEmpty)
+                            ? const Color(0xFFEF4444)
+                            : (selectedItem != null
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFF94A3B8)),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -490,6 +494,8 @@ class SearchableModalSelectorGeneric<T> extends StatelessWidget {
                     valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F4C81)),
                   ),
                 )
+              else if (items.isEmpty)
+                const SizedBox.shrink()
               else
                 const Icon(
                   Icons.keyboard_arrow_down_rounded,
@@ -548,6 +554,29 @@ class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
   late TextEditingController _searchController;
   List<DropdownItemData<T>> _filteredItems = [];
 
+  // PERF: Pre-cached decoration objects — avoids heap allocation per-item per-frame.
+  // BorderRadius.circular(8) creates a new object each call; caching eliminates GC pressure.
+  static const _kItemBorderRadius = BorderRadius.all(Radius.circular(8));
+  static const _kItemPadding = EdgeInsets.symmetric(horizontal: 12, vertical: 14);
+  static const _kNormalTextStyle = TextStyle(
+    fontSize: 13.5,
+    fontWeight: FontWeight.normal,
+    color: Color(0xFF1E293B),
+  );
+  static const _kSelectedTextStyle = TextStyle(
+    fontSize: 13.5,
+    fontWeight: FontWeight.w600,
+    color: Color(0xFF0F4C81),
+  );
+  static final _kSelectedDecoration = BoxDecoration(
+    color: const Color(0xFF0F4C81).withOpacity(0.05),
+    borderRadius: _kItemBorderRadius,
+  );
+  static const _kNormalDecoration = BoxDecoration(
+    color: Colors.transparent,
+    borderRadius: _kItemBorderRadius,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -578,9 +607,11 @@ class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final bottomInset = mediaQuery.viewInsets.bottom;
-    final maxAvailableHeight = mediaQuery.size.height * 0.8;
+    // PERF: Subscribe only to viewInsets (keyboard) and size separately.
+    // MediaQuery.of(context) subscribes to ALL changes (text scale, padding,
+    // orientation, etc.) causing unnecessary full-tree rebuilds.
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final maxAvailableHeight = MediaQuery.sizeOf(context).height * 0.8;
 
     return Container(
       decoration: const BoxDecoration(
@@ -590,7 +621,7 @@ class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
       padding: EdgeInsets.only(
         bottom: bottomInset,
       ),
-      child: Container(
+      child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: maxAvailableHeight,
         ),
@@ -603,9 +634,9 @@ class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
                 margin: const EdgeInsets.only(top: 10, bottom: 8),
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(2),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.all(Radius.circular(2)),
                 ),
               ),
             ),
@@ -682,23 +713,23 @@ class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
               ),
             ),
             const SizedBox(height: 8),
-            Flexible(
+            Expanded(
               child: _filteredItems.isEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(
                         horizontal: 24.0,
                         vertical: 40.0,
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.search_off_rounded,
                             size: 48,
                             color: Color(0xFFCBD5E1),
                           ),
-                          const SizedBox(height: 12),
-                          const Text(
+                          SizedBox(height: 12),
+                          Text(
                             'Data tidak ditemukan',
                             style: TextStyle(
                               fontSize: 14,
@@ -706,8 +737,8 @@ class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
                               color: Color(0xFF64748B),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          const Text(
+                          SizedBox(height: 4),
+                          Text(
                             'Coba masukkan kata kunci yang berbeda',
                             style: TextStyle(
                               fontSize: 12,
@@ -718,14 +749,21 @@ class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
                         ],
                       ),
                     )
+                  // PERF: No RepaintBoundary wrapper — it would allocate a separate
+                  // GPU texture layer per scroll, wasting VRAM for a simple list.
+                  // Real perf wins are: cached static decorations/styles, scoped
+                  // MediaQuery subscriptions, addRepaintBoundaries: false per-item.
                   : ListView.separated(
-                      shrinkWrap: true,
                       padding: const EdgeInsets.only(
                         left: 16,
                         right: 16,
                         bottom: 24,
                       ),
                       itemCount: _filteredItems.length,
+                      // PERF: Disable automatic keep-alives and repaint boundaries
+                      // per-item — they add overhead for simple list tiles.
+                      addAutomaticKeepAlives: false,
+                      addRepaintBoundaries: false,
                       separatorBuilder: (context, index) => const Divider(
                         height: 1,
                         color: Color(0xFFF1F5F9),
@@ -734,48 +772,38 @@ class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
                         final item = _filteredItems[index];
                         final isSelected = item.value == widget.selectedValue;
 
+                        // PERF: Use pre-cached decoration/style objects instead
+                        // of constructing new ones per item per frame.
                         return InkWell(
                           onTap: () => widget.onSelected(item.value),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: _kItemBorderRadius,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? const Color(0xFF0F4C81).withOpacity(0.05)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                            padding: _kItemPadding,
+                            decoration: isSelected
+                                ? _kSelectedDecoration
+                                : _kNormalDecoration,
                             child: Row(
                               children: [
                                 Expanded(
                                   child: Text(
                                     item.label,
-                                    style: TextStyle(
-                                      fontSize: 13.5,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.normal,
-                                      color: isSelected
-                                          ? const Color(0xFF0F4C81)
-                                          : const Color(0xFF1E293B),
+                                    style: isSelected
+                                        ? _kSelectedTextStyle
+                                          : _kNormalTextStyle,
                                     ),
                                   ),
-                                ),
-                                if (isSelected)
-                                  const Icon(
-                                    Icons.check_circle_rounded,
-                                    color: Color(0xFF0F4C81),
-                                    size: 18,
-                                  ),
-                              ],
+                                  if (isSelected)
+                                    const Icon(
+                                      Icons.check_circle_rounded,
+                                      color: Color(0xFF0F4C81),
+                                      size: 18,
+                                    ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      ),
             ),
           ],
         ),
