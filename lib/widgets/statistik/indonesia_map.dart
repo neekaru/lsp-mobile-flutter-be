@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
@@ -100,7 +101,7 @@ class _IndonesiaMapState extends State<IndonesiaMap>
     try {
       await GeoJsonManager.instance
           .initialize()
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 30));
 
       // Create MapShapeSource sekali saja (cached)
       final mapSource = GeoJsonManager.instance.createMapSource(
@@ -112,6 +113,14 @@ class _IndonesiaMapState extends State<IndonesiaMap>
         setState(() {
           _cachedMapSource = mapSource;
           _isLoading = false;
+        });
+      }
+    } on TimeoutException {
+      debugPrint('Map init timed out');
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Peta membutuhkan waktu untuk dimuat. Silakan buka ulang halaman.';
         });
       }
     } catch (e) {

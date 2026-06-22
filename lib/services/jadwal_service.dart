@@ -58,6 +58,10 @@ class JadwalService {
   }
 
   /// Fetch Jadwal List with filters (Used for JadwalScreen tabs)
+  // Cache for running jadwal — avoids redundant network calls
+  static List<JadwalItem>? _runningJadwalCache;
+  static DateTime? _runningJadwalCacheTime;
+
   static Future<List<JadwalItem>> getJadwalList({
     int limit = 20,
     int offset = 0,
@@ -67,7 +71,15 @@ class JadwalService {
     String? sortBy,
     String? sortOrder,
     String? customRoutePath,
+    bool useCache = false,
   }) async {
+    // Return cached running jadwal if fresh (< 2 minutes old)
+    if (useCache && statusJadwal == '3' && _runningJadwalCache != null &&
+        _runningJadwalCacheTime != null &&
+        DateTime.now().difference(_runningJadwalCacheTime!).inMinutes < 2) {
+      return _runningJadwalCache!;
+    }
+
     try {
       String routePath = customRoutePath ?? ApiRoutes.jadwalOutOfDate;
       if (customRoutePath == null && statusJadwal != null) {
@@ -93,9 +105,16 @@ class JadwalService {
 
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        return data
-            .map((item) => JadwalItem.fromJson(item as Map<String, dynamic>))
-            .toList();
+        final result = List<JadwalItem>.generate(
+          data.length,
+          (i) => JadwalItem.fromJson(data[i] as Map<String, dynamic>),
+        );
+        // Cache running schedules
+        if (statusJadwal == '3') {
+          _runningJadwalCache = result;
+          _runningJadwalCacheTime = DateTime.now();
+        }
+        return result;
       }
       return [];
     } catch (e) {

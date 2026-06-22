@@ -984,14 +984,12 @@ class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
                     ),
                   )
                 else
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 520),
+                  SizedBox(
+                    height: 320,
                     child: ListView.separated(
-                      shrinkWrap: true,
                       padding: EdgeInsets.zero,
-                      physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: lateSchedules.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 10),
+                      separatorBuilder: (context, index) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final item = lateSchedules[index];
                         return Container(

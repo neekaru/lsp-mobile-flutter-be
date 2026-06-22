@@ -32,10 +32,13 @@ class GeoJsonManager {
 
   Future<void> _runInitialize() async {
     try {
-      final geoJsonString = await rootBundle.loadString('assets/indonesia.geojson');
-      final result = await compute(_parseGeoJson, geoJsonString);
-      _geoJsonBytes = result.bytes;
-      _provinces = result.provinces;
+      // Load raw bytes directly — avoids decode-then-re-encode cycle
+      final byteData = await rootBundle.load('assets/indonesia.geojson');
+      _geoJsonBytes = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
+
+      // Parse JSON in background isolate — only extract provinces, not bytes
+      final jsonString = utf8.decode(_geoJsonBytes!);
+      _provinces = await compute(_parseProvinces, jsonString);
       _isInitialized = true;
     } catch (e) {
       debugPrint('Error initializing GeoJSON: $e');
@@ -52,9 +55,8 @@ class GeoJsonManager {
 
   Future<void> _runInitializeWithString(String geoJsonString) async {
     try {
-      final result = await compute(_parseGeoJson, geoJsonString);
-      _geoJsonBytes = result.bytes;
-      _provinces = result.provinces;
+      _geoJsonBytes = Uint8List.fromList(utf8.encode(geoJsonString));
+      _provinces = await compute(_parseProvinces, geoJsonString);
       _isInitialized = true;
     } catch (e) {
       debugPrint('Error initializing GeoJSON: $e');
@@ -137,47 +139,18 @@ class ProvinceModel {
   String toString() => 'ProvinceModel(id: $id, name: $name, islandId: $islandId)';
 }
 
-/// Result dari parsing GeoJSON di isolate
-class _ParseResult {
-  final Uint8List bytes;
-  final List<ProvinceModel> provinces;
-
-  _ParseResult({
-    required this.bytes,
-    required this.provinces,
-  });
-}
-
 /// Function yang dijalankan di isolate untuk parsing GeoJSON
-/// Ini akan run di background thread sehingga tidak blocking UI
-_ParseResult _parseGeoJson(String jsonString) {
-  // Parse JSON
+/// Hanya extract provinces — bytes sudah di-set di main thread
+List<ProvinceModel> _parseProvinces(String jsonString) {
   final geoJson = json.decode(jsonString) as Map<String, dynamic>;
-
-  // Convert ke bytes untuk Syncfusion Maps
-  final bytes = Uint8List.fromList(utf8.encode(jsonString));
-
-  // Extract provinces dari features
   final features = geoJson['features'] as List<dynamic>;
-  final provinces = features.map((feature) {
+  return features.map<ProvinceModel>((feature) {
     final props = feature['properties'] as Map<String, dynamic>;
     final id = props['id'] as String;
     final name = props['name'] as String;
-
-    // Infer island_id dari province id jika tidak ada
     final islandId = _inferIslandId(id);
-
-    return ProvinceModel(
-      id: id,
-      name: name,
-      islandId: islandId,
-    );
+    return ProvinceModel(id: id, name: name, islandId: islandId);
   }).toList();
-
-  return _ParseResult(
-    bytes: bytes,
-    provinces: provinces,
-  );
 }
 
 /// Mapping province ID ke island ID
