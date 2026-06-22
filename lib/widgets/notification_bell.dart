@@ -5,6 +5,7 @@ import '../models/jadwal_models.dart';
 import '../helpers/date_format_helper.dart';
 import '../services/app_notification_storage.dart';
 import '../services/notification_service.dart';
+import '../services/auth_repository.dart';
 import '../main.dart';
 
 class NotificationBell extends StatefulWidget {
@@ -21,6 +22,9 @@ class _NotificationBellState extends State<NotificationBell> {
   @override
   void initState() {
     super.initState();
+    // Skip notification setup for guests to avoid 401 Unauthorized errors
+    if (AuthRepository.currentUserInstance == null) return;
+
     // Defer notification loading by 1s to avoid initial API burst
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
@@ -62,6 +66,11 @@ class _NotificationBellState extends State<NotificationBell> {
 
   @override
   Widget build(BuildContext context) {
+    // Hide UI icon and disable modal panel entirely for guest users
+    if (AuthRepository.currentUserInstance == null) {
+      return const SizedBox.shrink();
+    }
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
