@@ -415,3 +415,371 @@ class CustomKeyValueDropdownSelectorGeneric<T> extends StatelessWidget {
     );
   }
 }
+
+class SearchableModalSelectorGeneric<T> extends StatelessWidget {
+  final String hint;
+  final T? value;
+  final List<DropdownItemData<T>> items;
+  final ValueChanged<T?> onChanged;
+  final bool isLoading;
+  final String title;
+
+  const SearchableModalSelectorGeneric({
+    super.key,
+    required this.hint,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+    required this.title,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Find selected item label
+    final selectedItem = items.any((item) => item.value == value)
+        ? items.firstWhere((item) => item.value == value)
+        : null;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: _kBorderRadius,
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1.2,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x03000000), // black with 1% opacity
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: isLoading ? null : () => _showSearchModal(context),
+        borderRadius: _kBorderRadius,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  isLoading
+                      ? 'Memuat data...'
+                      : (selectedItem != null ? selectedItem.label : hint),
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: isLoading
+                        ? const Color(0xFF0F4C81)
+                        : (selectedItem != null
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFF94A3B8)),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (isLoading)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F4C81)),
+                  ),
+                )
+              else
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: Color(0xFF0F4C81),
+                  size: 20,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSearchModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return _SearchModalContent<T>(
+          title: title,
+          hint: hint,
+          items: items,
+          selectedValue: value,
+          onSelected: (val) {
+            onChanged(val);
+            Navigator.pop(context);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _SearchModalContent<T> extends StatefulWidget {
+  final String title;
+  final String hint;
+  final List<DropdownItemData<T>> items;
+  final T? selectedValue;
+  final ValueChanged<T> onSelected;
+
+  const _SearchModalContent({
+    super.key,
+    required this.title,
+    required this.hint,
+    required this.items,
+    required this.selectedValue,
+    required this.onSelected,
+  });
+
+  @override
+  State<_SearchModalContent<T>> createState() => _SearchModalContentState<T>();
+}
+
+class _SearchModalContentState<T> extends State<_SearchModalContent<T>> {
+  late TextEditingController _searchController;
+  List<DropdownItemData<T>> _filteredItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _filteredItems = widget.items;
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    final query = _searchController.text.trim().toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        _filteredItems = widget.items;
+      } else {
+        _filteredItems = widget.items
+            .where((item) => item.label.toLowerCase().contains(query))
+            .toList();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final bottomInset = mediaQuery.viewInsets.bottom;
+    final maxAvailableHeight = mediaQuery.size.height * 0.8;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: EdgeInsets.only(
+        bottom: bottomInset,
+      ),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: maxAvailableHeight,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                        fontFamily: 'Outfit',
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF1E293B),
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Cari ${widget.title.toLowerCase()}...',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 13.5,
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: Color(0xFF94A3B8),
+                      size: 20,
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.clear_rounded,
+                              color: Color(0xFF94A3B8),
+                              size: 18,
+                            ),
+                            onPressed: () {
+                              _searchController.clear();
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Flexible(
+              child: _filteredItems.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 40.0,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.search_off_rounded,
+                            size: 48,
+                            color: Color(0xFFCBD5E1),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Data tidak ditemukan',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Coba masukkan kata kunci yang berbeda',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF94A3B8),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        bottom: 24,
+                      ),
+                      itemCount: _filteredItems.length,
+                      separatorBuilder: (context, index) => const Divider(
+                        height: 1,
+                        color: Color(0xFFF1F5F9),
+                      ),
+                      itemBuilder: (context, index) {
+                        final item = _filteredItems[index];
+                        final isSelected = item.value == widget.selectedValue;
+
+                        return InkWell(
+                          onTap: () => widget.onSelected(item.value),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? const Color(0xFF0F4C81).withOpacity(0.05)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    item.label,
+                                    style: TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                      color: isSelected
+                                          ? const Color(0xFF0F4C81)
+                                          : const Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ),
+                                if (isSelected)
+                                  const Icon(
+                                    Icons.check_circle_rounded,
+                                    color: Color(0xFF0F4C81),
+                                    size: 18,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

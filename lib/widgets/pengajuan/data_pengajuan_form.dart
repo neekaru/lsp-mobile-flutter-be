@@ -55,7 +55,8 @@ class DataPengajuanForm extends StatelessWidget {
 
         // Dropdown Skema
         const CustomFieldLabel(label: 'Skema'),
-        CustomKeyValueDropdownSelectorGeneric<int>(
+        SearchableModalSelectorGeneric<int>(
+          title: 'Skema',
           hint: 'Pilih skema',
           value: selectedSkema,
           items: listSkema
@@ -71,7 +72,8 @@ class DataPengajuanForm extends StatelessWidget {
 
         // Dropdown Jadwal Uji Kompetensi
         const CustomFieldLabel(label: 'Jadwal Uji Kompetensi'),
-        CustomKeyValueDropdownSelectorGeneric<int>(
+        SearchableModalSelectorGeneric<int>(
+          title: 'Jadwal Uji Kompetensi',
           hint: 'Jadwal uji kompetensi',
           value: selectedJadwal,
           items: listJadwal
