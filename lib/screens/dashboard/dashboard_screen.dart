@@ -64,10 +64,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (isAsesi) {
         // Panggil API yang dibutuhkan asesi secara parallel (termasuk berita, chart graf, dan jadwal baru)
         final results = await Future.wait([
-          ApiService.getAsesiSummary(userId: user!.id, role: user.role),
+          ApiService.getAsesiSummary(),
           ApiService.getBerita(page: 1, size: 5),
           ApiService.getAssessmentGraph(),
-          // ApiService.getJadwalBaru(),
+          ApiService.getJadwalBaru(),
         ]);
 
         if (_isDisposed || !mounted) return;
