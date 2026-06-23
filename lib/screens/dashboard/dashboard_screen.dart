@@ -8,6 +8,8 @@ import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../services/auth_repository.dart';
 import '../../widgets/mulai_sertifikasi_card.dart';
+import '../../models/berita_model.dart';
+import '../../widgets/berita_terkini_section.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -27,6 +29,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   DashboardSummary? _summaryData;
   List<MonthlyAssessment>? _chartData;
   List<JadwalBaru>? _jadwalData;
+  List<BeritaItem>? _beritaData;
 
   @override
   void initState() {
@@ -53,11 +56,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     try {
+      final bool isAsesi = AuthRepository.currentUserInstance?.role == 'asesi';
+
       // Panggil semua API secara parallel
       final results = await Future.wait([
         ApiService.getSummary(),
         ApiService.getAssessmentGraph(), // Changed to new endpoint
         ApiService.getJadwalBaru(),
+        isAsesi
+            ? ApiService.getBerita(page: 1, size: 5)
+            : Future.value(<BeritaItem>[]),
       ]);
 
       if (_isDisposed || !mounted) return;
@@ -65,6 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _summaryData = results[0] as DashboardSummary;
         _chartData = results[1] as List<MonthlyAssessment>;
         _jadwalData = results[2] as List<JadwalBaru>;
+        _beritaData = results[3] as List<BeritaItem>;
         _isLoading = false;
       });
     } catch (e) {
@@ -224,6 +233,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: MulaiSertifikasiCard(),
             ),
+
+            // 1.6. Berita Terkini Section (2 boxes horizontally under Mulai Skema Sertifikasi) - Hanya untuk Asesi
+            if (AuthRepository.currentUserInstance?.role == 'asesi')
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 4.0,
+                  bottom: 8.0,
+                ),
+                child: BeritaTerkiniSection(
+                  data: _beritaData,
+                  isLoading: _isLoading,
+                ),
+              ),
 
             // 2. Tren Asesmen Bulanan Section (Imported chart card widget)
             Padding(
