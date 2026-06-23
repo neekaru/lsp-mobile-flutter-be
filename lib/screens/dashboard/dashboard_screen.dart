@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../widgets/rangkuman_utama.dart';
+import '../../widgets/rangkuman_asesi.dart';
 import '../../widgets/tren_asesmen_chart.dart';
 import '../../widgets/jadwal_asesmen.dart';
 import '../../widgets/notification_bell.dart';
@@ -27,6 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // State untuk menyimpan data dari API
   DashboardSummary? _summaryData;
+  AsesiDashboardSummary? _asesiSummaryData;
   List<MonthlyAssessment>? _chartData;
   List<JadwalBaru>? _jadwalData;
   List<BeritaItem>? _beritaData;
@@ -56,26 +58,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     try {
-      final bool isAsesi = AuthRepository.currentUserInstance?.role == 'asesi';
+      final user = AuthRepository.currentUserInstance;
+      final bool isAsesi = user?.role == 'asesi';
 
-      // Panggil semua API secara parallel
-      final results = await Future.wait([
-        ApiService.getSummary(),
-        ApiService.getAssessmentGraph(), // Changed to new endpoint
-        ApiService.getJadwalBaru(),
-        isAsesi
-            ? ApiService.getBerita(page: 1, size: 5)
-            : Future.value(<BeritaItem>[]),
-      ]);
+      if (isAsesi) {
+        // Panggil hanya API yang dibutuhkan asesi secara parallel
+        final results = await Future.wait([
+          ApiService.getAsesiSummary(userId: user!.id, role: user.role),
+          ApiService.getBerita(page: 1, size: 5),
+        ]);
 
-      if (_isDisposed || !mounted) return;
-      setState(() {
-        _summaryData = results[0] as DashboardSummary;
-        _chartData = results[1] as List<MonthlyAssessment>;
-        _jadwalData = results[2] as List<JadwalBaru>;
-        _beritaData = results[3] as List<BeritaItem>;
-        _isLoading = false;
-      });
+        if (_isDisposed || !mounted) return;
+        setState(() {
+          _asesiSummaryData = results[0] as AsesiDashboardSummary;
+          _beritaData = results[1] as List<BeritaItem>;
+          _isLoading = false;
+        });
+      } else {
+        // Panggil API yang dibutuhkan admin/guest secara parallel
+        final results = await Future.wait([
+          ApiService.getSummary(),
+          ApiService.getAssessmentGraph(),
+          ApiService.getJadwalBaru(),
+        ]);
+
+        if (_isDisposed || !mounted) return;
+        setState(() {
+          _summaryData = results[0] as DashboardSummary;
+          _chartData = results[1] as List<MonthlyAssessment>;
+          _jadwalData = results[2] as List<JadwalBaru>;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       // Log error untuk debugging
       debugPrint('Error loading dashboard data: $e');
@@ -215,10 +229,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     right: 16,
                     bottom: 12, // Set to 12
                   ),
-                  child: RangkumanUtama(
-                    data: _summaryData,
-                    isLoading: _isLoading,
-                  ),
+                  child: AuthRepository.currentUserInstance?.role == 'asesi'
+                      ? RangkumanAsesi(
+                          data: _asesiSummaryData,
+                          isLoading: _isLoading,
+                        )
+                      : RangkumanUtama(
+                          data: _summaryData,
+                          isLoading: _isLoading,
+                        ),
                 ),
               ],
             ),
@@ -247,16 +266,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
 
-            // 2. Tren Asesmen Bulanan Section (Imported chart card widget)
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 16.0,
-                right: 16.0,
-                top: 8.0,
-                bottom: 8.0,
+            // 2. Tren Asesmen Bulanan Section (Imported chart card widget) - Hanya untuk non-asesi
+            if (AuthRepository.currentUserInstance?.role != 'asesi')
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 8.0,
+                  bottom: 8.0,
+                ),
+                child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
               ),
-              child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
-            ),
 
             // 3. Jadwal Asesmen Mendekati Baru Section (Imported list widget) - Hanya untuk Admin
             if (AuthRepository.currentUserInstance?.role == 'admin')

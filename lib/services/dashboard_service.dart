@@ -48,6 +48,32 @@ class DashboardService {
     }
   }
 
+  /// Fetch Asesi Dashboard Summary (per user_id and role)
+  static Future<AsesiDashboardSummary> getAsesiSummary({
+    required String userId,
+    required String role,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/api/asesi/dashboard/summary',
+        queryParameters: {
+          'user_id': userId,
+          'role': role,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'];
+        return AsesiDashboardSummary.fromJson(data);
+      }
+
+      return AsesiDashboardSummary.mock();
+    } catch (e) {
+      debugPrint('Error fetching asesi summary: $e');
+      return AsesiDashboardSummary.mock();
+    }
+  }
+
   /// Fetch Monthly Assessments for Chart
   static Future<List<MonthlyAssessment>> getMonthlyAssessments() async {
     try {

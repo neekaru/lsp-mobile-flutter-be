@@ -50,6 +50,11 @@ class ApiService {
 
   // ── Dashboard ───────────────────────────────────────────────────────────────
   static Future<DashboardSummary> getSummary() => DashboardService.getSummary();
+  static Future<AsesiDashboardSummary> getAsesiSummary({
+    required String userId,
+    required String role,
+  }) =>
+      DashboardService.getAsesiSummary(userId: userId, role: role);
   static Future<List<MonthlyAssessment>> getMonthlyAssessments() => DashboardService.getMonthlyAssessments();
   static Future<List<MonthlyAssessment>> getAssessmentGraph({int months = 12}) =>
       DashboardService.getAssessmentGraph(months: months);

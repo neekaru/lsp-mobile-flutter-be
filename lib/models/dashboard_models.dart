@@ -429,3 +429,39 @@ class JadwalBaru {
     );
   }
 }
+
+// ============================================================================
+// Asesi Dashboard Summary Model
+// ============================================================================
+
+class AsesiDashboardSummary {
+  final int totalJadwalDiikuti;
+  final int sertifikatDiterima;
+  final int tukTerdekat;
+  final int skemaPernahDijalani;
+
+  const AsesiDashboardSummary({
+    required this.totalJadwalDiikuti,
+    required this.sertifikatDiterima,
+    required this.tukTerdekat,
+    required this.skemaPernahDijalani,
+  });
+
+  factory AsesiDashboardSummary.fromJson(Map<String, dynamic> json) {
+    return AsesiDashboardSummary(
+      totalJadwalDiikuti: json['total_jadwal_diikuti'] ?? 0,
+      sertifikatDiterima: json['sertifikat_diterima'] ?? 0,
+      tukTerdekat: json['tuk_terdekat'] ?? 0,
+      skemaPernahDijalani: json['skema_pernah_dijalani'] ?? 0,
+    );
+  }
+
+  factory AsesiDashboardSummary.mock() {
+    return const AsesiDashboardSummary(
+      totalJadwalDiikuti: 2,
+      sertifikatDiterima: 15,
+      tukTerdekat: 302,
+      skemaPernahDijalani: 20,
+    );
+  }
+}
