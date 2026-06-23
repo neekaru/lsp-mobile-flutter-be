@@ -62,22 +62,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final bool isAsesi = user?.role == 'asesi';
 
       if (isAsesi) {
-        // Panggil hanya API yang dibutuhkan asesi secara parallel
+        // Panggil API yang dibutuhkan asesi secara parallel (termasuk berita, chart graf, dan jadwal baru)
         final results = await Future.wait([
           ApiService.getAsesiSummary(userId: user!.id, role: user.role),
           ApiService.getBerita(page: 1, size: 5),
+          ApiService.getAssessmentGraph(),
+          // ApiService.getJadwalBaru(),
         ]);
 
         if (_isDisposed || !mounted) return;
         setState(() {
           _asesiSummaryData = results[0] as AsesiDashboardSummary;
           _beritaData = results[1] as List<BeritaItem>;
+          _chartData = results[2] as List<MonthlyAssessment>;
+          _jadwalData = results[3] as List<JadwalBaru>;
           _isLoading = false;
         });
       } else {
-        // Panggil API yang dibutuhkan admin/guest secara parallel
+        // Panggil API yang dibutuhkan admin/guest secara parallel (termasuk berita, chart graf, dan jadwal baru)
         final results = await Future.wait([
           ApiService.getSummary(),
+          ApiService.getBerita(page: 1, size: 5),
           ApiService.getAssessmentGraph(),
           ApiService.getJadwalBaru(),
         ]);
@@ -85,8 +90,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (_isDisposed || !mounted) return;
         setState(() {
           _summaryData = results[0] as DashboardSummary;
-          _chartData = results[1] as List<MonthlyAssessment>;
-          _jadwalData = results[2] as List<JadwalBaru>;
+          _beritaData = results[1] as List<BeritaItem>;
+          _chartData = results[2] as List<MonthlyAssessment>;
+          _jadwalData = results[3] as List<JadwalBaru>;
           _isLoading = false;
         });
       }
@@ -253,33 +259,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: MulaiSertifikasiCard(),
             ),
 
-            // 1.6. Berita Terkini Section (2 boxes horizontally under Mulai Skema Sertifikasi) - Hanya untuk Asesi
-            if (AuthRepository.currentUserInstance?.role == 'asesi')
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 4.0,
-                  bottom: 8.0,
-                ),
-                child: BeritaTerkiniSection(
-                  data: _beritaData,
-                  isLoading: _isLoading,
-                ),
+            // 1.6. Berita Terkini Section (2 boxes horizontally under Mulai Skema Sertifikasi) - Tampil di semua role
+            Padding(
+              padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
+              child: BeritaTerkiniSection(
+                data: _beritaData,
+                isLoading: _isLoading,
               ),
+            ),
 
-            // 2. Tren Asesmen Bulanan Section (Imported chart card widget) - Hanya untuk non-asesi
-            if (AuthRepository.currentUserInstance?.role != 'asesi')
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 16.0,
-                  right: 16.0,
-                  top: 8.0,
-                  bottom: 8.0,
-                ),
-                child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
+            // 2. Tren Asesmen Bulanan Section (Imported chart card widget) - Tampil di semua role
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                top: 8.0,
+                bottom: 8.0,
               ),
+              child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
+            ),
 
             // 3. Jadwal Asesmen Mendekati Baru Section (Imported list widget) - Hanya untuk Admin
-            if (AuthRepository.currentUserInstance?.role == 'admin')
+            if (AuthRepository.currentUserInstance?.role == 'admin' &&
+                AuthRepository.currentUserInstance?.role == 'asesi')
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   16.0,
