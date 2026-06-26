@@ -16,6 +16,9 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
 
+  String _nik = '6256400136573124';
+  String _pendidikan = 'D3 Teknik Informasi';
+
   @override
   void initState() {
     super.initState();
@@ -210,15 +213,19 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                           MaterialPageRoute(
                             builder: (context) => EditDataDiriScreen(
                               currentName: _nameController.text,
-                              currentEmail: _emailController.text,
+                              currentNik: _nik,
                               currentPhone: _phoneController.text,
+                              currentEmail: _emailController.text,
+                              currentPendidikan: _pendidikan,
                               currentAddress: _addressController.text,
-                              onSave: (name, email, phone, address) {
+                              onSave: (name, nik, phone, email, pendidikan, address) {
                                 setState(() {
                                   _nameController.text = name;
                                   _emailController.text = email;
                                   _phoneController.text = phone;
                                   _addressController.text = address;
+                                  _nik = nik;
+                                  _pendidikan = pendidikan;
                                 });
                                 final user = AuthRepository.currentUserInstance;
                                 if (user != null) {
