@@ -306,6 +306,8 @@ class _JadwalScreenState extends State<JadwalScreen>
               child: JadwalTabBar(
                 controller: _tabController,
                 runningCount: runningList.length,
+                pelaporanCount: pelaporanList.length,
+                selesaiCount: selesaiList.length,
               ),
             ),
 
@@ -351,17 +353,20 @@ class _JadwalScreenState extends State<JadwalScreen>
   }
 
   Widget _buildSedangBerjalanTab() {
+    final bool isAsesi = currentUser.role == 'asesi';
+
     return RefreshIndicator(
       onRefresh: _handleRefresh,
       child: ListView.builder(
         controller: _scrollControllerRunning,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount:
-            runningList.length + 2, // +2 for header and loading indicator
+        itemCount: isAsesi
+            ? runningList.length + 1 // +1 for loading indicator at the end
+            : runningList.length + 2, // +2 for header and loading indicator
         itemBuilder: (context, index) {
-          // Header without chart (only statistics text)
-          if (index == 0) {
+          if (!isAsesi && index == 0) {
+            // Header without chart (only statistics text)
             return Column(
               children: [
                 const SizedBox(height: 16),
@@ -443,8 +448,10 @@ class _JadwalScreenState extends State<JadwalScreen>
             );
           }
 
+          final int itemIndex = isAsesi ? index : index - 1;
+
           // Loading indicator at the end
-          if (index == runningList.length + 1) {
+          if (index == (isAsesi ? runningList.length : runningList.length + 1)) {
             if (_isLoadingMore) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
@@ -466,7 +473,6 @@ class _JadwalScreenState extends State<JadwalScreen>
           }
 
           // List items
-          final itemIndex = index - 1;
           final item = runningList[itemIndex];
           return Padding(
             padding: EdgeInsets.only(
@@ -602,12 +608,14 @@ class _JadwalScreenState extends State<JadwalScreen>
   }
 
   Widget _buildAppBar() {
+    final bool isAsesi = currentUser.role == 'asesi';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Circular Black Back Arrow Button
+          // Circular Back Arrow Button
           GestureDetector(
             onTap: () {
               if (widget.onBackToHome != null) {
@@ -619,22 +627,23 @@ class _JadwalScreenState extends State<JadwalScreen>
             child: Container(
               width: 32,
               height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
+              decoration: BoxDecoration(
+                color: isAsesi ? Colors.white : Colors.black,
                 shape: BoxShape.circle,
+                border: isAsesi ? Border.all(color: Colors.grey.shade300) : null,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
+                color: isAsesi ? Colors.black : Colors.white,
                 size: 20,
               ),
             ),
           ),
 
           // Bold screen title
-          const Text(
-            'Jadwal Asesmen',
-            style: TextStyle(
+          Text(
+            isAsesi ? 'Jadwal Saya' : 'Jadwal Asesmen',
+            style: const TextStyle(
               color: Colors.black,
               fontSize: 16,
               fontWeight: FontWeight.bold,

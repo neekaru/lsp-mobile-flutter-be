@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_repository.dart';
 
 class JadwalTabBar extends StatefulWidget {
   final TabController controller;
   final int runningCount;
+  final int pelaporanCount;
+  final int selesaiCount;
 
   const JadwalTabBar({
     super.key,
     required this.controller,
     required this.runningCount,
+    this.pelaporanCount = 0,
+    this.selesaiCount = 0,
   });
 
   @override
@@ -44,30 +49,37 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isAsesi = AuthRepository.currentUserInstance?.role == 'asesi';
+
     return Row(
       children: [
         Expanded(
           child: TabItem(
-            label: 'Running',
+            label: isAsesi ? 'Mendatang' : 'Running',
             badgeCount: widget.runningCount,
             isSelected: widget.controller.index == 0,
             onTap: () => widget.controller.animateTo(0),
+            isAsesi: isAsesi,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: TabItem(
-            label: 'Pelaporan',
+            label: isAsesi ? 'Berjalan' : 'Pelaporan',
+            badgeCount: isAsesi ? widget.pelaporanCount : null,
             isSelected: widget.controller.index == 1,
             onTap: () => widget.controller.animateTo(1),
+            isAsesi: isAsesi,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: TabItem(
-            label: 'Selesai',
+            label: isAsesi ? 'Selesai' : 'Selesai',
+            badgeCount: isAsesi ? widget.selesaiCount : null,
             isSelected: widget.controller.index == 2,
             onTap: () => widget.controller.animateTo(2),
+            isAsesi: isAsesi,
           ),
         ),
       ],
@@ -80,6 +92,7 @@ class TabItem extends StatelessWidget {
   final int? badgeCount;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool isAsesi;
 
   const TabItem({
     super.key,
@@ -87,19 +100,44 @@ class TabItem extends StatelessWidget {
     this.badgeCount,
     required this.isSelected,
     required this.onTap,
+    this.isAsesi = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    Color containerColor;
+    Color textColor;
+    Color badgeBgColor;
+    Color badgeTextColor;
+
+    if (isAsesi) {
+      if (isSelected) {
+        containerColor = const Color(0xFF6C8BB4); // Slate blue
+        textColor = Colors.white;
+        badgeBgColor = Colors.white;
+        badgeTextColor = const Color(0xFF6C8BB4);
+      } else {
+        containerColor = const Color(0xFFD2E3F4); // Very light grey-blue
+        textColor = const Color(0xFF5A7EAA);
+        badgeBgColor = const Color(0xFF6C8BB4);
+        badgeTextColor = Colors.white;
+      }
+    } else {
+      containerColor = isSelected ? Colors.white : const Color(0xFF758FAD);
+      textColor = isSelected ? Colors.black87 : Colors.white;
+      badgeBgColor = Colors.red;
+      badgeTextColor = Colors.white;
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : const Color(0xFF758FAD),
+          color: containerColor,
           borderRadius: BorderRadius.circular(100),
-          boxShadow: isSelected
+          boxShadow: isSelected && !isAsesi
               ? const [
                   BoxShadow(
                     color: Color(0x0A000000),
@@ -117,7 +155,7 @@ class TabItem extends StatelessWidget {
               child: Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.black87 : Colors.white,
+                  color: textColor,
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),
@@ -129,8 +167,8 @@ class TabItem extends StatelessWidget {
               const SizedBox(width: 4),
               Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
+                decoration: BoxDecoration(
+                  color: badgeBgColor,
                   shape: BoxShape.circle,
                 ),
                 constraints: const BoxConstraints(
@@ -140,10 +178,10 @@ class TabItem extends StatelessWidget {
                 child: Center(
                   child: Text(
                     '$badgeCount',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: badgeTextColor,
                       height: 1.0,
                     ),
                   ),
