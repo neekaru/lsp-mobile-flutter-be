@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/sertifikat_models.dart';
 import '../../services/sertifikat_service.dart';
 import '../pengajuan/pengajuan_sertifikat_screen.dart';
+import '../pengajuan/konfirmasi_pendaftaran_screen.dart';
 
 class DetailSkemaScreen extends StatefulWidget {
   final int skemaId;
@@ -228,12 +229,29 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                         GestureDetector(
                           onTap: isOpen
                               ? () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const PengajuanSertifikatScreen(),
-                                    ),
-                                  );
+                                  // Check if user is already registered (simulated for flow testing)
+                                  final bool isAlreadyRegistered = detail.title.toLowerCase().contains('pemasaran') ||
+                                      detail.title.toLowerCase().contains('marketing');
+
+                                  if (isAlreadyRegistered) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => KonfirmasiPendaftaranScreen(
+                                          skemaId: widget.skemaId,
+                                          title: detail.title,
+                                          kodeSkema: detail.kodeSkema,
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const PengajuanSertifikatScreen(),
+                                      ),
+                                    );
+                                  }
                                 }
                               : null,
                           child: Container(
