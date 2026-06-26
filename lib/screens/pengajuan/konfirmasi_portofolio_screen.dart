@@ -15,10 +15,13 @@ class KonfirmasiPortofolioScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double statusBarHeight = MediaQuery.paddingOf(context).top;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
+          SizedBox(height: statusBarHeight + 8),
           _buildAppBar(context),
           Expanded(
             child: SingleChildScrollView(
@@ -66,48 +69,37 @@ class KonfirmasiPortofolioScreen extends StatelessWidget {
   }
 
   Widget _buildAppBar(BuildContext context) {
-    final double statusBarHeight = MediaQuery.paddingOf(context).top;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(16, statusBarHeight + 12, 16, 12),
-      decoration: const BoxDecoration(
-        color: Color(0xFFEAEAEA), // light grey header background
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFF3B82F6), // blue bottom line
-            width: 3,
-          ),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
             onTap: () => Navigator.pop(context),
             child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                color: Colors.black,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.black87,
-                  width: 1.5,
-                ),
               ),
               child: const Icon(
-                Icons.chevron_left_rounded,
-                color: Colors.black87,
-                size: 18,
+                Icons.keyboard_arrow_left_rounded,
+                color: Colors.white,
+                size: 20,
               ),
             ),
           ),
-          const SizedBox(width: 12),
           const Text(
             'Konfirmasi Portofolio',
             style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
               color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.2,
             ),
           ),
+          const SizedBox(width: 32, height: 32),
         ],
       ),
     );
