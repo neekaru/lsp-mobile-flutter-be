@@ -15,18 +15,27 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'Semua Skema';
   int _currentPage = 1;
+  static const int _itemsPerPage = 6;
+
+  // Filter states matching the popover options
+  String _selectedKategori = 'Semua Skema';
+  String? _selectedJenjang;
+  String? _selectedBidang;
 
   final List<Map<String, dynamic>> _schemes = [
     {
       'title': 'Skema Digital Marketing',
       'status': 'Pendaftaran Dibuka',
       'isOpen': true,
-      'tags': ['S.S.D. Kemitraan'],
-      'units': '8 Unit Kompetensi',
+      'tags': ['SJJ & Nirkertas'],
+      'units': '11 Unit Kompetensi',
       'price': 'Rp. 1.500.000',
       'colors': [Color(0xFFFFF9C4), Color(0xFFFFB74D)],
       'icon': Icons.campaign_rounded,
       'description': 'Mempelajari strategi pemasaran digital, SEO, SEM, social media marketing, dan analytics.',
+      'kategori': ['Skema Nirkertas(Paperless)'],
+      'jenjang': 'Okupasi',
+      'bidang': 'Digital Marketing & Office',
       'unitList': [
         'Mengolah Data Riset',
         'Melaksanakan Kegiatan Analisis di Media Sosial',
@@ -35,61 +44,10 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
         'Mempersiapkan Konten Digital',
         'Merancang Strategi Pemasaran Digital',
         'Mengelola Hubungan Pelanggan secara Digital',
-        'Mengukur Efektivitas Pemasaran Digital'
-      ]
-    },
-    {
-      'title': 'Network Administrator Muda',
-      'status': 'Pendaftaran Dibuka',
-      'isOpen': true,
-      'tags': ['S.S.D. Mandiri'],
-      'units': '5 Unit Kompetensi',
-      'price': 'Rp. 1.520.000',
-      'colors': [Color(0xFFE3F2FD), Color(0xFF64B5F6)],
-      'icon': Icons.dns_rounded,
-      'description': 'Mempersiapkan tenaga ahli dalam instalasi, konfigurasi, dan pemeliharaan jaringan komputer skala kecil-menengah.',
-      'unitList': [
-        'Merancang Topologi Jaringan',
-        'Mengonfigurasi Switch & Router',
-        'Mengamankan Jaringan Nirkabel',
-        'Melakukan Troubleshooting Jaringan',
-        'Membuat Dokumentasi Jaringan'
-      ]
-    },
-    {
-      'title': 'Ilmuwan Big Data',
-      'status': 'Pendaftaran Dibuka',
-      'isOpen': true,
-      'tags': ['Populer'],
-      'units': '10 Unit Kompetensi',
-      'price': 'Rp. 1.650.000',
-      'colors': [Color(0xFFF3E5F5), Color(0xFFBA68C8)],
-      'icon': Icons.analytics_rounded,
-      'description': 'Melatih keterampilan analitik tingkat lanjut untuk mengolah big data, machine learning, dan visualisasi data.',
-      'unitList': [
-        'Pengumpulan Data Massal',
-        'Preprocessing & Cleaning Data',
-        'Analisis Statistik Deskriptif',
-        'Implementasi Model Machine Learning',
-        'Visualisasi Data Interaktif'
-      ]
-    },
-    {
-      'title': 'Pemprogram Basis Data',
-      'status': 'Pendaftaran Ditutup',
-      'isOpen': false,
-      'tags': ['Sertifikasi'],
-      'units': '14 Unit Kompetensi',
-      'price': 'Rp. 1.500.000',
-      'colors': [Color(0xFFFFEBEE), Color(0xFFE57373)],
-      'icon': Icons.storage_rounded,
-      'description': 'Fokus pada pemodelan data, query SQL, optimasi database, keamanan, dan administrasi RDBMS.',
-      'unitList': [
-        'Merancang Entity Relationship Diagram',
-        'Menulis Query SQL Kompleks',
-        'Optimasi Indeks & Kueri',
-        'Backup & Recovery Data',
-        'Keamanan Database'
+        'Mengukur Efektivitas Pemasaran Digital',
+        'Mengoptimalkan Search Engine Optimization (SEO)',
+        'Merencanakan Kampanye Iklan Berbayar (SEM)',
+        'Menganalisis Kinerja Pemasaran Digital'
       ]
     },
     {
@@ -97,29 +55,38 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
       'status': 'Pendaftaran Dibuka',
       'isOpen': true,
       'tags': ['Populer'],
-      'units': '6 Unit Kompetensi',
+      'units': '8 Unit Kompetensi',
       'price': 'Rp. 900.000',
       'colors': [Color(0xFFE0F7FA), Color(0xFF4DD0E1)],
       'icon': Icons.palette_rounded,
       'description': 'Pengembangan aset visual 2D/3D, audio/video editing, dan pembuatan layout kreatif.',
+      'kategori': ['Skema Populer'],
+      'jenjang': 'Klaster',
+      'bidang': 'Multimedia',
       'unitList': [
         'Membuat Gambar Vektor',
         'Editing Foto Digital',
         'Penyuntingan Audio & Video',
         'Desain Layout Publikasi',
-        'Pembuatan Animasi Dasar'
+        'Pembuatan Animasi Dasar',
+        'Pemodelan Objek 3D',
+        'Integrasi Elemen Multimedia',
+        'Uji Kelayakan Produk Multimedia'
       ]
     },
     {
       'title': 'Manajer Proyek TIK',
       'status': 'Pendaftaran Dibuka',
       'isOpen': true,
-      'tags': ['E-Uji', 'Populer'],
+      'tags': ['SJJ', 'Populer'],
       'units': '15 Unit Kompetensi',
       'price': 'Rp. 2.000.000',
       'colors': [Color(0xFFE8EAF6), Color(0xFF7986CB)],
       'icon': Icons.assignment_rounded,
       'description': 'Manajemen siklus hidup proyek IT menggunakan framework Agile & Waterfall, alokasi resource, dan risk mitigation.',
+      'kategori': ['Skema AJJ', 'Skema Populer'],
+      'jenjang': 'Okupasi',
+      'bidang': 'Software Development',
       'unitList': [
         'Penyusunan Project Charter',
         'Estimasi Biaya & Jadwal',
@@ -138,42 +105,77 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
       'colors': [Color(0xFFFFEBEE), Color(0xFFE57373)],
       'icon': Icons.storage_rounded,
       'description': 'Fokus pada pemodelan data, query SQL, optimasi database, keamanan, dan administrasi RDBMS.',
+      'kategori': ['Skema Terbaru'],
+      'jenjang': 'KKNI',
+      'bidang': 'Software Development',
       'unitList': [
         'Merancang Entity Relationship Diagram',
         'Menulis Query SQL Kompleks',
-        'Optimasi Indeks & Kueri'
+        'Optimasi Indeks & Kueri',
+        'Backup & Recovery Data',
+        'Keamanan Database'
       ]
     },
     {
-      'title': 'Desain Multimedia Muda',
+      'title': 'Network Administrator Muda',
+      'status': 'Pendaftaran Dibuka',
+      'isOpen': true,
+      'tags': ['SJJ'],
+      'units': '5 Unit Kompetensi',
+      'price': 'Rp. 1.520.000',
+      'colors': [Color(0xFFE3F2FD), Color(0xFF64B5F6)],
+      'icon': Icons.dns_rounded,
+      'description': 'Mempersiapkan tenaga ahli dalam instalasi, konfigurasi, dan pemeliharaan jaringan komputer skala kecil-menengah.',
+      'kategori': ['Skema AJJ'],
+      'jenjang': 'KKNI',
+      'bidang': 'Software Development',
+      'unitList': [
+        'Merancang Topologi Jaringan',
+        'Mengonfigurasi Switch & Router',
+        'Mengamankan Jaringan Nirkabel',
+        'Melakukan Troubleshooting Jaringan',
+        'Membuat Dokumentasi Jaringan'
+      ]
+    },
+    {
+      'title': 'Ilmuwan Big Data',
+      'status': 'Pendaftaran Dibuka',
+      'isOpen': true,
+      'tags': ['Populer', 'Terbaru'],
+      'units': '10 Unit Kompetensi',
+      'price': 'Rp. 1.650.000',
+      'colors': [Color(0xFFF3E5F5), Color(0xFFBA68C8)],
+      'icon': Icons.analytics_rounded,
+      'description': 'Melatih keterampilan analitik tingkat lanjut untuk mengolah big data, machine learning, dan visualisasi data.',
+      'kategori': ['Skema Populer', 'Skema Terbaru'],
+      'jenjang': 'Okupasi',
+      'bidang': 'Data Science',
+      'unitList': [
+        'Pengumpulan Data Massal',
+        'Preprocessing & Cleaning Data',
+        'Analisis Statistik Deskriptif',
+        'Implementasi Model Machine Learning',
+        'Visualisasi Data Interaktif'
+      ]
+    },
+    {
+      'title': 'Graphic Design Expert',
       'status': 'Pendaftaran Dibuka',
       'isOpen': true,
       'tags': ['Populer'],
-      'units': '6 Unit Kompetensi',
-      'price': 'Rp. 1.100.000',
-      'colors': [Color(0xFFE0F7FA), Color(0xFF4DD0E1)],
-      'icon': Icons.palette_rounded,
-      'description': 'Pengembangan aset visual 2D/3D, audio/video editing, dan pembuatan layout kreatif.',
+      'units': '12 Unit Kompetensi',
+      'price': 'Rp. 1.800.000',
+      'colors': [Color(0xFFE1F5FE), Color(0xFF29B6F6)],
+      'icon': Icons.brush_rounded,
+      'description': 'Fokus pada penciptaan identitas visual, desain kemasan, aset promosi, dan penyesuaian estetika produk.',
+      'kategori': ['Skema Populer'],
+      'jenjang': 'Klaster',
+      'bidang': 'Graphic Design',
       'unitList': [
-        'Membuat Gambar Vektor',
-        'Editing Foto Digital',
-        'Penyuntingan Audio & Video'
-      ]
-    },
-    {
-      'title': 'Manajer Proyek TIK',
-      'status': 'Pendaftaran Dibuka',
-      'isOpen': true,
-      'tags': ['E-Uji', 'Populer'],
-      'units': '15 Unit Kompetensi',
-      'price': 'Rp. 2.000.000',
-      'colors': [Color(0xFFE8EAF6), Color(0xFF7986CB)],
-      'icon': Icons.assignment_rounded,
-      'description': 'Manajemen siklus hidup proyek IT menggunakan framework Agile & Waterfall, alokasi resource, dan risk mitigation.',
-      'unitList': [
-        'Penyusunan Project Charter',
-        'Estimasi Biaya & Jadwal',
-        'Alokasi SDM Proyek'
+        'Mengaplikasikan Prinsip Dasar Desain',
+        'Membuat Logo & Brand Identity',
+        'Merancang Desain Publikasi',
+        'Membuat Kemasan Produk Kreatif'
       ]
     }
   ];
@@ -195,27 +197,98 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
   List<Map<String, dynamic>> _getFilteredSchemes() {
     final query = _searchController.text.toLowerCase();
     return _schemes.where((scheme) {
+      // 1. Search Query filter
       final matchesQuery = query.isEmpty ||
           scheme['title'].toString().toLowerCase().contains(query);
+      if (!matchesQuery) return false;
 
-      if (_selectedFilter == 'Semua Skema') {
-        return matchesQuery;
-      } else if (_selectedFilter == 'Populer') {
-        final tags = scheme['tags'] as List<String>;
-        return matchesQuery && tags.contains('Populer');
-      } else if (_selectedFilter == 'Digital') {
-        return matchesQuery &&
-            (scheme['title'].toString().toLowerCase().contains('digital') ||
-                scheme['title'].toString().toLowerCase().contains('multimedia'));
+      // 2. Kategori filter
+      if (_selectedKategori != 'Semua Skema') {
+        final categories = scheme['kategori'] as List<dynamic>? ?? [];
+        if (!categories.contains(_selectedKategori)) {
+          return false;
+        }
       }
-      return matchesQuery;
+
+      // 3. Jenjang filter
+      if (_selectedJenjang != null) {
+        if (scheme['jenjang'] != _selectedJenjang) {
+          return false;
+        }
+      }
+
+      // 4. Bidang filter
+      if (_selectedBidang != null) {
+        if (scheme['bidang'] != _selectedBidang) {
+          return false;
+        }
+      }
+
+      return true;
     }).toList();
+  }
+
+  void _showFilterMenu() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss Filter',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return _FilterMenuOverlay(
+          initialKategori: _selectedKategori,
+          initialJenjang: _selectedJenjang,
+          initialBidang: _selectedBidang,
+          onApply: (kategori, jenjang, bidang) {
+            setState(() {
+              _selectedKategori = kategori;
+              _selectedJenjang = jenjang;
+              _selectedBidang = bidang;
+              _currentPage = 1;
+
+              // Sync the horizontal shortcut pills highlight
+              if (kategori == 'Semua Skema' && jenjang == null && bidang == null) {
+                _selectedFilter = 'Semua Skema';
+              } else if (kategori == 'Skema Populer') {
+                _selectedFilter = 'Populer';
+              } else if (bidang == 'Multimedia') {
+                _selectedFilter = 'Digital';
+              } else {
+                _selectedFilter = ''; // Deselect shortcut pills when custom combo is set
+              }
+            });
+          },
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1.0, 0.0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOutCubic,
+          )),
+          child: child,
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
     final filteredSchemes = _getFilteredSchemes();
+
+    // Paginate items
+    final int totalPages = (filteredSchemes.length / _itemsPerPage).ceil();
+    final int activePage = _currentPage.clamp(1, totalPages > 0 ? totalPages : 1);
+    final int startIndex = (activePage - 1) * _itemsPerPage;
+    final int endIndex = (startIndex + _itemsPerPage).clamp(0, filteredSchemes.length);
+    final paginatedSchemes = filteredSchemes.isEmpty 
+        ? <Map<String, dynamic>>[] 
+        : filteredSchemes.sublist(startIndex, endIndex);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -260,10 +333,17 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                     letterSpacing: -0.2,
                   ),
                 ),
-                const Icon(
-                  Icons.more_horiz_rounded,
-                  color: Colors.black,
-                  size: 24,
+                GestureDetector(
+                  onTap: _showFilterMenu,
+                  behavior: HitTestBehavior.opaque,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Icon(
+                      Icons.more_horiz_rounded,
+                      color: Colors.black,
+                      size: 24,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -315,7 +395,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
             ),
           ),
 
-          // Filter Row Widget
+          // Filter Row Widget (Shortcuts)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
@@ -331,7 +411,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
 
           // Grid View of Schemes
           Expanded(
-            child: filteredSchemes.isEmpty
+            child: paginatedSchemes.isEmpty
                 ? _buildEmptyState()
                 : GridView.builder(
                     padding: const EdgeInsets.all(16),
@@ -342,16 +422,16 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                       mainAxisSpacing: 12,
                       childAspectRatio: 0.43,
                     ),
-                    itemCount: filteredSchemes.length,
+                    itemCount: paginatedSchemes.length,
                     itemBuilder: (context, index) {
-                      final scheme = filteredSchemes[index];
+                      final scheme = paginatedSchemes[index];
                       return _buildSchemeCard(scheme);
                     },
                   ),
           ),
 
           // Pagination Widget
-          _buildPagination(),
+          if (totalPages > 1) _buildPagination(totalPages),
         ],
       ),
     );
@@ -363,6 +443,20 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
       onTap: () {
         setState(() {
           _selectedFilter = filterName;
+          if (filterName == 'Semua Skema') {
+            _selectedKategori = 'Semua Skema';
+            _selectedJenjang = null;
+            _selectedBidang = null;
+          } else if (filterName == 'Populer') {
+            _selectedKategori = 'Skema Populer';
+            _selectedJenjang = null;
+            _selectedBidang = null;
+          } else if (filterName == 'Digital') {
+            _selectedKategori = 'Semua Skema';
+            _selectedJenjang = null;
+            _selectedBidang = 'Multimedia';
+          }
+          _currentPage = 1;
         });
       },
       child: Container(
@@ -491,12 +585,13 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                       children: tags.map((tag) {
                         final isPopular = tag == 'Populer';
                         final isEUji = tag == 'E-Uji';
+                        final isSjj = tag.startsWith('SJJ');
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                           decoration: BoxDecoration(
                             color: isPopular
                                 ? const Color(0xFFFFEBEE)
-                                : isEUji
+                                : (isEUji || isSjj)
                                     ? const Color(0xFFE8F5E9)
                                     : const Color(0xFFE3F2FD),
                             borderRadius: BorderRadius.circular(3),
@@ -506,7 +601,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                             style: TextStyle(
                               color: isPopular
                                   ? const Color(0xFFC62828)
-                                  : isEUji
+                                  : (isEUji || isSjj)
                                       ? const Color(0xFF2E7D32)
                                       : const Color(0xFF1565C0),
                               fontSize: 7.5,
@@ -777,7 +872,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
     );
   }
 
-  Widget _buildPagination() {
+  Widget _buildPagination(int totalPages) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: const BoxDecoration(
@@ -801,11 +896,9 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
             color: const Color(0xFF2C6C9C),
             disabledColor: Colors.grey[300],
           ),
-          _buildPageNumber(1),
-          _buildPageNumber(2),
-          _buildPageNumber(3),
+          for (int i = 1; i <= totalPages; i++) _buildPageNumber(i),
           IconButton(
-            onPressed: _currentPage < 3
+            onPressed: _currentPage < totalPages
                 ? () {
                     setState(() {
                       _currentPage++;
@@ -846,6 +939,358 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
             color: isSelected ? const Color(0xFF0284C7) : const Color(0xFF475569),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Overlay widget specifically for the filter options popup
+class _FilterMenuOverlay extends StatefulWidget {
+  final String initialKategori;
+  final String? initialJenjang;
+  final String? initialBidang;
+  final Function(String kategori, String? jenjang, String? bidang) onApply;
+
+  const _FilterMenuOverlay({
+    required this.initialKategori,
+    required this.initialJenjang,
+    required this.initialBidang,
+    required this.onApply,
+  });
+
+  @override
+  State<_FilterMenuOverlay> createState() => _FilterMenuOverlayState();
+}
+
+class _FilterMenuOverlayState extends State<_FilterMenuOverlay> {
+  late String _tempKategori;
+  late String? _tempJenjang;
+  late String? _tempBidang;
+
+  @override
+  void initState() {
+    super.initState();
+    _tempKategori = widget.initialKategori;
+    _tempJenjang = widget.initialJenjang;
+    _tempBidang = widget.initialBidang;
+  }
+
+  Widget _buildRadioItem({
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6.0),
+        child: Row(
+          children: [
+            Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFF4A9EDF),
+                  width: 1.5,
+                ),
+              ),
+              child: isSelected
+                  ? Center(
+                      child: Container(
+                        width: 7,
+                        height: 7,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF4A9EDF),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isSelected ? const Color(0xFF1E293B) : const Color(0xFF475569),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double statusBarHeight = MediaQuery.paddingOf(context).top;
+    final double screenWidth = MediaQuery.of(context).size.width;
+    const double cardWidth = 230.0;
+    const double rightMargin = 16.0;
+    
+    // The grey backdrop width (covers the card + some padding to the left of the card)
+    final double backdropWidth = cardWidth + rightMargin + 16; // 262.0
+
+    return Material(
+      color: Colors.transparent,
+      child: Stack(
+        children: [
+          // 1. Grey backdrop covering ONLY the right side of the screen
+          Positioned(
+            top: 0,
+            bottom: 0,
+            right: 0,
+            width: backdropWidth,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                color: Colors.black.withOpacity(0.35),
+              ),
+            ),
+          ),
+
+          // 2. Transparent backdrop covering the rest of the area on the left to dismiss on tap
+          Positioned(
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: screenWidth - backdropWidth,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+          ),
+
+          // 3. White filter card (on the right side)
+          Positioned(
+            top: statusBarHeight + 68, // Shifted down for padding
+            right: rightMargin,
+            child: GestureDetector(
+              onTap: () {}, // Prevent taps inside the card from dismissing
+              child: Container(
+                width: cardWidth,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x3D000000),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    )
+                  ],
+                ),
+                padding: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // kategori Skema
+                      const Text(
+                        'kategori Skema',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildRadioItem(
+                        title: 'Semua Skema',
+                        isSelected: _tempKategori == 'Semua Skema',
+                        onTap: () {
+                          setState(() => _tempKategori = 'Semua Skema');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Skema AJJ',
+                        isSelected: _tempKategori == 'Skema AJJ',
+                        onTap: () {
+                          setState(() => _tempKategori = 'Skema AJJ');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Skema Nirkertas(Paperless)',
+                        isSelected: _tempKategori == 'Skema Nirkertas(Paperless)',
+                        onTap: () {
+                          setState(() => _tempKategori = 'Skema Nirkertas(Paperless)');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Skema Populer',
+                        isSelected: _tempKategori == 'Skema Populer',
+                        onTap: () {
+                          setState(() => _tempKategori = 'Skema Populer');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Skema Terbaru',
+                        isSelected: _tempKategori == 'Skema Terbaru',
+                        onTap: () {
+                          setState(() => _tempKategori = 'Skema Terbaru');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+
+                      const Divider(height: 20, thickness: 0.5, color: Color(0xFFCBD5E1)),
+
+                      // Jenjang
+                      const Text(
+                        'Jenjang',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildRadioItem(
+                        title: 'Semua Jenjang',
+                        isSelected: _tempJenjang == null,
+                        onTap: () {
+                          setState(() => _tempJenjang = null);
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Okupasi',
+                        isSelected: _tempJenjang == 'Okupasi',
+                        onTap: () {
+                          setState(() => _tempJenjang = 'Okupasi');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'KKNI',
+                        isSelected: _tempJenjang == 'KKNI',
+                        onTap: () {
+                          setState(() => _tempJenjang = 'KKNI');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Klaster',
+                        isSelected: _tempJenjang == 'Klaster',
+                        onTap: () {
+                          setState(() => _tempJenjang = 'Klaster');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+
+                      const Divider(height: 20, thickness: 0.5, color: Color(0xFFCBD5E1)),
+
+                      // Bidang
+                      const Text(
+                        'Bidang',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildRadioItem(
+                        title: 'Semua Bidang',
+                        isSelected: _tempBidang == null,
+                        onTap: () {
+                          setState(() => _tempBidang = null);
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Digital Marketing & Office',
+                        isSelected: _tempBidang == 'Digital Marketing & Office',
+                        onTap: () {
+                          setState(() => _tempBidang = 'Digital Marketing & Office');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Data Science',
+                        isSelected: _tempBidang == 'Data Science',
+                        onTap: () {
+                          setState(() => _tempBidang = 'Data Science');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Software Development',
+                        isSelected: _tempBidang == 'Software Development',
+                        onTap: () {
+                          setState(() => _tempBidang = 'Software Development');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Multimedia',
+                        isSelected: _tempBidang == 'Multimedia',
+                        onTap: () {
+                          setState(() => _tempBidang = 'Multimedia');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                      _buildRadioItem(
+                        title: 'Graphic Design',
+                        isSelected: _tempBidang == 'Graphic Design',
+                        onTap: () {
+                          setState(() => _tempBidang = 'Graphic Design');
+                          widget.onApply(_tempKategori, _tempJenjang, _tempBidang);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // 4. "Filter by" and three-dots header row above the card (on the right side)
+          Positioned(
+            top: statusBarHeight + 16,
+            right: rightMargin,
+            width: cardWidth, // Row width spans exactly the card width
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Filter by',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  behavior: HitTestBehavior.opaque,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Icon(
+                      Icons.more_horiz_rounded,
+                      color: Colors.black,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
