@@ -1,7 +1,7 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
-import '../pengajuan/pengajuan_sertifikat_screen.dart';
 import 'filter_menu_overlay.dart';
+import 'detail_skema_screen.dart';
 
 class SkemaSertifikasiScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -680,168 +680,11 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
   }
 
   void _showSchemeDetail(Map<String, dynamic> scheme) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: scheme['colors'] as List<Color>,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(scheme['icon'] as IconData, color: Colors.white, size: 24),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          scheme['title'] as String,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          scheme['units'] as String,
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Deskripsi Skema',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                scheme['description'] as String,
-                style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Daftar Unit Kompetensi Utama',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                constraints: const BoxConstraints(maxHeight: 180),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: (scheme['unitList'] as List<String>).length,
-                  itemBuilder: (context, idx) {
-                    final unit = (scheme['unitList'] as List<String>)[idx];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.check_circle_outline_rounded, size: 16, color: Color(0xFF4A9EDF)),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              unit,
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
-                            ),
-                          )
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Biaya Pendaftaran',
-                          style: TextStyle(fontSize: 11, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          scheme['price'] as String,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C6C9C),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: (scheme['isOpen'] as bool)
-                        ? () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const PengajuanSertifikatScreen(),
-                              ),
-                            );
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF378CE7),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Daftar Skema', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailSkemaScreen(scheme: scheme),
+      ),
     );
   }
 
