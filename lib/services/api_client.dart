@@ -60,7 +60,9 @@ class ApiClient {
                   debugPrint('🔴 URL: ${error.requestOptions.uri}');
                 }
 
-                if (error.response?.statusCode == 401 && !_isRefreshing) {
+                final currentToken = await TokenStorage.instance.getAccessToken();
+                final isFakeToken = currentToken == 'fake-asesi-token' || currentToken == 'fake-user-token';
+                if (error.response?.statusCode == 401 && !_isRefreshing && !isFakeToken) {
                   _isRefreshing = true;
                   try {
                     final refreshToken = await TokenStorage.instance

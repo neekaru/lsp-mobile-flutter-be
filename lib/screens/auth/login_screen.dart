@@ -5,6 +5,7 @@ import '../../services/api_service.dart';
 import '../../services/token_storage.dart';
 import '../../services/auth_repository.dart';
 import '../../services/notification_service.dart';
+import '../../models/auth_models.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -39,10 +40,30 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     // Jalur alternatif (Bypass) untuk testing / demo
-    if (emailVal == 'user' && passwordVal == 'password123') {
+    if ((emailVal == 'user' && passwordVal == 'password123') ||
+        (emailVal == 'asesi' && passwordVal == 'deng123')) {
       await Future.delayed(const Duration(milliseconds: 600));
       if (!mounted) return;
-      
+
+      final isAsesi = emailVal == 'asesi';
+      final fakeUser = AuthUser(
+        id: isAsesi ? 'fake-asesi-id' : 'fake-user-id',
+        account: emailVal,
+        name: isAsesi ? 'Asesi Demo' : 'User Demo',
+        role: isAsesi ? 'asesi' : 'admin',
+        roles: [isAsesi ? 'asesi' : 'admin'],
+      );
+
+      final tokenStorage = TokenStorage.instance;
+      await tokenStorage.saveTokens(
+        accessToken: isAsesi ? 'fake-asesi-token' : 'fake-user-token',
+        refreshToken: 'fake-refresh-token',
+      );
+      await tokenStorage.saveUserProfile(fakeUser);
+      AuthRepository.currentUserInstance = fakeUser;
+
+      if (!mounted) return;
+
       mainNavigatorKey = GlobalKey<MainNavigatorState>();
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
