@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'konfirmasi_pembayaran_screen.dart';
+import 'konfirmasi_persetujuan_screen.dart';
 
 class KonfirmasiPortofolioScreen extends StatelessWidget {
   final int skemaId;
@@ -210,7 +210,7 @@ class KonfirmasiPortofolioScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => KonfirmasiPembayaranScreen(
+              builder: (context) => KonfirmasiPersetujuanScreen(
                 skemaId: skemaId,
                 title: title,
                 kodeSkema: kodeSkema,
