@@ -19,6 +19,7 @@ import 'screens/dashboard/statistik_screen.dart';
 import 'screens/jadwal/jadwal_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/sertifikat/sertifikat_screen.dart';
+import 'screens/sertifikat/skema_sertifikasi_screen.dart';
 import 'screens/sertifikat/validasi_sertifikat_screen.dart';
 import 'screens/dashboard/berita_screen.dart';
 
@@ -213,11 +214,14 @@ class MainNavigatorState extends State<MainNavigator> {
         ProfileScreen(onBackToHome: () => setTab(0)),
       ];
     } else {
+      final isAsesi = !isGuest && AuthRepository.currentUserInstance?.role == 'asesi';
       _screens = [
         DashboardScreen(onNavigateToJadwal: () => setTab(2)),
         StatistikScreen(onBackToHome: () => setTab(0)),
         JadwalScreen(onBackToHome: () => setTab(0)),
-        SertifikatScreen(onBackToHome: () => setTab(0)),
+        isAsesi
+            ? SkemaSertifikasiScreen(onBackToHome: () => setTab(0))
+            : SertifikatScreen(onBackToHome: () => setTab(0)),
         ProfileScreen(onBackToHome: () => setTab(0)),
       ];
     }

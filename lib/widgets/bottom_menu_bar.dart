@@ -52,7 +52,7 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
             _buildMenuItem(
               index: 1,
               icon: Icons.bar_chart_rounded,
-              label: 'Statistik',
+              label: (!isGuest && AuthRepository.currentUserInstance?.role == 'asesi') ? 'Asesmen' : 'Statistik',
             ),
             _buildMenuItem(
               index: 2,
