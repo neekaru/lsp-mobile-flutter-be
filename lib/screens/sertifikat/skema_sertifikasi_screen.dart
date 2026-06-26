@@ -1,5 +1,8 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import '../../models/sertifikat_models.dart';
+import '../../services/sertifikat_service.dart';
 import 'filter_menu_overlay.dart';
 import 'detail_skema_screen.dart';
 
@@ -23,162 +26,34 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
   String? _selectedJenjang;
   String? _selectedBidang;
 
-  final List<Map<String, dynamic>> _schemes = [
-    {
-      'title': 'Skema Digital Marketing',
-      'status': 'Pendaftaran Dibuka',
-      'isOpen': true,
-      'tags': ['SJJ & Nirkertas'],
-      'units': '11 Unit Kompetensi',
-      'price': 'Rp. 1.500.000',
-      'colors': [Color(0xFFFFF9C4), Color(0xFFFFB74D)],
-      'icon': Icons.campaign_rounded,
-      'description': 'Mempelajari strategi pemasaran digital, SEO, SEM, social media marketing, dan analytics.',
-      'kategori': ['Skema Nirkertas(Paperless)'],
-      'jenjang': 'Okupasi',
-      'bidang': 'Digital Marketing & Office',
-      'unitList': [
-        'Mengolah Data Riset',
-        'Melaksanakan Kegiatan Analisis di Media Sosial',
-        'Melakukan Aktivitas Pemasaran Digital',
-        'Menggunakan Media Sosial & Aplikasi Daring',
-        'Mempersiapkan Konten Digital',
-        'Merancang Strategi Pemasaran Digital',
-        'Mengelola Hubungan Pelanggan secara Digital',
-        'Mengukur Efektivitas Pemasaran Digital',
-        'Mengoptimalkan Search Engine Optimization (SEO)',
-        'Merencanakan Kampanye Iklan Berbayar (SEM)',
-        'Menganalisis Kinerja Pemasaran Digital'
-      ]
-    },
-    {
-      'title': 'Desain Multimedia Muda',
-      'status': 'Pendaftaran Dibuka',
-      'isOpen': true,
-      'tags': ['Populer'],
-      'units': '8 Unit Kompetensi',
-      'price': 'Rp. 900.000',
-      'colors': [Color(0xFFE0F7FA), Color(0xFF4DD0E1)],
-      'icon': Icons.palette_rounded,
-      'description': 'Pengembangan aset visual 2D/3D, audio/video editing, dan pembuatan layout kreatif.',
-      'kategori': ['Skema Populer'],
-      'jenjang': 'Klaster',
-      'bidang': 'Multimedia',
-      'unitList': [
-        'Membuat Gambar Vektor',
-        'Editing Foto Digital',
-        'Penyuntingan Audio & Video',
-        'Desain Layout Publikasi',
-        'Pembuatan Animasi Dasar',
-        'Pemodelan Objek 3D',
-        'Integrasi Elemen Multimedia',
-        'Uji Kelayakan Produk Multimedia'
-      ]
-    },
-    {
-      'title': 'Manajer Proyek TIK',
-      'status': 'Pendaftaran Dibuka',
-      'isOpen': true,
-      'tags': ['SJJ', 'Populer'],
-      'units': '15 Unit Kompetensi',
-      'price': 'Rp. 2.000.000',
-      'colors': [Color(0xFFE8EAF6), Color(0xFF7986CB)],
-      'icon': Icons.assignment_rounded,
-      'description': 'Manajemen siklus hidup proyek IT menggunakan framework Agile & Waterfall, alokasi resource, dan risk mitigation.',
-      'kategori': ['Skema AJJ', 'Skema Populer'],
-      'jenjang': 'Okupasi',
-      'bidang': 'Software Development',
-      'unitList': [
-        'Penyusunan Project Charter',
-        'Estimasi Biaya & Jadwal',
-        'Alokasi SDM Proyek',
-        'Mitigasi Risiko Proyek TIK',
-        'Monitoring & Closing Proyek'
-      ]
-    },
-    {
-      'title': 'Pemprogram Basis Data',
-      'status': 'Pendaftaran Ditutup',
-      'isOpen': false,
-      'tags': ['Sertifikasi'],
-      'units': '14 Unit Kompetensi',
-      'price': 'Rp. 1.500.000',
-      'colors': [Color(0xFFFFEBEE), Color(0xFFE57373)],
-      'icon': Icons.storage_rounded,
-      'description': 'Fokus pada pemodelan data, query SQL, optimasi database, keamanan, dan administrasi RDBMS.',
-      'kategori': ['Skema Terbaru'],
-      'jenjang': 'KKNI',
-      'bidang': 'Software Development',
-      'unitList': [
-        'Merancang Entity Relationship Diagram',
-        'Menulis Query SQL Kompleks',
-        'Optimasi Indeks & Kueri',
-        'Backup & Recovery Data',
-        'Keamanan Database'
-      ]
-    },
-    {
-      'title': 'Network Administrator Muda',
-      'status': 'Pendaftaran Dibuka',
-      'isOpen': true,
-      'tags': ['SJJ'],
-      'units': '5 Unit Kompetensi',
-      'price': 'Rp. 1.520.000',
-      'colors': [Color(0xFFE3F2FD), Color(0xFF64B5F6)],
-      'icon': Icons.dns_rounded,
-      'description': 'Mempersiapkan tenaga ahli dalam instalasi, konfigurasi, dan pemeliharaan jaringan komputer skala kecil-menengah.',
-      'kategori': ['Skema AJJ'],
-      'jenjang': 'KKNI',
-      'bidang': 'Software Development',
-      'unitList': [
-        'Merancang Topologi Jaringan',
-        'Mengonfigurasi Switch & Router',
-        'Mengamankan Jaringan Nirkabel',
-        'Melakukan Troubleshooting Jaringan',
-        'Membuat Dokumentasi Jaringan'
-      ]
-    },
-    {
-      'title': 'Ilmuwan Big Data',
-      'status': 'Pendaftaran Dibuka',
-      'isOpen': true,
-      'tags': ['Populer', 'Terbaru'],
-      'units': '10 Unit Kompetensi',
-      'price': 'Rp. 1.650.000',
-      'colors': [Color(0xFFF3E5F5), Color(0xFFBA68C8)],
-      'icon': Icons.analytics_rounded,
-      'description': 'Melatih keterampilan analitik tingkat lanjut untuk mengolah big data, machine learning, dan visualisasi data.',
-      'kategori': ['Skema Populer', 'Skema Terbaru'],
-      'jenjang': 'Okupasi',
-      'bidang': 'Data Science',
-      'unitList': [
-        'Pengumpulan Data Massal',
-        'Preprocessing & Cleaning Data',
-        'Analisis Statistik Deskriptif',
-        'Implementasi Model Machine Learning',
-        'Visualisasi Data Interaktif'
-      ]
-    },
-    {
-      'title': 'Graphic Design Expert',
-      'status': 'Pendaftaran Dibuka',
-      'isOpen': true,
-      'tags': ['Populer'],
-      'units': '12 Unit Kompetensi',
-      'price': 'Rp. 1.800.000',
-      'colors': [Color(0xFFE1F5FE), Color(0xFF29B6F6)],
-      'icon': Icons.brush_rounded,
-      'description': 'Fokus pada penciptaan identitas visual, desain kemasan, aset promosi, dan penyesuaian estetika produk.',
-      'kategori': ['Skema Populer'],
-      'jenjang': 'Klaster',
-      'bidang': 'Graphic Design',
-      'unitList': [
-        'Mengaplikasikan Prinsip Dasar Desain',
-        'Membuat Logo & Brand Identity',
-        'Merancang Desain Publikasi',
-        'Membuat Kemasan Produk Kreatif'
-      ]
-    }
+  // API state
+  List<SkemaSertifikatListItem> _skemaList = [];
+  bool _isLoading = true;
+  bool _isError = false;
+  String _errorMessage = '';
+  int _totalPages = 1;
+
+  // Palette for card gradients
+  static const List<List<Color>> _palettes = [
+    [Color(0xFFFFF9C4), Color(0xFFFFB74D)],
+    [Color(0xFFE0F7FA), Color(0xFF4DD0E1)],
+    [Color(0xFFE8EAF6), Color(0xFF7986CB)],
+    [Color(0xFFFFEBEE), Color(0xFFE57373)],
+    [Color(0xFFE3F2FD), Color(0xFF64B5F6)],
+    [Color(0xFFF3E5F5), Color(0xFFBA68C8)],
+    [Color(0xFFE1F5FE), Color(0xFF29B6F6)],
+    [Color(0xFFE0F2F1), Color(0xFF4DB6AC)],
+  ];
+
+  static const List<IconData> _icons = [
+    Icons.campaign_rounded,
+    Icons.palette_rounded,
+    Icons.assignment_rounded,
+    Icons.storage_rounded,
+    Icons.dns_rounded,
+    Icons.analytics_rounded,
+    Icons.brush_rounded,
+    Icons.workspace_premium_rounded,
   ];
 
   @override
@@ -187,6 +62,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
     _searchController.addListener(() {
       setState(() {});
     });
+    _fetchSkema();
   }
 
   @override
@@ -195,38 +71,41 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
     super.dispose();
   }
 
-  List<Map<String, dynamic>> _getFilteredSchemes() {
-    final query = _searchController.text.toLowerCase();
-    return _schemes.where((scheme) {
-      // 1. Search Query filter
-      final matchesQuery = query.isEmpty ||
-          scheme['title'].toString().toLowerCase().contains(query);
-      if (!matchesQuery) return false;
+  Future<void> _fetchSkema() async {
+    setState(() {
+      _isLoading = true;
+      _isError = false;
+      _errorMessage = '';
+    });
 
-      // 2. Kategori filter
-      if (_selectedKategori != 'Semua Skema') {
-        final categories = scheme['kategori'] as List<dynamic>? ?? [];
-        if (!categories.contains(_selectedKategori)) {
-          return false;
-        }
-      }
+    try {
+      final response = await SertifikatService.getSkemaList(
+        search: _searchController.text.trim().isEmpty ? null : _searchController.text.trim(),
+        kategori: (_selectedKategori == 'Semua Skema' || _selectedKategori == 'Skema Populer') ? null : _selectedKategori,
+        jenjang: _selectedJenjang,
+        bidang: _selectedBidang,
+        page: _currentPage,
+        limit: _itemsPerPage,
+      );
 
-      // 3. Jenjang filter
-      if (_selectedJenjang != null) {
-        if (scheme['jenjang'] != _selectedJenjang) {
-          return false;
-        }
-      }
+      setState(() {
+        _skemaList = response.data;
+        _totalPages = response.meta.lastPage;
+        if (_totalPages < 1) _totalPages = 1;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _isError = true;
+        _errorMessage = e.toString();
+      });
+    }
+  }
 
-      // 4. Bidang filter
-      if (_selectedBidang != null) {
-        if (scheme['bidang'] != _selectedBidang) {
-          return false;
-        }
-      }
-
-      return true;
-    }).toList();
+  void _onFilterChanged() {
+    _currentPage = 1;
+    _fetchSkema();
   }
 
   void _showFilterMenu() {
@@ -246,7 +125,6 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
               _selectedKategori = kategori;
               _selectedJenjang = jenjang;
               _selectedBidang = bidang;
-              _currentPage = 1;
 
               // Sync the horizontal shortcut pills highlight
               if (kategori == 'Semua Skema' && jenjang == null && bidang == null) {
@@ -259,6 +137,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                 _selectedFilter = ''; // Deselect shortcut pills when custom combo is set
               }
             });
+            _onFilterChanged();
           },
         );
       },
@@ -280,23 +159,13 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
-    final filteredSchemes = _getFilteredSchemes();
-
-    // Paginate items
-    final int totalPages = (filteredSchemes.length / _itemsPerPage).ceil();
-    final int activePage = _currentPage.clamp(1, totalPages > 0 ? totalPages : 1);
-    final int startIndex = (activePage - 1) * _itemsPerPage;
-    final int endIndex = (startIndex + _itemsPerPage).clamp(0, filteredSchemes.length);
-    final paginatedSchemes = filteredSchemes.isEmpty 
-        ? <Map<String, dynamic>>[] 
-        : filteredSchemes.sublist(startIndex, endIndex);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          
+
           // Header Widget
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -365,6 +234,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
               ),
               child: TextField(
                 controller: _searchController,
+                onSubmitted: (_) => _onFilterChanged(),
                 decoration: InputDecoration(
                   hintText: 'Cari skema',
                   hintStyle: const TextStyle(
@@ -385,6 +255,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                           ),
                           onPressed: () {
                             _searchController.clear();
+                            _onFilterChanged();
                           },
                         )
                       : null,
@@ -412,27 +283,30 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
 
           // Grid View of Schemes
           Expanded(
-            child: paginatedSchemes.isEmpty
-                ? _buildEmptyState()
-                : GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    physics: const BouncingScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.43,
-                    ),
-                    itemCount: paginatedSchemes.length,
-                    itemBuilder: (context, index) {
-                      final scheme = paginatedSchemes[index];
-                      return _buildSchemeCard(scheme);
-                    },
-                  ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EDF)))
+                : _isError
+                    ? _buildErrorState()
+                    : _skemaList.isEmpty
+                        ? _buildEmptyState()
+                        : GridView.builder(
+                            padding: const EdgeInsets.all(16),
+                            physics: const BouncingScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.43,
+                            ),
+                            itemCount: _skemaList.length,
+                            itemBuilder: (context, index) {
+                              return _buildSchemeCard(_skemaList[index], index);
+                            },
+                          ),
           ),
 
           // Pagination Widget
-          if (totalPages > 1) _buildPagination(totalPages),
+          if (!_isLoading && !_isError && _totalPages > 1) _buildPagination(),
         ],
       ),
     );
@@ -457,8 +331,8 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
             _selectedJenjang = null;
             _selectedBidang = 'Multimedia';
           }
-          _currentPage = 1;
         });
+        _onFilterChanged();
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -478,10 +352,28 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
     );
   }
 
-  Widget _buildSchemeCard(Map<String, dynamic> scheme) {
-    final colors = scheme['colors'] as List<Color>;
-    final isOpen = scheme['isOpen'] as bool;
-    final tags = scheme['tags'] as List<String>;
+  Widget _buildSchemeCard(SkemaSertifikatListItem skema, int index) {
+    final colors = _palettes[index % _palettes.length];
+    final icon = _icons[index % _icons.length];
+    final isOpen = skema.isOpen;
+    final tags = skema.tags;
+
+    final scheme = {
+      'id': skema.id,
+      'title': skema.title,
+      'status': skema.status,
+      'isOpen': skema.isOpen,
+      'tags': skema.tags,
+      'units': '${skema.unitsCount} Unit Kompetensi',
+      'price': skema.price,
+      'colors': colors,
+      'icon': icon,
+      'description': skema.description,
+      'kategori': skema.kategori,
+      'jenjang': skema.jenjang,
+      'bidang': skema.bidang,
+      'kode_skema': skema.kodeSkema,
+    };
 
     return Container(
       decoration: BoxDecoration(
@@ -522,14 +414,14 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                   right: -10,
                   bottom: -10,
                   child: Icon(
-                    scheme['icon'] as IconData,
+                    icon,
                     size: 56,
                     color: Colors.white.withOpacity(0.15),
                   ),
                 ),
                 Center(
                   child: Icon(
-                    scheme['icon'] as IconData,
+                    icon,
                     size: 28,
                     color: Colors.white.withOpacity(0.95),
                   ),
@@ -552,7 +444,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      scheme['status'] as String,
+                      skema.status,
                       style: TextStyle(
                         color: isOpen ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
                         fontSize: 8,
@@ -565,7 +457,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                   // Title
                   Expanded(
                     child: Text(
-                      scheme['title'] as String,
+                      skema.title,
                       style: const TextStyle(
                         color: Color(0xFF1E3A8A),
                         fontSize: 11,
@@ -623,7 +515,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          scheme['units'] as String,
+                          '${skema.unitsCount} Unit Kompetensi',
                           style: const TextStyle(fontSize: 8, color: Colors.grey),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -638,7 +530,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          scheme['price'] as String,
+                          skema.price,
                           style: const TextStyle(fontSize: 8, color: Colors.grey),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -680,10 +572,14 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
   }
 
   void _showSchemeDetail(Map<String, dynamic> scheme) {
+    final id = scheme['id'] as int? ?? 0;
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DetailSkemaScreen(scheme: scheme),
+        builder: (context) => DetailSkemaScreen(
+          skemaId: id,
+          schemePreview: scheme,
+        ),
       ),
     );
   }
@@ -716,7 +612,45 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
     );
   }
 
-  Widget _buildPagination(int totalPages) {
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFEE2E2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.error_outline_rounded, size: 36, color: Color(0xFFDC2626)),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Gagal Memuat Data',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _errorMessage,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: _fetchSkema,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4A9EDF),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Coba Lagi'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPagination() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: const BoxDecoration(
@@ -734,19 +668,21 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                     setState(() {
                       _currentPage--;
                     });
+                    _fetchSkema();
                   }
                 : null,
             icon: const Icon(Icons.chevron_left_rounded, size: 20),
             color: const Color(0xFF2C6C9C),
             disabledColor: Colors.grey[300],
           ),
-          for (int i = 1; i <= totalPages; i++) _buildPageNumber(i),
+          for (int i = 1; i <= _totalPages; i++) _buildPageNumber(i),
           IconButton(
-            onPressed: _currentPage < totalPages
+            onPressed: _currentPage < _totalPages
                 ? () {
                     setState(() {
                       _currentPage++;
                     });
+                    _fetchSkema();
                   }
                 : null,
             icon: const Icon(Icons.chevron_right_rounded, size: 20),
@@ -765,6 +701,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
         setState(() {
           _currentPage = page;
         });
+        _fetchSkema();
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),

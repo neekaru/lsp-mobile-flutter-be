@@ -52,6 +52,10 @@ class ApiRoutes {
   static const String sertifikatSearch = '/api/sertifikat/search';
   static const String sertifikatValidate = '/api/sertifikat/validate';
 
+  // Skema Sertifikasi (protected, role=asesi)
+  static const String sertifikatSkema = '/api/sertifikat/skema';
+  static String sertifikatSkemaDetail(int id) => '/api/sertifikat/skema/$id';
+
   // ============================================================================
   // Session Routes
   // ============================================================================

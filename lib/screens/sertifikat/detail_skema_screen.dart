@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../models/sertifikat_models.dart';
+import '../../services/sertifikat_service.dart';
 import '../pengajuan/pengajuan_sertifikat_screen.dart';
 
 class DetailSkemaScreen extends StatefulWidget {
-  final Map<String, dynamic> scheme;
+  final int skemaId;
+  final Map<String, dynamic>? schemePreview;
 
-  const DetailSkemaScreen({super.key, required this.scheme});
+  const DetailSkemaScreen({
+    super.key,
+    required this.skemaId,
+    this.schemePreview,
+  });
 
   @override
   State<DetailSkemaScreen> createState() => _DetailSkemaScreenState();
@@ -14,255 +21,63 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
   int _activeTab = 0; // 0: Unit kompetensi, 1: Persyaratan
   bool _showAllUnits = false;
 
-  // Custom unit details mapping to match the screenshots
-  final Map<String, Map<String, String>> _unitDetails = {
-    // Pemasaran Digital
-    'Mengolah Data Riset': {
-      'code': 'M.702090.002.02',
-      'sub': 'Processing Research Data',
-    },
-    'Melaksanakan Kegiatan Analisis di Media Sosial': {
-      'code': 'M.702090.012.1',
-      'sub': 'Carrying out Analytical Activities on Social Media and Digital Business Media',
-    },
-    'Melakukan Aktivitas Pemasaran Digital': {
-      'code': 'G.46MTS00.019.1',
-      'sub': 'Conducting Digital Marketing activities for Retail Business',
-    },
-    'Menggunakan Media Sosial & Aplikasi Daring': {
-      'code': 'M.702090.010.1',
-      'sub': 'Using Social Media and Online Tools',
-    },
-    'Mempersiapkan Konten Digital': {
-      'code': 'M.702090.014.1',
-      'sub': 'Preparing Digital Content',
-    },
-    'Merancang Strategi Pemasaran Digital': {
-      'code': 'M.702090.015.1',
-      'sub': 'Designing Digital Marketing Strategy',
-    },
-    'Mengelola Hubungan Pelanggan secara Digital': {
-      'code': 'M.702090.016.1',
-      'sub': 'Managing Customer Relations Digitally',
-    },
-    'Mengukur Efektivitas Pemasaran Digital': {
-      'code': 'M.702090.017.1',
-      'sub': 'Measuring Digital Marketing Effectiveness',
-    },
-    'Mengoptimalkan Search Engine Optimization (SEO)': {
-      'code': 'M.702090.018.1',
-      'sub': 'Optimizing Search Engine Optimization (SEO)',
-    },
-    'Merencanakan Kampanye Iklan Berbayar (SEM)': {
-      'code': 'M.702090.019.1',
-      'sub': 'Planning Paid Advertising Campaigns (SEM)',
-    },
-    'Menganalisis Kinerja Pemasaran Digital': {
-      'code': 'M.702090.020.1',
-      'sub': 'Analyzing Digital Marketing Performance',
-    },
+  SkemaSertifikatDetailResponse? _detail;
+  bool _isLoading = true;
+  bool _isError = false;
+  String _errorMessage = '';
 
-    // Desain Multimedia Muda
-    'Membuat Gambar Vektor': {
-      'code': 'I.591200.001.01',
-      'sub': 'Creating Vector Images',
-    },
-    'Editing Foto Digital': {
-      'code': 'I.591200.002.01',
-      'sub': 'Digital Photo Editing',
-    },
-    'Penyuntingan Audio & Video': {
-      'code': 'I.591200.003.01',
-      'sub': 'Audio & Video Editing',
-    },
-    'Desain Layout Publikasi': {
-      'code': 'I.591200.004.01',
-      'sub': 'Designing Publication Layouts',
-    },
-    'Pembuatan Animasi Dasar': {
-      'code': 'I.591200.005.01',
-      'sub': 'Basic Animation Creation',
-    },
-    'Pemodelan Objek 3D': {
-      'code': 'I.591200.006.01',
-      'sub': '3D Object Modeling',
-    },
-    'Integrasi Elemen Multimedia': {
-      'code': 'I.591200.007.01',
-      'sub': 'Multimedia Element Integration',
-    },
-    'Uji Kelayakan Produk Multimedia': {
-      'code': 'I.591200.008.01',
-      'sub': 'Multimedia Product Feasibility Testing',
-    },
-
-    // Manajer Proyek TIK
-    'Penyusunan Project Charter': {
-      'code': 'J.620100.001.02',
-      'sub': 'Project Charter Compilation',
-    },
-    'Estimasi Biaya & Jadwal': {
-      'code': 'J.620100.002.02',
-      'sub': 'Cost & Schedule Estimation',
-    },
-    'Alokasi SDM Proyek': {
-      'code': 'J.620100.003.01',
-      'sub': 'Project HR Allocation',
-    },
-    'Mitigasi Risiko Proyek TIK': {
-      'code': 'J.620100.004.02',
-      'sub': 'ICT Project Risk Mitigation',
-    },
-    'Monitoring & Closing Proyek': {
-      'code': 'J.620100.005.01',
-      'sub': 'Project Monitoring & Closing',
-    },
-
-    // Pemprogram Basis Data
-    'Merancang Entity Relationship Diagram': {
-      'code': 'J.611000.001.01',
-      'sub': 'Designing Entity Relationship Diagrams',
-    },
-    'Menulis Query SQL Kompleks': {
-      'code': 'J.611000.002.01',
-      'sub': 'Writing Complex SQL Queries',
-    },
-    'Optimasi Indeks & Kueri': {
-      'code': 'J.611000.003.01',
-      'sub': 'Index & Query Optimization',
-    },
-    'Backup & Recovery Data': {
-      'code': 'J.611000.004.01',
-      'sub': 'Data Backup & Recovery',
-    },
-    'Keamanan Database': {
-      'code': 'J.611000.005.01',
-      'sub': 'Database Security Management',
-    },
-
-    // Network Administrator Muda
-    'Merancang Topologi Jaringan': {
-      'code': 'J.611000.006.01',
-      'sub': 'Designing Network Topology',
-    },
-    'Mengonfigurasi Switch & Router': {
-      'code': 'J.611000.007.01',
-      'sub': 'Configuring Switch & Router',
-    },
-    'Mengamankan Jaringan Nirkabel': {
-      'code': 'J.611000.008.01',
-      'sub': 'Securing Wireless Network',
-    },
-    'Melakukan Troubleshooting Jaringan': {
-      'code': 'J.611000.009.01',
-      'sub': 'Troubleshooting Network Issues',
-    },
-    'Membuat Dokumentasi Jaringan': {
-      'code': 'J.611000.010.01',
-      'sub': 'Creating Network Documentation',
-    },
-
-    // Ilmuwan Big Data
-    'Pengumpulan Data Massal': {
-      'code': 'J.620100.006.01',
-      'sub': 'Massive Data Collection',
-    },
-    'Preprocessing & Cleaning Data': {
-      'code': 'J.620100.007.01',
-      'sub': 'Data Preprocessing & Cleaning',
-    },
-    'Analisis Statistik Deskriptif': {
-      'code': 'J.620100.008.01',
-      'sub': 'Descriptive Statistical Analysis',
-    },
-    'Implementasi Model Machine Learning': {
-      'code': 'J.620100.009.01',
-      'sub': 'Implementing Machine Learning Models',
-    },
-    'Visualisasi Data Interaktif': {
-      'code': 'J.620100.010.01',
-      'sub': 'Interactive Data Visualization',
-    },
-
-    // Graphic Design Expert
-    'Mengaplikasikan Prinsip Dasar Desain': {
-      'code': 'M.74100.001.02',
-      'sub': 'Applying Basic Design Principles',
-    },
-    'Membuat Logo & Brand Identity': {
-      'code': 'M.74100.002.02',
-      'sub': 'Creating Logo & Brand Identity',
-    },
-    'Merancang Desain Publikasi': {
-      'code': 'M.74100.003.01',
-      'sub': 'Designing Publication Layouts',
-    },
-    'Membuat Kemasan Produk Kreatif': {
-      'code': 'M.74100.004.02',
-      'sub': 'Creating Creative Product Packaging',
-    },
-  };
-
-  // Helper to get custom code or generate a consistent mock code based on text
-  String _getUnitCode(String unitTitle) {
-    if (_unitDetails.containsKey(unitTitle)) {
-      return _unitDetails[unitTitle]!['code']!;
-    }
-    // Consistent fallback generator
-    final int hash = unitTitle.split('').fold(0, (prev, char) => prev + char.codeUnitAt(0));
-    return 'M.70100.0${(hash % 90 + 10)}.${(hash % 9 + 1)}';
+  @override
+  void initState() {
+    super.initState();
+    _fetchDetail();
   }
 
-  // Helper to get English subtitle or generate a consistent fallback
-  String _getUnitSubtitle(String unitTitle) {
-    if (_unitDetails.containsKey(unitTitle)) {
-      return _unitDetails[unitTitle]!['sub']!;
-    }
-    // Fallback translation approximation
-    return 'Execution of competency in $unitTitle';
-  }
+  Future<void> _fetchDetail() async {
+    setState(() {
+      _isLoading = true;
+      _isError = false;
+      _errorMessage = '';
+    });
 
-  // Map scheme titles to specific scheme codes
-  String _getSchemeCode(String title) {
-    switch (title) {
-      case 'Pemasaran Digital':
-        return 'SKK-26-10/2024';
-      case 'Desain Multimedia Muda':
-        return 'SKK-08-05/2024';
-      case 'Manajer Proyek TIK':
-        return 'SKK-15-12/2024';
-      case 'Pemprogram Basis Data':
-        return 'SKK-14-06/2024';
-      case 'Network Administrator Muda':
-        return 'SKK-05-02/2024';
-      case 'Ilmuwan Big Data':
-        return 'SKK-10-09/2024';
-      case 'Graphic Design Expert':
-        return 'SKK-12-07/2024';
-      default:
-        final int hash = title.split('').fold(0, (prev, char) => prev + char.codeUnitAt(0));
-        return 'SKK-${(hash % 90 + 10)}-${(hash % 12 + 1)}/2024';
+    try {
+      final detail = await SertifikatService.getSkemaDetail(widget.skemaId);
+      setState(() {
+        _detail = detail;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _isError = true;
+        _errorMessage = e.toString();
+      });
     }
   }
 
   void _handleDownloadDokumen() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Mengunduh dokumen skema ${widget.scheme['title']}...'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    final link = _detail?.linkDownload ?? '';
+    if (link.isNotEmpty) {
+      // TODO: implement actual download via url_launcher
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Mengunduh dokumen skema ${_detail?.title ?? ""}...'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dokumen skema tidak tersedia.'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final scheme = widget.scheme;
-    final title = scheme['title'] as String;
-    final code = _getSchemeCode(title);
-    final isOpen = scheme['isOpen'] as bool? ?? false;
-    final unitList = scheme['unitList'] as List<dynamic>? ?? [];
-
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
 
     return Scaffold(
@@ -272,21 +87,23 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
           SizedBox(height: statusBarHeight + 8),
           _buildAppBar(),
           Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // CARD 1: Upper Detail Card
-                  _buildUpperDetailCard(scheme, code, isOpen),
-                  const SizedBox(height: 16),
-                  // CARD 2: Tabs & Units Card
-                  _buildTabsAndUnitsCard(unitList),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF4A9EDF)))
+                : _isError
+                    ? _buildErrorState()
+                    : SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildUpperDetailCard(),
+                            const SizedBox(height: 16),
+                            _buildTabsAndUnitsCard(),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
           ),
         ],
       ),
@@ -299,7 +116,6 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Circular Black Back Arrow Button
           GestureDetector(
             onTap: () {
               Navigator.of(context).pop();
@@ -318,8 +134,6 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
               ),
             ),
           ),
-
-          // Bold screen title
           const Text(
             'Detail Skema',
             style: TextStyle(
@@ -329,8 +143,6 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
               letterSpacing: -0.2,
             ),
           ),
-
-          // More options placeholder
           const Icon(
             Icons.more_horiz_rounded,
             color: Colors.black,
@@ -341,7 +153,14 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
     );
   }
 
-  Widget _buildUpperDetailCard(Map<String, dynamic> scheme, String code, bool isOpen) {
+  Widget _buildUpperDetailCard() {
+    final detail = _detail!;
+    final preview = widget.schemePreview;
+    final colors = preview?['colors'] as List<Color>? ??
+        [const Color(0xFFE2E8F0), const Color(0xFFCBD5E1)];
+    final icon = preview?['icon'] as IconData? ?? Icons.workspace_premium_rounded;
+    final isOpen = preview?['isOpen'] as bool? ?? false;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -379,14 +198,14 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                     height: 56,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: scheme['colors'] as List<Color>? ?? [const Color(0xFFE2E8F0), const Color(0xFFCBD5E1)],
+                        colors: colors,
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      scheme['icon'] as IconData? ?? Icons.workspace_premium_rounded,
+                      icon,
                       color: Colors.white,
                       size: 28,
                     ),
@@ -397,7 +216,7 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          (scheme['title'] as String? ?? '').toUpperCase(),
+                          detail.title.toUpperCase(),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -453,13 +272,13 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                 width: 0.8,
               ),
               children: [
-                _buildTableRow('Kode Skema', code),
-                _buildTableRow('Nama Skema', scheme['title'] as String? ?? '-'),
-                _buildTableRow('Jenis Skema', scheme['jenjang'] as String? ?? 'Klaster'),
+                _buildTableRow('Kode Skema', detail.kodeSkema),
+                _buildTableRow('Nama Skema', detail.title),
+                _buildTableRow('Jenis Skema', detail.jenjang),
                 _buildTableRow('Izin Kemenkes', 'Belum'),
-                _buildTableRow('Harga', scheme['price'] as String? ?? 'Rp. 0'),
+                _buildTableRow('Harga', detail.price),
                 _buildTableRow('Dokumen Skema', 'Download', isLink: true),
-                _buildTableRow('Ringkasan Skema', scheme['description'] as String? ?? '-'),
+                _buildTableRow('Ringkasan Skema', detail.description),
               ],
             ),
           ],
@@ -531,7 +350,10 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
     );
   }
 
-  Widget _buildTabsAndUnitsCard(List<dynamic> unitList) {
+  Widget _buildTabsAndUnitsCard() {
+    final detail = _detail!;
+    final unitList = detail.unitList;
+    final persyaratan = detail.persyaratan;
     final int displayCount = _showAllUnits ? unitList.length : (unitList.length > 5 ? 5 : unitList.length);
 
     return Container(
@@ -599,10 +421,7 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                 padding: EdgeInsets.zero,
                 itemCount: displayCount,
                 itemBuilder: (context, index) {
-                  final String unitTitle = unitList[index] as String;
-                  final String unitCode = _getUnitCode(unitTitle);
-                  final String unitSub = _getUnitSubtitle(unitTitle);
-
+                  final unit = unitList[index];
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
@@ -631,7 +450,7 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  unitCode,
+                                  unit.code,
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
@@ -640,21 +459,23 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  unitTitle,
+                                  unit.title,
                                   style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF1E293B),
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  unitSub,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF64748B),
+                                if (unit.subtitle.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    unit.subtitle,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF64748B),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                           ),
@@ -708,11 +529,27 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              _buildRequirementItem('1', 'Kartu Tanda Penduduk (KTP)'),
-              _buildRequirementItem('2', 'Pas Foto Terbaru background merah'),
-              _buildRequirementItem('3', 'Ijazah Terakhir'),
-              _buildRequirementItem('4', 'Curriculum Vitae (CV) Terbaru'),
-              _buildRequirementItem('5', 'Surat Rekomendasi Kerja / Sertifikat Pelatihan Terkait'),
+              if (persyaratan.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Text(
+                    'Tidak ada persyaratan yang tercantum.',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                )
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: persyaratan.length,
+                  itemBuilder: (context, index) {
+                    return _buildRequirementItem(
+                      (index + 1).toString(),
+                      persyaratan[index],
+                    );
+                  },
+                ),
             ],
           ],
         ),
@@ -797,6 +634,44 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                 color: Color(0xFF1E293B),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFEE2E2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.error_outline_rounded, size: 36, color: Color(0xFFDC2626)),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Gagal Memuat Detail Skema',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _errorMessage,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: _fetchDetail,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4A9EDF),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Coba Lagi'),
           ),
         ],
       ),

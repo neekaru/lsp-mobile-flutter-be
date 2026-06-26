@@ -113,6 +113,56 @@ class SertifikatService {
   }
 
   // ============================================================================
+  // Skema Sertifikasi (Protected, role=asesi)
+  // ============================================================================
+
+  /// Fetch paginated list of skema sertifikasi.
+  static Future<SkemaSertifikatListResponse> getSkemaList({
+    String? search,
+    String? kategori,
+    String? jenjang,
+    String? bidang,
+    int page = 1,
+    int limit = 6,
+  }) async {
+    try {
+      final params = <String>[];
+      if (search != null && search.isNotEmpty) params.add('search=$search');
+      if (kategori != null && kategori.isNotEmpty) params.add('kategori=$kategori');
+      if (jenjang != null && jenjang.isNotEmpty) params.add('jenjang=$jenjang');
+      if (bidang != null && bidang.isNotEmpty) params.add('bidang=$bidang');
+      params.add('page=$page');
+      params.add('limit=$limit');
+
+      final url = '${ApiRoutes.sertifikatSkema}?${params.join('&')}';
+      final response = await _dio.get(url);
+
+      if (response.statusCode == 200 && response.data != null) {
+        return SkemaSertifikatListResponse.fromJson(response.data as Map<String, dynamic>);
+      }
+      return const SkemaSertifikatListResponse(data: [], meta: SkemaSertifikatMeta(total: 0, page: 1, lastPage: 1, perPage: 6));
+    } on DioException catch (e) {
+      debugPrint('🔴 Error fetching skema list: ${e.message}');
+      rethrow;
+    }
+  }
+
+  /// Fetch detail of a single skema sertifikasi by id (includes unit competence + persyaratan).
+  static Future<SkemaSertifikatDetailResponse> getSkemaDetail(int id) async {
+    try {
+      final response = await _dio.get(ApiRoutes.sertifikatSkemaDetail(id));
+
+      if (response.statusCode == 200 && response.data != null) {
+        return SkemaSertifikatDetailResponse.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw Exception('Failed to load skema detail (status ${response.statusCode})');
+    } on DioException catch (e) {
+      debugPrint('🔴 Error fetching skema detail: ${e.message}');
+      rethrow;
+    }
+  }
+
+  // ============================================================================
   // Private Fallback Data
   // ============================================================================
 
