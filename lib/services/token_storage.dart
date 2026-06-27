@@ -18,12 +18,22 @@ class TokenStorage {
   static const _refreshTokenKey = 'refresh_token';
   static const _userProfileKey = 'user_profile';
 
+  // In-memory cache so the interceptor doesn't hit EncryptedSharedPreferences
+  // (which runs on Android's main thread and can block the Choreographer
+  // for 1-2s on first read) for every single request.
+  static String? _cachedAccessToken;
+
+  // Deduplicate concurrent first reads so only ONE platform-channel read
+  // happens; subsequent callers await the same in-flight future.
+  static Future<String?>? _pendingAccessTokenRead;
+
   Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
   }) async {
     await _storage.write(key: _accessTokenKey, value: accessToken);
     await _storage.write(key: _refreshTokenKey, value: refreshToken);
+    _cachedAccessToken = accessToken;
   }
 
   Future<void> saveUserProfile(AuthUser user) async {
@@ -48,8 +58,19 @@ class TokenStorage {
     return null;
   }
 
-  Future<String?> getAccessToken() {
-    return _storage.read(key: _accessTokenKey);
+  /// Reads the access token from in-memory cache (instant). On cache miss,
+  /// performs exactly ONE EncryptedSharedPreferences read via platform channel —
+  /// subsequent concurrent calls share the same in-flight future to avoid
+  /// blocking Android's main thread with a chain of platform-channel reads.
+  Future<String?> getAccessToken() async {
+    final cached = _cachedAccessToken;
+    if (cached != null) return cached;
+    _pendingAccessTokenRead ??= _storage.read(key: _accessTokenKey).then((t) {
+      _cachedAccessToken = t;
+      _pendingAccessTokenRead = null;
+      return t;
+    });
+    return _pendingAccessTokenRead;
   }
 
   Future<String?> getRefreshToken() {
@@ -60,5 +81,7 @@ class TokenStorage {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
     await _storage.delete(key: _userProfileKey);
+    _cachedAccessToken = null;
+    _pendingAccessTokenRead = null;
   }
 }

@@ -154,6 +154,19 @@ void main() async {
     ),
   );
 
+  // Pre-warm TokenStorage cache ONCE during splash. EncryptedSharedPreferences'
+  // first read does heavy KeyStore + AES work on Android's main thread and can
+  // block the Choreographer for 1-2s. Doing it here BEFORE any screen builds
+  // ensures that when MainNavigator's 5 screens fire their initState API
+  // calls, getAccessToken() hits the in-memory cache (instant) instead of
+  // queuing 7-10 platform-channel reads.
+  try {
+    await TokenStorage.instance.getAccessToken();
+    if (kDebugMode) debugPrint('✅ TokenStorage cache pre-warmed');
+  } catch (e) {
+    debugPrint('⚠️ Token pre-warm failed (non-fatal): $e');
+  }
+
   // Pre-warm GeoJSON parsing di background (fire-and-forget). Saat user buka
   // layar Statistik, peta sudah siap render -> mengurangi jeda "abu-abu dulu
   // baru biru". Tidak di-await agar tidak menunda runApp.
@@ -196,6 +209,10 @@ class MainNavigator extends StatefulWidget {
 class MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
   bool _isDisposed = false;
+
+  // Lazily-built: only the current tab on login; others built on visit.
+  // Prevents ALL screens' initState (and their API calls) from firing at once.
+  final Set<int> _visitedTabs = {0};
 
   // Screens created ONCE and kept alive — never re-instantiated on rebuild.
   late final List<Widget> _screens;
@@ -264,7 +281,10 @@ class MainNavigatorState extends State<MainNavigator> {
   void setTab(int index) {
     if (_isDisposed || !mounted) return;
     if (_currentIndex == index) return;
-    setState(() => _currentIndex = index);
+    setState(() {
+      _currentIndex = index;
+      _visitedTabs.add(index); // Lazily mount the new tab's screen
+    });
   }
 
   Future<bool> _showExitDialog() async {
@@ -331,7 +351,16 @@ class MainNavigatorState extends State<MainNavigator> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F6F8),
-        body: IndexedStack(index: _currentIndex, children: _screens),
+        // Lazy IndexedStack: only visited tabs have their screen mounted.
+        // Non-visited tabs render a SizedBox.shrink() — their State is
+        // created on first visit, then kept alive for subsequent visits.
+        body: IndexedStack(
+          index: _currentIndex,
+          children: [
+            for (int i = 0; i < _screens.length; i++)
+              _visitedTabs.contains(i) ? _screens[i] : const SizedBox.shrink(),
+          ],
+        ),
         bottomNavigationBar: BottomMenuBar(
           selectedIndex: _currentIndex,
           onTap: setTab,
