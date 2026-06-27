@@ -1,49 +1,60 @@
 import 'package:flutter/material.dart';
 
-class EditDataDiriScreen extends StatefulWidget {
+class EditDataPendaftaranScreen extends StatefulWidget {
   final String currentName;
+  final String currentNik;
   final String currentPhone;
   final String currentEmail;
+  final String currentPendidikan;
   final String currentAddress;
   final Function(
     String name,
+    String nik,
     String phone,
     String email,
+    String pendidikan,
     String address,
   ) onSave;
 
-  const EditDataDiriScreen({
+  const EditDataPendaftaranScreen({
     super.key,
     required this.currentName,
+    required this.currentNik,
     required this.currentPhone,
     required this.currentEmail,
+    required this.currentPendidikan,
     required this.currentAddress,
     required this.onSave,
   });
 
   @override
-  State<EditDataDiriScreen> createState() => _EditDataDiriScreenState();
+  State<EditDataPendaftaranScreen> createState() => _EditDataPendaftaranScreenState();
 }
 
-class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
+class _EditDataPendaftaranScreenState extends State<EditDataPendaftaranScreen> {
   bool _isSaving = false;
   late TextEditingController _nameController;
+  late TextEditingController _nikController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
   late TextEditingController _addressController;
+  late String _selectedPendidikan;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.currentName);
+    _nikController = TextEditingController(text: widget.currentNik);
     _phoneController = TextEditingController(text: widget.currentPhone);
     _emailController = TextEditingController(text: widget.currentEmail);
     _addressController = TextEditingController(text: widget.currentAddress);
+    _selectedPendidikan = widget.currentPendidikan;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _nikController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _addressController.dispose();
@@ -60,14 +71,89 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
 
     widget.onSave(
       _nameController.text,
+      _nikController.text,
       _phoneController.text,
       _emailController.text,
+      _selectedPendidikan,
       _addressController.text,
     );
 
     if (mounted) {
       Navigator.pop(context);
     }
+  }
+
+  void _showPendidikanBottomSheet() {
+    final List<String> listPendidikan = [
+      'SMA / SMK / Sederajat',
+      'D1',
+      'D2',
+      'D3 Teknik Informasi',
+      'D3',
+      'S1 Teknik Informatika',
+      'S1',
+      'S2',
+      'S3',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  'Pilih Pendidikan Terakhir',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const Divider(),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: listPendidikan.length,
+                  itemBuilder: (context, index) {
+                    final item = listPendidikan[index];
+                    final isSelected = item == _selectedPendidikan;
+                    return ListTile(
+                      title: Text(
+                        item,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? const Color(0xFF3B82F6) : Colors.black,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_rounded, color: Color(0xFF3B82F6))
+                          : null,
+                      onTap: () {
+                        setState(() {
+                          _selectedPendidikan = item;
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -146,6 +232,20 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
                             label: 'Nama Lengkap',
                             controller: _nameController,
                             hint: 'Masukan nama lengkap',
+                            subtitle: const Text(
+                              'Nama yang diinput akan tertera di sertifikat (Jika Kompeten)',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF1E824C),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          _buildTextField(
+                            label: 'NIK',
+                            controller: _nikController,
+                            hint: 'Masukan 16 digit nomor induk kependudukan',
+                            keyboardType: TextInputType.number,
                           ),
                           _buildTextField(
                             label: 'No. Handphone',
@@ -159,6 +259,7 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
                             hint: 'Masukan Email aktif',
                             keyboardType: TextInputType.emailAddress,
                           ),
+                          _buildPendidikanField(),
                           _buildTextField(
                             label: 'Alamat',
                             controller: _addressController,
@@ -308,6 +409,49 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
             const SizedBox(height: 6),
             subtitle,
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendidikanField() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildLabel('Pendidikan Terakhir'),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: _showPendidikanBottomSheet,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _selectedPendidikan.isEmpty ? 'Pilih' : _selectedPendidikan,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: _selectedPendidikan.isEmpty ? const Color(0xFF94A3B8) : Colors.black,
+                      fontWeight: _selectedPendidikan.isEmpty ? FontWeight.normal : FontWeight.w500,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: Color(0xFF3B82F6),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

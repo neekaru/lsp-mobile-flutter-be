@@ -191,86 +191,24 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
   }
 
   void _showSuccessDialog(BuildContext parentContext) {
-    showDialog(
+    showGeneralDialog(
       context: parentContext,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      barrierLabel: '',
+      barrierColor: Colors.black.withValues(alpha: 0.4),
+      transitionDuration: const Duration(milliseconds: 500),
+      pageBuilder: (context, anim1, anim2) {
         return Dialog(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Top header Row with Back Arrow
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                
-                // Success Badge Graphic (Double circles with checkmark and decorative dots)
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFE2F4E9),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    Container(
-                      width: 70,
-                      height: 70,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF4ADE80),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check_rounded,
-                        color: Colors.white,
-                        size: 40,
-                      ),
-                    ),
-                    // Decorative floating dots to match screenshot bubbles
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
-                    ),
-                    Positioned(
-                      top: 30,
-                      left: 0,
-                      child: Container(width: 12, height: 12, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
-                    ),
-                    Positioned(
-                      bottom: 25,
-                      left: 5,
-                      child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
-                    ),
-                    Positioned(
-                      top: 15,
-                      right: 15,
-                      child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
-                    ),
-                    Positioned(
-                      bottom: 20,
-                      right: 10,
-                      child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
-                    ),
-                  ],
-                ),
+                const AnimatedSuccessBadge(),
                 const SizedBox(height: 24),
                 
                 // Casing matching screenshot: "konfirmasi Pendaftaran Berhasil"
@@ -367,6 +305,124 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
           ),
         );
       },
+      transitionBuilder: (context, anim1, anim2, child) {
+        final curve = CurvedAnimation(parent: anim1, curve: Curves.easeOutBack);
+        return ScaleTransition(
+          scale: curve,
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class AnimatedSuccessBadge extends StatefulWidget {
+  const AnimatedSuccessBadge({super.key});
+
+  @override
+  State<AnimatedSuccessBadge> createState() => _AnimatedSuccessBadgeState();
+}
+
+class _AnimatedSuccessBadgeState extends State<AnimatedSuccessBadge> with TickerProviderStateMixin {
+  late AnimationController _badgeController;
+  late Animation<double> _badgeScale;
+  late AnimationController _checkController;
+  late Animation<double> _checkScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _badgeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _badgeScale = CurvedAnimation(
+      parent: _badgeController,
+      curve: Curves.easeOutBack,
+    );
+
+    _checkController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+    _checkScale = CurvedAnimation(
+      parent: _checkController,
+      curve: Curves.elasticOut,
+    );
+
+    _badgeController.forward().then((_) {
+      _checkController.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _badgeController.dispose();
+    _checkController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _badgeScale,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Outer circle
+          Container(
+            width: 100,
+            height: 100,
+            decoration: const BoxDecoration(
+              color: Color(0xFFE2F4E9),
+              shape: BoxShape.circle,
+            ),
+          ),
+          // Inner circle
+          Container(
+            width: 70,
+            height: 70,
+            decoration: const BoxDecoration(
+              color: Color(0xFF4ADE80),
+              shape: BoxShape.circle,
+            ),
+            child: ScaleTransition(
+              scale: _checkScale,
+              child: const Icon(
+                Icons.check_rounded,
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
+          ),
+          // Decorative floating dots to match screenshot bubbles
+          Positioned(
+            top: 10,
+            left: 10,
+            child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
+          ),
+          Positioned(
+            top: 30,
+            left: 0,
+            child: Container(width: 12, height: 12, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
+          ),
+          Positioned(
+            bottom: 25,
+            left: 5,
+            child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
+          ),
+          Positioned(
+            top: 15,
+            right: 15,
+            child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
+          ),
+          Positioned(
+            bottom: 20,
+            right: 10,
+            child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
+          ),
+        ],
+      ),
     );
   }
 }

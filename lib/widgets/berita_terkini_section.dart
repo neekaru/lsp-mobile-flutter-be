@@ -13,30 +13,6 @@ class BeritaTerkiniSection extends StatelessWidget {
     required this.isLoading,
   });
 
-  String _formatDate(String rawDate) {
-    if (rawDate.isEmpty) return '';
-    try {
-      // Input format: YYYY-MM-DD HH:mm:ss
-      final parts = rawDate.split(' ');
-      final datePart = parts[0];
-      final dateParts = datePart.split('-');
-      if (dateParts.length == 3) {
-        final year = dateParts[0];
-        final monthNum = int.parse(dateParts[1]);
-        final day = int.parse(dateParts[2]);
-
-        const months = [
-          'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-          'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-        ];
-
-        return '$day ${months[monthNum - 1]} $year';
-      }
-      return rawDate;
-    } catch (_) {
-      return rawDate;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +72,7 @@ class BeritaTerkiniSection extends StatelessWidget {
         
         // Horizontal news list
         SizedBox(
-          height: 245,
+          height: 145,
           child: isLoading
               ? _buildShimmerLoading()
               : ListView.builder(
@@ -138,7 +114,7 @@ class BeritaTerkiniSection extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -149,97 +125,31 @@ class BeritaTerkiniSection extends StatelessWidget {
                 ),
               );
             },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image or Placeholder
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: imageUrl != null
-                      ? Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildImagePlaceholder(item.judul),
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              color: const Color(0xFFF8FAFC),
-                              child: const Center(
-                                child: SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          _buildImagePlaceholder(item.judul),
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: const Color(0xFFF8FAFC),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
                               ),
-                            );
-                          },
-                        )
-                      : _buildImagePlaceholder(item.judul),
-                ),
-
-                // Card Details
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Category Tag
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF), // Soft premium blue
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            item.kategori,
-                            style: const TextStyle(
-                              color: Color(0xFF2563EB), // Premium dark blue
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        
-                        // Title
-                        Expanded(
-                          child: Text(
-                            item.judul,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B), // Slate-800
-                              height: 1.3,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-
-                        // Date
-                        Text(
-                          _formatDate(item.tanggalBuat),
-                          style: const TextStyle(
-                            color: Color(0xFF64748B), // Slate-500
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                        );
+                      },
+                    )
+                  : _buildImagePlaceholder(item.judul),
             ),
           ),
         ),
@@ -316,72 +226,14 @@ class BeritaTerkiniSection extends StatelessWidget {
               width: 1.5,
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image placeholder shimmer
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(14),
-                      topRight: Radius.circular(14),
-                    ),
-                  ),
-                ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Container(
+                color: const Color(0xFFF1F5F9),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Tag shimmer
-                      Container(
-                        width: 60,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      // Title line 1 shimmer
-                      Container(
-                        width: double.infinity,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      // Title line 2 shimmer
-                      Container(
-                        width: 120,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                      const Spacer(),
-                      // Date shimmer
-                      Container(
-                        width: 80,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         );
       },

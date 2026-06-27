@@ -1,6 +1,5 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import '../../models/sertifikat_models.dart';
 import '../../services/sertifikat_service.dart';
 import 'filter_menu_overlay.dart';
@@ -17,9 +16,10 @@ class SkemaSertifikasiScreen extends StatefulWidget {
 
 class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String _selectedFilter = 'Semua Skema';
   int _currentPage = 1;
-  static const int _itemsPerPage = 6;
+  static const int _itemsPerPage = 10;
 
   // Filter states matching the popover options
   String _selectedKategori = 'Semua Skema';
@@ -29,6 +29,8 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
   // API state
   List<SkemaSertifikatListItem> _skemaList = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
   bool _isError = false;
   String _errorMessage = '';
   int _totalPages = 1;
@@ -62,21 +64,40 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
     _searchController.addListener(() {
       setState(() {});
     });
-    _fetchSkema();
+    _scrollController.addListener(_onScroll);
+    _fetchSkema(isInitial: true);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _fetchSkema() async {
-    setState(() {
-      _isLoading = true;
-      _isError = false;
-      _errorMessage = '';
-    });
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (!_isLoading && !_isLoadingMore && _hasMore) {
+        _fetchNextPage();
+      }
+    }
+  }
+
+  Future<void> _fetchSkema({bool isInitial = true}) async {
+    if (isInitial) {
+      setState(() {
+        _currentPage = 1;
+        _isLoading = true;
+        _isError = false;
+        _errorMessage = '';
+        _skemaList = [];
+        _hasMore = true;
+      });
+    } else {
+      setState(() {
+        _isLoadingMore = true;
+      });
+    }
 
     try {
       final response = await SertifikatService.getSkemaList(
@@ -89,23 +110,36 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
       );
 
       setState(() {
-        _skemaList = response.data;
+        if (isInitial) {
+          _skemaList = response.data;
+        } else {
+          _skemaList.addAll(response.data);
+        }
         _totalPages = response.meta.lastPage;
         if (_totalPages < 1) _totalPages = 1;
+        _hasMore = _currentPage < _totalPages;
         _isLoading = false;
+        _isLoadingMore = false;
       });
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _isError = true;
-        _errorMessage = e.toString();
+        _isLoadingMore = false;
+        if (isInitial) {
+          _isError = true;
+          _errorMessage = e.toString();
+        }
       });
     }
   }
 
+  void _fetchNextPage() {
+    _currentPage++;
+    _fetchSkema(isInitial: false);
+  }
+
   void _onFilterChanged() {
-    _currentPage = 1;
-    _fetchSkema();
+    _fetchSkema(isInitial: true);
   }
 
   void _showFilterMenu() {
@@ -159,6 +193,10 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final double cardWidth = (screenWidth - 32 - 12) / 2; // 32 for padding, 12 for spacing
+    const double cardHeight = 215;
+    final double childAspectRatio = cardWidth / cardHeight;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -289,24 +327,42 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                     ? _buildErrorState()
                     : _skemaList.isEmpty
                         ? _buildEmptyState()
-                        : GridView.builder(
-                            padding: const EdgeInsets.all(16),
-                            physics: const BouncingScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 0.43,
-                            ),
-                            itemCount: _skemaList.length,
-                            itemBuilder: (context, index) {
-                              return _buildSchemeCard(_skemaList[index], index);
-                            },
+                        : Column(
+                            children: [
+                              Expanded(
+                                child: GridView.builder(
+                                  controller: _scrollController,
+                                  padding: const EdgeInsets.all(16),
+                                  physics: const BouncingScrollPhysics(),
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                    childAspectRatio: childAspectRatio,
+                                  ),
+                                  itemCount: _skemaList.length,
+                                  itemBuilder: (context, index) {
+                                    return _buildSchemeCard(_skemaList[index], index);
+                                  },
+                                ),
+                              ),
+                              if (_isLoadingMore)
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 12.0),
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: Color(0xFF4A9EDF),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
           ),
-
-          // Pagination Widget
-          if (!_isLoading && !_isError && _totalPages > 1) _buildPagination(),
         ],
       ),
     );
@@ -446,7 +502,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                     child: Text(
                       skema.status,
                       style: TextStyle(
-                        color: isOpen ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
+                        color: isOpen ? const Color(0xFF2E7D32) : const Color(0xFFFF4D4F),
                         fontSize: 8,
                         fontWeight: FontWeight.w600,
                       ),
@@ -454,19 +510,17 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                   ),
                   const SizedBox(height: 6),
 
-                  // Title
-                  Expanded(
-                    child: Text(
-                      skema.title,
-                      style: const TextStyle(
-                        color: Color(0xFF1E3A8A),
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
+                  // Title - removed Expanded to avoid vertical stretching and excessive spacing
+                  Text(
+                    skema.title,
+                    style: const TextStyle(
+                      color: Color(0xFF1E3A8A),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
 
                   // Tags Row
@@ -505,6 +559,9 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
                       }).toList(),
                     ),
                   ],
+
+                  // Pushes details and button to bottom naturally, preventing padding gaps under title
+                  const Spacer(),
 
                   const Divider(height: 12, color: Color(0xFFF1F5F9)),
 
@@ -638,7 +695,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
           ),
           const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: _fetchSkema,
+            onPressed: () => _fetchSkema(isInitial: true),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF4A9EDF),
               foregroundColor: Colors.white,
@@ -646,80 +703,6 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
             child: const Text('Coba Lagi'),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPagination() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Color(0xFFE2E8F0), width: 0.8),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            onPressed: _currentPage > 1
-                ? () {
-                    setState(() {
-                      _currentPage--;
-                    });
-                    _fetchSkema();
-                  }
-                : null,
-            icon: const Icon(Icons.chevron_left_rounded, size: 20),
-            color: const Color(0xFF2C6C9C),
-            disabledColor: Colors.grey[300],
-          ),
-          for (int i = 1; i <= _totalPages; i++) _buildPageNumber(i),
-          IconButton(
-            onPressed: _currentPage < _totalPages
-                ? () {
-                    setState(() {
-                      _currentPage++;
-                    });
-                    _fetchSkema();
-                  }
-                : null,
-            icon: const Icon(Icons.chevron_right_rounded, size: 20),
-            color: const Color(0xFF2C6C9C),
-            disabledColor: Colors.grey[300],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPageNumber(int page) {
-    final bool isSelected = _currentPage == page;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _currentPage = page;
-        });
-        _fetchSkema();
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE0F2FE) : Colors.transparent,
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          page.toString(),
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? const Color(0xFF0284C7) : const Color(0xFF475569),
-          ),
-        ),
       ),
     );
   }
