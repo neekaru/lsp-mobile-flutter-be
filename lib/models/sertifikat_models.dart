@@ -402,6 +402,34 @@ class SkemaSertifikatMeta {
   }
 }
 
+/// Bidang item for filter chips — fetched from GET /api/sertifikat/skema/bidang
+class SkemaBidangItem {
+  final String value;
+  final String label;
+
+  const SkemaBidangItem({required this.value, required this.label});
+
+  factory SkemaBidangItem.fromJson(Map<String, dynamic> json) {
+    return SkemaBidangItem(
+      value: json['value'] as String? ?? '',
+      label: json['label'] as String? ?? '',
+    );
+  }
+}
+
+class SkemaBidangListResponse {
+  final List<SkemaBidangItem> data;
+
+  const SkemaBidangListResponse({required this.data});
+
+  factory SkemaBidangListResponse.fromJson(Map<String, dynamic> json) {
+    final list = (json['data'] as List<dynamic>? ?? [])
+        .map((e) => SkemaBidangItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return SkemaBidangListResponse(data: list);
+  }
+}
+
 class SkemaSertifikatListResponse {
   final List<SkemaSertifikatListItem> data;
   final SkemaSertifikatMeta meta;

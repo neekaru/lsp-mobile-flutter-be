@@ -136,6 +136,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final user = AuthRepository.currentUserInstance;
+    final bool isAsesi = user?.role == 'asesi';
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,
@@ -170,55 +172,114 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Custom Logo
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: const Color(
-                                  0x66FFFFFF,
-                                ), // white with 0.4 opacity
-                                width: 2,
+                          if (isAsesi) ...[
+                            // Foto Profil Asesi
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  width: 2,
+                                ),
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.08),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
                               ),
-                              color: Colors.white,
-                            ),
-                            padding: const EdgeInsets.all(6),
-                            child: Image.asset(
-                              'assets/logo.png',
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          // Title Texts
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'LSP Teknologi Digital',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: -0.3,
-                                  ),
+                              child: const ClipOval(
+                                child: Icon(
+                                  Icons.person_rounded,
+                                  size: 32,
+                                  color: Color(0xFFCBD5E1),
                                 ),
-                                SizedBox(height: 2),
-                                Text(
-                                  'Dashboard Sertifikasi',
-                                  style: TextStyle(
-                                    color: Color(
-                                      0xE6FFFFFF,
-                                    ), // white with 0.9 opacity
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 14),
+                            // Hallo, Nama User
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Hallo,',
+                                    style: TextStyle(
+                                      color: Color(0xE6FFFFFF), // white with 0.9 opacity
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    user?.name ?? 'Asesi',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: -0.3,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ] else ...[
+                            // Custom Logo
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(
+                                    0x66FFFFFF,
+                                  ), // white with 0.4 opacity
+                                  width: 2,
+                                ),
+                                color: Colors.white,
+                              ),
+                              padding: const EdgeInsets.all(6),
+                              child: Image.asset(
+                                'assets/logo.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            // Title Texts
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'LSP Teknologi Digital',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Dashboard Sertifikasi',
+                                    style: TextStyle(
+                                      color: Color(
+                                        0xE6FFFFFF,
+                                      ), // white with 0.9 opacity
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           // Notification Bell Icon
                           const NotificationBell(),
                         ],

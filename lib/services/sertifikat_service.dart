@@ -122,6 +122,7 @@ class SertifikatService {
     String? kategori,
     String? jenjang,
     String? bidang,
+    String? sort,
     int page = 1,
     int limit = 6,
   }) async {
@@ -131,6 +132,7 @@ class SertifikatService {
       if (kategori != null && kategori.isNotEmpty) params.add('kategori=$kategori');
       if (jenjang != null && jenjang.isNotEmpty) params.add('jenjang=$jenjang');
       if (bidang != null && bidang.isNotEmpty) params.add('bidang=$bidang');
+      if (sort != null && sort.isNotEmpty) params.add('sort=$sort');
       params.add('page=$page');
       params.add('limit=$limit');
 
@@ -144,6 +146,21 @@ class SertifikatService {
     } on DioException catch (e) {
       debugPrint('🔴 Error fetching skema list: ${e.message}');
       rethrow;
+    }
+  }
+
+  /// Fetch the list of available bidang values for filter chips.
+  /// Called once per screen lifecycle — cached client-side.
+  static Future<List<SkemaBidangItem>> getBidangList() async {
+    try {
+      final response = await _dio.get(ApiRoutes.sertifikatSkemaBidang);
+      if (response.statusCode == 200 && response.data != null) {
+        return SkemaBidangListResponse.fromJson(response.data as Map<String, dynamic>).data;
+      }
+      return const <SkemaBidangItem>[];
+    } on DioException catch (e) {
+      debugPrint('🔴 Error fetching bidang list: ${e.message}');
+      return const <SkemaBidangItem>[];
     }
   }
 

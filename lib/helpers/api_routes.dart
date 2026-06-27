@@ -54,6 +54,7 @@ class ApiRoutes {
 
   // Skema Sertifikasi (protected, role=asesi)
   static const String sertifikatSkema = '/api/sertifikat/skema';
+  static const String sertifikatSkemaBidang = '/api/sertifikat/skema/bidang';
   static String sertifikatSkemaDetail(int id) => '/api/sertifikat/skema/$id';
 
   // ============================================================================
