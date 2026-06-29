@@ -13,6 +13,7 @@ import '../../models/berita_model.dart';
 import '../../widgets/berita_terkini_section.dart';
 import '../auth/login_screen.dart';
 import '../../widgets/public_sertifikat_card.dart';
+import '../../widgets/tentang_kami_section.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -422,6 +423,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
             ),
+
+            // 2.5. Tentang Kami Section - Hanya untuk Guest (Public Landing Page)
+            if (isGuest)
+              const TentangKamiSection(),
 
             // 3. Jadwal Asesmen Mendekati Baru Section (Imported list widget) - Hanya untuk Admin
             if (AuthRepository.currentUserInstance?.role == 'admin' &&
