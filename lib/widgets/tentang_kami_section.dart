@@ -1,58 +1,11 @@
 import 'package:flutter/material.dart';
 import '../screens/dashboard/tentang_kita_screen.dart';
 import '../screens/dashboard/faq_screen.dart';
+import '../screens/dashboard/panduan_sertifikasi_screen.dart';
 
 class TentangKamiSection extends StatelessWidget {
   const TentangKamiSection({super.key});
 
-  void _showDetailBottomSheet(BuildContext context, String title, String content) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              Text(
-                content,
-                style: const TextStyle(
-                  fontSize: 14,
-                  height: 1.5,
-                  color: Color(0xFF334155),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,10 +41,10 @@ class TentangKamiSection extends StatelessWidget {
             icon: Icons.menu_book_rounded,
             title: 'Panduan Mendaftar Sertifikasi',
             onTap: () {
-              _showDetailBottomSheet(
-                context,
-                'Panduan Mendaftar Sertifikasi',
-                'Langkah pendaftaran sertifikasi:\n1. Pilih skema sertifikasi yang sesuai dengan kompetensi Anda.\n2. Isi formulir pendaftaran dan unggah dokumen portofolio.\n3. Lakukan pembayaran dan konfirmasi jadwal asesmen.\n4. Ikuti proses asesmen di Tempat Uji Kompetensi (TUK) yang ditentukan.',
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const PanduanSertifikasiScreen(),
+                ),
               );
             },
           ),
