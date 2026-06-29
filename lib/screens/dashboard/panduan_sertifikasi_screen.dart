@@ -6,98 +6,133 @@ class PanduanSertifikasiScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Panduan Sertifikasi',
-          style: TextStyle(
-            color: Color(0xFF0F172A),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      backgroundColor: const Color(0xFFF5F6F8), // Match Berita background
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section Title
-            const Padding(
-              padding: EdgeInsets.only(left: 4.0, bottom: 12.0),
-              child: Text(
-                'Alur Sertifikasi',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F172A),
-                ),
+            // Custom AppBar matching Berita style
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: Colors.black,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.keyboard_arrow_left_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  const Text(
+                    'Panduan Sertifikasi',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  const Icon(Icons.more_horiz_rounded, color: Colors.black, size: 24),
+                ],
               ),
             ),
             
-            // Workflow Container
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC), // White/very light grey matching card background
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFE2E8F0),
-                  width: 1.2,
+            // Body Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Section Title
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4.0, bottom: 12.0),
+                      child: Text(
+                        'Alur Sertifikasi',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                    ),
+                    
+                    // Workflow Container
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white, // Clean white card to pop on grey background
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x0A000000),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: const Color(0xFFE2E8F0),
+                          width: 1.0,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                      child: Column(
+                        children: [
+                          _buildStepItem(
+                            icon: Icons.calendar_today_rounded,
+                            iconColor: const Color(0xFF1E6FDB),
+                            title: '1. Daftar',
+                            subtitle: 'Pilih Skema yang di inginkan dan daftar.',
+                          ),
+                          _buildDivider(),
+                          _buildStepItem(
+                            icon: Icons.badge_rounded,
+                            iconColor: const Color(0xFF1E6FDB),
+                            title: '2. Lengkapi Profil',
+                            subtitle: 'Isi data diri dan unggah dokumen yang diminta.',
+                          ),
+                          _buildDivider(),
+                          _buildStepItem(
+                            icon: Icons.folder_copy_rounded,
+                            iconColor: const Color(0xFFD97706), // Amber
+                            title: '3. Upload Portofolio',
+                            subtitle: 'Unggah bukti pengalaman.',
+                          ),
+                          _buildDivider(),
+                          _buildStepItem(
+                            icon: Icons.assignment_rounded,
+                            iconColor: const Color(0xFF0D9488), // Teal
+                            title: '4. Pra-Asesmen',
+                            subtitle: 'Verifikasi dokumen oleh Asesor.',
+                          ),
+                          _buildDivider(),
+                          _buildStepItem(
+                            icon: Icons.rate_review_rounded,
+                            iconColor: const Color(0xFF4F46E5), // Indigo
+                            title: '5. Tes Tertulis/Asesmen',
+                            subtitle: 'Uji Kompetensi oleh asesor.',
+                          ),
+                          _buildDivider(),
+                          _buildStepItem(
+                            icon: Icons.workspace_premium_rounded,
+                            iconColor: const Color(0xFF16A34A), // Green
+                            title: '6. Keluar Sertifikat',
+                            subtitle: 'Sertifikat akan keluar jika uji kompetensi kompeten.',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-              child: Column(
-                children: [
-                  _buildStepItem(
-                    icon: Icons.calendar_today_rounded,
-                    iconColor: const Color(0xFF1E6FDB),
-                    title: '1. Daftar',
-                    subtitle: 'Pilih Skema yang di inginkan dan daftar.',
-                  ),
-                  _buildDivider(),
-                  _buildStepItem(
-                    icon: Icons.badge_rounded,
-                    iconColor: const Color(0xFF1E6FDB),
-                    title: '2. Lengkapi Profil',
-                    subtitle: 'Isi data diri dan unggah dokumen yang diminta.',
-                  ),
-                  _buildDivider(),
-                  _buildStepItem(
-                    icon: Icons.folder_copy_rounded,
-                    iconColor: const Color(0xFFD97706), // Amber
-                    title: '3. Upload Portofolio',
-                    subtitle: 'Unggah bukti pengalaman.',
-                  ),
-                  _buildDivider(),
-                  _buildStepItem(
-                    icon: Icons.assignment_rounded,
-                    iconColor: const Color(0xFF0D9488), // Teal
-                    title: '4. Pra-Asesmen',
-                    subtitle: 'Verifikasi dokumen oleh Asesor.',
-                  ),
-                  _buildDivider(),
-                  _buildStepItem(
-                    icon: Icons.rate_review_rounded,
-                    iconColor: const Color(0xFF4F46E5), // Indigo
-                    title: '5. Tes Tertulis/Asesmen',
-                    subtitle: 'Uji Kompetensi oleh asesor.',
-                  ),
-                  _buildDivider(),
-                  _buildStepItem(
-                    icon: Icons.workspace_premium_rounded,
-                    iconColor: const Color(0xFF16A34A), // Green
-                    title: '6. Keluar Sertifikat',
-                    subtitle: 'Sertifikat akan keluar jika uji kompetensi kompeten.',
-                  ),
-                ],
               ),
             ),
           ],
