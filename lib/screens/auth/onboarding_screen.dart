@@ -1,231 +1,240 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
-import 'register_screen.dart';
+import '../../main.dart';
 
-class OnboardingScreen extends StatelessWidget {
+class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _skipOnboarding() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => MainNavigator(key: mainNavigatorKey),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF5CA6EC), // Light blue top gradient
-              Color(0xFF2E65A4), // Deep blue bottom gradient
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const SizedBox(height: 10),
-
-                // Top Section: Logo and App Information
-                Column(
-                  children: [
-                    // Circle Logo Avatar
-                    Hero(
-                      tag: 'app_logo',
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: Container(
-                          width: 96,
-                          height: 96,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(14),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // PageView containing illustration, title, and subtitle
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                itemCount: _pages.length,
+                itemBuilder: (context, index) {
+                  final page = _pages[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Spacer(),
+                        // Illustration Image
+                        Container(
+                          height: MediaQuery.of(context).size.height * 0.4,
+                          alignment: Alignment.center,
                           child: Image.asset(
-                            'assets/logo.png',
+                            page.imagePath,
                             fit: BoxFit.contain,
                           ),
                         ),
-                      ),
+                        const Spacer(),
+                        // Title
+                        Text(
+                          page.title,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        // Subtitle
+                        Text(
+                          page.subtitle,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF64748B),
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const Spacer(),
+                      ],
                     ),
-                    const SizedBox(height: 18),
-                    // Titles
-                    const Text(
-                      'LSP',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        height: 1.25,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const Text(
-                      'Teknologi Digital',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        height: 1.25,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Monitoring Sertifikat Nasional',
-                      style: TextStyle(
-                        color: Color(0xE6FFFFFF),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                  );
+                },
+              ),
+            ),
 
-                // Middle Section: Onboarding Illustration
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 24.0),
-                    alignment: Alignment.center,
-                    child: Image.asset(
-                      'assets/onboarding_illustration.png',
-                      fit: BoxFit.contain,
+            // Page Indicator Dots
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(3, (index) {
+                final isActive = _currentPage == index;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                  height: 8,
+                  width: isActive ? 12 : 8,
+                  decoration: BoxDecoration(
+                    color: isActive ? const Color(0xFF4FA8E8) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: const Color(0xFF4FA8E8),
+                      width: 1.5,
                     ),
                   ),
-                ),
-
-                // Bottom Section: Action Buttons
-                Column(
-                  children: [
-                    // Masuk (Login) Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                final slideAnimation = Tween<Offset>(
-                                  begin: const Offset(0.0, 0.08),
-                                  end: Offset.zero,
-                                ).animate(
-                                  CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeOutCubic,
-                                  ),
-                                );
-                                final fadeAnimation = CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeIn,
-                                );
-                                return SlideTransition(
-                                  position: slideAnimation,
-                                  child: FadeTransition(
-                                    opacity: fadeAnimation,
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              transitionDuration: const Duration(milliseconds: 350),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF378CE7), // Matches primary blue
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: const BorderSide(color: Color(0xFF1E5BB4), width: 1),
-                          ),
-                        ),
-                        child: const Text(
-                          'Masuk',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 12),
-
-                    // Daftar Akun (Register) Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => const RegisterScreen(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                final slideAnimation = Tween<Offset>(
-                                  begin: const Offset(0.0, 0.08),
-                                  end: Offset.zero,
-                                ).animate(
-                                  CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeOutCubic,
-                                  ),
-                                );
-                                final fadeAnimation = CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeIn,
-                                );
-                                return SlideTransition(
-                                  position: slideAnimation,
-                                  child: FadeTransition(
-                                    opacity: fadeAnimation,
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              transitionDuration: const Duration(milliseconds: 350),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF1E293B),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
-                          ),
-                        ),
-                        child: const Text(
-                          'Daftar Akun',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              ],
+                );
+              }),
             ),
-          ),
+            const SizedBox(height: 36),
+
+            // Bottom Buttons Section
+            Padding(
+              padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 24.0),
+              child: Row(
+                children: [
+                  if (_currentPage < 2) ...[
+                    // Left Button: Lewati
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: _skipOnboarding,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            foregroundColor: const Color(0xFF475569),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Lewati',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Right Button: Selanjutnya
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4FA8E8),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Selanjutnya',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    // Single Button: Lanjutkan (transisi ke dashboard publik)
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: _skipOnboarding,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4FA8E8),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Lanjutkan',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+class OnboardingPageModel {
+  final String imagePath;
+  final String title;
+  final String subtitle;
+
+  const OnboardingPageModel({
+    required this.imagePath,
+    required this.title,
+    required this.subtitle,
+  });
+}
+
+const List<OnboardingPageModel> _pages = [
+  OnboardingPageModel(
+    imagePath: 'assets/splash_1.png',
+    title: 'Mudah Mengikuti Sertifikat Kompetensi',
+    subtitle: 'Daftar sertifikat kapan saja dan dimana saja',
+  ),
+  OnboardingPageModel(
+    imagePath: 'assets/splash_2.png',
+    title: 'Pantau Semua Proses Sertifikasi',
+    subtitle: 'Pantau proses sertifikasi mulai dari pendaftaran hingga sertifikat Keluar',
+  ),
+  OnboardingPageModel(
+    imagePath: 'assets/splash_3.png',
+    title: 'Sertifikat Digital Lebih Mudah Didapat',
+    subtitle: 'Melihat hasil Asessmen dan sertifikat lebih mudah',
+  ),
+];
