@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/dashboard/tentang_kita_screen.dart';
 
 class TentangKamiSection extends StatelessWidget {
   const TentangKamiSection({super.key});
@@ -73,10 +74,10 @@ class TentangKamiSection extends StatelessWidget {
             icon: Icons.info_outline_rounded,
             title: 'Tentang Sistem Sertifikasi Digital LSP',
             onTap: () {
-              _showDetailBottomSheet(
-                context,
-                'Tentang Sistem Sertifikasi Digital LSP',
-                'Lembaga Sertifikasi Profesi (LSP) Teknologi Digital menyelenggarakan sertifikasi kompetensi kerja di bidang teknologi informasi dan komunikasi untuk menghasilkan tenaga kerja yang profesional, kompeten, dan berdaya saing global.',
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const TentangKitaScreen(),
+                ),
               );
             },
           ),
