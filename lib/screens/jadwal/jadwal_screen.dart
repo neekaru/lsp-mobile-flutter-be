@@ -55,7 +55,8 @@ class _JadwalScreenState extends State<JadwalScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    final bool isAsesi = currentUser.role == 'asesi';
+    _tabController = TabController(length: isAsesi ? 2 : 3, vsync: this);
     _loadJadwalData();
 
     // Setup scroll listeners for pagination
@@ -286,6 +287,7 @@ class _JadwalScreenState extends State<JadwalScreen>
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final bool isAsesi = currentUser.role == 'asesi';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -316,15 +318,15 @@ class _JadwalScreenState extends State<JadwalScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  // Tab 1: Sedang Berjalan
+                  // Tab 1: Sedang Berjalan (Mendatang for Asesi)
                   _JadwalTabContent(
                     key: const PageStorageKey('sedang_berjalan_tab'),
                     child: _buildSedangBerjalanTab(),
                   ),
 
-                  // Tab 2: Berjalan
+                  // Tab 2: Berjalan (Pelaporan for Admin/Asesor)
                   _JadwalTabContent(
-                    key: const PageStorageKey('sedang_berjalan_tab'),
+                    key: const PageStorageKey('pelaporan_tab'),
                     child: _buildJadwalList(
                       pelaporanList,
                       'sedang_berjalan',
@@ -333,16 +335,17 @@ class _JadwalScreenState extends State<JadwalScreen>
                     ),
                   ),
 
-                  // Tab 3: Selesai
-                  _JadwalTabContent(
-                    key: const PageStorageKey('selesai_tab'),
-                    child: _buildJadwalList(
-                      selesaiList,
-                      'selesai',
-                      _scrollControllerSelesai,
-                      _hasMoreSelesai,
+                  // Tab 3: Selesai (Only for non-Asesi)
+                  if (!isAsesi)
+                    _JadwalTabContent(
+                      key: const PageStorageKey('selesai_tab'),
+                      child: _buildJadwalList(
+                        selesaiList,
+                        'selesai',
+                        _scrollControllerSelesai,
+                        _hasMoreSelesai,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

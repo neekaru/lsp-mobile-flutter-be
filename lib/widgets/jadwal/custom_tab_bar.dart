@@ -72,16 +72,18 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
             isAsesi: isAsesi,
           ),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: TabItem(
-            label: isAsesi ? 'Selesai' : 'Selesai',
-            badgeCount: isAsesi ? widget.selesaiCount : null,
-            isSelected: widget.controller.index == 2,
-            onTap: () => widget.controller.animateTo(2),
-            isAsesi: isAsesi,
+        if (!isAsesi) ...[
+          const SizedBox(width: 8),
+          Expanded(
+            child: TabItem(
+              label: 'Selesai',
+              badgeCount: null,
+              isSelected: widget.controller.index == 2,
+              onTap: () => widget.controller.animateTo(2),
+              isAsesi: isAsesi,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
