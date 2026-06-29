@@ -11,6 +11,8 @@ import '../../services/auth_repository.dart';
 import '../../widgets/mulai_sertifikasi_card.dart';
 import '../../models/berita_model.dart';
 import '../../widgets/berita_terkini_section.dart';
+import '../auth/login_screen.dart';
+import '../../widgets/public_sertifikat_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -138,6 +140,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final user = AuthRepository.currentUserInstance;
     final bool isAsesi = user?.role == 'asesi';
+    final bool isGuest = user == null;
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,
@@ -229,6 +232,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ],
                               ),
                             ),
+                          ] else if (isGuest) ...[
+                            // Guest Header (original style + Masuk button)
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(
+                                    0x66FFFFFF,
+                                  ), // white with 0.4 opacity
+                                  width: 2,
+                                ),
+                                color: Colors.white,
+                              ),
+                              padding: const EdgeInsets.all(6),
+                              child: Image.asset(
+                                'assets/logo.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            // Title Texts
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'LSP Teknologi Digital',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Dashboard Sertifikasi',
+                                    style: TextStyle(
+                                      color: Color(
+                                        0xE6FFFFFF,
+                                      ), // white with 0.9 opacity
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // "Masuk" Button
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black87,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Masuk',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
                           ] else ...[
                             // Custom Logo
                             Container(
@@ -280,8 +358,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                           ],
-                          // Notification Bell Icon
-                          const NotificationBell(),
+                          if (!isGuest) ...[
+                            const SizedBox(width: 8),
+                            const NotificationBell(),
+                          ],
                         ],
                       ),
                     ],
@@ -296,29 +376,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     right: 16,
                     bottom: 12, // Set to 12
                   ),
-                  child: AuthRepository.currentUserInstance?.role == 'asesi'
-                      ? RangkumanAsesi(
-                          data: _asesiSummaryData,
-                          isLoading: _isLoading,
-                        )
-                      : RangkumanUtama(
-                          data: _summaryData,
-                          isLoading: _isLoading,
-                        ),
+                  child: isGuest
+                      ? const PublicSertifikatCard()
+                      : (isAsesi
+                          ? RangkumanAsesi(
+                              data: _asesiSummaryData,
+                              isLoading: _isLoading,
+                            )
+                          : RangkumanUtama(
+                              data: _summaryData,
+                              isLoading: _isLoading,
+                            )),
                 ),
               ],
             ),
 
-            // 1.5. Mulai Skema Sertifikasi Section
-            const Padding(
-              padding: EdgeInsets.only(
-                left: 16.0,
-                right: 16.0,
-                top: 4.0,
-                bottom: 8.0,
+            // 1.5. Mulai Skema Sertifikasi Section - Hapus untuk guest (diganti berita)
+            if (!isGuest)
+              const Padding(
+                padding: EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 4.0,
+                  bottom: 8.0,
+                ),
+                child: MulaiSertifikasiCard(),
               ),
-              child: MulaiSertifikasiCard(),
-            ),
 
             // 1.6. Berita Terkini Section (2 boxes horizontally under Mulai Skema Sertifikasi) - Tampil di semua role
             Padding(
