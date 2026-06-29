@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/dashboard/tentang_kita_screen.dart';
+import '../screens/dashboard/faq_screen.dart';
 
 class TentangKamiSection extends StatelessWidget {
   const TentangKamiSection({super.key});
@@ -100,10 +101,10 @@ class TentangKamiSection extends StatelessWidget {
             icon: Icons.help_outline_rounded,
             title: 'Tanya Jawab (FAQ)',
             onTap: () {
-              _showDetailBottomSheet(
-                context,
-                'Tanya Jawab (FAQ)',
-                'Q: Apa itu sertifikat kompetensi?\nA: Bukti tertulis resmi tentang kompetensi kerja seseorang pada jabatan kerja tertentu.\n\nQ: Berapa lama masa berlaku sertifikat?\nA: Sertifikat kompetensi berlaku selama 3 tahun sejak tanggal diterbitkan.\n\nQ: Bagaimana jika tidak lulus asesmen?\nA: Anda dapat melakukan pendaftaran ulang untuk mengikuti asesmen pada skema/unit yang belum kompeten.',
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const FaqScreen(),
+                ),
               );
             },
           ),
