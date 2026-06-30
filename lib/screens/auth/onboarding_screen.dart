@@ -13,6 +13,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentPage = 0;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+    });
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
@@ -52,9 +60,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       children: [
                         const Spacer(),
                         // Illustration Image
-                        Container(
-                          height: MediaQuery.of(context).size.height * 0.4,
-                          alignment: Alignment.center,
+                        Expanded(
+                          flex: 5,
                           child: Image.asset(
                             page.imagePath,
                             fit: BoxFit.contain,
