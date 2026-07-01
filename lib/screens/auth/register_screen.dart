@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'pilih_peran_screen.dart';
+import '../profile/syarat_ketentuan_screen.dart';
+import '../profile/ketentuan_privasi_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -280,66 +282,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showTermsSheet(String title, String content) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Color(0xFF0F4C81),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Text(
-                    content,
-                    style: const TextStyle(
-                      color: Color(0xFF334155),
-                      fontSize: 13,
-                      height: 1.6,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F4C81),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Tutup',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
           ),
         );
       },
@@ -715,9 +657,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {
-                                      _showTermsSheet(
-                                        'Syarat & Ketentuan',
-                                        'Selamat datang di LSP Teknologi Digital.\n\nDengan mendaftar dan menggunakan aplikasi monitoring sertifikat nasional ini, Anda setuju untuk terikat oleh ketentuan penggunaan berikut:\n\n1. Pendaftaran Akun\nAnda diwajibkan memberikan data yang akurat, lengkap, dan terbaru. Penyalahgunaan akun milik orang lain dilarang keras.\n\n2. Keamanan Akun\nAnda bertanggung jawab menjaga kerahasiaan kata sandi Anda dan aktivitas apa pun yang terjadi menggunakan akun Anda.\n\n3. Penggunaan Aplikasi\nAplikasi ini ditujukan untuk memantau status kompetensi dan sertifikasi Anda. Anda dilarang melakukan modifikasi, manipulasi data, atau tindakan peretasan.\n\n4. Hak Cipta\nSeluruh konten, logo, merek, dan teknologi yang terdapat dalam aplikasi ini adalah hak kekayaan intelektual LSP Teknologi Digital.\n\nKami berhak menangguhkan akun Anda apabila ditemukan pelanggaran terhadap syarat dan ketentuan ini.',
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const SyaratKetentuanScreen(),
+                                        ),
                                       );
                                     },
                                 ),
@@ -730,9 +674,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {
-                                      _showTermsSheet(
-                                        'Kebijakan Privasi',
-                                        'LSP Teknologi Digital berkomitmen melindungi privasi data pribadi Anda.\n\nKebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi informasi Anda:\n\n1. Informasi yang Kami Kumpulkan\nKami mengumpulkan nama lengkap, alamat email, nomor telepon, dan data sertifikasi yang diperlukan untuk proses monitoring.\n\n2. Penggunaan Informasi\nData yang Anda berikan digunakan semata-mata untuk mengelola akun Anda, mengirimkan notifikasi status kelulusan, penugasan asesor, dan penerbitan sertifikat.\n\n3. Perlindungan Informasi\nKami menerapkan langkah-langkah keamanan teknologi enkripsi dan pembatasan akses untuk mencegah kebocoran data.\n\n4. Pembagian Data Pihak Ketiga\nKami tidak pernah menjual atau membagikan data pribadi Anda kepada pihak ketiga tanpa persetujuan Anda, kecuali diwajibkan oleh hukum atau otoritas sertifikasi nasional (BNSP).\n\nDengan menggunakan aplikasi ini, Anda menyatakan setuju atas pengelolaan data pribadi Anda sesuai dengan Kebijakan Privasi ini.',
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const KetentuanPrivasiScreen(),
+                                        ),
                                       );
                                     },
                                 ),
