@@ -70,15 +70,8 @@ class PanduanSertifikasiScreen extends StatelessWidget {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.white, // Clean white card to pop on grey background
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x0A000000),
-                            blurRadius: 10,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
+                        color: const Color(0xFFF8F9FA), // Light background card matching the design image
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: const Color(0xFFE2E8F0),
                           width: 1.0,
@@ -92,41 +85,47 @@ class PanduanSertifikasiScreen extends StatelessWidget {
                             iconColor: const Color(0xFF1E6FDB),
                             title: '1. Daftar',
                             subtitle: 'Pilih Skema yang di inginkan dan daftar.',
+                            badge: 'plus',
                           ),
-                          _buildDivider(),
                           _buildStepItem(
                             icon: Icons.badge_rounded,
                             iconColor: const Color(0xFF1E6FDB),
                             title: '2. Lengkapi Profil',
                             subtitle: 'Isi data diri dan unggah dokumen yang diminta.',
+                            badge: 'check',
                           ),
-                          _buildDivider(),
                           _buildStepItem(
-                            icon: Icons.folder_copy_rounded,
-                            iconColor: const Color(0xFFD97706), // Amber
+                            icon: Icons.folder_rounded,
+                            iconColor: const Color(0xFFD97706),
                             title: '3. Upload Portofolio',
                             subtitle: 'Unggah bukti pengalaman.',
+                            badge: 'plus',
                           ),
-                          _buildDivider(),
                           _buildStepItem(
-                            icon: Icons.assignment_rounded,
-                            iconColor: const Color(0xFF0D9488), // Teal
-                            title: '4. Pra-Asesmen',
-                            subtitle: 'Verifikasi dokumen oleh Asesor.',
+                            icon: Icons.description_rounded,
+                            iconColor: const Color(0xFF0D9488),
+                            title: '4. Pra-Asessmen',
+                            subtitle: 'Verifikasi dokumen oleh Asessor.',
+                            badge: 'check',
                           ),
-                          _buildDivider(),
                           _buildStepItem(
-                            icon: Icons.rate_review_rounded,
-                            iconColor: const Color(0xFF4F46E5), // Indigo
-                            title: '5. Tes Tertulis/Asesmen',
-                            subtitle: 'Uji Kompetensi oleh asesor.',
+                            icon: Icons.assignment_turned_in_rounded,
+                            iconColor: const Color(0xFF1E6FDB),
+                            title: '5. Tes Tertulis/Asessmen',
+                            subtitle: 'Uji Kompetensi oleh assessor.',
                           ),
-                          _buildDivider(),
                           _buildStepItem(
                             icon: Icons.workspace_premium_rounded,
-                            iconColor: const Color(0xFF16A34A), // Green
-                            title: '6. Keluar Sertifikat',
+                            iconColor: const Color(0xFFF59E0B),
+                            title: '6. Dinyatakan Kompeten',
+                            subtitle: 'Dinyatakan Kompeten oleh Asessor penguji.',
+                          ),
+                          _buildStepItem(
+                            icon: Icons.assignment_rounded,
+                            iconColor: const Color(0xFF1E6FDB),
+                            title: '7. Sertifikat Terbit',
                             subtitle: 'Sertifikat akan keluar jika uji kompetensi kompeten.',
+                            isLast: true,
                           ),
                         ],
                       ),
@@ -146,61 +145,94 @@ class PanduanSertifikasiScreen extends StatelessWidget {
     required Color iconColor,
     required String title,
     required String subtitle,
+    bool isLast = false,
+    String? badge,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Icon Container with check/plus badge styling
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE2F0FD), // light blue background
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            icon,
-            color: iconColor,
-            size: 24,
-          ),
-        ),
-        const SizedBox(width: 16),
-        // Texts
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Left column: Icon and Vertical Timeline Line
+          Column(
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F172A),
-                ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2F0FD), // Light blue icon container background
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: iconColor,
+                      size: 20,
+                    ),
+                  ),
+                  if (badge != null)
+                    Positioned(
+                      right: -2,
+                      bottom: -2,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF22C55E), // Vibrant green badge matching design
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          badge == 'plus' ? Icons.add : Icons.check,
+                          color: Colors.white,
+                          size: 8,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF475569),
-                  height: 1.4,
+              if (!isLast)
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      width: 1.5,
+                      color: const Color(0xFFCBD5E1), // Vertical timeline line
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: const Divider(
-        color: Color(0xFFCBD5E1),
-        height: 1,
-        thickness: 1,
+          const SizedBox(width: 16),
+          // Right column: Title and Subtitle content
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: isLast ? 0.0 : 20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 2), // Align slightly with icon center
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF475569),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

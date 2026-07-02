@@ -11,6 +11,7 @@ import 'edit_instansi_screen.dart';
 import 'keamanan_screen.dart';
 import '../../widgets/profile/ringkasan_widget.dart';
 import '../../widgets/profile/menu_profil_widget.dart';
+import 'public_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -298,82 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = AuthRepository.currentUserInstance;
 
     if (user == null) {
-      return Scaffold(
-        backgroundColor: const Color(0xFFD2E6F7), // Light blue pastel background
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Large circular avatar
-                Container(
-                  width: 140,
-                  height: 140,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF98CAF6), // Soft light blue circle
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.person,
-                      size: 96,
-                      color: Color(0xFF488BE3), // Medium-dark blue person icon
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                
-                // Warning Notice Text
-                const Text(
-                  'Sebelum bisa mengakses lebih jauh Anda harus terlebih dahulu memiliki akun',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF1E1E1E),
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 28),
-                
-                // Masuk button in the center
-                SizedBox(
-                  width: 110,
-                  height: 38,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2B82D7), // Sleek blue
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6), // Slightly rounded corners
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                    child: const Text(
-                      'Masuk',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      return PublicProfileScreen(onBackToHome: widget.onBackToHome);
     }
 
     final userName = user.name;

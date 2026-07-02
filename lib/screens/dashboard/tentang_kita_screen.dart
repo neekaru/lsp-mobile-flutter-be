@@ -1,56 +1,29 @@
 import 'package:flutter/material.dart';
 
-class TentangKitaScreen extends StatelessWidget {
+class TentangKitaScreen extends StatefulWidget {
   const TentangKitaScreen({super.key});
 
-  void _showDetailBottomSheet(BuildContext context, String title, String content) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              Text(
-                content,
-                style: const TextStyle(
-                  fontSize: 14,
-                  height: 1.5,
-                  color: Color(0xFF334155),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  @override
+  State<TentangKitaScreen> createState() => _TentangKitaScreenState();
+}
+
+class _TentangKitaScreenState extends State<TentangKitaScreen> {
+  int? _expandedIndex; // Collapsed by default, can be toggled by the user
+
+  final List<Map<String, String>> _items = [
+    {
+      'title': 'Legalitas',
+      'content': 'Lembaga Sertifikasi Profesi (LSP) Teknologi Digital memiliki lisensi resmi dari Badan Nasional Sertifikasi Profesi (BNSP) nomor BNSP-LSP-1565-ID.',
+    },
+    {
+      'title': 'Akreditasi',
+      'content': 'Telah terakreditasi dan diakui oleh Kementerian Komunikasi dan Informatika serta BNSP untuk menyelenggarakan asesmen kompetensi kerja di berbagai skema bidang digital.',
+    },
+    {
+      'title': 'Kontak Kami',
+      'content': 'Hubungi Kami:\n\nAlamat: Jl. Raya Jatinegara Barat No.123, Jakarta Timur\nEmail: info@lspdigital.id\nTelepon: (021) 85918888\nWebsite: www.lspdigital.id',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -212,43 +185,21 @@ class TentangKitaScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Legalitas Card
-                    _buildItem(
-                      context,
-                      title: 'Legalitas',
-                      onTap: () {
-                        _showDetailBottomSheet(
-                          context,
-                          'Legalitas',
-                          'Lembaga Sertifikasi Profesi (LSP) Teknologi Digital memiliki lisensi resmi dari Badan Nasional Sertifikasi Profesi (BNSP) nomor BNSP-LSP-1565-ID.',
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Akreditasi Card
-                    _buildItem(
-                      context,
-                      title: 'Akreditasi',
-                      onTap: () {
-                        _showDetailBottomSheet(
-                          context,
-                          'Akreditasi',
-                          'Telah terakreditasi dan diakui oleh Kementerian Komunikasi dan Informatika serta BNSP untuk menyelenggarakan asesmen kompetensi kerja di berbagai skema bidang digital.',
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Kontak Kami Card
-                    _buildItem(
-                      context,
-                      title: 'Kontak Kami',
-                      onTap: () {
-                        _showDetailBottomSheet(
-                          context,
-                          'Kontak Kami',
-                          'Hubungi Kami:\n\nAlamat: Jl. Raya Jatinegara Barat No.123, Jakarta Timur\nEmail: info@lspdigital.id\nTelepon: (021) 85918888\nWebsite: www.lspdigital.id',
+                    // Accordion List
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _items.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final item = _items[index];
+                        final isExpanded = _expandedIndex == index;
+                        
+                        return _buildAccordionItem(
+                          index: index,
+                          title: item['title']!,
+                          content: item['content']!,
+                          isExpanded: isExpanded,
                         );
                       },
                     ),
@@ -262,33 +213,31 @@ class TentangKitaScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildItem(
-    BuildContext context, {
+  Widget _buildAccordionItem({
+    required int index,
     required String title,
-    required VoidCallback onTap,
+    required String content,
+    required bool isExpanded,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white, // Pop white card
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1.0,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title Box
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _expandedIndex = isExpanded ? null : index;
+            });
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FA), // Light background card
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: const Color(0xFFE2E8F0),
+                width: 1.0,
+              ),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -301,16 +250,41 @@ class TentangKitaScreen extends StatelessWidget {
                     color: Color(0xFF0F172A),
                   ),
                 ),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFF1E6FDB),
+                Icon(
+                  isExpanded ? Icons.keyboard_arrow_down_rounded : Icons.chevron_right_rounded,
+                  color: const Color(0xFF1E6FDB),
                   size: 20,
                 ),
               ],
             ),
           ),
         ),
-      ),
+        
+        // Content Box (shown if expanded)
+        if (isExpanded) ...[
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FA), // Matching light background card
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: const Color(0xFFE2E8F0),
+                width: 1.0,
+              ),
+            ),
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              content,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF475569),
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
