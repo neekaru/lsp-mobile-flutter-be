@@ -1223,7 +1223,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                         const SizedBox(height: 12),
                         _buildSummaryStatRow('Belum Dijawab', '$unansweredQuestions soal', isBoldValue: true),
                         const SizedBox(height: 12),
-                        _buildSummaryStatRow('Total Waktu', '$timeSpentStr Menit', isBoldValue: true, valueColor: const Color(0xFF16A34A)),
+                        _buildSummaryStatRow('Total Waktu', timeSpentStr, isBoldValue: true, valueColor: const Color(0xFF16A34A)),
                       ],
                     ),
                   ),
@@ -1726,6 +1726,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
     final String displayTitle = widget.title.toLowerCase().contains('pemasaran') || widget.title.toLowerCase().contains('marketing')
         ? 'Digital Marketing Muda'
         : widget.title;
+    final String timeSpentStr = _formatTime(3600 - _secondsRemaining);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
@@ -1802,9 +1803,9 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                         const SizedBox(height: 12),
                         _buildDetailSubmittedRow('Tanggal Tes', '20 Juli 2026'),
                         const SizedBox(height: 12),
-                        _buildDetailSubmittedRow('Waktu Tes', '40:00 Menit', valueColor: const Color(0xFF16A34A)),
+                        _buildDetailSubmittedRow('Waktu Tes', '60:00', valueColor: const Color(0xFF16A34A)),
                         const SizedBox(height: 12),
-                        _buildDetailSubmittedRow('Total Waktu tes', '35:00 Menit', valueColor: const Color(0xFF16A34A)),
+                        _buildDetailSubmittedRow('Total Waktu tes', timeSpentStr, valueColor: const Color(0xFF16A34A)),
                         const SizedBox(height: 12),
                         _buildDetailSubmittedRow('Status Tes', 'Menunggu penilaian', valueColor: const Color(0xFFEA580C)),
                       ],
