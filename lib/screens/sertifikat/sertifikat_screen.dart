@@ -3,6 +3,7 @@ import '../../models/sertifikat_models.dart';
 import '../../services/api_service.dart';
 import '../../widgets/sertifikat/sertifikat_list_item.dart';
 import '../../widgets/sertifikat/sertifikat_tab_bar.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class SertifikatScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -175,54 +176,15 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
           SizedBox(height: statusBarHeight + 8),
           
           // Header with consistent style
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Circular Black Back Arrow Button
-                GestureDetector(
-                  onTap: () {
-                    if (widget.onBackToHome != null) {
-                      widget.onBackToHome!();
-                    } else {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.keyboard_arrow_left_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                
-                // Bold screen title
-                const Text(
-                  'Sertifikat',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                
-                // More options icon
-                const Icon(
-                  Icons.more_horiz_rounded,
-                  color: Colors.black,
-                  size: 24,
-                ),
-              ],
-            ),
+          CustomAppBar(
+            title: 'Sertifikat',
+            onBack: () {
+              if (widget.onBackToHome != null) {
+                widget.onBackToHome!();
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
           ),
 
           // Custom Tab Bar matching screenshot aesthetics

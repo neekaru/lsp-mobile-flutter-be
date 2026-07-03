@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ProfilAsesorScreen extends StatelessWidget {
   final String name;
@@ -34,44 +35,9 @@ class ProfilAsesorScreen extends StatelessWidget {
           SizedBox(height: statusBarHeight + 8),
           
           // Header with black circle back button (consistent with "jadwal asesi yang hitam" design)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Black circle back button
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.keyboard_arrow_left_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                
-                // Bold screen title
-                const Text(
-                  'Profil Asesor',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                
-                // Right spacer to match back button layout
-                const SizedBox(width: 32),
-              ],
-            ),
+          const CustomAppBar(
+            title: 'Profil Asesor',
+            rightWidget: SizedBox(width: 32),
           ),
           
           Expanded(

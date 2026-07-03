@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 
 import '../../services/api_service.dart';
 import '../../widgets/pengajuan/step_indicator.dart';
@@ -628,39 +629,9 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   }
 
   Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: _previousStep,
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          Text(
-            _appBarTitle,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const Icon(Icons.more_horiz_rounded, color: Colors.black, size: 24),
-        ],
-      ),
+    return CustomAppBar(
+      title: _appBarTitle,
+      onBack: _previousStep,
     );
   }
 

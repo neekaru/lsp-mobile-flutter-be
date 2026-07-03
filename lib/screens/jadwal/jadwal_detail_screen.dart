@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import 'jadwal_edit_screen.dart';
 import '../../services/auth_repository.dart';
@@ -572,51 +573,15 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
           SizedBox(height: statusBarHeight + 8),
           
           // Header with consistent style (Statistics Header)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Back Button
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.keyboard_arrow_left_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                
-                // Bold screen title
-                const Text(
-                  'Detail Jadwal',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                
-                // Right Action Button (Triple dots for Asesi)
-                if (isAsesi)
-                  const Icon(
+          CustomAppBar(
+            title: 'Detail Jadwal',
+            rightWidget: isAsesi
+                ? const Icon(
                     Icons.more_horiz_rounded,
                     color: Colors.black,
                     size: 24,
                   )
-                else
-                  const SizedBox(width: 32),
-              ],
-            ),
+                : const SizedBox(width: 32),
           ),
 
           // Content

@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../widgets/pengajuan/step_indicator.dart';
 import '../../widgets/pengajuan/evidence_picker_sheet.dart';
 import '../../utils/asesmen_mandiri_data.dart';
@@ -182,47 +183,17 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
   }
 
   Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () {
-              if (_activeUnitIndex != null) {
-                setState(() {
-                  _activeUnitIndex = null;
-                });
-              } else {
-                Navigator.pop(context);
-              }
-            },
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          Text(
-            _activeUnitIndex != null ? 'Detail Uji Kompetensi' : 'Asesmen Mandiri',
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const Icon(Icons.more_horiz_rounded, color: Colors.black, size: 24),
-        ],
-      ),
+    return CustomAppBar(
+      title: _activeUnitIndex != null ? 'Detail Uji Kompetensi' : 'Asesmen Mandiri',
+      onBack: () {
+        if (_activeUnitIndex != null) {
+          setState(() {
+            _activeUnitIndex = null;
+          });
+        } else {
+          Navigator.pop(context);
+        }
+      },
     );
   }
 

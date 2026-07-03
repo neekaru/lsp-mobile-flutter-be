@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../models/sertifikat_models.dart';
 import '../../services/sertifikat_service.dart';
 import 'filter_menu_overlay.dart';
@@ -282,55 +283,23 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
           SizedBox(height: statusBarHeight + 8),
 
           // Header Widget
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (widget.onBackToHome != null) {
-                      widget.onBackToHome!();
-                    } else {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.keyboard_arrow_left_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const Text(
-                  'Skema Sertifikasi',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: _showFilterMenu,
-                  behavior: HitTestBehavior.opaque,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Icon(
-                      Icons.more_horiz_rounded,
-                      color: Colors.black,
-                      size: 24,
-                    ),
-                  ),
-                ),
-              ],
+          CustomAppBar(
+            title: 'Skema Sertifikasi',
+            onBack: () {
+              if (widget.onBackToHome != null) {
+                widget.onBackToHome!();
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
+            rightWidget: GestureDetector(
+              onTap: _showFilterMenu,
+              behavior: HitTestBehavior.opaque,
+              child: const Icon(
+                Icons.more_horiz_rounded,
+                color: Colors.black,
+                size: 24,
+              ),
             ),
           ),
 
@@ -509,7 +478,7 @@ class _SkemaSertifikasiScreenState extends State<SkemaSertifikasiScreen> {
   }
 
   /// Called when a filter chip is tapped.
-  /// value: null -> Semua Skema, 'popular' -> Populer, '<value>' -> bidang filter
+  /// value: null -> Semua Skema, 'popular' -> Populer, 'value' -> bidang filter
   void _onChipSelected(String? value) {
     setState(() {
       _selectedChip = value;
@@ -895,12 +864,12 @@ class _SkemaCard extends StatelessWidget {
 
 /// Lightweight spec for a filter chip:
 /// - label: text shown on the chip
-/// - value: null → "Semua Skema", 'popular' → Populer, '<value>' → bidang filter
+/// - value: null → "Semua Skema", 'popular' → Populer, 'value' → bidang filter
 class _ChipSpec {
   final String label;
   final String? value;
   /// - value: null -> "Semua Skema"
   /// - value: 'popular' -> Populer
-  /// - value: '<string>' -> bidang filter
+  /// - value: 'string' -> bidang filter
   const _ChipSpec({required this.label, required this.value});
 }

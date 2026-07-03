@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../widgets/custom_app_bar.dart';
 import 'konfirmasi_persetujuan_screen.dart';
 
 class KonfirmasiPembayaranScreen extends StatelessWidget {
@@ -91,39 +92,9 @@ class KonfirmasiPembayaranScreen extends StatelessWidget {
   }
 
   Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const Text(
-            'Konfirmasi Pembayaran',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const SizedBox(width: 32, height: 32),
-        ],
-      ),
+    return const CustomAppBar(
+      title: 'Konfirmasi Pembayaran',
+      rightWidget: SizedBox(width: 32),
     );
   }
 

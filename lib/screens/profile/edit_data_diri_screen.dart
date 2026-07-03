@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class EditDataDiriScreen extends StatefulWidget {
   final String currentName;
@@ -82,38 +83,9 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
           children: [
             SizedBox(height: statusBarHeight + 8),
             // Header Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: const BoxDecoration(
-                        color: Colors.black,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.keyboard_arrow_left_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  const Text(
-                    'Edit Data Diri',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(width: 32, height: 32),
-                ],
-              ),
+            const CustomAppBar(
+              title: 'Edit Data Diri',
+              rightWidget: SizedBox(width: 32),
             ),
             
             Expanded(

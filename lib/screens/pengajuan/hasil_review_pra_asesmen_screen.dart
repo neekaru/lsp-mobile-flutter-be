@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 import 'tes_tertulis_screen.dart';
 
 class HasilReviewPraAsesmenScreen extends StatelessWidget {
@@ -51,43 +52,8 @@ class HasilReviewPraAsesmenScreen extends StatelessWidget {
   }
 
   Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const Text(
-            'Hasil Review Pra-Asessmen',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const Icon(
-            Icons.more_horiz_rounded,
-            color: Colors.black,
-            size: 24,
-          ),
-        ],
-      ),
+    return const CustomAppBar(
+      title: 'Hasil Review Pra-Asessmen',
     );
   }
 

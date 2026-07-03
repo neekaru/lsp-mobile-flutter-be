@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../widgets/statistik/indonesia_map.dart';
 
 class PublicStatistikScreen extends StatelessWidget {
@@ -14,44 +15,7 @@ class PublicStatistikScreen extends StatelessWidget {
         children: [
           SizedBox(height: statusBarHeight + 8),
           // Header following JadwalScreen style
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.keyboard_arrow_left_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const Text(
-                  'Statistik LSP',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                const Icon(
-                  Icons.more_horiz_rounded,
-                  color: Colors.black,
-                  size: 24,
-                ),
-              ],
-            ),
-          ),
+          const CustomAppBar(title: 'Statistik LSP'),
           
           Expanded(
             child: SingleChildScrollView(

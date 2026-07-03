@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/berita_model.dart';
 import '../../services/api_service.dart';
+import '../../widgets/custom_app_bar.dart';
 import 'berita_detail_screen.dart';
 
 class BeritaScreen extends StatefulWidget {
@@ -193,50 +194,15 @@ class _BeritaScreenState extends State<BeritaScreen> {
   }
 
   Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Circular Black Back Arrow Button
-          GestureDetector(
-            onTap: () {
-              if (widget.onBackToHome != null) {
-                widget.onBackToHome!();
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-
-          // Bold screen title
-          const Text(
-            'Berita LSP',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-
-          // More options horizontal ellipsis
-          const Icon(Icons.more_horiz_rounded, color: Colors.black, size: 24),
-        ],
-      ),
+    return CustomAppBar(
+      title: 'Berita LSP',
+      onBack: () {
+        if (widget.onBackToHome != null) {
+          widget.onBackToHome!();
+        } else {
+          Navigator.of(context).pop();
+        }
+      },
     );
   }
 

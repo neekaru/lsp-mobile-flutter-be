@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 
 // Simple elegant fallback screen for other navigation tabs
 class PlaceholderScreen extends StatelessWidget {
@@ -18,54 +19,15 @@ class PlaceholderScreen extends StatelessWidget {
           SizedBox(height: statusBarHeight + 8),
           
           // Custom App Bar with consistent style
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Circular Black Back Arrow Button
-                GestureDetector(
-                  onTap: () {
-                    if (onBackToHome != null) {
-                      onBackToHome!();
-                    } else {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.keyboard_arrow_left_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                
-                // Bold screen title
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                
-                // More options horizontal ellipsis
-                const Icon(
-                  Icons.more_horiz_rounded,
-                  color: Colors.black,
-                  size: 24,
-                ),
-              ],
-            ),
+          CustomAppBar(
+            title: title,
+            onBack: () {
+              if (onBackToHome != null) {
+                onBackToHome!();
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
           ),
 
           // Body content

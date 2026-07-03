@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../models/sertifikat_models.dart';
 import '../../services/sertifikat_service.dart';
 import '../pengajuan/pengajuan_sertifikat_screen.dart';
@@ -112,45 +113,8 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
   }
 
   Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const Text(
-            'Detail Skema',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const Icon(
-            Icons.more_horiz_rounded,
-            color: Colors.black,
-            size: 24,
-          ),
-        ],
-      ),
+    return const CustomAppBar(
+      title: 'Detail Skema',
     );
   }
 

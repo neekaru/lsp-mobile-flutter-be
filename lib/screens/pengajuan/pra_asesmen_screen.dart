@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 import 'pra_asesmen_wizard_screen.dart';
 
 class PraAsesmenScreen extends StatefulWidget {
@@ -90,43 +91,8 @@ class _PraAsesmenScreenState extends State<PraAsesmenScreen> {
   }
 
   Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const Text(
-            'Pra-Asessment',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const Icon(
-            Icons.more_horiz_rounded,
-            color: Colors.black,
-            size: 24,
-          ),
-        ],
-      ),
+    return const CustomAppBar(
+      title: 'Pra-Asessment',
     );
   }
 

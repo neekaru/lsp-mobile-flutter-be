@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class KetentuanPrivasiScreen extends StatelessWidget {
   const KetentuanPrivasiScreen({super.key});
@@ -14,46 +15,9 @@ class KetentuanPrivasiScreen extends StatelessWidget {
           SizedBox(height: statusBarHeight + 8),
           
           // Custom App Bar (Header kayak Statistik)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Circular Black Back Arrow Button
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      color: Colors.black,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.keyboard_arrow_left_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                
-                // Centered screen title
-                const Text(
-                  'Ketentuan Privasi',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                
-                // Spacer to balance layout so title is centered
-                const SizedBox(width: 32),
-              ],
-            ),
+          const CustomAppBar(
+            title: 'Ketentuan Privasi',
+            rightWidget: SizedBox(width: 32),
           ),
           
           // Divider below appbar

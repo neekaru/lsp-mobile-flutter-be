@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 import 'hasil_review_pra_asesmen_screen.dart';
 import 'widgets/animated_success_badge.dart';
 import 'widgets/step_informasi_skema.dart';
@@ -241,43 +242,9 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
   }
 
   Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: _prevStep,
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const Text(
-            'Pra-Asessment',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const Icon(
-            Icons.more_horiz_rounded,
-            color: Colors.black,
-            size: 24,
-          ),
-        ],
-      ),
+    return CustomAppBar(
+      title: 'Pra-Asessment',
+      onBack: _prevStep,
     );
   }
 

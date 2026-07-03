@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/sertifikat_models.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ValidasiSertifikatScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -107,50 +108,15 @@ class _ValidasiSertifikatScreenState extends State<ValidasiSertifikatScreen> {
   }
 
   Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Circular Black Back Arrow Button
-          GestureDetector(
-            onTap: () {
-              if (widget.onBackToHome != null) {
-                widget.onBackToHome!();
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-
-          // Bold screen title (centered)
-          const Text(
-            'Validasi Sertifikat',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-
-          // More options placeholder icon to keep title centered perfectly
-          const Icon(Icons.more_horiz_rounded, color: Colors.black, size: 24),
-        ],
-      ),
+    return CustomAppBar(
+      title: 'Validasi Sertifikat',
+      onBack: () {
+        if (widget.onBackToHome != null) {
+          widget.onBackToHome!();
+        } else {
+          Navigator.of(context).pop();
+        }
+      },
     );
   }
 

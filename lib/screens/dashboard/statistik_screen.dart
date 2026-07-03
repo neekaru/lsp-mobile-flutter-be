@@ -4,6 +4,7 @@ import '../../models/dashboard_models.dart';
 import '../../models/jadwal_models.dart';
 import '../../helpers/number_format_helper.dart';
 import '../../widgets/statistik/indonesia_map.dart';
+import '../../widgets/statistik/statistik_app_bar.dart';
 import 'sertifikat_statistik_screen.dart';
 
 class StatistikScreen extends StatefulWidget {
@@ -311,118 +312,21 @@ class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
   }
 
   Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Circular Black Back Arrow Button
-          GestureDetector(
-            onTap: () {
-              if (widget.onBackToHome != null) {
-                widget.onBackToHome!();
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          
-          // Bold screen title
-          const Text(
-            'Distribusi Asesor & Skema',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-          
-          // More options horizontal ellipsis menu
-          Theme(
-            data: Theme.of(context).copyWith(
-              dividerTheme: const DividerThemeData(color: Color(0xFFF1F5F9)),
-            ),
-            child: PopupMenuButton<String>(
-              icon: const Icon(
-                Icons.more_horiz_rounded,
-                color: Colors.black,
-                size: 24,
-              ),
-              offset: const Offset(0, 40),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              color: Colors.white,
-              elevation: 3,
-              onSelected: (String value) {
-                if (value == 'sertifikat') {
-                  if (widget.onSwitchView != null) {
-                    widget.onSwitchView!('sertifikat');
-                  }
-                } else if (value == 'distribusi') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Anda sudah berada di halaman ini'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-                }
-              },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'sertifikat',
-                  child: Row(
-                    children: [
-                      Icon(Icons.assignment_turned_in_rounded, size: 18, color: Color(0xFF2C6C9C)),
-                      SizedBox(width: 8),
-                      Text(
-                        'Skema Pemegang Sertifikat',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const PopupMenuDivider(),
-                const PopupMenuItem<String>(
-                  value: 'distribusi',
-                  child: Row(
-                    children: [
-                      Icon(Icons.map_rounded, size: 18, color: Color(0xFF64748B)),
-                      SizedBox(width: 8),
-                      Text(
-                        'Distribusi Asesor & Skema',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return StatistikAppBar(
+      title: 'Distribusi Asesor & Skema',
+      currentView: 'distribusi',
+      onBack: () {
+        if (widget.onBackToHome != null) {
+          widget.onBackToHome!();
+        } else {
+          Navigator.of(context).pop();
+        }
+      },
+      onSwitchView: (value) {
+        if (widget.onSwitchView != null) {
+          widget.onSwitchView!(value);
+        }
+      },
     );
   }
 

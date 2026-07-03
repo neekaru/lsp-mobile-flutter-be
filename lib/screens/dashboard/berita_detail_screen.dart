@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/berita_model.dart';
 import '../../services/api_service.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class BeritaDetailScreen extends StatefulWidget {
   final int beritaId;
@@ -214,45 +215,7 @@ class _BeritaDetailScreenState extends State<BeritaDetailScreen> {
   }
 
   Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Circular Black Back Arrow Button
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.keyboard_arrow_left_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-
-          // Title
-          const Text(
-            'Detail Berita',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.2,
-            ),
-          ),
-
-          // Options icon
-          const Icon(Icons.more_horiz_rounded, color: Colors.black, size: 24),
-        ],
-      ),
-    );
+    return const CustomAppBar(title: 'Detail Berita');
   }
 
   Widget _buildErrorState() {
