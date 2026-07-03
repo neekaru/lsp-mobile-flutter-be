@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'tes_tertulis_screen.dart';
+import 'pra_asesmen_screen.dart';
 
 class KonfirmasiPersetujuanScreen extends StatefulWidget {
   final int skemaId;
@@ -268,11 +268,11 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.pop(context); // Dismiss dialog
-                            // Navigate to test screen
+                            // Navigate to pra asesmen screen
                             Navigator.push(
                               parentContext,
                               MaterialPageRoute(
-                                builder: (context) => TesTertulisScreen(
+                                builder: (context) => PraAsesmenScreen(
                                   skemaId: widget.skemaId,
                                   title: widget.title,
                                   kodeSkema: widget.kodeSkema,

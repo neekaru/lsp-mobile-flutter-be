@@ -630,14 +630,13 @@ class _JadwalScreenState extends State<JadwalScreen>
             child: Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
-                color: isAsesi ? Colors.white : Colors.black,
+              decoration: const BoxDecoration(
+                color: Colors.black,
                 shape: BoxShape.circle,
-                border: isAsesi ? Border.all(color: Colors.grey.shade300) : null,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.keyboard_arrow_left_rounded,
-                color: isAsesi ? Colors.black : Colors.white,
+                color: Colors.white,
                 size: 20,
               ),
             ),
