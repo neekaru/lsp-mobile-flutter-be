@@ -34,6 +34,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
   Timer? _timer;
   int _secondsRemaining = 3600; // 60 minutes
   final ScrollController _scrollController = ScrollController();
+  String _finalTimeSpent = '';
 
   // Mock list of questions based on certification
   late List<Map<String, dynamic>> _questions;
@@ -397,6 +398,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
   }
 
   void _startTimer() {
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
         if (mounted) {
@@ -419,8 +421,10 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
 
   void _handleSubmitTest({bool autoSubmit = false}) {
     _timer?.cancel();
+    _timer = null;
     if (mounted) {
       setState(() {
+        _finalTimeSpent = _formatTime(3600 - _secondsRemaining);
         _viewState = TestViewState.submitted;
       });
     }
@@ -1091,6 +1095,8 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (isLastPage) {
+                      _timer?.cancel();
+                      _timer = null;
                       setState(() {
                         _viewState = TestViewState.summary;
                       });
@@ -1269,6 +1275,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                                   setState(() {
                                     _viewState = TestViewState.quiz;
                                   });
+                                  _startTimer();
                                 },
                                 child: Container(
                                   width: 36,
@@ -1355,6 +1362,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
               setState(() {
                 _viewState = TestViewState.quiz;
               });
+              _startTimer();
             },
             child: Container(
               width: 32,
@@ -1547,6 +1555,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                                   setState(() {
                                     _viewState = TestViewState.quiz;
                                   });
+                                  _startTimer();
                                 },
                                 child: Container(
                                   decoration: BoxDecoration(
@@ -1726,7 +1735,6 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
     final String displayTitle = widget.title.toLowerCase().contains('pemasaran') || widget.title.toLowerCase().contains('marketing')
         ? 'Digital Marketing Muda'
         : widget.title;
-    final String timeSpentStr = _formatTime(3600 - _secondsRemaining);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
@@ -1805,7 +1813,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                         const SizedBox(height: 12),
                         _buildDetailSubmittedRow('Waktu Tes', '60:00', valueColor: const Color(0xFF16A34A)),
                         const SizedBox(height: 12),
-                        _buildDetailSubmittedRow('Total Waktu tes', timeSpentStr, valueColor: const Color(0xFF16A34A)),
+                        _buildDetailSubmittedRow('Total Waktu tes', _finalTimeSpent, valueColor: const Color(0xFF16A34A)),
                         const SizedBox(height: 12),
                         _buildDetailSubmittedRow('Status Tes', 'Menunggu penilaian', valueColor: const Color(0xFFEA580C)),
                       ],
