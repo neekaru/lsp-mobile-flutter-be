@@ -1,6 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+enum TestViewState {
+  intro,
+  quiz,
+  summary,
+  reviewGrid,
+  submitted
+}
+
 class TesTertulisScreen extends StatefulWidget {
   final int skemaId;
   final String title;
@@ -18,11 +26,9 @@ class TesTertulisScreen extends StatefulWidget {
 }
 
 class _TesTertulisScreenState extends State<TesTertulisScreen> {
+  TestViewState _viewState = TestViewState.intro;
   int _currentPage = 0; // Page 0 to 9 (3 questions per page)
   final Map<int, int> _answers = {}; // question index -> option index
-
-  // Intro and Quiz start state
-  bool _testStarted = false;
 
   // Countdown timer state
   Timer? _timer;
@@ -395,12 +401,6 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
   String _formatTime(int totalSeconds) {
     final int minutes = totalSeconds ~/ 60;
     final int seconds = totalSeconds % 60;
@@ -408,156 +408,37 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
   }
 
   void _handleSubmitTest({bool autoSubmit = false}) {
-    // Calculate Score
-    int correctAnswersCount = 0;
-    for (int i = 0; i < _questions.length; i++) {
-      if (_answers[i] == _questions[i]['correct']) {
-        correctAnswersCount++;
-      }
-    }
-    final double score = (correctAnswersCount / _questions.length) * 100;
-
     _timer?.cancel();
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        final passed = score >= 70; // 70 is minimum passing score
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          backgroundColor: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: passed ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      passed ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                      color: passed ? const Color(0xFF4CAF50) : const Color(0xFFE53935),
-                      size: 44,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  passed ? 'Selamat! Anda Lulus' : 'Maaf, Anda Belum Lulus',
-                  style: const TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Skor Anda: ${score.toInt()}/100\n($correctAnswersCount dari ${_questions.length} benar)',
-                  style: TextStyle(
-                    color: passed ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  passed 
-                      ? 'Nilai Anda memenuhi standar kelulusan tes tertulis. Silakan lanjut memilih Asesor Anda.' 
-                      : 'Nilai Anda belum memenuhi standar kelulusan (70). Silakan ulangi tes atau hubungi admin.',
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Dismiss Dialog
-                      Navigator.of(context).pop(); // Return from Written Test
-                      Navigator.of(context).pop(); // Return to DetailSkemaScreen
-                      
-                      // Notify user
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Ujian selesai! Silakan hubungi asesor untuk langkah berikutnya.'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: passed ? const Color(0xFF3B82F6) : const Color(0xFF64748B),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      passed ? 'Lanjut Pilih Asesor' : 'Kembali ke Skema',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    setState(() {
+      _viewState = TestViewState.submitted;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
 
-    if (!_testStarted) {
-      return _buildIntroScreen(statusBarHeight);
+    switch (_viewState) {
+      case TestViewState.intro:
+        return _buildIntroScreen(statusBarHeight);
+      case TestViewState.quiz:
+        return _buildQuizScreen(statusBarHeight);
+      case TestViewState.summary:
+        return _buildSummaryScreen(statusBarHeight);
+      case TestViewState.reviewGrid:
+        return _buildReviewGridScreen(statusBarHeight);
+      case TestViewState.submitted:
+        return _buildSubmittedScreen(statusBarHeight);
     }
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
-      body: Column(
-        children: [
-          SizedBox(height: statusBarHeight + 8),
-          _buildAppBar(),
-          _buildTimerHeader(),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-              child: _buildQuestionsList(),
-            ),
-          ),
-          _buildBottomNav(),
-        ],
-      ),
-    );
   }
 
+  // SCREEN 1: INTRO SCREEN
   Widget _buildIntroScreen(double statusBarHeight) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          // AppBar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
@@ -603,7 +484,6 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Blue Header Card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -664,7 +544,6 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // White Info Card
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -748,7 +627,6 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Orange Warning Card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -799,7 +677,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                         child: ElevatedButton(
                           onPressed: () {
                             setState(() {
-                              _testStarted = true;
+                              _viewState = TestViewState.quiz;
                             });
                             _startTimer();
                           },
@@ -899,7 +777,29 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
     );
   }
 
-  Widget _buildAppBar() {
+  // SCREEN 2: ACTIVE QUIZ SCREEN (3 questions per page)
+  Widget _buildQuizScreen(double statusBarHeight) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: Column(
+        children: [
+          SizedBox(height: statusBarHeight + 8),
+          _buildQuizAppBar(),
+          _buildTimerHeader(),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+              child: _buildQuestionsList(),
+            ),
+          ),
+          _buildQuizBottomNav(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuizAppBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
@@ -942,7 +842,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
 
   Widget _buildTimerHeader() {
     final double progress = ((_currentPage + 1) * 3) / _questions.length;
-    final bool timeWarning = _secondsRemaining < 300; // Warning if < 5 mins left
+    final bool timeWarning = _secondsRemaining < 300;
 
     return Container(
       color: Colors.white,
@@ -1118,7 +1018,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
     );
   }
 
-  Widget _buildBottomNav() {
+  Widget _buildQuizBottomNav() {
     final bool isLastPage = _currentPage == 9;
 
     return Container(
@@ -1167,7 +1067,9 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (isLastPage) {
-                      _showSubmitConfirmationDialog();
+                      setState(() {
+                        _viewState = TestViewState.summary;
+                      });
                     } else {
                       setState(() {
                         _currentPage++;
@@ -1202,6 +1104,827 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
     );
   }
 
+  // SCREEN 3: SUMMARY SCREEN (Image 1)
+  Widget _buildSummaryScreen(double statusBarHeight) {
+    final int totalQuestions = _questions.length;
+    final int answeredQuestions = _answers.length;
+    final int unansweredQuestions = totalQuestions - answeredQuestions;
+    final String timeSpentStr = _formatTime(3600 - _secondsRemaining);
+
+    // List of indices of unanswered questions
+    final List<int> unansweredIndices = [];
+    for (int i = 0; i < totalQuestions; i++) {
+      if (!_answers.containsKey(i)) {
+        unansweredIndices.add(i);
+      }
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: Column(
+        children: [
+          SizedBox(height: statusBarHeight + 8),
+          _buildSummaryAppBar(),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Green Banner
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Ringkasan Jawaban',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF14532D),
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                'Pastikan semua soal sudah Anda jawab dengan benar, sebelum Anda mengirimkan tes.',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: Color(0xFF15803D),
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.assignment_turned_in_rounded,
+                            color: Color(0xFF22C55E),
+                            size: 36,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Summary Stats Card
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildSummaryStatRow('Total Soal', '$totalQuestions soal', isBoldValue: true),
+                        const SizedBox(height: 12),
+                        _buildSummaryStatRow('Sudah Dijawab', '$answeredQuestions soal', isBoldValue: true),
+                        const SizedBox(height: 12),
+                        _buildSummaryStatRow('Belum Dijawab', '$unansweredQuestions soal', isBoldValue: true),
+                        const SizedBox(height: 12),
+                        _buildSummaryStatRow('Total Waktu', '$timeSpentStr Menit', isBoldValue: true, valueColor: const Color(0xFF16A34A)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Unanswered Questions Card (if any)
+                  if (unansweredIndices.isNotEmpty)
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Daftar Soal Belum Dijawab',
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Silahkan periksa kembali soal nomor berikut sebelum mengirim test',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: unansweredIndices.map((index) {
+                              final int displayNum = index + 1;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _currentPage = index ~/ 3;
+                                    _viewState = TestViewState.quiz;
+                                  });
+                                },
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEE2E2),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFFEF4444), width: 1.5),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '$displayNum',
+                                    style: const TextStyle(
+                                      color: Color(0xFFEF4444),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 20),
+                  // Orange Warning Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEEAD2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              color: Color(0xFFD97706),
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Periksa Kembali',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF92400E),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        _buildOrangeBullet('1. Pastikan tidak ada soal yang terlewat'),
+                        const SizedBox(height: 6),
+                        _buildOrangeBullet('2. Jika sudah terkirim jawaban tidak dapat diubah'),
+                        const SizedBox(height: 6),
+                        _buildOrangeBullet('3. Jawaban Anda akan terkirim secara permanen'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+          _buildSummaryBottomNav(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryAppBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _viewState = TestViewState.quiz;
+              });
+            },
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                color: Colors.black,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+          const Text(
+            'Tes Tertulis',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.2,
+            ),
+          ),
+          const Icon(
+            Icons.more_horiz_rounded,
+            color: Colors.black,
+            size: 24,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryStatRow(String label, String value, {bool isBoldValue = false, Color? valueColor}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF475569),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isBoldValue ? FontWeight.bold : FontWeight.normal,
+            color: valueColor ?? const Color(0xFF1E293B),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOrangeBullet(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 11,
+        color: Color(0xFF92400E),
+        height: 1.45,
+      ),
+    );
+  }
+
+  Widget _buildSummaryBottomNav() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(16),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 46,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _viewState = TestViewState.reviewGrid;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFDBEAFE),
+                    foregroundColor: const Color(0xFF1E3A8A),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Periksa Jawaban',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: SizedBox(
+                height: 46,
+                child: ElevatedButton(
+                  onPressed: () {
+                    _showSubmitConfirmationDialog();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5B9FD8),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Kirim Tes',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // SCREEN 4: REVIEW GRID SCREEN (Image 2)
+  Widget _buildReviewGridScreen(double statusBarHeight) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: Column(
+        children: [
+          SizedBox(height: statusBarHeight + 8),
+          _buildReviewGridAppBar(),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Tab pill "Semua Soal"
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDBEAFE),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Semua Soal',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2563EB),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Grid and Legend card
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left Grid
+                        Expanded(
+                          flex: 3,
+                          child: GridView.count(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            crossAxisCount: 6,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            children: List.generate(30, (index) {
+                              final int displayNum = index + 1;
+                              final bool isAnswered = _answers.containsKey(index);
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _currentPage = index ~/ 3;
+                                    _viewState = TestViewState.quiz;
+                                  });
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: isAnswered ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    '$displayNum',
+                                    style: TextStyle(
+                                      color: isAnswered ? const Color(0xFF15803D) : const Color(0xFFEF4444),
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        // Right Legend
+                        Expanded(
+                          flex: 2,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildLegendItem(const Color(0xFFDCFCE7), 'Sudah Terjawab'),
+                                const SizedBox(height: 12),
+                                _buildLegendItem(const Color(0xFFFEE2E2), 'Belum Terjawab'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Actions row below grid
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _viewState = TestViewState.summary;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFD1D1D6),
+                              foregroundColor: const Color(0xFF4E4E4E),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Kembali',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _viewState = TestViewState.summary;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF5B9FD8),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Simpan',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewGridAppBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _viewState = TestViewState.summary;
+              });
+            },
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                color: Colors.black,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+          const Text(
+            'Periksa Jawaban',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.2,
+            ),
+          ),
+          const Icon(
+            Icons.more_horiz_rounded,
+            color: Colors.black,
+            size: 24,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegendItem(Color color, String label) {
+    return Row(
+      children: [
+        Container(
+          width: 14,
+          height: 14,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF475569),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // SCREEN 5: SUBMITTED SUCCESS SCREEN (Image 3)
+  Widget _buildSubmittedScreen(double statusBarHeight) {
+    final String displayTitle = widget.title.toLowerCase().contains('pemasaran') || widget.title.toLowerCase().contains('marketing')
+        ? 'Digital Marketing Muda'
+        : widget.title;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: Column(
+        children: [
+          SizedBox(height: statusBarHeight + 8),
+          _buildSubmittedAppBar(),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Success green badge banner
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        // Animated Success Circle
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF22C55E),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 48,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Jawaban Berhasil Terkirim',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF14532D),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Terimaksih Telah Mengikuti Tes Tertulis Ini,\nJawaban Anda Sudah Terkirim',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFF166534),
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Details Card
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildDetailSubmittedRow('Skema Sertifikasi', displayTitle),
+                        const SizedBox(height: 12),
+                        _buildDetailSubmittedRow('Tanggal Tes', '20 Juli 2026'),
+                        const SizedBox(height: 12),
+                        _buildDetailSubmittedRow('Waktu Tes', '40:00 Menit', valueColor: const Color(0xFF16A34A)),
+                        const SizedBox(height: 12),
+                        _buildDetailSubmittedRow('Total Waktu tes', '35:00 Menit', valueColor: const Color(0xFF16A34A)),
+                        const SizedBox(height: 12),
+                        _buildDetailSubmittedRow('Status Tes', 'Menunggu penilaian', valueColor: const Color(0xFFEA580C)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Info blue card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDBEAFE),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Icon(
+                          Icons.info_outline_rounded,
+                          color: Color(0xFF2563EB),
+                          size: 20,
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Informasi\n\nHasil tes akan diumumkan setelah diperiksa oleh Asesor terkait. Anda akan mendapatkan notifikasi bila hasil tes telah keluar.',
+                            style: TextStyle(
+                              color: Color(0xFF1E40AF),
+                              fontSize: 11.5,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+          _buildSubmittedBottomNav(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmittedAppBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              color: Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const Text(
+            'Tes Tertulis',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.2,
+            ),
+          ),
+          const Icon(
+            Icons.more_horiz_rounded,
+            color: Colors.black,
+            size: 24,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailSubmittedRow(String label, String value, {Color? valueColor}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF475569),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: valueColor ?? const Color(0xFF1E293B),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubmittedBottomNav() {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(16),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context); // Pops TesTertulisScreen
+              Navigator.pop(context); // Pops HasilReviewPraAsesmenScreen / Dashboard
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF5B9FD8),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Kembali Keberanda',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // DIALOG CONFIRMATIONS
   void _showSubmitConfirmationDialog() {
     final unansweredCount = _questions.length - _answers.length;
 
