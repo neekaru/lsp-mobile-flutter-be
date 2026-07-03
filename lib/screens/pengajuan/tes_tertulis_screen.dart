@@ -43,6 +43,12 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
     _initQuestions();
   }
 
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   void _initQuestions() {
     _questions = [
       // Page 1 (1-3)
@@ -391,9 +397,11 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
-        setState(() {
-          _secondsRemaining--;
-        });
+        if (mounted) {
+          setState(() {
+            _secondsRemaining--;
+          });
+        }
       } else {
         _timer?.cancel();
         _handleSubmitTest(autoSubmit: true);
@@ -409,9 +417,11 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
 
   void _handleSubmitTest({bool autoSubmit = false}) {
     _timer?.cancel();
-    setState(() {
-      _viewState = TestViewState.submitted;
-    });
+    if (mounted) {
+      setState(() {
+        _viewState = TestViewState.submitted;
+      });
+    }
   }
 
   @override

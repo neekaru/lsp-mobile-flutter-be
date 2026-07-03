@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../widgets/bottom_menu_bar.dart';
 import 'tes_tertulis_screen.dart';
 
 class PraAsesmenScreen extends StatefulWidget {
@@ -86,12 +85,6 @@ class _PraAsesmenScreenState extends State<PraAsesmenScreen> {
           ),
           _buildBottomButton(),
         ],
-      ),
-      bottomNavigationBar: BottomMenuBar(
-        selectedIndex: 2,
-        onTap: (index) {
-          Navigator.pop(context);
-        },
       ),
     );
   }
@@ -377,6 +370,13 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
     for (int i = 0; i < questions.length; i++) {
       _answers[i] = 'ya';
     }
+    _companyController.addListener(_rebuild);
+    _positionController.addListener(_rebuild);
+    _durationController.addListener(_rebuild);
+  }
+
+  void _rebuild() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -901,12 +901,14 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
         ),
         const SizedBox(height: 20),
         // Experience details form fields
-        _buildTextField('Nama Perusahaan/Instansi', 'Masukan nama lengkap', _companyController),
-        const SizedBox(height: 16),
-        _buildTextField('Posisi/Pekerjaan', 'Masukan jobdase atau posisi kerjaan', _positionController),
-        const SizedBox(height: 16),
-        _buildTextField('Lama Bekerja', 'Berapa lama bekerja', _durationController),
-        const SizedBox(height: 16),
+        if (_hasWorkExperience == 'ya') ...[
+          _buildTextField('Nama Perusahaan/Instansi', 'Masukan nama lengkap', _companyController),
+          const SizedBox(height: 16),
+          _buildTextField('Posisi/Pekerjaan', 'Masukan jobdase atau posisi kerjaan', _positionController),
+          const SizedBox(height: 16),
+          _buildTextField('Lama Bekerja', 'Berapa lama bekerja', _durationController),
+          const SizedBox(height: 16),
+        ],
       ],
     );
   }
@@ -918,6 +920,11 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
       onTap: () {
         setState(() {
           _hasWorkExperience = value;
+          if (value == 'tidak') {
+            _companyController.clear();
+            _positionController.clear();
+            _durationController.clear();
+          }
         });
       },
       child: Container(
