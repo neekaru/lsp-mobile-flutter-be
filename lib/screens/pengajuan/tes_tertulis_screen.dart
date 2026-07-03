@@ -33,6 +33,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
   // Countdown timer state
   Timer? _timer;
   int _secondsRemaining = 3600; // 60 minutes
+  final ScrollController _scrollController = ScrollController();
 
   // Mock list of questions based on certification
   late List<Map<String, dynamic>> _questions;
@@ -46,6 +47,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -424,6 +426,19 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
     }
   }
 
+  void _changePage(int newPage) {
+    setState(() {
+      _currentPage = newPage;
+    });
+    _scrollToTop();
+  }
+
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(0.0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
@@ -798,6 +813,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
           _buildTimerHeader(),
           Expanded(
             child: SingleChildScrollView(
+              controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
               child: _buildQuestionsList(),
@@ -1044,9 +1060,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_currentPage > 0) {
-                      setState(() {
-                        _currentPage--;
-                      });
+                      _changePage(_currentPage - 1);
                     } else {
                       _showExitConfirmationDialog();
                     }
@@ -1081,9 +1095,7 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                         _viewState = TestViewState.summary;
                       });
                     } else {
-                      setState(() {
-                        _currentPage++;
-                      });
+                      _changePage(_currentPage + 1);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -1253,8 +1265,8 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                               final int displayNum = index + 1;
                               return GestureDetector(
                                 onTap: () {
+                                  _changePage(index ~/ 3);
                                   setState(() {
-                                    _currentPage = index ~/ 3;
                                     _viewState = TestViewState.quiz;
                                   });
                                 },
@@ -1531,8 +1543,8 @@ class _TesTertulisScreenState extends State<TesTertulisScreen> {
                               final bool isAnswered = _answers.containsKey(index);
                               return GestureDetector(
                                 onTap: () {
+                                  _changePage(index ~/ 3);
                                   setState(() {
-                                    _currentPage = index ~/ 3;
                                     _viewState = TestViewState.quiz;
                                   });
                                 },
