@@ -54,6 +54,7 @@ class HasilReviewPraAsesmenScreen extends StatelessWidget {
   Widget _buildAppBar(BuildContext context) {
     return const CustomAppBar(
       title: 'Hasil Review Pra-Asessmen',
+      rightWidget: SizedBox(width: 32),
     );
   }
 

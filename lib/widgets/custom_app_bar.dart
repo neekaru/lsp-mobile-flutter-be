@@ -53,17 +53,13 @@ class CustomAppBar extends StatelessWidget {
             ),
           ),
           
-          // Right Widget or default ellipsis menu
+          // Right Widget or default empty space
           SizedBox(
             width: 32,
             height: 32,
             child: Align(
               alignment: Alignment.centerRight,
-              child: rightWidget ?? const Icon(
-                Icons.more_horiz_rounded,
-                color: Colors.black,
-                size: 24,
-              ),
+              child: rightWidget ?? const SizedBox(width: 32),
             ),
           ),
         ],

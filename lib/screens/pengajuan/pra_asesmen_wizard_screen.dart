@@ -245,6 +245,7 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
     return CustomAppBar(
       title: 'Pra-Asessment',
       onBack: _prevStep,
+      rightWidget: const SizedBox(width: 32),
     );
   }
 

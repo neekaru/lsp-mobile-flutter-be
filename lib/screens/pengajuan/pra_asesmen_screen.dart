@@ -93,6 +93,7 @@ class _PraAsesmenScreenState extends State<PraAsesmenScreen> {
   Widget _buildAppBar() {
     return const CustomAppBar(
       title: 'Pra-Asessment',
+      rightWidget: SizedBox(width: 32),
     );
   }
 
