@@ -221,7 +221,11 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              isOpen ? 'Daftar Sekarang' : 'Pendaftaran Ditutup',
+                              detail.isAlreadyRegistered
+                                  ? 'Sudah Terdaftar'
+                                  : isOpen
+                                      ? 'Daftar Sekarang'
+                                      : 'Pendaftaran Ditutup',
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
