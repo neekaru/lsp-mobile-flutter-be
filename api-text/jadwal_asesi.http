@@ -1,0 +1,37 @@
+### Jadwal Asesi API Testing
+@baseUrl = http://localhost:3000
+@token = <access_token_asesi>
+
+###############################################################################
+### Semua jadwal asesi login
+### Expected: mendatang/berjalan/selesai/pelaporan dalam satu response
+GET {{baseUrl}}/api/asesi/jadwal
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###############################################################################
+### Pagination
+GET {{baseUrl}}/api/asesi/jadwal?limit=10&offset=0
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###############################################################################
+### Jadwal selesai
+### Status: 1 = Completed/Selesai
+GET {{baseUrl}}/api/asesi/jadwal?status_jadwal=1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###############################################################################
+### Jadwal berjalan dan pelaporan
+### Status: 3 = Running, 4 = Pelaporan
+GET {{baseUrl}}/api/asesi/jadwal?status_jadwal=3,4
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###############################################################################
+### Jadwal waiting/draft
+### Status: 0 = Waiting/Draft
+GET {{baseUrl}}/api/asesi/jadwal?status_jadwal=0
+Authorization: Bearer {{token}}
+Accept: application/json

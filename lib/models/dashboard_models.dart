@@ -391,7 +391,7 @@ class JadwalBaru {
     return JadwalBaru(
       id: json['id'] ?? 0,
       jadwal: json['jadwal'] ?? 'Jadwal Baru',
-      tanggal: json['tanggal'] ?? '',
+      tanggal: json['tanggal'] ?? json['tanggal_mulai'] ?? '',
       kuota: json['kuota'] ?? 0,
       statusJadwal: json['status_jadwal']?.toString() ?? '0',
       tuk: json['tuk'] ?? 'TUK Pusat',

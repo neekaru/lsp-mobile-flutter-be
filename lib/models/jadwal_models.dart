@@ -83,8 +83,8 @@ class JadwalItem {
       id: json['id'] ?? 0,
       skema: json['jadwal'] ?? '', // API uses 'jadwal' field
       tuk: json['tuk'] ?? '',
-      tanggalMulai: json['tanggal'] ?? '',
-      tanggalSelesai: json['tanggal_akhir'] ?? '',
+      tanggalMulai: json['tanggal'] ?? json['tanggal_mulai'] ?? '',
+      tanggalSelesai: json['tanggal_akhir'] ?? json['tanggal_selesai'] ?? '',
       status: mapStatus(statusJadwal, daysOverdue),
       jumlahAsesi: totalAsesi,
       asesor: _parseAsesor(json['asesor']),

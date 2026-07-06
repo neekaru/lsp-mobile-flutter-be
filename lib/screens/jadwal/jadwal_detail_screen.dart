@@ -289,6 +289,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 14, color: iconColor),
           const SizedBox(width: 8),
@@ -299,13 +300,18 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
               color: Colors.grey[600],
             ),
           ),
-          const Spacer(),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

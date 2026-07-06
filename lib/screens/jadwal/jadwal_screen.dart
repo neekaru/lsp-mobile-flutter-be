@@ -106,6 +106,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     });
 
     try {
+      final bool isAsesi = currentUser.role == 'asesi';
       // Fetch data untuk setiap tab secara parallel
       final results = await Future.wait([
         // Tab 1: Running - Status 3 (Sedang Berjalan), sorted by tanggal DESC
@@ -114,7 +115,7 @@ class _JadwalScreenState extends State<JadwalScreen>
           statusJadwal: '3',
           sortBy: 'tanggal',
           sortOrder: 'desc',
-          customRoutePath: '/api/jadwal/active',
+          customRoutePath: isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/active',
         ),
         // Tab 2: Pelaporan - Status 4 (Pelaporan), sorted by tanggal DESC
         ApiService.getJadwalList(
@@ -122,7 +123,9 @@ class _JadwalScreenState extends State<JadwalScreen>
           statusJadwal: '4',
           sortBy: 'tanggal',
           sortOrder: 'desc',
-          customRoutePath: '/api/jadwal/completed',
+          customRoutePath: isAsesi
+              ? '/api/asesi/jadwal'
+              : '/api/jadwal/completed',
         ),
         // Tab 3: Selesai - Status 1 (Completed), sorted by tanggal DESC
         ApiService.getJadwalList(
@@ -130,7 +133,9 @@ class _JadwalScreenState extends State<JadwalScreen>
           statusJadwal: '1',
           sortBy: 'tanggal',
           sortOrder: 'desc',
-          customRoutePath: '/api/jadwal/completed',
+          customRoutePath: isAsesi
+              ? '/api/asesi/jadwal'
+              : '/api/jadwal/completed',
         ),
       ]);
 
@@ -142,9 +147,7 @@ class _JadwalScreenState extends State<JadwalScreen>
 
         // Calculate total from all tabs
         totalAsesmen =
-            runningList.length +
-            pelaporanList.length +
-            selesaiList.length;
+            runningList.length + pelaporanList.length + selesaiList.length;
 
         // Check if there's more data
         _hasMoreRunning = results[0].length >= _pageSize;
@@ -170,13 +173,16 @@ class _JadwalScreenState extends State<JadwalScreen>
     });
 
     try {
+      final bool isAsesi = currentUser.role == 'asesi';
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: runningList.length,
-        statusJadwal: '0,1,2,3',
-        sortBy: 'days_overdue',
+        statusJadwal: isAsesi ? '3' : '0,1,2,3',
+        sortBy: isAsesi ? 'tanggal' : 'days_overdue',
         sortOrder: 'desc',
-        customRoutePath: '/api/jadwal/out-of-date',
+        customRoutePath: isAsesi
+            ? '/api/asesi/jadwal'
+            : '/api/jadwal/out-of-date',
       );
 
       setState(() {
@@ -202,12 +208,16 @@ class _JadwalScreenState extends State<JadwalScreen>
     });
 
     try {
+      final bool isAsesi = currentUser.role == 'asesi';
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: pelaporanList.length,
-        statusJadwal: '3',
+        statusJadwal: isAsesi ? '4' : '4',
         sortBy: 'tanggal',
         sortOrder: 'desc',
+        customRoutePath: isAsesi
+            ? '/api/asesi/jadwal'
+            : '/api/jadwal/completed',
       );
 
       setState(() {
@@ -233,12 +243,16 @@ class _JadwalScreenState extends State<JadwalScreen>
     });
 
     try {
+      final bool isAsesi = currentUser.role == 'asesi';
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: selesaiList.length,
-        statusJadwal: '1,4',
+        statusJadwal: isAsesi ? '1' : '1,4',
         sortBy: 'tanggal',
         sortOrder: 'desc',
+        customRoutePath: isAsesi
+            ? '/api/asesi/jadwal'
+            : '/api/jadwal/completed',
       );
 
       setState(() {
@@ -366,7 +380,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: isAsesi
-            ? runningList.length + 1 // +1 for loading indicator at the end
+            ? runningList.length +
+                  1 // +1 for loading indicator at the end
             : runningList.length + 2, // +2 for header and loading indicator
         itemBuilder: (context, index) {
           if (!isAsesi && index == 0) {
@@ -455,7 +470,8 @@ class _JadwalScreenState extends State<JadwalScreen>
           final int itemIndex = isAsesi ? index : index - 1;
 
           // Loading indicator at the end
-          if (index == (isAsesi ? runningList.length : runningList.length + 1)) {
+          if (index ==
+              (isAsesi ? runningList.length : runningList.length + 1)) {
             if (_isLoadingMore) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
