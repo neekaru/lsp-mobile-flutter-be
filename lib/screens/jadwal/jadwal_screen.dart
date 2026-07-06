@@ -109,18 +109,18 @@ class _JadwalScreenState extends State<JadwalScreen>
       final bool isAsesi = currentUser.role == 'asesi';
       // Fetch data untuk setiap tab secara parallel
       final results = await Future.wait([
-        // Tab 1: Running - Status 3 (Sedang Berjalan), sorted by tanggal DESC
+        // Tab 1: Mendatang for asesi, Running for admin/asesor
         ApiService.getJadwalList(
           limit: _pageSize,
-          statusJadwal: isAsesi ? '0,3' : '3',
+          statusJadwal: isAsesi ? '0' : '3',
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/active',
         ),
-        // Tab 2: Pelaporan - Status 4 (Pelaporan), sorted by tanggal DESC
+        // Tab 2: Berjalan for asesi, Pelaporan for admin/asesor
         ApiService.getJadwalList(
           limit: _pageSize,
-          statusJadwal: '4',
+          statusJadwal: isAsesi ? '3' : '4',
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: isAsesi
@@ -177,7 +177,7 @@ class _JadwalScreenState extends State<JadwalScreen>
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: runningList.length,
-        statusJadwal: isAsesi ? '0,3' : '0,1,2,3',
+        statusJadwal: isAsesi ? '0' : '0,1,2,3',
         sortBy: isAsesi ? 'tanggal' : 'days_overdue',
         sortOrder: 'desc',
         customRoutePath: isAsesi
@@ -212,7 +212,7 @@ class _JadwalScreenState extends State<JadwalScreen>
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: pelaporanList.length,
-        statusJadwal: isAsesi ? '4' : '4',
+        statusJadwal: isAsesi ? '3' : '4',
         sortBy: 'tanggal',
         sortOrder: 'desc',
         customRoutePath: isAsesi
