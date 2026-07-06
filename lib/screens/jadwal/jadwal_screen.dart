@@ -112,7 +112,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         // Tab 1: Running - Status 3 (Sedang Berjalan), sorted by tanggal DESC
         ApiService.getJadwalList(
           limit: _pageSize,
-          statusJadwal: '3',
+          statusJadwal: isAsesi ? '0,3' : '3',
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/active',
@@ -177,7 +177,7 @@ class _JadwalScreenState extends State<JadwalScreen>
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: runningList.length,
-        statusJadwal: isAsesi ? '3' : '0,1,2,3',
+        statusJadwal: isAsesi ? '0,3' : '0,1,2,3',
         sortBy: isAsesi ? 'tanggal' : 'days_overdue',
         sortOrder: 'desc',
         customRoutePath: isAsesi
