@@ -193,11 +193,7 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                         GestureDetector(
                           onTap: isOpen
                               ? () {
-                                  // Check if user is already registered (simulated for flow testing)
-                                  final bool isAlreadyRegistered = detail.title.toLowerCase().contains('pemasaran') ||
-                                      detail.title.toLowerCase().contains('marketing');
-
-                                  if (isAlreadyRegistered) {
+                                  if (detail.isAlreadyRegistered) {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(

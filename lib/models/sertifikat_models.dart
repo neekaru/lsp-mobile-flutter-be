@@ -482,6 +482,7 @@ class SkemaSertifikatDetailResponse {
   final String linkDownload;
   final List<SkemaUnitKompetensiItem> unitList;
   final List<String> persyaratan;
+  final bool isAlreadyRegistered;
 
   const SkemaSertifikatDetailResponse({
     required this.id,
@@ -495,6 +496,7 @@ class SkemaSertifikatDetailResponse {
     required this.linkDownload,
     required this.unitList,
     required this.persyaratan,
+    this.isAlreadyRegistered = false,
   });
 
   factory SkemaSertifikatDetailResponse.fromJson(Map<String, dynamic> json) {
@@ -516,6 +518,7 @@ class SkemaSertifikatDetailResponse {
       linkDownload: json['link_download'] as String? ?? '',
       unitList: units,
       persyaratan: syarat,
+      isAlreadyRegistered: json['is_already_registered'] as bool? ?? false,
     );
   }
 }
