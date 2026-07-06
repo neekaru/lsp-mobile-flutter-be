@@ -7,7 +7,10 @@ List<String> _parseAsesor(dynamic jsonVal) {
     return [];
   }
   if (jsonVal is List) {
-    return jsonVal.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList();
+    return jsonVal
+        .map((e) => e.toString().trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
   }
   if (jsonVal is String) {
     final trimmed = jsonVal.trim();
@@ -74,7 +77,7 @@ class JadwalItem {
     final statusJadwal = json['status_jadwal']?.toString() ?? '1';
     final daysOverdue = json['days_overdue'] ?? 0;
     final daysLate = json['days_late']; // Nullable, hanya untuk status "2"
-    
+
     final totalAsesi = json['total_asesi'] ?? json['jumlah_asesi'] ?? 0;
     final jumlahKompeten = json['jumlah_kompeten'] ?? 0;
     final jumlahBelumKompeten = json['jumlah_belum_kompeten'] ?? 0;
@@ -129,11 +132,7 @@ class UserRole {
   final String name;
   final String email;
 
-  const UserRole({
-    required this.role,
-    required this.name,
-    required this.email,
-  });
+  const UserRole({required this.role, required this.name, required this.email});
 
   bool get isAdmin => role.toLowerCase() == 'admin';
   bool get canEditSchedule => isAdmin;
@@ -149,9 +148,7 @@ class NotificationCount {
   const NotificationCount({required this.count});
 
   factory NotificationCount.fromJson(Map<String, dynamic> json) {
-    return NotificationCount(
-      count: json['count'] ?? 0,
-    );
+    return NotificationCount(count: json['count'] ?? 0);
   }
 }
 
@@ -216,14 +213,12 @@ class WaitingScheduleResponse {
   final List<WaitingSchedule> data;
   final NotificationMeta meta;
 
-  const WaitingScheduleResponse({
-    required this.data,
-    required this.meta,
-  });
+  const WaitingScheduleResponse({required this.data, required this.meta});
 
   factory WaitingScheduleResponse.fromJson(Map<String, dynamic> json) {
     return WaitingScheduleResponse(
-      data: (json['data'] as List<dynamic>?)
+      data:
+          (json['data'] as List<dynamic>?)
               ?.map((item) => WaitingSchedule.fromJson(item))
               .toList() ??
           [],
@@ -309,14 +304,12 @@ class AsesiListResponse {
   final List<AsesiItem> data;
   final AsesiMeta meta;
 
-  const AsesiListResponse({
-    required this.data,
-    required this.meta,
-  });
+  const AsesiListResponse({required this.data, required this.meta});
 
   factory AsesiListResponse.fromJson(Map<String, dynamic> json) {
     return AsesiListResponse(
-      data: (json['data'] as List<dynamic>?)
+      data:
+          (json['data'] as List<dynamic>?)
               ?.map((item) => AsesiItem.fromJson(item))
               .toList() ??
           [],
@@ -381,8 +374,12 @@ class JadwalAsesorDetailData {
       tuk: json['tuk'] ?? '',
       alamatTuk: json['alamat_tuk'] ?? '',
       jenisTuk: json['jenis_tuk'] ?? '',
-      asesor: (json['asesor'] as List<dynamic>?)
-              ?.map((item) => AsesorDetailItem.fromJson(item as Map<String, dynamic>))
+      asesor:
+          (json['asesor'] as List<dynamic>?)
+              ?.map(
+                (item) =>
+                    AsesorDetailItem.fromJson(item as Map<String, dynamic>),
+              )
               .toList() ??
           [],
     );
@@ -404,6 +401,7 @@ class AsesorDetailItem {
   final String kabupatenKota;
   final String provinsiId;
   final String kabupatenId;
+  final int totalAsesmen;
 
   const AsesorDetailItem({
     required this.idAsesor,
@@ -420,6 +418,7 @@ class AsesorDetailItem {
     required this.kabupatenKota,
     required this.provinsiId,
     required this.kabupatenId,
+    this.totalAsesmen = 0,
   });
 
   factory AsesorDetailItem.fromJson(Map<String, dynamic> json) {
@@ -438,6 +437,7 @@ class AsesorDetailItem {
       kabupatenKota: json['kabupaten_kota'] ?? '',
       provinsiId: json['provinsi_id']?.toString() ?? '',
       kabupatenId: json['kabupaten_id']?.toString() ?? '',
+      totalAsesmen: json['total_asesmen'] ?? 0,
     );
   }
 }

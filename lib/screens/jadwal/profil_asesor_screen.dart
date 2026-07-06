@@ -21,15 +21,23 @@ class ProfilAsesorScreen extends StatelessWidget {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
 
     // Use dynamic data if available
-    final String displayName = asesorDetail?.namaAsesor ?? 
+    final String displayName =
+        asesorDetail?.namaAsesor ??
         ((name.isEmpty || name == 'Belum ditentukan') ? 'Eko Setiabudi' : name);
-    final String displayLocation = asesorDetail != null && asesorDetail!.kabupatenKota.isNotEmpty
+    final String displayLocation =
+        asesorDetail != null && asesorDetail!.kabupatenKota.isNotEmpty
         ? asesorDetail!.kabupatenKota
         : (lokasi.isNotEmpty ? lokasi : 'Yogyakarta');
-    
-    final String kompetensi = skema.isNotEmpty ? skema : 'Junior Web Programmer / Developer';
-    final String pengalaman = asesorDetail != null ? 'Verifikator / Asesor LSP' : '10+ Tahun';
-    final String totalAsesmen = '100+';
+
+    final String kompetensi = skema.isNotEmpty
+        ? skema
+        : 'Junior Web Programmer / Developer';
+    final String pengalaman = asesorDetail != null
+        ? 'Verifikator / Asesor LSP'
+        : 'Belum tersedia';
+    final String totalAsesmen = asesorDetail != null
+        ? asesorDetail!.totalAsesmen.toString()
+        : '0';
     final String tentangAsesor = asesorDetail != null
         ? 'Asesor aktif yang terdaftar dengan No Reg ${asesorDetail!.noReg}. Saat ini bertugas di wilayah ${asesorDetail!.kabupatenKota} untuk mendukung kelancaran proses asesmen kompetensi yang akurat dan kredibel.'
         : 'Berpengalaman lebih dari 10 tahun di bidang terkait dan telah melakukan berbagai asesmen kompetensi di LSP Kompetensi Digital.';
@@ -39,16 +47,19 @@ class ProfilAsesorScreen extends StatelessWidget {
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          
+
           // Header with black circle back button (consistent with design)
           const CustomAppBar(
             title: 'Profil Asesor',
             rightWidget: SizedBox(width: 32),
           ),
-          
+
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 16.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -59,7 +70,10 @@ class ProfilAsesorScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFFFAFAFA),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFF1F5F9), width: 1.0),
+                      border: Border.all(
+                        color: const Color(0xFFF1F5F9),
+                        width: 1.0,
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -131,7 +145,10 @@ class ProfilAsesorScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFFFAFAFA),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFF1F5F9), width: 1.0),
+                      border: Border.all(
+                        color: const Color(0xFFF1F5F9),
+                        width: 1.0,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,7 +197,10 @@ class ProfilAsesorScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFFFAFAFA),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFF1F5F9), width: 1.0),
+                      border: Border.all(
+                        color: const Color(0xFFF1F5F9),
+                        width: 1.0,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,7 +250,8 @@ class ProfilAsesorScreen extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: customValue ??
+          child:
+              customValue ??
               Text(
                 value,
                 style: const TextStyle(
