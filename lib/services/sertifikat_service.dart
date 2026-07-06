@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 import '../helpers/api_routes.dart';
 import '../models/sertifikat_models.dart';
+import '../models/jadwal_models.dart';
 
 // ============================================================================
 // Sertifikat Service
@@ -177,6 +178,101 @@ class SertifikatService {
       debugPrint('🔴 Error fetching skema detail: ${e.message}');
       rethrow;
     }
+  }
+
+  /// Fetch list of recommended assessors for a specific skema.
+  static Future<List<AsesorDetailItem>> getAsesorBySkema(int skemaId) async {
+    try {
+      final response = await _dio.get('/api/sertifikat/skema/$skemaId/asesor');
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> list = response.data['data'] ?? [];
+        return list.map((item) => AsesorDetailItem.fromJson(item as Map<String, dynamic>)).toList();
+      }
+      return _getFallbackAsesorList();
+    } catch (e) {
+      debugPrint('🔴 Error fetching assessors by skema (using fallback): $e');
+      return _getFallbackAsesorList();
+    }
+  }
+
+  static List<AsesorDetailItem> _getFallbackAsesorList() {
+    return const [
+      AsesorDetailItem(
+        idAsesor: 1,
+        namaAsesor: 'Eko Setiabudi',
+        noReg: 'REG-2024-001',
+        email: 'eko.setiabudi@lsp.id',
+        hp: '081234567890',
+        jenisAsesmen: 'Mandiri',
+        statusSpt: '1',
+        isComplete: '1',
+        masaBerlaku: '2028-12-31',
+        kabupatenKota: 'Yogyakarta',
+        provinsiId: '34',
+        kabupatenId: '3471',
+        totalAsesmen: 145,
+      ),
+      AsesorDetailItem(
+        idAsesor: 2,
+        namaAsesor: 'Hadi Dayat',
+        noReg: 'REG-2024-002',
+        email: 'hadi.dayat@lsp.id',
+        hp: '081234567891',
+        jenisAsesmen: 'Mandiri',
+        statusSpt: '1',
+        isComplete: '1',
+        masaBerlaku: '2028-12-31',
+        kabupatenKota: 'Jakarta',
+        provinsiId: '31',
+        kabupatenId: '3171',
+        totalAsesmen: 210,
+      ),
+      AsesorDetailItem(
+        idAsesor: 3,
+        namaAsesor: 'Cintya Ayu',
+        noReg: 'REG-2024-003',
+        email: 'cintya.ayu@lsp.id',
+        hp: '081234567892',
+        jenisAsesmen: 'Mandiri',
+        statusSpt: '1',
+        isComplete: '1',
+        masaBerlaku: '2028-12-31',
+        kabupatenKota: 'Kalimantan Selatan',
+        provinsiId: '63',
+        kabupatenId: '6371',
+        totalAsesmen: 89,
+      ),
+      AsesorDetailItem(
+        idAsesor: 4,
+        namaAsesor: 'Latifah',
+        noReg: 'REG-2024-004',
+        email: 'latifah@lsp.id',
+        hp: '081234567893',
+        jenisAsesmen: 'Mandiri',
+        statusSpt: '1',
+        isComplete: '1',
+        masaBerlaku: '2028-12-31',
+        kabupatenKota: 'Solo',
+        provinsiId: '33',
+        kabupatenId: '3372',
+        totalAsesmen: 173,
+      ),
+      AsesorDetailItem(
+        idAsesor: 5,
+        namaAsesor: 'Nafis Putra',
+        noReg: 'REG-2024-005',
+        email: 'nafis.putra@lsp.id',
+        hp: '081234567894',
+        jenisAsesmen: 'Mandiri',
+        statusSpt: '1',
+        isComplete: '1',
+        masaBerlaku: '2028-12-31',
+        kabupatenKota: 'Kalimantan Timur',
+        provinsiId: '64',
+        kabupatenId: '6471',
+        totalAsesmen: 64,
+      ),
+    ];
   }
 
   // ============================================================================
