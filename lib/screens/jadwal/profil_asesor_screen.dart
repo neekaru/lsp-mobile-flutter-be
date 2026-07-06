@@ -1,32 +1,38 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../models/jadwal_models.dart';
 
 class ProfilAsesorScreen extends StatelessWidget {
   final String name;
   final String skema;
   final String lokasi;
+  final AsesorDetailItem? asesorDetail;
 
   const ProfilAsesorScreen({
     super.key,
     required this.name,
     required this.skema,
     required this.lokasi,
+    this.asesorDetail,
   });
 
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
 
-    // Use default mock name if empty or generic
-    final String displayName = (name.isEmpty || name == 'Belum ditentukan') ? 'Eko Setiabudi' : name;
-    final String displayLocation = lokasi.isNotEmpty ? lokasi : 'Yogyakarta';
+    // Use dynamic data if available
+    final String displayName = asesorDetail?.namaAsesor ?? 
+        ((name.isEmpty || name == 'Belum ditentukan') ? 'Eko Setiabudi' : name);
+    final String displayLocation = asesorDetail != null && asesorDetail!.kabupatenKota.isNotEmpty
+        ? asesorDetail!.kabupatenKota
+        : (lokasi.isNotEmpty ? lokasi : 'Yogyakarta');
     
-    // High-fidelity details matching the user's mockup image
-    const String kompetensi = 'Pemasaran Digital, Digital Branding, Social Media Marketing';
-    const String pengalaman = '10+ Tahun';
-    const String totalAsesmen = '100';
-    const String tentangAsesor =
-        'Berpengalaman lebih dari 10 tahun di bidang digital marketing dan telah melakukan berbagai asessmen kompetensi di LSP Kompetensi Digital.';
+    final String kompetensi = skema.isNotEmpty ? skema : 'Junior Web Programmer / Developer';
+    final String pengalaman = asesorDetail != null ? 'Verifikator / Asesor LSP' : '10+ Tahun';
+    final String totalAsesmen = '100+';
+    final String tentangAsesor = asesorDetail != null
+        ? 'Asesor aktif yang terdaftar dengan No Reg ${asesorDetail!.noReg}. Saat ini bertugas di wilayah ${asesorDetail!.kabupatenKota} untuk mendukung kelancaran proses asesmen kompetensi yang akurat dan kredibel.'
+        : 'Berpengalaman lebih dari 10 tahun di bidang terkait dan telah melakukan berbagai asesmen kompetensi di LSP Kompetensi Digital.';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -34,7 +40,7 @@ class ProfilAsesorScreen extends StatelessWidget {
         children: [
           SizedBox(height: statusBarHeight + 8),
           
-          // Header with black circle back button (consistent with "jadwal asesi yang hitam" design)
+          // Header with black circle back button (consistent with design)
           const CustomAppBar(
             title: 'Profil Asesor',
             rightWidget: SizedBox(width: 32),
@@ -96,12 +102,16 @@ class ProfilAsesorScreen extends StatelessWidget {
                                     color: Color(0xFFEF4444),
                                   ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    displayLocation,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF64748B),
-                                      fontWeight: FontWeight.w500,
+                                  Expanded(
+                                    child: Text(
+                                      displayLocation,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF64748B),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
@@ -134,17 +144,17 @@ class ProfilAsesorScreen extends StatelessWidget {
                           'Asessmen Dilakukan',
                           '',
                           customValue: RichText(
-                            text: const TextSpan(
+                            text: TextSpan(
                               children: [
                                 TextSpan(
                                   text: '$totalAsesmen ',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF0F172A),
                                   ),
                                 ),
-                                TextSpan(
+                                const TextSpan(
                                   text: 'Asessmen',
                                   style: TextStyle(
                                     fontSize: 11,
@@ -174,19 +184,19 @@ class ProfilAsesorScreen extends StatelessWidget {
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Tentang Asessor',
+                      children: [
+                        const Text(
+                          'Tentang Asesor',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF0F172A),
                           ),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Text(
                           tentangAsesor,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 13,
                             color: Color(0xFF475569),
                             height: 1.5,

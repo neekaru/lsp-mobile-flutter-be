@@ -4,6 +4,7 @@ import '../../widgets/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import 'jadwal_edit_screen.dart';
 import '../../services/auth_repository.dart';
+import '../../services/api_service.dart';
 import 'profil_asesor_screen.dart';
 
 class JadwalDetailScreen extends StatefulWidget {
@@ -21,6 +22,38 @@ class JadwalDetailScreen extends StatefulWidget {
 }
 
 class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
+  bool _isLoading = false;
+  JadwalAsesorDetailData? _detailData;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDetailData();
+  }
+
+  Future<void> _fetchDetailData() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final res = await ApiService.getJadwalAsesorDetail(widget.jadwal.id);
+      if (res != null && mounted) {
+        setState(() {
+          _detailData = res.data;
+        });
+      }
+    } catch (e) {
+      debugPrint('🔴 Error loading assessor detail: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   String _formatIndonesianDate(String yyyymmdd) {
     try {
       final parts = yyyymmdd.split('-');
@@ -387,7 +420,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            widget.jadwal.tuk,
+                            _detailData?.tuk ?? widget.jadwal.tuk,
                             style: const TextStyle(
                               fontSize: 11,
                               color: Colors.grey,
@@ -414,7 +447,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                 _buildAsesiInfoRow(
                   icon: Icons.location_on_rounded,
                   label: 'Lokasi Asesmen',
-                  value: 'Yogyakarta',
+                  value: _detailData != null && _detailData!.alamatTuk.isNotEmpty
+                      ? _detailData!.alamatTuk
+                      : 'Yogyakarta',
                   iconColor: Colors.orange,
                 ),
 
@@ -432,86 +467,177 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF5F5F5),
-                        shape: BoxShape.circle,
+                if (_detailData != null && _detailData!.asesor.isNotEmpty)
+                  ..._detailData!.asesor.map((asesorItem) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFF5F5F5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.person_outline_rounded,
+                                    color: Colors.grey,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        asesorItem.namaAsesor,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'No Reg: ${asesorItem.noReg}',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD2E3F4),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFF6C8BB4), width: 1),
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ProfilAsesorScreen(
+                                          name: asesorItem.namaAsesor,
+                                          skema: widget.jadwal.skema,
+                                          lokasi: asesorItem.kabupatenKota,
+                                          asesorDetail: asesorItem,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 8),
+                                    child: Text(
+                                      'Lihat Profil Asesor',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF2C6C9C),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ))
+                else ...[
+                  Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF5F5F5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.person_outline_rounded,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.person_outline_rounded,
-                        color: Colors.grey,
-                        size: 20,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getDisplayAsesor(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.jadwal.skema,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD2E3F4),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF6C8BB4), width: 1),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _getDisplayAsesor(),
-                            style: const TextStyle(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProfilAsesorScreen(
+                                name: _getDisplayAsesor(),
+                                skema: widget.jadwal.skema,
+                                lokasi: 'Yogyakarta',
+                              ),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            'Lihat Profil Asesor',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: Color(0xFF2C6C9C),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            widget.jadwal.skema,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD2E3F4),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF6C8BB4), width: 1),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProfilAsesorScreen(
-                              name: _getDisplayAsesor(),
-                              skema: widget.jadwal.skema,
-                              lokasi: 'Yogyakarta',
-                            ),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          'Lihat Profil Asesor',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C6C9C),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
 
                 const SizedBox(height: 12),
                 const Divider(height: 1, color: Color(0xFFECEFF1)),
@@ -583,6 +709,13 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                   )
                 : const SizedBox(width: 32),
           ),
+
+          if (_isLoading)
+            const LinearProgressIndicator(
+              minHeight: 2,
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2F80ED)),
+            ),
 
           // Content
           Expanded(
@@ -711,92 +844,208 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                         ),
                                       ),
                                     ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
-                              const SizedBox(height: 8),
-
-                              // Rows
-                              _buildInfoRow(
-                                icon: LucideIcons.map_pin,
-                                iconColor: const Color(0xFFEF5350),
-                                iconBgColor: const Color(0xFFFFEBEE),
-                                label: 'Tempat uji Kompetensi',
-                                value: widget.jadwal.tuk,
-                              ),
-                              _buildInfoRow(
-                                icon: LucideIcons.calendar,
-                                iconColor: const Color(0xFF2F80ED),
-                                iconBgColor: const Color(0xFFE5F1FC),
-                                label: 'Periode Asesmen',
-                                value: '${_formatIndonesianDate(widget.jadwal.tanggalMulai)} - ${_formatIndonesianDate(widget.jadwal.tanggalSelesai)}',
-                              ),
-                              _buildInfoRow(
-                                icon: LucideIcons.clock,
-                                iconColor: const Color(0xFF2F80ED),
-                                iconBgColor: const Color(0xFFE5F1FC),
-                                label: 'Durasi Pelaksanaan',
-                                value: _getDurationString(),
-                              ),
-                              _buildInfoRow(
-                                icon: LucideIcons.user,
-                                iconColor: const Color(0xFF2F80ED),
-                                iconBgColor: const Color(0xFFE5F1FC),
-                                label: 'Asesor',
-                                value: widget.jadwal.asesor.isEmpty
-                                    ? 'Belum ditentukan'
-                                    : widget.jadwal.asesor.join(', '),
-                              ),
-                              _buildInfoRow(
-                                icon: LucideIcons.users,
-                                iconColor: const Color(0xFF2F80ED),
-                                iconBgColor: const Color(0xFFE5F1FC),
-                                label: 'Jumlah asesi',
-                                value: '${widget.jadwal.jumlahAsesi} Asesi',
-                              ),
-
-                              const SizedBox(height: 12),
-                              const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
-                              const SizedBox(height: 16),
-
-                              // Warning/Info Banner inside card
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFFFDE7), // Light yellow
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: const Color(0xFFFFF59D), width: 1),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Icon(
-                                      Icons.warning_rounded,
-                                      color: Color(0xFFFBC02D),
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        'Pelaksanaan uji kompetensi untuk skema ${widget.jadwal.skema} sudah sesuai dengan standar yang berlaku.',
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.black87,
-                                          height: 1.4,
-                                        ),
-                                      ),
-                                    ),
                                   ],
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 12),
+                                const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+                                const SizedBox(height: 8),
+
+                                // Rows
+                                _buildInfoRow(
+                                  icon: LucideIcons.map_pin,
+                                  iconColor: const Color(0xFFEF5350),
+                                  iconBgColor: const Color(0xFFFFEBEE),
+                                  label: 'Tempat Uji Kompetensi',
+                                  value: _detailData != null && _detailData!.alamatTuk.isNotEmpty
+                                      ? '${_detailData!.tuk}\n(${_detailData!.alamatTuk})'
+                                      : widget.jadwal.tuk,
+                                ),
+                                _buildInfoRow(
+                                  icon: LucideIcons.calendar,
+                                  iconColor: const Color(0xFF2F80ED),
+                                  iconBgColor: const Color(0xFFE5F1FC),
+                                  label: 'Periode Asesmen',
+                                  value: '${_formatIndonesianDate(widget.jadwal.tanggalMulai)} - ${_formatIndonesianDate(widget.jadwal.tanggalSelesai)}',
+                                ),
+                                _buildInfoRow(
+                                  icon: LucideIcons.clock,
+                                  iconColor: const Color(0xFF2F80ED),
+                                  iconBgColor: const Color(0xFFE5F1FC),
+                                  label: 'Durasi Pelaksanaan',
+                                  value: _getDurationString(),
+                                ),
+                                _buildInfoRow(
+                                  icon: LucideIcons.user,
+                                  iconColor: const Color(0xFF2F80ED),
+                                  iconBgColor: const Color(0xFFE5F1FC),
+                                  label: 'Asesor',
+                                  value: _detailData != null && _detailData!.asesor.isNotEmpty
+                                      ? _detailData!.asesor.map((e) => e.namaAsesor).join(', ')
+                                      : (widget.jadwal.asesor.isEmpty
+                                          ? 'Belum ditentukan'
+                                          : widget.jadwal.asesor.join(', ')),
+                                ),
+                                _buildInfoRow(
+                                  icon: LucideIcons.users,
+                                  iconColor: const Color(0xFF2F80ED),
+                                  iconBgColor: const Color(0xFFE5F1FC),
+                                  label: 'Jumlah asesi',
+                                  value: '${widget.jadwal.jumlahAsesi} Asesi',
+                                ),
+
+                                const SizedBox(height: 12),
+                                const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+                                const SizedBox(height: 16),
+
+                                // Warning/Info Banner inside card
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFFDE7), // Light yellow
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: const Color(0xFFFFF59D), width: 1),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(
+                                        Icons.warning_rounded,
+                                        color: Color(0xFFFBC02D),
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Pelaksanaan uji kompetensi untuk skema ${widget.jadwal.skema} sudah sesuai dengan standar yang berlaku.',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.black87,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                          
+                          const SizedBox(height: 16),
+
+                          // Card 3: Daftar Asesor Tugas (Only shown when detailData has assessors)
+                          if (_detailData != null && _detailData!.asesor.isNotEmpty) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x0A000000),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Daftar Asesor Tugas',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+                                  const SizedBox(height: 12),
+                                  ..._detailData!.asesor.map((asesorItem) => Padding(
+                                        padding: const EdgeInsets.only(bottom: 12.0),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 40,
+                                              height: 40,
+                                              decoration: const BoxDecoration(
+                                                color: Color(0xFFF5F5F5),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.person_outline_rounded,
+                                                color: Colors.grey,
+                                                size: 22,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    asesorItem.namaAsesor,
+                                                    style: const TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.black87,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    'Reg: ${asesorItem.noReg}',
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFFE5F1FC),
+                                                foregroundColor: const Color(0xFF2C6C9C),
+                                                elevation: 0,
+                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                              ),
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => ProfilAsesorScreen(
+                                                      name: asesorItem.namaAsesor,
+                                                      skema: widget.jadwal.skema,
+                                                      lokasi: asesorItem.kabupatenKota,
+                                                      asesorDetail: asesorItem,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              child: const Text(
+                                                'Profil',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
-          ),
+            ),
         ],
       ),
     );

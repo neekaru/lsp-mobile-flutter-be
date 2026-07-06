@@ -91,6 +91,8 @@ class ApiService {
   }) =>
       JadwalService.updateJadwalStatus(jadwalId: jadwalId, rule: rule, catatan: catatan);
   static Future<AsesiListResponse> getAsesiList(int jadwalId) => JadwalService.getAsesiList(jadwalId);
+  static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(int jadwalId) =>
+      JadwalService.getJadwalAsesorDetail(jadwalId);
   static Future<int> getNotificationCount() => JadwalService.getNotificationCount();
   static Future<WaitingScheduleResponse> getWaitingSchedules({
     int limit = 20,

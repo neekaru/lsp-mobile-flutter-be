@@ -524,4 +524,24 @@ Content-Type: application/json
 ###   GET /api/jadwal/completed?limit=20&sort_by=tanggal_akhir&sort_order=desc
 
 ###############################################################################
-s
+### Get assessor detail mapped to a schedule
+### Expected: jadwal detail, TUK location, and assigned assessor profiles
+GET {{baseUrl}}{{apiPrefix}}/11153/asesor-detail
+Content-Type: application/json
+
+###############################################################################
+### Another schedule with assessor mappings
+GET {{baseUrl}}{{apiPrefix}}/11152/asesor-detail
+Content-Type: application/json
+
+###############################################################################
+### Invalid jadwal id
+### Expected: 400 Bad Request
+GET {{baseUrl}}{{apiPrefix}}/abc/asesor-detail
+Content-Type: application/json
+
+###############################################################################
+### Jadwal not found
+### Expected: 404 Not Found
+GET {{baseUrl}}{{apiPrefix}}/999999999/asesor-detail
+Content-Type: application/json

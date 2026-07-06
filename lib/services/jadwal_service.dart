@@ -190,6 +190,21 @@ class JadwalService {
     }
   }
 
+  /// Fetch Assessor Detail for a specific schedule
+  static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(int jadwalId) async {
+    try {
+      final response = await _dio.get('/api/jadwal/$jadwalId/asesor-detail');
+
+      if (response.statusCode == 200 && response.data != null) {
+        return JadwalAsesorDetailResponse.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching jadwal asesor detail: $e');
+      return null;
+    }
+  }
+
   /// Fetch Notification Count
   static Future<int> getNotificationCount() async {
     try {

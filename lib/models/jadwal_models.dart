@@ -324,3 +324,120 @@ class AsesiListResponse {
     );
   }
 }
+
+class JadwalAsesorDetailResponse {
+  final JadwalAsesorDetailData data;
+  final int totalAsesor;
+
+  const JadwalAsesorDetailResponse({
+    required this.data,
+    required this.totalAsesor,
+  });
+
+  factory JadwalAsesorDetailResponse.fromJson(Map<String, dynamic> json) {
+    return JadwalAsesorDetailResponse(
+      data: JadwalAsesorDetailData.fromJson(json['data'] ?? {}),
+      totalAsesor: json['meta']?['total_asesor'] ?? 0,
+    );
+  }
+}
+
+class JadwalAsesorDetailData {
+  final int id;
+  final String jadwal;
+  final String tanggal;
+  final String tanggalAkhir;
+  final String statusJadwal;
+  final String statusLabel;
+  final int idTuk;
+  final String tuk;
+  final String alamatTuk;
+  final String jenisTuk;
+  final List<AsesorDetailItem> asesor;
+
+  const JadwalAsesorDetailData({
+    required this.id,
+    required this.jadwal,
+    required this.tanggal,
+    required this.tanggalAkhir,
+    required this.statusJadwal,
+    required this.statusLabel,
+    required this.idTuk,
+    required this.tuk,
+    required this.alamatTuk,
+    required this.jenisTuk,
+    required this.asesor,
+  });
+
+  factory JadwalAsesorDetailData.fromJson(Map<String, dynamic> json) {
+    return JadwalAsesorDetailData(
+      id: json['id'] ?? 0,
+      jadwal: json['jadwal'] ?? '',
+      tanggal: json['tanggal'] ?? '',
+      tanggalAkhir: json['tanggal_akhir'] ?? '',
+      statusJadwal: json['status_jadwal']?.toString() ?? '',
+      statusLabel: json['status_label'] ?? '',
+      idTuk: json['id_tuk'] ?? 0,
+      tuk: json['tuk'] ?? '',
+      alamatTuk: json['alamat_tuk'] ?? '',
+      jenisTuk: json['jenis_tuk'] ?? '',
+      asesor: (json['asesor'] as List<dynamic>?)
+              ?.map((item) => AsesorDetailItem.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+class AsesorDetailItem {
+  final int idAsesor;
+  final String namaAsesor;
+  final String noReg;
+  final String email;
+  final String hp;
+  final String jenisAsesmen;
+  final String statusSpt;
+  final String isComplete;
+  final String? sertifikatAsesor;
+  final String? sertifikatTeknis;
+  final String masaBerlaku;
+  final String kabupatenKota;
+  final String provinsiId;
+  final String kabupatenId;
+
+  const AsesorDetailItem({
+    required this.idAsesor,
+    required this.namaAsesor,
+    required this.noReg,
+    required this.email,
+    required this.hp,
+    required this.jenisAsesmen,
+    required this.statusSpt,
+    required this.isComplete,
+    this.sertifikatAsesor,
+    this.sertifikatTeknis,
+    required this.masaBerlaku,
+    required this.kabupatenKota,
+    required this.provinsiId,
+    required this.kabupatenId,
+  });
+
+  factory AsesorDetailItem.fromJson(Map<String, dynamic> json) {
+    return AsesorDetailItem(
+      idAsesor: json['id_asesor'] ?? 0,
+      namaAsesor: json['nama_asesor'] ?? '',
+      noReg: json['no_reg'] ?? '',
+      email: json['email'] ?? '',
+      hp: json['hp'] ?? '',
+      jenisAsesmen: json['jenis_asesmen']?.toString() ?? '',
+      statusSpt: json['status_spt']?.toString() ?? '',
+      isComplete: json['is_complete']?.toString() ?? '',
+      sertifikatAsesor: json['sertifikat_asesor'],
+      sertifikatTeknis: json['sertifikat_teknis'],
+      masaBerlaku: json['masa_berlaku'] ?? '',
+      kabupatenKota: json['kabupaten_kota'] ?? '',
+      provinsiId: json['provinsi_id']?.toString() ?? '',
+      kabupatenId: json['kabupaten_id']?.toString() ?? '',
+    );
+  }
+}
