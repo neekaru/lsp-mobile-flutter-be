@@ -232,15 +232,27 @@ class MainNavigatorState extends State<MainNavigator> {
       ];
     } else {
       final isAsesi = !isGuest && AuthRepository.currentUserInstance?.role == 'asesi';
-      _screens = [
-        DashboardScreen(onNavigateToJadwal: () => setTab(2)),
-        StatistikScreen(onBackToHome: () => setTab(0)),
-        JadwalScreen(onBackToHome: () => setTab(0)),
-        isAsesi
-            ? SkemaSertifikasiScreen(onBackToHome: () => setTab(0))
-            : SertifikatScreen(onBackToHome: () => setTab(0)),
-        ProfileScreen(onBackToHome: () => setTab(0)),
-      ];
+      final isAsesor = !isGuest && AuthRepository.currentUserInstance?.role == 'asesor';
+      
+      if (isAsesor) {
+        _screens = [
+          DashboardScreen(onNavigateToJadwal: () => setTab(1)),
+          JadwalScreen(onBackToHome: () => setTab(0)),
+          StatistikScreen(onBackToHome: () => setTab(0)),
+          SertifikatScreen(onBackToHome: () => setTab(0)),
+          ProfileScreen(onBackToHome: () => setTab(0)),
+        ];
+      } else {
+        _screens = [
+          DashboardScreen(onNavigateToJadwal: () => setTab(2)),
+          StatistikScreen(onBackToHome: () => setTab(0)),
+          JadwalScreen(onBackToHome: () => setTab(0)),
+          isAsesi
+              ? SkemaSertifikasiScreen(onBackToHome: () => setTab(0))
+              : SertifikatScreen(onBackToHome: () => setTab(0)),
+          ProfileScreen(onBackToHome: () => setTab(0)),
+        ];
+      }
     }
   }
 

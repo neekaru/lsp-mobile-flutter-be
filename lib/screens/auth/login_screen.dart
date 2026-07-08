@@ -41,22 +41,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // Jalur alternatif (Bypass) untuk testing / demo
     if ((emailVal == 'user' && passwordVal == 'password123') ||
-        (emailVal == 'asesi' && passwordVal == 'deng123')) {
+        (emailVal == 'asesi' && passwordVal == 'deng123') ||
+        (emailVal == 'asesor' && passwordVal == 'deng123')) {
       await Future.delayed(const Duration(milliseconds: 600));
       if (!mounted) return;
 
       final isAsesi = emailVal == 'asesi';
+      final isAsesor = emailVal == 'asesor';
       final fakeUser = AuthUser(
-        id: isAsesi ? 'fake-asesi-id' : 'fake-user-id',
+        id: isAsesi ? 'fake-asesi-id' : (isAsesor ? 'fake-asesor-id' : 'fake-user-id'),
         account: emailVal,
-        name: isAsesi ? 'Asesi Demo' : 'User Demo',
-        role: isAsesi ? 'asesi' : 'admin',
-        roles: [isAsesi ? 'asesi' : 'admin'],
+        name: isAsesi ? 'Asesi Demo' : (isAsesor ? 'Muhammad Hanafi' : 'User Demo'),
+        role: isAsesi ? 'asesi' : (isAsesor ? 'asesor' : 'admin'),
+        roles: [isAsesi ? 'asesi' : (isAsesor ? 'asesor' : 'admin')],
       );
 
       final tokenStorage = TokenStorage.instance;
       await tokenStorage.saveTokens(
-        accessToken: isAsesi ? 'fake-asesi-token' : 'fake-user-token',
+        accessToken: isAsesi
+            ? 'fake-asesi-token'
+            : (isAsesor ? 'fake-asesor-token' : 'fake-user-token'),
         refreshToken: 'fake-refresh-token',
       );
       await tokenStorage.saveUserProfile(fakeUser);

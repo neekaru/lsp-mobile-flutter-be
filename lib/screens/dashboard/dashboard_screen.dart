@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../widgets/rangkuman_utama.dart';
 import '../../widgets/rangkuman_asesi.dart';
+import '../../widgets/rangkuman_asesor.dart';
 import '../../widgets/tren_asesmen_chart.dart';
 import '../../widgets/jadwal_asesmen.dart';
 import '../../widgets/notification_bell.dart';
@@ -63,6 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final user = AuthRepository.currentUserInstance;
       final bool isAsesi = user?.role == 'asesi';
+      final bool isAsesor = user?.role == 'asesor';
 
       if (isAsesi) {
         // Panggil API yang dibutuhkan asesi secara parallel (termasuk berita, chart graf, dan jadwal baru)
@@ -79,6 +81,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _beritaData = results[1] as List<BeritaItem>;
           _chartData = results[2] as List<MonthlyAssessment>;
           _jadwalData = results[3] as List<JadwalBaru>;
+          _isLoading = false;
+        });
+      } else if (isAsesor) {
+        // Panggil API yang dibutuhkan asesor secara parallel (berita dan chart graf)
+        final results = await Future.wait([
+          ApiService.getBerita(page: 1, size: 5),
+          ApiService.getAssessmentGraph(),
+        ]);
+
+        if (_isDisposed || !mounted) return;
+        setState(() {
+          _beritaData = results[0] as List<BeritaItem>;
+          _chartData = results[1] as List<MonthlyAssessment>;
           _isLoading = false;
         });
       } else {
@@ -141,6 +156,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final user = AuthRepository.currentUserInstance;
     final bool isAsesi = user?.role == 'asesi';
+    final bool isAsesor = user?.role == 'asesor';
     final bool isGuest = user == null;
 
     return RefreshIndicator(
@@ -176,8 +192,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          if (isAsesi) ...[
-                            // Foto Profil Asesi
+                          if (isAsesi || isAsesor) ...[
+                            // Foto Profil
                             Container(
                               width: 48,
                               height: 48,
@@ -210,9 +226,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'Hallo,',
-                                    style: TextStyle(
+                                  Text(
+                                    isAsesor ? 'Hallo' : 'Hallo,',
+                                    style: const TextStyle(
                                       color: Color(0xE6FFFFFF), // white with 0.9 opacity
                                       fontSize: 14,
                                       fontWeight: FontWeight.w400,
@@ -220,7 +236,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    user?.name ?? 'Asesi',
+                                    user?.name ?? (isAsesor ? 'Muhammad Hanafi' : 'Asesi'),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
@@ -230,6 +246,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
+                                  if (isAsesor) ...[
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Selamat Datang Asessor',
+                                      style: TextStyle(
+                                        color: Color(0xE6FFFFFF),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -384,16 +411,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               data: _asesiSummaryData,
                               isLoading: _isLoading,
                             )
-                          : RangkumanUtama(
-                              data: _summaryData,
-                              isLoading: _isLoading,
-                            )),
+                          : (isAsesor
+                              ? RangkumanAsesor(
+                                  isLoading: _isLoading,
+                                )
+                              : RangkumanUtama(
+                                  data: _summaryData,
+                                  isLoading: _isLoading,
+                                ))),
                 ),
               ],
             ),
 
-            // 1.5. Mulai Skema Sertifikasi Section - Hapus untuk guest (diganti berita)
-            if (!isGuest)
+            // 1.5. Mulai Skema Sertifikasi Section - Hapus untuk guest/asesor (diganti berita)
+            if (!isGuest && !isAsesor)
               const Padding(
                 padding: EdgeInsets.only(
                   left: 16.0,
