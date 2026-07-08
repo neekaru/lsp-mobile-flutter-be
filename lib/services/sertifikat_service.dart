@@ -228,6 +228,50 @@ class SertifikatService {
     }
   }
 
+  /// Fetch Pra-Asesmen Kompetensi for a specific skema.
+  static Future<PraAsesmenKompetensi> getPraAsesmenKompetensi(int skemaId, String fallbackTitle) async {
+    try {
+      final token = await TokenStorage.instance.getAccessToken();
+      final response = await _dio.get(
+        '/api/pra-asesmen/skema/$skemaId/kompetensi',
+        options: Options(
+          headers: {
+            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+      if (response.statusCode == 200 && response.data != null && response.data['data'] != null) {
+        return PraAsesmenKompetensi.fromJson(response.data['data'] as Map<String, dynamic>);
+      }
+      return PraAsesmenKompetensi.fallback(skemaId, fallbackTitle);
+    } catch (e) {
+      debugPrint('🔴 Error fetching pra-asesmen kompetensi (using fallback): $e');
+      return PraAsesmenKompetensi.fallback(skemaId, fallbackTitle);
+    }
+  }
+
+  /// Submit Pra-Asesmen responses
+  static Future<bool> submitPraAsesmen(int skemaId, Map<String, dynamic> body) async {
+    try {
+      final token = await TokenStorage.instance.getAccessToken();
+      final response = await _dio.post(
+        '/api/pra-asesmen/skema/$skemaId/submit',
+        data: body,
+        options: Options(
+          headers: {
+            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('🔴 Error submitting pra-asesmen: $e');
+      return false;
+    }
+  }
+
   static List<AsesorDetailItem> _getFallbackAsesorList() {
     return const [
       AsesorDetailItem(

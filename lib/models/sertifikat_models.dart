@@ -605,3 +605,103 @@ class PraAsesmenInfo {
   }
 }
 
+class PraAsesmenKompetensi {
+  final int skemaId;
+  final String namaSkema;
+  final List<UnitKompetensi> unitKompetensi;
+
+  const PraAsesmenKompetensi({
+    required this.skemaId,
+    required this.namaSkema,
+    required this.unitKompetensi,
+  });
+
+  factory PraAsesmenKompetensi.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> list = json['unit_kompetensi'] ?? [];
+    return PraAsesmenKompetensi(
+      skemaId: json['skema_id'] ?? 0,
+      namaSkema: json['nama_skema'] ?? '',
+      unitKompetensi: list.map((item) => UnitKompetensi.fromJson(item as Map<String, dynamic>)).toList(),
+    );
+  }
+
+  factory PraAsesmenKompetensi.fallback(int skemaId, String title) {
+    return PraAsesmenKompetensi(
+      skemaId: skemaId,
+      namaSkema: title,
+      unitKompetensi: title.toLowerCase().contains('pemasaran') || title.toLowerCase().contains('marketing')
+          ? const [
+              UnitKompetensi(
+                kodeUnit: 'M.70MKT00.010.2',
+                judulUnit: 'Mengolah Data Riset',
+                elemen: [
+                  ElemenKompetensi(idElemen: 101, pertanyaanKuk: 'Apakah Anda dapat merancang instrumen riset pasar sesuai kebutuhan pemasaran?'),
+                  ElemenKompetensi(idElemen: 102, pertanyaanKuk: 'Apakah Anda dapat menganalisis data riset menggunakan software pengolah data?'),
+                ],
+              ),
+              UnitKompetensi(
+                kodeUnit: 'M.70MKT00.013.1',
+                judulUnit: 'Melaksanakan Kegiatan Analisis di Media Sosial',
+                elemen: [
+                  ElemenKompetensi(idElemen: 201, pertanyaanKuk: 'Apakah Anda dapat memonitor matrik engagement media sosial secara berkala?'),
+                ],
+              ),
+            ]
+          : const [
+              UnitKompetensi(
+                kodeUnit: 'SKM.620100.001.01',
+                judulUnit: 'Mempersiapkan Lingkungan Kerja',
+                elemen: [
+                  ElemenKompetensi(idElemen: 301, pertanyaanKuk: 'Mampukah Anda melakukan kegiatan terkait unit "Mempersiapkan Lingkungan Kerja" secara mandiri?'),
+                ],
+              ),
+              UnitKompetensi(
+                kodeUnit: 'SKM.620100.002.01',
+                judulUnit: 'Mengimplementasikan Fitur Utama',
+                elemen: [
+                  ElemenKompetensi(idElemen: 302, pertanyaanKuk: 'Mampukah Anda melakukan kegiatan terkait unit "Mengimplementasikan Fitur Utama" secara mandiri?'),
+                ],
+              ),
+            ],
+    );
+  }
+}
+
+class UnitKompetensi {
+  final String kodeUnit;
+  final String judulUnit;
+  final List<ElemenKompetensi> elemen;
+
+  const UnitKompetensi({
+    required this.kodeUnit,
+    required this.judulUnit,
+    required this.elemen,
+  });
+
+  factory UnitKompetensi.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> list = json['elemen'] ?? [];
+    return UnitKompetensi(
+      kodeUnit: json['kode_unit'] ?? '',
+      judulUnit: json['judul_unit'] ?? '',
+      elemen: list.map((item) => ElemenKompetensi.fromJson(item as Map<String, dynamic>)).toList(),
+    );
+  }
+}
+
+class ElemenKompetensi {
+  final int idElemen;
+  final String pertanyaanKuk;
+
+  const ElemenKompetensi({
+    required this.idElemen,
+    required this.pertanyaanKuk,
+  });
+
+  factory ElemenKompetensi.fromJson(Map<String, dynamic> json) {
+    return ElemenKompetensi(
+      idElemen: json['id_elemen'] ?? 0,
+      pertanyaanKuk: json['pertanyaan_kuk'] ?? '',
+    );
+  }
+}
+

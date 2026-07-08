@@ -27,10 +27,13 @@ class PraAsesmenWizardScreen extends StatefulWidget {
 
 class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
   int _currentStep = 1; // Step 1 to 4
-  final Map<int, String> _answers = {}; // questionIndex -> 'ya' or 'tidak'
+  final Map<int, String> _answers = {}; // idElemen -> 'ya' or 'tidak'
 
   PraAsesmenInfo? _praAsesmenInfo;
+  PraAsesmenKompetensi? _kompetensiData;
   bool _isLoadingInfo = true;
+  bool _isLoadingKompetensi = true;
+  bool _isSubmitting = false;
 
   // Step 3 controller/answers
   String _hasWorkExperience = 'ya'; // 'ya' or 'tidak'
@@ -44,68 +47,10 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
   bool _agreement3 = false;
   bool _agreeTerms = false;
 
-  final Map<String, List<Map<String, dynamic>>> _schemaUnits = {
-    'Pemasaran Digital': [
-      {'kode': 'M.70MKT00.010.2', 'judul': 'Mengolah Data Riset'},
-      {'kode': 'M.70MKT00.013.1', 'judul': 'Melaksanakan Kegiatan Analisis di Media Sosial dan Media Bisnis Digital'},
-      {'kode': 'G.46RIT00.055.1', 'judul': 'Melakukan Aktivitas Pemasaran Digital untuk Bisnis Ritel'},
-      {'kode': 'M.70MKT00.012.1', 'judul': 'Menggunakan Media Sosial dan Aplikasi Daring(Online Tools)'},
-      {'kode': 'M.70MKT00.014.1', 'judul': 'Mempersiapkan Konten Digital'},
-    ],
-    'Programmer (Web & Mobile Developer)': [
-      {'kode': 'J.620100.001.01', 'judul': 'Mengimplementasikan Algoritma Pemrograman'},
-      {'kode': 'J.620100.002.01', 'judul': 'Menggunakan Struktur Data'},
-      {'kode': 'J.620100.003.01', 'judul': 'Menulis Kode dengan Prinsip Pemrograman Berorientasi Objek'},
-      {'kode': 'J.620100.004.01', 'judul': 'Melakukan Debugging dan Pengujian Unit'},
-    ],
-  };
-
-  List<Map<String, dynamic>> _getUnitKompetensi() {
-    final String targetSkema = widget.title;
-    if (_schemaUnits.containsKey(targetSkema)) {
-      return _schemaUnits[targetSkema]!;
-    }
-    
-    final normalizedTarget = targetSkema.toLowerCase();
-    for (var key in _schemaUnits.keys) {
-      final normalizedKey = key.toLowerCase();
-      if (normalizedTarget == normalizedKey ||
-          normalizedTarget.contains(normalizedKey) ||
-          normalizedKey.contains(normalizedTarget)) {
-        return _schemaUnits[key]!;
-      }
-    }
-
-    return [
-      {'kode': 'SKM.620100.001.01', 'judul': 'Mempersiapkan Lingkungan Kerja'},
-      {'kode': 'SKM.620100.002.01', 'judul': 'Mengimplementasikan Fitur Utama'},
-      {'kode': 'SKM.620100.003.01', 'judul': 'Melakukan Pengujian dan Dokumentasi'},
-    ];
-  }
-
-  List<String> _getQuestions() {
-    if (widget.title.toLowerCase().contains('pemasaran') || widget.title.toLowerCase().contains('marketing')) {
-      return [
-        'Mampukah anda melakukan riset pasar dan tren pemasaran digital',
-        'Mampu membuat strategi pemasaran digital',
-        'Mampu membuat konten pemasaran digital yang menarik dan efektif',
-        'Mampu menjalankan kampanye pemasaran digital',
-        'Mampu mengoperasikan tools pemasaran digital?(Meta Ads Manager, Google Ads, atau Tiktok Creative Center)',
-      ];
-    }
-    
-    final units = _getUnitKompetensi();
-    return units.map((u) => 'Mampukah Anda melakukan kegiatan terkait unit "${u['judul']}" secara mandiri').toList();
-  }
-
   @override
   void initState() {
     super.initState();
     _loadPraAsesmenInfo();
-    final questions = _getQuestions();
-    for (int i = 0; i < questions.length; i++) {
-      _answers[i] = 'ya';
-    }
     _companyController.addListener(_rebuild);
     _positionController.addListener(_rebuild);
     _durationController.addListener(_rebuild);
@@ -114,6 +59,7 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
   Future<void> _loadPraAsesmenInfo() async {
     setState(() {
       _isLoadingInfo = true;
+      _isLoadingKompetensi = true;
     });
     try {
       final info = await SertifikatService.getPraAsesmenInfo(
@@ -131,6 +77,30 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
         _isLoadingInfo = false;
       });
     }
+
+    try {
+      final komp = await SertifikatService.getPraAsesmenKompetensi(
+        widget.skemaId,
+        widget.title,
+      );
+      setState(() {
+        _kompetensiData = komp;
+        _isLoadingKompetensi = false;
+        
+        // Initialize default answers with 'ya' for each element
+        _answers.clear();
+        for (var unit in komp.unitKompetensi) {
+          for (var el in unit.elemen) {
+            _answers[el.idElemen] = 'ya';
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Error loading pra-asesmen kompetensi: $e');
+      setState(() {
+        _isLoadingKompetensi = false;
+      });
+    }
   }
 
   void _rebuild() {
@@ -145,13 +115,69 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
     super.dispose();
   }
 
-  void _nextStep() {
+  void _nextStep() async {
     if (_currentStep < 4) {
       setState(() {
         _currentStep++;
       });
     } else {
-      _showSuccessDialog();
+      // Step 4: Kirim Jawaban ke API
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      final List<Map<String, dynamic>> jawabanEvaluasi = [];
+      if (_kompetensiData != null) {
+        for (var unit in _kompetensiData!.unitKompetensi) {
+          bool anyTidak = false;
+          for (var el in unit.elemen) {
+            if (_answers[el.idElemen] == 'tidak') {
+              anyTidak = true;
+              break;
+            }
+          }
+          jawabanEvaluasi.add({
+            'kode_unit': unit.kodeUnit,
+            'judul_unit': unit.judulUnit,
+            'jawaban': anyTidak ? 'tidak' : 'ya',
+          });
+        }
+      }
+
+      final body = {
+        'jawaban_evaluasi': jawabanEvaluasi,
+        'pengalaman_kerja': {
+          'has_experience': _hasWorkExperience == 'ya',
+          'perusahaan': _companyController.text,
+          'posisi': _positionController.text,
+          'durasi': _durationController.text,
+        },
+        'persetujuan': {
+          'agreement_1': _agreement1,
+          'agreement_2': _agreement2,
+          'agreement_3': _agreement3,
+          'agree_terms': _agreeTerms,
+        }
+      };
+
+      final bool success = await SertifikatService.submitPraAsesmen(widget.skemaId, body);
+      
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      if (success) {
+        _showSuccessDialog();
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Gagal mengirim jawaban Pra-Asesmen. Silakan coba lagi.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -325,13 +351,14 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
         );
       case 2:
         return StepEvaluasiKompetensi(
-          questions: _getQuestions(),
+          units: _kompetensiData?.unitKompetensi ?? [],
           answers: _answers,
-          onAnswerChanged: (index, value) {
+          onAnswerChanged: (idElemen, value) {
             setState(() {
-              _answers[index] = value;
+              _answers[idElemen] = value;
             });
           },
+          isLoading: _isLoadingKompetensi,
         );
       case 3:
         return StepPengalamanKerja(
@@ -388,10 +415,11 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
               child: SizedBox(
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: _prevStep,
+                  onPressed: _isSubmitting ? null : _prevStep,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFD1D1D6),
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFFE5E5EA),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -423,7 +451,7 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
               child: SizedBox(
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: (isStep3Valid && isStep4Valid) ? _nextStep : null,
+                  onPressed: (isStep3Valid && isStep4Valid && !_isSubmitting) ? _nextStep : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5B9FD8),
                     foregroundColor: Colors.white,
@@ -433,26 +461,35 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _currentStep == 4 ? 'Kirim Jawaban' : 'Selanjutnya',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _currentStep == 4 ? 'Kirim Jawaban' : 'Selanjutnya',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                _currentStep == 4 ? Icons.send_rounded : Icons.arrow_forward_rounded,
+                                size: 18,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          _currentStep == 4 ? Icons.send_rounded : Icons.arrow_forward_rounded,
-                          size: 18,
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
               ),
             ),

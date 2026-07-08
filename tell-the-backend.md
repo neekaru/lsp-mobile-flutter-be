@@ -79,6 +79,61 @@ Mengembalikan detail informasi skema, jadwal asesmen, lokasi Tempat Uji Kompeten
 
 ---
 
+## 2b. 📝 Endpoint: Daftar Unit & Pertanyaan Evaluasi Mandiri (Step 2 Wizard)
+
+```http
+GET /api/pra-asesmen/skema/:id/kompetensi
+```
+
+### Headers
+```http
+Authorization: Bearer <access_token>
+Accept: application/json
+```
+
+### Deskripsi
+Mengembalikan daftar Unit Kompetensi beserta Elemen/Kriteria Unjuk Kerja (KUK) untuk skema yang dipilih. Data ini digunakan untuk merender daftar pertanyaan penilaian kemampuan diri/evaluasi mandiri secara dinamis pada **Step 2 (Evaluasi Mandiri)**.
+
+### Response Format (200 OK)
+```json
+{
+  "status": "success",
+  "message": "Competency units and questions retrieved successfully",
+  "data": {
+    "skema_id": 12,
+    "nama_skema": "Digital Marketing",
+    "unit_kompetensi": [
+      {
+        "kode_unit": "M.70MKT00.010.2",
+        "judul_unit": "Mengolah Data Riset",
+        "elemen": [
+          {
+            "id_elemen": 101,
+            "pertanyaan_kuk": "Apakah Anda dapat merancang instrumen riset pasar sesuai kebutuhan pemasaran?"
+          },
+          {
+            "id_elemen": 102,
+            "pertanyaan_kuk": "Apakah Anda dapat menganalisis data riset menggunakan software pengolah data?"
+          }
+        ]
+      },
+      {
+        "kode_unit": "M.70MKT00.013.1",
+        "judul_unit": "Melaksanakan Kegiatan Analisis di Media Sosial",
+        "elemen": [
+          {
+            "id_elemen": 201,
+            "pertanyaan_kuk": "Apakah Anda dapat memonitor matrik engagement media sosial secara berkala?"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+---
+
 ## 3. 📤 Endpoint: Submit Jawaban Pra-Asesmen (Step 2 - 4 Wizard)
 
 ```http
