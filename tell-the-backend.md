@@ -1,29 +1,25 @@
-# Rekomendasi Asesor Berdasarkan Skema - API Proposal
+# Dokumen Kolaborasi API Frontend & Backend (LSP Digital Mobile)
 
-Halo Tim Backend! Kami membutuhkan endpoint baru untuk mengambil daftar asesor yang direkomendasikan berdasarkan skema sertifikasi yang dipilih oleh asesi setelah proses konfirmasi pendaftaran.
+Dokumen ini berisi daftar endpoint baru yang dibutuhkan oleh tim Frontend untuk menyelesaikan modul Pendaftaran, Asesor, dan Pra-Asesmen.
 
 ---
 
-## 🔍 Endpoint: Daftar Asesor per Skema
+## 1. 🔍 Endpoint: Rekomendasi Asesor per Skema
 
 ```http
 GET /api/sertifikat/skema/:id/asesor
 ```
 
 ### Headers
-
 ```http
 Authorization: Bearer <access_token>
 Accept: application/json
 ```
 
 ### Deskripsi
-Mengembalikan daftar asesor yang memiliki kompetensi sesuai dengan skema sertifikasi (`:id` di URL mewakili `id_skema`). Data ini digunakan untuk menampilkan halaman rekomendasi asesor di frontend sebelum asesi masuk ke langkah Pra-Asesmen.
+Mengembalikan daftar asesor yang memiliki kompetensi sesuai dengan skema sertifikasi (`:id` di URL mewakili `id_skema`). Data ini digunakan untuk menampilkan rekomendasi asesor di halaman `AsesorRecommendationScreen` setelah asesi mengonfirmasi pendaftaran.
 
----
-
-## 📥 Response Format (200 OK)
-
+### Response Format (200 OK)
 ```json
 {
   "status": "success",
@@ -43,21 +39,6 @@ Mengembalikan daftar asesor yang memiliki kompetensi sesuai dengan skema sertifi
       "provinsi_id": "34",
       "kabupaten_id": "3471",
       "total_asesmen": 145
-    },
-    {
-      "id_asesor": 2,
-      "nama_asesor": "Hadi Dayat",
-      "no_reg": "REG-2024-002",
-      "email": "hadi.dayat@lsp.id",
-      "hp": "081234567891",
-      "jenis_asesmen": "Mandiri",
-      "status_spt": "1",
-      "is_complete": "1",
-      "masa_berlaku": "2028-12-31",
-      "kabupaten_kota": "Jakarta",
-      "provinsi_id": "31",
-      "kabupaten_id": "3171",
-      "total_asesmen": 210
     }
   ]
 }
@@ -65,7 +46,135 @@ Mengembalikan daftar asesor yang memiliki kompetensi sesuai dengan skema sertifi
 
 ---
 
-## 🛠️ Catatan Backend (GORM / SQL Query Reference)
-* Data asesor disaring berdasarkan kompetensi skema (bisa diambil dari pemetaan `lsp275_mapping_asesor` atau tabel keahlian asesor yang terkait dengan `id_skema`).
-* Pastikan field `total_asesmen` dihitung secara dinamis dari jumlah baris aktivitas asesmen yang dilakukan oleh asesor tersebut.
-* Di sisi frontend, kami menyediakan mock fallback jika endpoint ini belum di-deploy di production.
+## 2. 📋 Endpoint: Informasi Jadwal & Detail Pra-Asesmen (Step 1 Wizard)
+
+```http
+GET /api/pra-asesmen/skema/:id/info
+```
+
+### Headers
+```http
+Authorization: Bearer <access_token>
+Accept: application/json
+```
+
+### Deskripsi
+Mengembalikan detail informasi skema, jadwal asesmen, lokasi Tempat Uji Kompetensi (TUK), dan nama asesor pendamping/pemantau untuk skema yang sedang didaftarkan oleh asesi. Data ini digunakan untuk melengkapi data di **Step 1 (Informasi Skema)** pada wizard pra-asesmen agar tidak lagi hardcoded.
+
+### Response Format (200 OK)
+```json
+{
+  "status": "success",
+  "message": "Pra-asesmen info retrieved successfully",
+  "data": {
+    "skema_id": 12,
+    "nama_skema": "Digital Marketing",
+    "kode_skema": "SKM.70MKT00.010.2",
+    "tanggal_asesmen": "2026-05-20",
+    "tuk": "TUK Universitas LPP",
+    "nama_asesor": "Eko Setiabudi"
+  }
+}
+```
+
+---
+
+## 3. 📤 Endpoint: Submit Jawaban Pra-Asesmen (Step 2 - 4 Wizard)
+
+```http
+POST /api/pra-asesmen/skema/:id/submit
+```
+
+### Headers
+```http
+Authorization: Bearer <access_token>
+Content-Type: application/json
+Accept: application/json
+```
+
+### Request Body (JSON)
+Mengirimkan data evaluasi mandiri (Step 2), riwayat pengalaman kerja (Step 3), dan lembar persetujuan/komitmen asesi (Step 4).
+```json
+{
+  "jawaban_evaluasi": [
+    {
+      "kode_unit": "M.70MKT00.010.2",
+      "judul_unit": "Mengolah Data Riset",
+      "jawaban": "ya"
+    },
+    {
+      "kode_unit": "M.70MKT00.013.1",
+      "judul_unit": "Melaksanakan Kegiatan Analisis di Media Sosial dan Media Bisnis Digital",
+      "jawaban": "ya"
+    }
+  ],
+  "pengalaman_kerja": {
+    "has_experience": true,
+    "perusahaan": "PT Solusi Digital",
+    "posisi": "Digital Marketer",
+    "durasi": "2 Tahun"
+  },
+  "persetujuan": {
+    "agreement_1": true,
+    "agreement_2": true,
+    "agreement_3": true,
+    "agree_terms": true
+  }
+}
+```
+
+### Response Format (200 OK / 201 Created)
+```json
+{
+  "status": "success",
+  "message": "Pra-asesmen submitted successfully",
+  "data": {
+    "pendaftaran_id": 105,
+    "skema_id": 12,
+    "status_pendaftaran": "pra_asesmen_submitted",
+    "submitted_at": "2026-07-08T12:50:00Z"
+  }
+}
+```
+
+---
+
+## 4. 📊 Endpoint: Hasil Review Pra-Asesmen
+
+```http
+GET /api/pra-asesmen/skema/:id/review
+```
+
+### Headers
+```http
+Authorization: Bearer <access_token>
+Accept: application/json
+```
+
+### Deskripsi
+Mendapatkan status review/evaluasi pra-asesmen dari pihak LSP/Asesor. Ini digunakan untuk menentukan apakah asesi memenuhi syarat (MS) untuk lanjut ke tahap **Tes Tertulis** atau harus memperbaiki data.
+
+### Response Format (200 OK)
+```json
+{
+  "status": "success",
+  "message": "Review status retrieved successfully",
+  "data": {
+    "skema_id": 12,
+    "status_review": "memenuhi_syarat",
+    "keterangan": "Anda memenuhi persyaratan untuk mengikuti Tes Tertulis.",
+    "checklist": {
+      "portofolio_lengkap": true,
+      "bukti_kompetensi_valid": true,
+      "pra_asesmen_disetujui": true
+    }
+  }
+}
+```
+
+---
+
+## 🛠️ Catatan Implementasi Backend (GORM / Database Reference)
+* **Penyaringan Asesor**: Data asesor disaring berdasarkan kompetensi skema (pemetaan `lsp275_mapping_asesor` atau tabel keahlian asesor yang terkait dengan `id_skema`).
+* **Relasi Pra-Asesmen**: Buat tabel baru/kolom relasi `lsp275_pra_asesmen` yang mencatat detail evaluasi mandiri asesi, pengalaman kerja, serta status reviewnya.
+* **Integrasi Status**: Pastikan ketika pra-asesmen disubmit, status pendaftaran asesi di-update (misal: `status_pendaftaran = 'pra_asesmen_submitted'`).

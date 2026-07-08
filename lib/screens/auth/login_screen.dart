@@ -197,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Login Form Card
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+                padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -256,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: 13,
                         ),
                         filled: false,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                         border: const UnderlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
                         ),
@@ -295,7 +295,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: 13,
                         ),
                         filled: false,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                         border: const UnderlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
                         ),

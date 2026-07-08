@@ -355,7 +355,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Register Form Container
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -413,7 +413,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           fontSize: 13,
                         ),
                         filled: false,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                         border: UnderlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
                         ),
@@ -451,7 +451,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           fontSize: 13,
                         ),
                         filled: false,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                         border: UnderlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
                         ),
@@ -489,7 +489,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           fontSize: 13,
                         ),
                         filled: false,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                         border: UnderlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
                         ),
@@ -527,7 +527,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           fontSize: 13,
                         ),
                         filled: false,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                         border: const UnderlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
                         ),
@@ -586,7 +586,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           fontSize: 13,
                         ),
                         filled: false,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                         border: const UnderlineInputBorder(
                           borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
                         ),

@@ -5,6 +5,7 @@ import 'api_client.dart';
 import '../helpers/api_routes.dart';
 import '../models/sertifikat_models.dart';
 import '../models/jadwal_models.dart';
+import 'token_storage.dart';
 
 // ============================================================================
 // Sertifikat Service
@@ -183,7 +184,16 @@ class SertifikatService {
   /// Fetch list of recommended assessors for a specific skema.
   static Future<List<AsesorDetailItem>> getAsesorBySkema(int skemaId) async {
     try {
-      final response = await _dio.get('/api/sertifikat/skema/$skemaId/asesor');
+      final token = await TokenStorage.instance.getAccessToken();
+      final response = await _dio.get(
+        '/api/sertifikat/skema/$skemaId/asesor',
+        options: Options(
+          headers: {
+            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data'] ?? [];
         return list.map((item) => AsesorDetailItem.fromJson(item as Map<String, dynamic>)).toList();
@@ -192,6 +202,29 @@ class SertifikatService {
     } catch (e) {
       debugPrint('🔴 Error fetching assessors by skema (using fallback): $e');
       return _getFallbackAsesorList();
+    }
+  }
+
+  /// Fetch Pra-Asesmen Info for a specific skema.
+  static Future<PraAsesmenInfo> getPraAsesmenInfo(int skemaId, String fallbackTitle, String fallbackKode) async {
+    try {
+      final token = await TokenStorage.instance.getAccessToken();
+      final response = await _dio.get(
+        '/api/pra-asesmen/skema/$skemaId/info',
+        options: Options(
+          headers: {
+            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+      if (response.statusCode == 200 && response.data != null && response.data['data'] != null) {
+        return PraAsesmenInfo.fromJson(response.data['data'] as Map<String, dynamic>);
+      }
+      return PraAsesmenInfo.fallback(skemaId, fallbackTitle, fallbackKode);
+    } catch (e) {
+      debugPrint('🔴 Error fetching pra-asesmen info (using fallback): $e');
+      return PraAsesmenInfo.fallback(skemaId, fallbackTitle, fallbackKode);
     }
   }
 

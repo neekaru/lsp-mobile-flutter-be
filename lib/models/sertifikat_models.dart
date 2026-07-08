@@ -561,3 +561,47 @@ class SertifikatValidationResult {
   }
 }
 
+// ============================================================================
+// Pra-Asesmen Models
+// ============================================================================
+
+class PraAsesmenInfo {
+  final int skemaId;
+  final String namaSkema;
+  final String kodeSkema;
+  final String tanggalAsesmen;
+  final String tuk;
+  final String namaAsesor;
+
+  const PraAsesmenInfo({
+    required this.skemaId,
+    required this.namaSkema,
+    required this.kodeSkema,
+    required this.tanggalAsesmen,
+    required this.tuk,
+    required this.namaAsesor,
+  });
+
+  factory PraAsesmenInfo.fromJson(Map<String, dynamic> json) {
+    return PraAsesmenInfo(
+      skemaId: json['skema_id'] ?? 0,
+      namaSkema: json['nama_skema'] ?? '',
+      kodeSkema: json['kode_skema'] ?? '',
+      tanggalAsesmen: json['tanggal_asesmen'] ?? '',
+      tuk: json['tuk'] ?? '',
+      namaAsesor: json['nama_asesor'] ?? '',
+    );
+  }
+
+  factory PraAsesmenInfo.fallback(int skemaId, String title, String kodeSkema) {
+    return PraAsesmenInfo(
+      skemaId: skemaId,
+      namaSkema: title,
+      kodeSkema: kodeSkema,
+      tanggalAsesmen: '20 Mei 2026',
+      tuk: 'TUK Universitas LPP',
+      namaAsesor: 'Belum Ditentukan',
+    );
+  }
+}
+

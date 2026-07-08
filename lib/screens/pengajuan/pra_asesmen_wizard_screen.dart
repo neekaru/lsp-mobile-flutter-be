@@ -6,6 +6,8 @@ import 'widgets/step_informasi_skema.dart';
 import 'widgets/step_evaluasi_kompetensi.dart';
 import 'widgets/step_pengalaman_kerja.dart';
 import 'widgets/step_persetujuan_asesi.dart';
+import '../../services/sertifikat_service.dart';
+import '../../models/sertifikat_models.dart';
 
 class PraAsesmenWizardScreen extends StatefulWidget {
   final int skemaId;
@@ -26,6 +28,9 @@ class PraAsesmenWizardScreen extends StatefulWidget {
 class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
   int _currentStep = 1; // Step 1 to 4
   final Map<int, String> _answers = {}; // questionIndex -> 'ya' or 'tidak'
+
+  PraAsesmenInfo? _praAsesmenInfo;
+  bool _isLoadingInfo = true;
 
   // Step 3 controller/answers
   String _hasWorkExperience = 'ya'; // 'ya' or 'tidak'
@@ -96,6 +101,7 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
   @override
   void initState() {
     super.initState();
+    _loadPraAsesmenInfo();
     final questions = _getQuestions();
     for (int i = 0; i < questions.length; i++) {
       _answers[i] = 'ya';
@@ -103,6 +109,28 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
     _companyController.addListener(_rebuild);
     _positionController.addListener(_rebuild);
     _durationController.addListener(_rebuild);
+  }
+
+  Future<void> _loadPraAsesmenInfo() async {
+    setState(() {
+      _isLoadingInfo = true;
+    });
+    try {
+      final info = await SertifikatService.getPraAsesmenInfo(
+        widget.skemaId,
+        widget.title,
+        widget.kodeSkema,
+      );
+      setState(() {
+        _praAsesmenInfo = info;
+        _isLoadingInfo = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading pra-asesmen info: $e');
+      setState(() {
+        _isLoadingInfo = false;
+      });
+    }
   }
 
   void _rebuild() {
@@ -288,8 +316,12 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
     switch (_currentStep) {
       case 1:
         return StepInformasiSkema(
-          title: widget.title,
-          kodeSkema: widget.kodeSkema,
+          title: _praAsesmenInfo?.namaSkema ?? widget.title,
+          kodeSkema: _praAsesmenInfo?.kodeSkema ?? widget.kodeSkema,
+          tanggalAsesmen: _praAsesmenInfo?.tanggalAsesmen ?? '',
+          tuk: _praAsesmenInfo?.tuk ?? '',
+          namaAsesor: _praAsesmenInfo?.namaAsesor ?? '',
+          isLoading: _isLoadingInfo,
         );
       case 2:
         return StepEvaluasiKompetensi(

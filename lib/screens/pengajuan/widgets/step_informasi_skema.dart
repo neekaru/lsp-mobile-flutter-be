@@ -3,15 +3,34 @@ import 'package:flutter/material.dart';
 class StepInformasiSkema extends StatelessWidget {
   final String title;
   final String kodeSkema;
+  final String tanggalAsesmen;
+  final String tuk;
+  final String namaAsesor;
+  final bool isLoading;
 
   const StepInformasiSkema({
     super.key,
     required this.title,
     required this.kodeSkema,
+    required this.tanggalAsesmen,
+    required this.tuk,
+    required this.namaAsesor,
+    required this.isLoading,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 48.0),
+          child: CircularProgressIndicator(
+            color: Color(0xFF5B9FD8),
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -25,7 +44,7 @@ class StepInformasiSkema extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         const Text(
-          'Beirkut informasi skema yang Anda pilih',
+          'Berikut informasi skema yang Anda pilih',
           style: TextStyle(
             fontSize: 13,
             color: Color(0xFF64748B),
@@ -95,11 +114,11 @@ class StepInformasiSkema extends StatelessWidget {
                 const SizedBox(height: 16),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 16),
-                _buildInfoRow('Tgl Asesmen', '20 Mei 2026'),
+                _buildInfoRow('Tgl Asesmen', tanggalAsesmen),
                 const SizedBox(height: 12),
-                _buildInfoRow('Tempat Uji Kompetensi', 'TUK Universitas LPP'),
+                _buildInfoRow('Tempat Uji Kompetensi', tuk),
                 const SizedBox(height: 12),
-                _buildInfoRow('Asessor', 'Belum Ditentukan'),
+                _buildInfoRow('Asessor', namaAsesor),
               ],
             ),
           ),

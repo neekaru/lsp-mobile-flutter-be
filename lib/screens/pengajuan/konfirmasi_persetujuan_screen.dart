@@ -195,10 +195,10 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
                 const SizedBox(height: 10),
                 
                 // Casing and content matching screenshot exactly
-                const Text(
-                  'Pendaftaran Anda dalam skema sertifikasi pemasaran digital berhasil dikonfirmasi',
+                Text(
+                  'Pendaftaran Anda dalam skema sertifikasi ${widget.title} berhasil dikonfirmasi',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12.5,
                     color: Colors.black54,
                     height: 1.4,
