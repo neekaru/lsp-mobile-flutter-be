@@ -107,35 +107,52 @@ class _JadwalScreenState extends State<JadwalScreen>
 
     try {
       final bool isAsesi = currentUser.role == 'asesi';
+      final bool isAsesor = currentUser.role == 'asesor';
+
+      // Custom parameters per role
+      String status1 = isAsesi ? '0' : '3';
+      String path1 = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/active';
+      if (isAsesor) {
+        status1 = '0'; // Menunggu
+        path1 = '/api/jadwal/active';
+      }
+
+      String status2 = isAsesi ? '3' : '4';
+      String path2 = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
+      if (isAsesor) {
+        status2 = '2'; // Dibatalkan
+        path2 = '/api/jadwal/completed';
+      }
+
+      String status3 = '1';
+      String path3 = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
+      if (isAsesor) {
+        status3 = '1'; // Selesai
+        path3 = '/api/jadwal/completed';
+      }
+
       // Fetch data untuk setiap tab secara parallel
       final results = await Future.wait([
-        // Tab 1: Mendatang for asesi, Running for admin/asesor
         ApiService.getJadwalList(
           limit: _pageSize,
-          statusJadwal: isAsesi ? '0' : '3',
+          statusJadwal: status1,
           sortBy: 'tanggal',
           sortOrder: 'desc',
-          customRoutePath: isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/active',
+          customRoutePath: path1,
         ),
-        // Tab 2: Berjalan for asesi, Pelaporan for admin/asesor
         ApiService.getJadwalList(
           limit: _pageSize,
-          statusJadwal: isAsesi ? '3' : '4',
+          statusJadwal: status2,
           sortBy: 'tanggal',
           sortOrder: 'desc',
-          customRoutePath: isAsesi
-              ? '/api/asesi/jadwal'
-              : '/api/jadwal/completed',
+          customRoutePath: path2,
         ),
-        // Tab 3: Selesai - Status 1 (Completed), sorted by tanggal DESC
         ApiService.getJadwalList(
           limit: _pageSize,
-          statusJadwal: '1',
+          statusJadwal: status3,
           sortBy: 'tanggal',
           sortOrder: 'desc',
-          customRoutePath: isAsesi
-              ? '/api/asesi/jadwal'
-              : '/api/jadwal/completed',
+          customRoutePath: path3,
         ),
       ]);
 
@@ -174,15 +191,25 @@ class _JadwalScreenState extends State<JadwalScreen>
 
     try {
       final bool isAsesi = currentUser.role == 'asesi';
+      final bool isAsesor = currentUser.role == 'asesor';
+
+      String status = isAsesi ? '0' : '0,1,2,3';
+      String sortBy = isAsesi ? 'tanggal' : 'days_overdue';
+      String path = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/out-of-date';
+
+      if (isAsesor) {
+        status = '0';
+        sortBy = 'tanggal';
+        path = '/api/jadwal/active';
+      }
+
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: runningList.length,
-        statusJadwal: isAsesi ? '0' : '0,1,2,3',
-        sortBy: isAsesi ? 'tanggal' : 'days_overdue',
+        statusJadwal: status,
+        sortBy: sortBy,
         sortOrder: 'desc',
-        customRoutePath: isAsesi
-            ? '/api/asesi/jadwal'
-            : '/api/jadwal/out-of-date',
+        customRoutePath: path,
       );
 
       setState(() {
@@ -209,15 +236,23 @@ class _JadwalScreenState extends State<JadwalScreen>
 
     try {
       final bool isAsesi = currentUser.role == 'asesi';
+      final bool isAsesor = currentUser.role == 'asesor';
+
+      String status = isAsesi ? '3' : '4';
+      String path = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
+
+      if (isAsesor) {
+        status = '2'; // Dibatalkan
+        path = '/api/jadwal/completed';
+      }
+
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: pelaporanList.length,
-        statusJadwal: isAsesi ? '3' : '4',
+        statusJadwal: status,
         sortBy: 'tanggal',
         sortOrder: 'desc',
-        customRoutePath: isAsesi
-            ? '/api/asesi/jadwal'
-            : '/api/jadwal/completed',
+        customRoutePath: path,
       );
 
       setState(() {
@@ -244,15 +279,23 @@ class _JadwalScreenState extends State<JadwalScreen>
 
     try {
       final bool isAsesi = currentUser.role == 'asesi';
+      final bool isAsesor = currentUser.role == 'asesor';
+
+      String status = isAsesi ? '1' : '1,4';
+      String path = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
+
+      if (isAsesor) {
+        status = '1'; // Selesai
+        path = '/api/jadwal/completed';
+      }
+
       final newData = await ApiService.getJadwalList(
         limit: _pageSize,
         offset: selesaiList.length,
-        statusJadwal: isAsesi ? '1' : '1,4',
+        statusJadwal: status,
         sortBy: 'tanggal',
         sortOrder: 'desc',
-        customRoutePath: isAsesi
-            ? '/api/asesi/jadwal'
-            : '/api/jadwal/completed',
+        customRoutePath: path,
       );
 
       setState(() {
@@ -372,6 +415,8 @@ class _JadwalScreenState extends State<JadwalScreen>
 
   Widget _buildSedangBerjalanTab() {
     final bool isAsesi = currentUser.role == 'asesi';
+    final bool isAsesor = currentUser.role == 'asesor';
+    final bool hideHeader = isAsesi || isAsesor;
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,
@@ -379,12 +424,12 @@ class _JadwalScreenState extends State<JadwalScreen>
         controller: _scrollControllerRunning,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: isAsesi
+        itemCount: hideHeader
             ? runningList.length +
                   1 // +1 for loading indicator at the end
             : runningList.length + 2, // +2 for header and loading indicator
         itemBuilder: (context, index) {
-          if (!isAsesi && index == 0) {
+          if (!hideHeader && index == 0) {
             // Header without chart (only statistics text)
             return Column(
               children: [
@@ -467,11 +512,11 @@ class _JadwalScreenState extends State<JadwalScreen>
             );
           }
 
-          final int itemIndex = isAsesi ? index : index - 1;
+          final int itemIndex = hideHeader ? index : index - 1;
 
           // Loading indicator at the end
           if (index ==
-              (isAsesi ? runningList.length : runningList.length + 1)) {
+              (hideHeader ? runningList.length : runningList.length + 1)) {
             if (_isLoadingMore) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
@@ -629,9 +674,10 @@ class _JadwalScreenState extends State<JadwalScreen>
 
   Widget _buildAppBar() {
     final bool isAsesi = currentUser.role == 'asesi';
+    final bool isAsesor = currentUser.role == 'asesor';
 
     return CustomAppBar(
-      title: isAsesi ? 'Jadwal Saya' : 'Jadwal Asesmen',
+      title: (isAsesi || isAsesor) ? 'Jadwal Saya' : 'Jadwal Asesmen',
       onBack: () {
         if (widget.onBackToHome != null) {
           widget.onBackToHome!();

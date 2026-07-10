@@ -49,27 +49,65 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAsesi = AuthRepository.currentUserInstance?.role == 'asesi';
+    final role = AuthRepository.currentUserInstance?.role;
+    final bool isAsesi = role == 'asesi';
+    final bool isAsesor = role == 'asesor';
+
+    if (isAsesor) {
+      return Row(
+        children: [
+          Expanded(
+            child: TabItem(
+              label: 'Menunggu',
+              badgeCount: widget.runningCount > 0 ? widget.runningCount : null,
+              isSelected: widget.controller.index == 0,
+              onTap: () => widget.controller.animateTo(0),
+              usePillStyle: true,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TabItem(
+              label: 'Dibatalkan',
+              badgeCount: widget.pelaporanCount > 0 ? widget.pelaporanCount : null,
+              isSelected: widget.controller.index == 1,
+              onTap: () => widget.controller.animateTo(1),
+              usePillStyle: true,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TabItem(
+              label: 'Selesai',
+              badgeCount: widget.selesaiCount > 0 ? widget.selesaiCount : null,
+              isSelected: widget.controller.index == 2,
+              onTap: () => widget.controller.animateTo(2),
+              usePillStyle: true,
+            ),
+          ),
+        ],
+      );
+    }
 
     return Row(
       children: [
         Expanded(
           child: TabItem(
             label: isAsesi ? 'Mendatang' : 'Running',
-            badgeCount: widget.runningCount,
+            badgeCount: widget.runningCount > 0 ? widget.runningCount : null,
             isSelected: widget.controller.index == 0,
             onTap: () => widget.controller.animateTo(0),
-            isAsesi: isAsesi,
+            usePillStyle: isAsesi,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: TabItem(
             label: isAsesi ? 'Berjalan' : 'Pelaporan',
-            badgeCount: isAsesi ? widget.pelaporanCount : null,
+            badgeCount: isAsesi && widget.pelaporanCount > 0 ? widget.pelaporanCount : null,
             isSelected: widget.controller.index == 1,
             onTap: () => widget.controller.animateTo(1),
-            isAsesi: isAsesi,
+            usePillStyle: isAsesi,
           ),
         ),
         if (!isAsesi) ...[
@@ -77,10 +115,10 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
           Expanded(
             child: TabItem(
               label: 'Selesai',
-              badgeCount: null,
+              badgeCount: widget.selesaiCount > 0 ? widget.selesaiCount : null,
               isSelected: widget.controller.index == 2,
               onTap: () => widget.controller.animateTo(2),
-              isAsesi: isAsesi,
+              usePillStyle: isAsesi,
             ),
           ),
         ],
@@ -94,7 +132,7 @@ class TabItem extends StatelessWidget {
   final int? badgeCount;
   final bool isSelected;
   final VoidCallback onTap;
-  final bool isAsesi;
+  final bool usePillStyle;
 
   const TabItem({
     super.key,
@@ -102,7 +140,7 @@ class TabItem extends StatelessWidget {
     this.badgeCount,
     required this.isSelected,
     required this.onTap,
-    this.isAsesi = false,
+    this.usePillStyle = false,
   });
 
   @override
@@ -112,7 +150,7 @@ class TabItem extends StatelessWidget {
     Color badgeBgColor;
     Color badgeTextColor;
 
-    if (isAsesi) {
+    if (usePillStyle) {
       if (isSelected) {
         containerColor = const Color(0xFF6C8BB4); // Slate blue
         textColor = Colors.white;
@@ -139,7 +177,7 @@ class TabItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: containerColor,
           borderRadius: BorderRadius.circular(100),
-          boxShadow: isSelected && !isAsesi
+          boxShadow: isSelected && !usePillStyle
               ? const [
                   BoxShadow(
                     color: Color(0x0A000000),

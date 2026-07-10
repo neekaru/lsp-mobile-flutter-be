@@ -84,16 +84,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _isLoading = false;
         });
       } else if (isAsesor) {
-        // Panggil API yang dibutuhkan asesor secara parallel (berita dan chart graf)
-        final results = await Future.wait([
-          ApiService.getBerita(page: 1, size: 5),
-          ApiService.getAssessmentGraph(),
-        ]);
-
+        // Asesor does not need to load berita or chart graph
         if (_isDisposed || !mounted) return;
         setState(() {
-          _beritaData = results[0] as List<BeritaItem>;
-          _chartData = results[1] as List<MonthlyAssessment>;
           _isLoading = false;
         });
       } else {
@@ -399,7 +392,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 // Rangkuman Utama Card Container (Imported widget)
                 Padding(
                   padding: EdgeInsets.only(
-                    top: statusBarHeight + 90,
+                    top: statusBarHeight + (isAsesor ? 110 : 90),
                     left: 16,
                     right: 16,
                     bottom: 12, // Set to 12
@@ -414,6 +407,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           : (isAsesor
                               ? RangkumanAsesor(
                                   isLoading: _isLoading,
+                                  onNavigateToJadwal: widget.onNavigateToJadwal,
                                 )
                               : RangkumanUtama(
                                   data: _summaryData,
@@ -435,25 +429,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: MulaiSertifikasiCard(),
               ),
 
-            // 1.6. Berita Terkini Section (2 boxes horizontally under Mulai Skema Sertifikasi) - Tampil di semua role
-            Padding(
-              padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
-              child: BeritaTerkiniSection(
-                data: _beritaData,
-                isLoading: _isLoading,
+            // 1.6. Berita Terkini Section (2 boxes horizontally under Mulai Skema Sertifikasi) - Tampil di semua role kecuali asesor
+            if (!isAsesor)
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
+                child: BeritaTerkiniSection(
+                  data: _beritaData,
+                  isLoading: _isLoading,
+                ),
               ),
-            ),
 
-            // 2. Tren Asesmen Bulanan Section (Imported chart card widget) - Tampil di semua role
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 16.0,
-                right: 16.0,
-                top: 8.0,
-                bottom: 8.0,
+            // 2. Tren Asesmen Bulanan Section (Imported chart card widget) - Tampil di semua role kecuali asesor
+            if (!isAsesor)
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 8.0,
+                  bottom: 8.0,
+                ),
+                child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
               ),
-              child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
-            ),
 
             // 2.5. Tentang Kami Section - Hanya untuk Guest (Public Landing Page)
             if (isGuest)
