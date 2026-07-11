@@ -3,7 +3,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/api_service.dart';
-import '../jadwal/asesi_list_screen.dart';
+import 'penugasan_peserta_screen.dart';
 
 class PenugasanDetailScreen extends StatefulWidget {
   final JadwalItem jadwal;
@@ -446,9 +446,12 @@ class _PenugasanDetailScreenState extends State<PenugasanDetailScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => AsesiListScreen(
+                                  builder: (context) => PenugasanPesertaScreen(
                                     jadwalId: widget.jadwal.id,
                                     jadwalTitle: widget.jadwal.skema,
+                                    tanggal: widget.jadwal.tanggalMulai,
+                                    waktu: _detailData?.waktuAsesmen ?? '09:00 - 11:00 WIB',
+                                    tuk: _detailData?.tuk ?? widget.jadwal.tuk,
                                   ),
                                 ),
                               );
