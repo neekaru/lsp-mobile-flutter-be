@@ -192,6 +192,44 @@ class JadwalService {
 
   /// Fetch Assessor Detail for a specific schedule
   static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(int jadwalId) async {
+    // Intercept dummy IDs for PenugasanScreen flow
+    if (jadwalId == 101 || jadwalId == 102 || jadwalId == 103) {
+      final is101 = jadwalId == 101;
+      final is102 = jadwalId == 102;
+      return JadwalAsesorDetailResponse(
+        totalAsesor: 1,
+        data: JadwalAsesorDetailData(
+          id: jadwalId,
+          jadwal: is101 ? 'UI/UX Design' : 'Digital Marketing',
+          tanggal: '2026-07-20',
+          tanggalAkhir: '2026-07-20',
+          statusJadwal: is101 ? '0' : (is102 ? '1' : '2'), // 0: waiting, 1: completed, 2: canceled
+          statusLabel: is101 ? 'Waiting' : (is102 ? 'Completed' : 'Canceled'),
+          idTuk: 1,
+          tuk: is101 ? 'LPP Cahaya Borneo' : 'LPP Jogja',
+          alamatTuk: is101 ? 'Kalimantan Tengah' : 'Yogyakarta',
+          jenisTuk: 'Sewaktu',
+          asesor: [
+            const AsesorDetailItem(
+              idAsesor: 1,
+              namaAsesor: 'Eko Setiabudi',
+              noReg: 'MET.000.001928 2023',
+              email: 'eko.setiabudi@lsp.com',
+              hp: '08123456789',
+              jenisAsesmen: 'Mandiri',
+              statusSpt: 'Disetujui',
+              isComplete: '1',
+              masaBerlaku: '2028-12-31',
+              kabupatenKota: 'Yogyakarta',
+              provinsiId: '34',
+              kabupatenId: '3471',
+              totalAsesmen: 15,
+            )
+          ],
+        ),
+      );
+    }
+
     try {
       final response = await _dio.get('/api/jadwal/$jadwalId/asesor-detail');
 
