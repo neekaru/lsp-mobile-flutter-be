@@ -6,6 +6,7 @@ import 'jadwal_edit_screen.dart';
 import '../../services/auth_repository.dart';
 import '../../services/api_service.dart';
 import 'profil_asesor_screen.dart';
+import 'asesi_list_screen.dart';
 
 class JadwalDetailScreen extends StatefulWidget {
   final JadwalItem jadwal;
@@ -481,9 +482,13 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
   Widget _buildAsesorDetailView(BuildContext context) {
     final String leadAsesor = (_detailData != null && _detailData!.asesor.isNotEmpty)
         ? _detailData!.asesor.first.namaAsesor
-        : _getDisplayAsesor();
+        : (_detailData?.leadAsesor != null && _detailData!.leadAsesor!.isNotEmpty)
+            ? _detailData!.leadAsesor!
+            : _getDisplayAsesor();
 
-    final String totalPeserta = '${widget.jadwal.jumlahAsesi} Peserta';
+    final String totalPeserta = (_detailData?.jumlahPeserta != null)
+        ? '${_detailData!.jumlahPeserta} Peserta'
+        : '${widget.jadwal.jumlahAsesi} Peserta';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -566,7 +571,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                 _buildAsesorDetailRow(
                   icon: Icons.access_time_rounded,
                   label: 'Waktu Asesmen',
-                  value: '09:00 - 11:00 WIB',
+                  value: (_detailData?.waktuAsesmen != null && _detailData!.waktuAsesmen!.isNotEmpty)
+                      ? _detailData!.waktuAsesmen!
+                      : '09:00 - 11:00 WIB',
                 ),
                 _buildAsesorDetailRow(
                   icon: Icons.location_on_rounded,
@@ -595,8 +602,40 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
           _buildActionButtonCard(
             icon: Icons.description_rounded,
             title: 'Lihat Surat Tugas',
-            onTap: () {
-              // Action for Surat Tugas
+            onTap: () async {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+              try {
+                final fileUrl = await ApiService.getSuratTugas(widget.jadwal.id);
+                if (context.mounted) Navigator.pop(context); // Dismiss loading dialog
+                if (fileUrl != null && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Surat tugas ditemukan: $fileUrl'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                } else if (context.mounted) {
+                  throw Exception('Surat tugas belum tersedia');
+                }
+              } catch (e) {
+                if (context.mounted) Navigator.pop(context); // Dismiss loading dialog
+                final errorMsg = e.toString().replaceAll('Exception: ', '');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(errorMsg),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
+              }
             },
           ),
           const SizedBox(height: 12),
@@ -606,7 +645,15 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
             icon: Icons.people_rounded,
             title: 'Lihat Peserta',
             onTap: () {
-              // Action for Lihat Peserta
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AsesiListScreen(
+                    jadwalId: widget.jadwal.id,
+                    jadwalTitle: widget.jadwal.skema,
+                  ),
+                ),
+              );
             },
           ),
         ],

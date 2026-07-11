@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import 'api_client.dart';
+import 'auth_repository.dart';
 import '../helpers/api_routes.dart';
 import '../models/jadwal_models.dart';
 import '../models/dashboard_models.dart';
@@ -159,7 +160,9 @@ class JadwalService {
   /// Fetch list of Asesi for a specific schedule
   static Future<AsesiListResponse> getAsesiList(int jadwalId) async {
     try {
-      final response = await _dio.get('/api/jadwal/$jadwalId/asesi');
+      final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
+      final path = isAsesor ? '/api/asesor/jadwal/$jadwalId/peserta' : '/api/jadwal/$jadwalId/asesi';
+      final response = await _dio.get(path);
 
       if (response.statusCode == 200 && response.data != null) {
         return AsesiListResponse.fromJson(response.data);
@@ -231,7 +234,9 @@ class JadwalService {
     }
 
     try {
-      final response = await _dio.get('/api/jadwal/$jadwalId/asesor-detail');
+      final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
+      final path = isAsesor ? '/api/asesor/jadwal/$jadwalId/detail' : '/api/jadwal/$jadwalId/asesor-detail';
+      final response = await _dio.get(path);
 
       if (response.statusCode == 200 && response.data != null) {
         return JadwalAsesorDetailResponse.fromJson(response.data);
@@ -240,6 +245,24 @@ class JadwalService {
     } catch (e) {
       debugPrint('🔴 Error fetching jadwal asesor detail: $e');
       return null;
+    }
+  }
+
+  /// Fetch Surat Tugas PDF URL for Asesor
+  static Future<String?> getSuratTugas(int jadwalId) async {
+    try {
+      final response = await _dio.get('/api/asesor/jadwal/$jadwalId/surat-tugas');
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['status'] == 'success') {
+          return response.data['data']?['file_url'] as String?;
+        }
+      }
+      return null;
+    } on DioException catch (e) {
+      final message = e.response?.data?['message'] ?? 'Surat tugas belum tersedia';
+      throw Exception(message);
+    } catch (e) {
+      throw Exception('Gagal memuat Surat Tugas');
     }
   }
 

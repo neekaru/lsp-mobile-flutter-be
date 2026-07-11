@@ -114,21 +114,21 @@ class _JadwalScreenState extends State<JadwalScreen>
       String path1 = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/active';
       if (isAsesor) {
         status1 = '0'; // Menunggu
-        path1 = '/api/jadwal/active';
+        path1 = '/api/asesor/jadwal';
       }
 
       String status2 = isAsesi ? '3' : '4';
       String path2 = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
       if (isAsesor) {
         status2 = '2'; // Dibatalkan
-        path2 = '/api/jadwal/completed';
+        path2 = '/api/asesor/jadwal';
       }
 
       String status3 = '1';
       String path3 = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
       if (isAsesor) {
-        status3 = '1'; // Selesai
-        path3 = '/api/jadwal/completed';
+        status3 = '1,4'; // Selesai & Pelaporan
+        path3 = '/api/asesor/jadwal';
       }
 
       // Fetch data untuk setiap tab secara parallel
@@ -200,7 +200,7 @@ class _JadwalScreenState extends State<JadwalScreen>
       if (isAsesor) {
         status = '0';
         sortBy = 'tanggal';
-        path = '/api/jadwal/active';
+        path = '/api/asesor/jadwal';
       }
 
       final newData = await ApiService.getJadwalList(
@@ -243,7 +243,7 @@ class _JadwalScreenState extends State<JadwalScreen>
 
       if (isAsesor) {
         status = '2'; // Dibatalkan
-        path = '/api/jadwal/completed';
+        path = '/api/asesor/jadwal';
       }
 
       final newData = await ApiService.getJadwalList(
@@ -285,8 +285,8 @@ class _JadwalScreenState extends State<JadwalScreen>
       String path = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
 
       if (isAsesor) {
-        status = '1'; // Selesai
-        path = '/api/jadwal/completed';
+        status = '1,4'; // Selesai & Pelaporan
+        path = '/api/asesor/jadwal';
       }
 
       final newData = await ApiService.getJadwalList(

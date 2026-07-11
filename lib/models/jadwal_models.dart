@@ -347,6 +347,9 @@ class JadwalAsesorDetailData {
   final String alamatTuk;
   final String jenisTuk;
   final List<AsesorDetailItem> asesor;
+  final String? waktuAsesmen;
+  final String? leadAsesor;
+  final int? jumlahPeserta;
 
   const JadwalAsesorDetailData({
     required this.id,
@@ -360,20 +363,26 @@ class JadwalAsesorDetailData {
     required this.alamatTuk,
     required this.jenisTuk,
     required this.asesor,
+    this.waktuAsesmen,
+    this.leadAsesor,
+    this.jumlahPeserta,
   });
 
   factory JadwalAsesorDetailData.fromJson(Map<String, dynamic> json) {
     return JadwalAsesorDetailData(
       id: json['id'] ?? 0,
-      jadwal: json['jadwal'] ?? '',
-      tanggal: json['tanggal'] ?? '',
-      tanggalAkhir: json['tanggal_akhir'] ?? '',
+      jadwal: json['jadwal'] ?? json['nama_jadwal'] ?? '',
+      tanggal: json['tanggal'] ?? json['tanggal_asesmen'] ?? '',
+      tanggalAkhir: json['tanggal_akhir'] ?? json['tanggal_asesmen'] ?? '',
       statusJadwal: json['status_jadwal']?.toString() ?? '',
       statusLabel: json['status_label'] ?? '',
       idTuk: json['id_tuk'] ?? 0,
       tuk: json['tuk'] ?? '',
-      alamatTuk: json['alamat_tuk'] ?? '',
+      alamatTuk: json['alamat_tuk'] ?? json['lokasi_asesmen'] ?? '',
       jenisTuk: json['jenis_tuk'] ?? '',
+      waktuAsesmen: json['waktu_asesmen'],
+      leadAsesor: json['lead_asesor'],
+      jumlahPeserta: json['jumlah_peserta'],
       asesor:
           (json['asesor'] as List<dynamic>?)
               ?.map(
