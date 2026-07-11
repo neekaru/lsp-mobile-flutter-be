@@ -23,6 +23,7 @@ import 'screens/sertifikat/skema_sertifikasi_screen.dart';
 import 'screens/sertifikat/validasi_sertifikat_screen.dart';
 import 'screens/dashboard/berita_screen.dart';
 import 'screens/penugasan/penugasan_screen.dart';
+import 'screens/common/placeholder_screen.dart';
 
 // Import widgets
 import 'widgets/bottom_menu_bar.dart';
@@ -240,8 +241,8 @@ class MainNavigatorState extends State<MainNavigator> {
           DashboardScreen(onNavigateToJadwal: () => setTab(1)),
           JadwalScreen(onBackToHome: () => setTab(0)),
           PenugasanScreen(onBackToHome: () => setTab(0)),
-          SertifikatScreen(onBackToHome: () => setTab(0)),
-          ProfileScreen(onBackToHome: () => setTab(0)),
+          PlaceholderScreen(title: 'Laporan', onBackToHome: () => setTab(0)),
+          PlaceholderScreen(title: 'Profil', onBackToHome: () => setTab(0)),
         ];
       } else {
         _screens = [
