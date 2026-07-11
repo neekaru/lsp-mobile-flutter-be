@@ -450,3 +450,113 @@ class AsesorDetailItem {
     );
   }
 }
+
+class ParticipantDetailResponse {
+  final String status;
+  final String message;
+  final ParticipantDetailData data;
+
+  const ParticipantDetailResponse({
+    required this.status,
+    required this.message,
+    required this.data,
+  });
+
+  factory ParticipantDetailResponse.fromJson(Map<String, dynamic> json) {
+    return ParticipantDetailResponse(
+      status: json['status'] ?? '',
+      message: json['message'] ?? '',
+      data: ParticipantDetailData.fromJson(json['data'] ?? {}),
+    );
+  }
+}
+
+class ParticipantDetailData {
+  final int pesertaId;
+  final String noPeserta;
+  final String namaLengkap;
+  final String nik;
+  final String tempatLahir;
+  final String tanggalLahir;
+  final String skemaSertifikat;
+  final String institusi;
+  final String email;
+  final String noTelepon;
+  final StatusKelengkapan statusKelengkapan;
+  final StatusAssessment statusAssessment;
+
+  const ParticipantDetailData({
+    required this.pesertaId,
+    required this.noPeserta,
+    required this.namaLengkap,
+    required this.nik,
+    required this.tempatLahir,
+    required this.tanggalLahir,
+    required this.skemaSertifikat,
+    required this.institusi,
+    required this.email,
+    required this.noTelepon,
+    required this.statusKelengkapan,
+    required this.statusAssessment,
+  });
+
+  factory ParticipantDetailData.fromJson(Map<String, dynamic> json) {
+    return ParticipantDetailData(
+      pesertaId: json['peserta_id'] ?? 0,
+      noPeserta: json['no_peserta'] ?? '',
+      namaLengkap: json['nama_lengkap'] ?? '',
+      nik: json['nik'] ?? '',
+      tempatLahir: json['tempat_lahir'] ?? '',
+      tanggalLahir: json['tanggal_lahir'] ?? '',
+      skemaSertifikat: json['skema_sertifikat'] ?? '',
+      institusi: json['institusi'] ?? '',
+      email: json['email'] ?? '',
+      noTelepon: json['no_telepon'] ?? '',
+      statusKelengkapan: StatusKelengkapan.fromJson(json['status_kelengkapan'] ?? {}),
+      statusAssessment: StatusAssessment.fromJson(json['status_assessment'] ?? {}),
+    );
+  }
+}
+
+class StatusKelengkapan {
+  final String portofolio;
+  final String dokumenPendukung;
+  final String persyaratan;
+
+  const StatusKelengkapan({
+    required this.portofolio,
+    required this.dokumenPendukung,
+    required this.persyaratan,
+  });
+
+  factory StatusKelengkapan.fromJson(Map<String, dynamic> json) {
+    return StatusKelengkapan(
+      portofolio: json['portofolio'] ?? '',
+      dokumenPendukung: json['dokumen_pendukung'] ?? '',
+      persyaratan: json['persyaratan'] ?? '',
+    );
+  }
+}
+
+class StatusAssessment {
+  final String kehadiran;
+  final String tugasAsesmen;
+  final String laporan;
+  final String rekaman;
+
+  const StatusAssessment({
+    required this.kehadiran,
+    required this.tugasAsesmen,
+    required this.laporan,
+    required this.rekaman,
+  });
+
+  factory StatusAssessment.fromJson(Map<String, dynamic> json) {
+    return StatusAssessment(
+      kehadiran: json['kehadiran'] ?? '',
+      tugasAsesmen: json['tugas_asesmen'] ?? '',
+      laporan: json['laporan'] ?? '',
+      rekaman: json['rekaman'] ?? '',
+    );
+  }
+}

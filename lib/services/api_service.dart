@@ -93,6 +93,8 @@ class ApiService {
   }) =>
       JadwalService.updateJadwalStatus(jadwalId: jadwalId, rule: rule, catatan: catatan);
   static Future<AsesiListResponse> getAsesiList(int jadwalId) => JadwalService.getAsesiList(jadwalId);
+  static Future<ParticipantDetailResponse?> getParticipantDetail(int jadwalId, int pesertaId) =>
+      JadwalService.getParticipantDetail(jadwalId, pesertaId);
   static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(int jadwalId) =>
       JadwalService.getJadwalAsesorDetail(jadwalId);
   static Future<String?> getSuratTugas(int jadwalId) => JadwalService.getSuratTugas(jadwalId);

@@ -1,64 +1,174 @@
 import 'package:flutter/material.dart';
 import '../../models/jadwal_models.dart';
+import '../../services/api_service.dart';
 import '../../widgets/custom_app_bar.dart';
 
-class PenugasanDetailPesertaScreen extends StatelessWidget {
+class PenugasanDetailPesertaScreen extends StatefulWidget {
   final AsesiItem asesi;
   final String jadwalTitle;
+  final int jadwalId;
 
   const PenugasanDetailPesertaScreen({
     super.key,
     required this.asesi,
     required this.jadwalTitle,
+    required this.jadwalId,
   });
+
+  @override
+  State<PenugasanDetailPesertaScreen> createState() => _PenugasanDetailPesertaScreenState();
+}
+
+class _PenugasanDetailPesertaScreenState extends State<PenugasanDetailPesertaScreen> {
+  bool _isLoading = true;
+  String _errorMessage = '';
+  ParticipantDetailData? _detailData;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDetailData();
+  }
+
+  Future<void> _fetchDetailData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final res = await ApiService.getParticipantDetail(widget.jadwalId, widget.asesi.id);
+      if (res != null && res.status == 'success') {
+        setState(() {
+          _detailData = res.data;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = res?.message ?? 'Gagal memuat detail peserta.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Terjadi kesalahan saat memuat data.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Color _getBadgeBgColor(String status) {
+    switch (status) {
+      case 'Lengkap':
+      case 'Hadir':
+      case 'Kompeten':
+      case 'Selesai':
+        return const Color(0xFFA5D6A7); // Green light
+      case 'Belum Kompeten':
+        return const Color(0xFFFFCDD2); // Red light
+      default:
+        return const Color(0xFFFFCC80); // Orange/Beige light
+    }
+  }
+
+  Color _getBadgeTextColor(String status) {
+    switch (status) {
+      case 'Lengkap':
+      case 'Hadir':
+      case 'Kompeten':
+      case 'Selesai':
+        return const Color(0xFF2E7D32); // Green dark
+      case 'Belum Kompeten':
+        return const Color(0xFFC62828); // Red dark
+      default:
+        return const Color(0xFFE65100); // Orange dark
+    }
+  }
+
+  String _formatIndonesianDate(String yyyymmdd) {
+    try {
+      final dt = DateTime.tryParse(yyyymmdd);
+      if (dt == null) return yyyymmdd;
+      final months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      final monthName = months[dt.month - 1];
+      return '${dt.day} $monthName ${dt.year}';
+    } catch (e) {
+      return yyyymmdd;
+    }
+  }
+
+  Widget _buildErrorWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 48,
+              color: Colors.redAccent,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage,
+              style: const TextStyle(fontSize: 14, color: Colors.black54),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _fetchDetailData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF5B9FD8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
 
-    // Mock data based on candidate ID for realism and consistency
-    final int seed = asesi.id;
-    final String nik = '625374${(seed * 7382 + 1000000).toString().padRight(7, '0').substring(0, 7)}';
-    
-    final cities = ['Yogyakarta', 'Semarang', 'Surabaya', 'Jakarta', 'Bandung'];
-    final city = cities[seed % cities.length];
-    final String tempatTanggalLahir = '$city, 10 Mei 1998';
-    
-    final String institusi = seed % 2 == 0 ? 'LPP Jigja' : 'LPP Cahaya Borneo';
-    final String cleanName = asesi.namaLengkap.toLowerCase().replaceAll(' ', '');
-    final String email = '$cleanName@gmail.com';
-    
-    final String noTelepon = '08567873${(seed * 31 + 1000).toString().padRight(4, '0').substring(0, 4)}';
-    final String noPeserta = 'PES-2026-0724-${seed.toString().padLeft(3, '0')}';
+    // Fallbacks if data is still loading or unavailable
+    final String displayNoPeserta = _detailData?.noPeserta != null && _detailData!.noPeserta.isNotEmpty
+        ? _detailData!.noPeserta
+        : 'PES-2026-0724-${widget.asesi.id.toString().padLeft(3, '0')}';
 
-    // Status mapping for Asessment
-    final String? rec = asesi.hasilRekomendasi;
-    
-    // Green badge colors (Lengkap, Hadir, Kompeten)
-    const Color greenBg = Color(0xFFA5D6A7);
-    const Color greenText = Color(0xFF2E7D32);
+    final String displayNik = _detailData?.nik != null && _detailData!.nik.isNotEmpty
+        ? _detailData!.nik
+        : '6253748567382';
 
-    // Orange/Beige badge colors (Belum Dinilai, Belum Dibuat, Belum Diunggah)
-    const Color orangeBg = Color(0xFFFFCC80);
-    const Color orangeText = Color(0xFFE65100);
+    final String displayTempatLahir = _detailData?.tempatLahir ?? 'Yogyakarta';
+    final String displayTanggalLahir = _detailData?.tanggalLahir != null && _detailData!.tanggalLahir.isNotEmpty
+        ? _formatIndonesianDate(_detailData!.tanggalLahir)
+        : '10 Mei 1998';
+    final String displayTTL = '$displayTempatLahir, $displayTanggalLahir';
 
-    // Red badge colors (Belum Kompeten)
-    const Color redBg = Color(0xFFFFCDD2);
-    const Color redText = Color(0xFFC62828);
+    final String displaySkema = _detailData?.skemaSertifikat != null && _detailData!.skemaSertifikat.isNotEmpty
+        ? _detailData!.skemaSertifikat
+        : widget.jadwalTitle;
 
-    String tugasStatus = 'Belum Dinilai';
-    Color tugasBg = orangeBg;
-    Color tugasTextColor = orangeText;
+    final String displayInstitusi = _detailData?.institusi != null && _detailData!.institusi.isNotEmpty
+        ? _detailData!.institusi
+        : 'LPP Jigja';
 
-    if (rec == 'K') {
-      tugasStatus = 'Kompeten';
-      tugasBg = greenBg;
-      tugasTextColor = greenText;
-    } else if (rec == 'BK') {
-      tugasStatus = 'Belum Kompeten';
-      tugasBg = redBg;
-      tugasTextColor = redText;
-    }
+    final String displayEmail = _detailData?.email != null && _detailData!.email.isNotEmpty
+        ? _detailData!.email
+        : '${widget.asesi.namaLengkap.toLowerCase().replaceAll(' ', '')}@gmail.com';
+
+    final String displayNoTelepon = _detailData?.noTelepon != null && _detailData!.noTelepon.isNotEmpty
+        ? _detailData!.noTelepon
+        : '085678736521';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -72,208 +182,202 @@ class PenugasanDetailPesertaScreen extends StatelessWidget {
           ),
 
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Header Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: const Color(0xFFE2E8F0),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        // Circle Avatar
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF1F5F9),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.person_outline_rounded,
-                            color: Color(0xFF94A3B8),
-                            size: 30,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        
-                        // Name and No Peserta
-                        Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage.isNotEmpty
+                    ? _buildErrorWidget()
+                    : RefreshIndicator(
+                        onRefresh: _fetchDetailData,
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                asesi.namaLengkap,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
+                              // 1. Header Card
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Circle Avatar
+                                    Container(
+                                      width: 52,
+                                      height: 52,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFFF1F5F9),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.person_outline_rounded,
+                                        color: Color(0xFF94A3B8),
+                                        size: 30,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    
+                                    // Name and No Peserta
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _detailData?.namaLengkap ?? widget.asesi.namaLengkap,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF1E293B),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'No Peserta :$displayNoPeserta',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'No Peserta :$noPeserta',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF64748B),
+
+                              const SizedBox(height: 16),
+
+                              // 2. Profile Details list
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    _buildProfileRow('NIK', displayNik),
+                                    _buildProfileRow('Tempat, Tanggal Lahir', displayTTL),
+                                    _buildProfileRow('Skema Sertifikat', displaySkema),
+                                    _buildProfileRow('Institusi', displayInstitusi),
+                                    _buildProfileRow('Email', displayEmail),
+                                    _buildProfileRow('No.Telepon', displayNoTelepon),
+                                  ],
                                 ),
                               ),
+
+                              const SizedBox(height: 16),
+
+                              // 3. Status Kelengkapan Card
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE5F1FC),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(0xFFB3D7F4),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Status Kelengkapan',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0D47A1),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildStatusRow(
+                                      icon: Icons.insert_drive_file_outlined,
+                                      label: 'Portofolio',
+                                      statusText: _detailData?.statusKelengkapan.portofolio ?? 'Lengkap',
+                                    ),
+                                    _buildStatusRow(
+                                      icon: Icons.insert_drive_file_outlined,
+                                      label: 'Dokumen Pendukung',
+                                      statusText: _detailData?.statusKelengkapan.dokumenPendukung ?? 'Belum Lengkap',
+                                    ),
+                                    _buildStatusRow(
+                                      icon: Icons.insert_drive_file_outlined,
+                                      label: 'Persyaratan',
+                                      statusText: _detailData?.statusKelengkapan.persyaratan ?? 'Belum Lengkap',
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // 4. Status Assessment Card
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE5F1FC),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(0xFFB3D7F4),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Status Asessment',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0D47A1),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildStatusRow(
+                                      icon: Icons.insert_drive_file_outlined,
+                                      label: 'Kehadiran',
+                                      statusText: _detailData?.statusAssessment.kehadiran ?? 'Belum tersedia',
+                                    ),
+                                    _buildStatusRow(
+                                      icon: Icons.insert_drive_file_outlined,
+                                      label: 'Tugas Asessmen',
+                                      statusText: _detailData?.statusAssessment.tugasAsesmen ?? 'Belum Dinilai',
+                                    ),
+                                    _buildStatusRow(
+                                      icon: Icons.insert_drive_file_outlined,
+                                      label: 'Laporan',
+                                      statusText: _detailData?.statusAssessment.laporan ?? 'Belum Dibuat',
+                                    ),
+                                    _buildStatusRow(
+                                      icon: Icons.insert_drive_file_outlined,
+                                      label: 'Rekaman',
+                                      statusText: _detailData?.statusAssessment.rekaman ?? 'Belum Diunggah',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              const SizedBox(height: 20),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 2. Profile Details list
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: const Color(0xFFE2E8F0),
-                        width: 1,
                       ),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildProfileRow('NIK', nik),
-                        _buildProfileRow('Tempat, Tanggal Lahir', tempatTanggalLahir),
-                        _buildProfileRow('Skema Sertifikat', jadwalTitle),
-                        _buildProfileRow('Institusi', institusi),
-                        _buildProfileRow('Email', email),
-                        _buildProfileRow('No.Telepon', noTelepon),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 3. Status Kelengkapan Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE5F1FC),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: const Color(0xFFB3D7F4),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Status Kelengkapan',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0D47A1),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStatusRow(
-                          icon: Icons.insert_drive_file_outlined,
-                          label: 'Portofolio',
-                          statusText: 'Lengkap',
-                          badgeBg: greenBg,
-                          badgeTextColor: greenText,
-                        ),
-                        _buildStatusRow(
-                          icon: Icons.insert_drive_file_outlined,
-                          label: 'Dokumen Pendukung',
-                          statusText: 'Lengkap',
-                          badgeBg: greenBg,
-                          badgeTextColor: greenText,
-                        ),
-                        _buildStatusRow(
-                          icon: Icons.insert_drive_file_outlined,
-                          label: 'Persyaratan',
-                          statusText: 'Lengkap',
-                          badgeBg: greenBg,
-                          badgeTextColor: greenText,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 4. Status Assessment Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE5F1FC),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: const Color(0xFFB3D7F4),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Status Asessment',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0D47A1),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStatusRow(
-                          icon: Icons.insert_drive_file_outlined,
-                          label: 'Kehadiran',
-                          statusText: 'Hadir',
-                          badgeBg: greenBg,
-                          badgeTextColor: greenText,
-                        ),
-                        _buildStatusRow(
-                          icon: Icons.insert_drive_file_outlined,
-                          label: 'Tugas Asessmen',
-                          statusText: tugasStatus,
-                          badgeBg: tugasBg,
-                          badgeTextColor: tugasTextColor,
-                        ),
-                        _buildStatusRow(
-                          icon: Icons.insert_drive_file_outlined,
-                          label: 'Laporan',
-                          statusText: 'Belum Dibuat',
-                          badgeBg: orangeBg,
-                          badgeTextColor: orangeText,
-                        ),
-                        _buildStatusRow(
-                          icon: Icons.insert_drive_file_outlined,
-                          label: 'Rekaman',
-                          statusText: 'Belum Diunggah',
-                          badgeBg: orangeBg,
-                          badgeTextColor: orangeText,
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
           ),
         ],
       ),
@@ -315,9 +419,10 @@ class PenugasanDetailPesertaScreen extends StatelessWidget {
     required IconData icon,
     required String label,
     required String statusText,
-    required Color badgeBg,
-    required Color badgeTextColor,
   }) {
+    final bg = _getBadgeBgColor(statusText);
+    final textCol = _getBadgeTextColor(statusText);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -344,7 +449,7 @@ class PenugasanDetailPesertaScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: badgeBg,
+              color: bg,
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -352,7 +457,7 @@ class PenugasanDetailPesertaScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: badgeTextColor,
+                color: textCol,
               ),
             ),
           ),

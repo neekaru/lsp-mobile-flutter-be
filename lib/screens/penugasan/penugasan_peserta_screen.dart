@@ -499,6 +499,7 @@ class _PenugasanPesertaScreenState extends State<PenugasanPesertaScreen> {
                                             builder: (context) => PenugasanDetailPesertaScreen(
                                               asesi: item,
                                               jadwalTitle: widget.jadwalTitle,
+                                              jadwalId: widget.jadwalId,
                                             ),
                                           ),
                                         );

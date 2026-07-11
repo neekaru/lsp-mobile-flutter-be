@@ -193,6 +193,58 @@ class JadwalService {
     }
   }
 
+  /// Fetch Participant Detail for a specific schedule and participant ID
+  static Future<ParticipantDetailResponse?> getParticipantDetail(int jadwalId, int pesertaId) async {
+    // Intercept dummy / mock calls
+    if (jadwalId == 101 || jadwalId == 102 || jadwalId == 103 || jadwalId == 11152 || pesertaId == 101 || pesertaId == 102 || pesertaId == 103) {
+      final name = pesertaId == 101 ? 'Andi Pratama' : (pesertaId == 102 ? 'Budi Santoso' : 'Citra Lestari');
+      final rec = pesertaId == 101 ? 'K' : (pesertaId == 102 ? 'BK' : null);
+      
+      String tugasStatus = 'Belum Dinilai';
+      if (rec == 'K') tugasStatus = 'Kompeten';
+      if (rec == 'BK') tugasStatus = 'Belum Kompeten';
+
+      return ParticipantDetailResponse(
+        status: 'success',
+        message: 'Participant detail retrieved successfully',
+        data: ParticipantDetailData(
+          pesertaId: pesertaId,
+          noPeserta: 'PES-2026-0724-${pesertaId.toString().padLeft(3, '0')}',
+          namaLengkap: name,
+          nik: '6253748567382',
+          tempatLahir: 'Yogyakarta',
+          tanggalLahir: '1998-05-10',
+          skemaSertifikat: 'UI/UX Design',
+          institusi: 'LPP Jigja',
+          email: '${name.toLowerCase().replaceAll(' ', '')}@gmail.com',
+          noTelepon: '085678736521',
+          statusKelengkapan: const StatusKelengkapan(
+            portofolio: 'Lengkap',
+            dokumenPendukung: 'Lengkap',
+            persyaratan: 'Lengkap',
+          ),
+          statusAssessment: StatusAssessment(
+            kehadiran: 'Hadir',
+            tugasAsesmen: tugasStatus,
+            laporan: 'Belum Dibuat',
+            rekaman: 'Belum Diunggah',
+          ),
+        ),
+      );
+    }
+
+    try {
+      final response = await _dio.get('/api/asesor/jadwal/$jadwalId/peserta/$pesertaId');
+      if (response.statusCode == 200 && response.data != null) {
+        return ParticipantDetailResponse.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching participant detail: $e');
+      return null;
+    }
+  }
+
   /// Fetch Assessor Detail for a specific schedule
   static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(int jadwalId) async {
     // Intercept dummy IDs for PenugasanScreen flow
