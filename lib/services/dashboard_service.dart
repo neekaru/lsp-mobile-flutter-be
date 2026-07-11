@@ -65,6 +65,27 @@ class DashboardService {
     }
   }
 
+  /// Fetch Asesor Dashboard Data
+  static Future<AsesorDashboardData> getAsesorDashboard({String? tanggal}) async {
+    try {
+      final url = tanggal != null
+          ? '/api/asesor/dashboard?tanggal=$tanggal'
+          : '/api/asesor/dashboard';
+
+      final response = await _dio.get(url);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'];
+        return AsesorDashboardData.fromJson(data);
+      }
+
+      return AsesorDashboardData.mock();
+    } catch (e) {
+      debugPrint('Error fetching asesor dashboard: $e');
+      return AsesorDashboardData.mock();
+    }
+  }
+
   /// Fetch Monthly Assessments for Chart
   static Future<List<MonthlyAssessment>> getMonthlyAssessments() async {
     try {

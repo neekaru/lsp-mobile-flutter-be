@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import '../screens/jadwal/jadwal_screen.dart';
+import '../screens/jadwal/jadwal_detail_screen.dart';
+import '../models/dashboard_models.dart';
+import '../models/jadwal_models.dart';
+import '../services/auth_repository.dart';
 
 class RangkumanAsesor extends StatefulWidget {
   final bool isLoading;
   final VoidCallback? onNavigateToJadwal;
+  final AsesorDashboardData? data;
 
   const RangkumanAsesor({
     super.key,
     this.isLoading = false,
     this.onNavigateToJadwal,
+    this.data,
   });
 
   @override
@@ -118,127 +124,90 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
               ),
               const SizedBox(height: 16),
               // Alert banner inside card
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2C3E50).withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFD97706),
-                    width: 1.5,
+              if (widget.data?.alertBanner.hasAlert == true) ...[
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFD97706),
+                      width: 1.5,
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.notifications_active_rounded,
+                        color: Color(0xFFFBBF24),
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.data!.alertBanner.title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.data!.alertBanner.subtitle,
+                              style: const TextStyle(
+                                color: Color(0xE0FFFFFF),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                const SizedBox(height: 16),
+              ],
+              // Row of 3 Category Cards
+              SizedBox(
+                height: 120,
                 child: Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFBBF24).withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.notifications_rounded,
-                        color: Color(0xFFFBBF24),
-                        size: 22,
+                    Expanded(
+                      child: _buildCategoryCard(
+                        title: 'Menunggu Verifikasi',
+                        count: (widget.data?.summary.menungguVerifikasi ?? 0).toString(),
+                        icon: Icons.access_time_rounded,
+                        iconColor: const Color(0xFFF59E0B),
+                        iconBgColor: const Color(0xFFFEF3C7),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Verivikasi Laporan Anda Tertunda',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Anda memiliki 2 laporan yang menunggu verifikasi',
-                            style: TextStyle(
-                              color: Color(0xE0FFFFFF),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildCategoryCard(
+                        title: 'Asessmen Berlangsung',
+                        count: (widget.data?.summary.asesmenBerlangsung ?? 0).toString(),
+                        icon: Icons.assignment_rounded,
+                        iconColor: const Color(0xFF3F8CFF),
+                        iconBgColor: const Color(0xFFF0F5FF),
                       ),
                     ),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      color: Color(0xFFFBBF24),
-                      size: 22,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildCategoryCard(
+                        title: 'Asessmen Selesai',
+                        count: (widget.data?.summary.asesmenSelesai ?? 0).toString(),
+                        icon: Icons.check_circle_rounded,
+                        iconColor: const Color(0xFF10B981),
+                        iconBgColor: const Color(0xFFECFDF5),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              // 2. Grid of category cards using Rows for fixed height to prevent stretching
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 80,
-                          child: _buildCategoryCard(
-                            title: 'Menunggu Penugasan',
-                            count: '3',
-                            icon: Icons.calendar_month_rounded,
-                            iconColor: const Color(0xFF3FA8F8),
-                            iconBgColor: const Color(0xFFE8F5FF),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SizedBox(
-                          height: 80,
-                          child: _buildCategoryCard(
-                            title: 'Asessmen Berlangsung',
-                            count: '1',
-                            icon: Icons.assignment_rounded,
-                            iconColor: const Color(0xFF3F8CFF),
-                            iconBgColor: const Color(0xFFF0F5FF),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 80,
-                          child: _buildCategoryCard(
-                            title: 'Menunggu Verifikasi',
-                            count: '3',
-                            icon: Icons.access_time_rounded,
-                            iconColor: const Color(0xFFF59E0B),
-                            iconBgColor: const Color(0xFFFEF3C7),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SizedBox(
-                          height: 80,
-                          child: _buildCategoryCard(
-                            title: 'Asessmen Selesai',
-                            count: '2',
-                            icon: Icons.check_circle_rounded,
-                            iconColor: const Color(0xFF10B981),
-                            iconBgColor: const Color(0xFFECFDF5),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
               ),
             ],
           ),
@@ -263,8 +232,41 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
         ),
         const SizedBox(height: 12),
 
-        // Jadwal Hari Ini Card
-        _buildJadwalHariIniCard(),
+        // Jadwal Hari Ini Cards
+        if (widget.data == null || widget.data!.jadwalHariIni.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.calendar_today_rounded, color: Color(0xFF94A3B8), size: 36),
+                SizedBox(height: 8),
+                Text(
+                  'Tidak ada jadwal asesmen hari ini',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          Column(
+            children: widget.data!.jadwalHariIni
+                .map((item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildJadwalHariIniCard(item),
+                    ))
+                .toList(),
+          ),
         const SizedBox(height: 28),
 
         // 3. Tugas Prioritas Section Header
@@ -275,37 +277,73 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
         const SizedBox(height: 12),
 
         // Tugas Prioritas List
-        _buildPriorityTaskCard(
-          title: 'Penugasan Asessmen baru',
-          subtitle: 'Skema Diigital Marketing - TUK Digital Marketing',
-          icon: Icons.assignment_rounded,
-          iconColor: const Color(0xFF3FA8F8),
-          iconBgColor: const Color(0xFFE8F5FF),
-        ),
-        const SizedBox(height: 10),
-        _buildPriorityTaskCard(
-          title: 'Asessmen Selesai',
-          subtitle: 'Skema UI/UX Designer - TUK LPP Sampit',
-          icon: Icons.check_circle_rounded,
-          iconColor: const Color(0xFF10B981),
-          iconBgColor: const Color(0xFFECFDF5),
-        ),
-        const SizedBox(height: 10),
-        _buildPriorityTaskCard(
-          title: 'Laporan Menunggu Verifikasi',
-          subtitle: 'Skema Ilmuan Big Data - TUK LPP Sampit',
-          icon: Icons.access_time_rounded,
-          iconColor: const Color(0xFFF59E0B),
-          iconBgColor: const Color(0xFFFEF3C7),
-        ),
-        const SizedBox(height: 10),
-        _buildPriorityTaskCard(
-          title: 'Rekam Vidio Pengajar',
-          subtitle: 'Skema Digital Marketing - TUK LPP Digital Marketing',
-          icon: Icons.play_circle_outline_rounded,
-          iconColor: const Color(0xFF3FA8F8),
-          iconBgColor: const Color(0xFFE8F5FF),
-        ),
+        if (widget.data == null || widget.data!.tugasPrioritas.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.assignment_turned_in_rounded, color: Color(0xFF94A3B8), size: 36),
+                SizedBox(height: 8),
+                Text(
+                  'Tidak ada tugas prioritas saat ini',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          Column(
+            children: widget.data!.tugasPrioritas.map((task) {
+              IconData icon = Icons.assignment_rounded;
+              Color iconColor = const Color(0xFF3FA8F8);
+              Color iconBgColor = const Color(0xFFE8F5FF);
+
+              switch (task.type) {
+                case 'menunggu_verifikasi':
+                  icon = Icons.access_time_rounded;
+                  iconColor = const Color(0xFFF59E0B);
+                  iconBgColor = const Color(0xFFFEF3C7);
+                  break;
+                case 'penugasan_baru':
+                  icon = Icons.assignment_rounded;
+                  iconColor = const Color(0xFF3FA8F8);
+                  iconBgColor = const Color(0xFFE8F5FF);
+                  break;
+                case 'asesmen_berlangsung':
+                  icon = Icons.play_circle_outline_rounded;
+                  iconColor = const Color(0xFF3F8CFF);
+                  iconBgColor = const Color(0xFFF0F5FF);
+                  break;
+                case 'asesmen_selesai':
+                  icon = Icons.check_circle_rounded;
+                  iconColor = const Color(0xFF10B981);
+                  iconBgColor = const Color(0xFFECFDF5);
+                  break;
+              }
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _buildPriorityTaskCard(
+                  title: task.title,
+                  subtitle: task.subtitle,
+                  icon: icon,
+                  iconColor: iconColor,
+                  iconBgColor: iconBgColor,
+                ),
+              );
+            }).toList(),
+          ),
         const SizedBox(height: 24),
       ],
     );
@@ -353,133 +391,191 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
     );
   }
 
-  Widget _buildJadwalHariIniCard() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1.0,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Left side: Calendar with Pencil Icon
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE2F0FD),
-              borderRadius: BorderRadius.circular(12),
+  Widget _buildJadwalHariIniCard(AsesorDashboardJadwal item) {
+    String statusLabel = 'waiting';
+    Color statusColor = const Color(0xFFEA580C);
+    Color statusBgColor = const Color(0xFFFFEDD5);
+
+    switch (item.status) {
+      case '0':
+        statusLabel = 'waiting';
+        statusColor = const Color(0xFFEA580C);
+        statusBgColor = const Color(0xFFFFEDD5);
+        break;
+      case '1':
+        statusLabel = 'completed';
+        statusColor = const Color(0xFF10B981);
+        statusBgColor = const Color(0xFFECFDF5);
+        break;
+      case '2':
+        statusLabel = 'canceled';
+        statusColor = const Color(0xFFEF4444);
+        statusBgColor = const Color(0xFFFEE2E2);
+        break;
+      case '3':
+        statusLabel = 'running';
+        statusColor = const Color(0xFF3F8CFF);
+        statusBgColor = const Color(0xFFF0F5FF);
+        break;
+      case '4':
+        statusLabel = 'pelaporan';
+        statusColor = const Color(0xFFD97706);
+        statusBgColor = const Color(0xFFFEF3C7);
+        break;
+    }
+
+    return InkWell(
+      onTap: () {
+        final user = AuthRepository.currentUserInstance;
+        final userRole = UserRole(
+          role: user?.role ?? 'asesor',
+          name: user?.name ?? '',
+          email: user?.email ?? '',
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => JadwalDetailScreen(
+              jadwal: item.toJadwalItem(),
+              userRole: userRole,
             ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const Icon(
-                  Icons.calendar_month_rounded,
-                  color: Color(0xFF3F8CFF),
-                  size: 40,
-                ),
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.edit_rounded,
-                      color: Color(0xFF3F8CFF),
-                      size: 14,
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFE2E8F0),
+            width: 1.0,
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x06000000),
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2F0FD),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Icon(
+                    Icons.calendar_month_rounded,
+                    color: Color(0xFF3F8CFF),
+                    size: 40,
+                  ),
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.edit_rounded,
+                        color: Color(0xFF3F8CFF),
+                        size: 14,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          // Center & Right: Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Eko Setiabudi',
-                      style: TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    // Status Badge: waiting
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFEDD5), // light orange
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'waiting',
-                        style: TextStyle(
-                          color: Color(0xFFEA580C), // dark orange
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Asesmen Mandiri',
+                          style: TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusBgColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          statusLabel,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Skema : ${item.skema}',
+                    style: const TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Skema : Digital Marketing',
-                  style: TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '09:00 - 12:00',
-                  style: TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 8),
+                  Text(
+                    item.waktu,
+                    style: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'TUK Kampus Digital',
-                  style: TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w500,
+                  const SizedBox(height: 2),
+                  Text(
+                    item.tuk,
+                    style: const TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -557,18 +653,19 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x08000000),
-            blurRadius: 6,
+            color: Color(0x0A000000),
+            blurRadius: 8,
             offset: Offset(0, 3),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      child: Row(
+      padding: const EdgeInsets.all(10),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Icon Box
           Container(
@@ -584,50 +681,43 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
               size: 18,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(height: 8),
           // Texts
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                    height: 1.1,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      count,
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        height: 1,
-                      ),
-                    ),
-                    const SizedBox(width: 3),
-                    const Text(
-                      'Asessmen',
-                      style: TextStyle(
-                        color: Color(0xFF0D9488),
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFF1E293B),
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              height: 1.2,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                count,
+                style: const TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  height: 1,
+                ),
+              ),
+              const SizedBox(width: 3),
+              const Text(
+                'Asessmen',
+                style: TextStyle(
+                  color: Color(0xFF0D9488),
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ],
       ),

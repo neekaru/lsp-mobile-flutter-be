@@ -52,6 +52,8 @@ class ApiService {
   static Future<DashboardSummary> getSummary() => DashboardService.getSummary();
   static Future<AsesiDashboardSummary> getAsesiSummary() =>
       DashboardService.getAsesiSummary();
+  static Future<AsesorDashboardData> getAsesorDashboard({String? tanggal}) =>
+      DashboardService.getAsesorDashboard(tanggal: tanggal);
   static Future<List<MonthlyAssessment>> getMonthlyAssessments() => DashboardService.getMonthlyAssessments();
   static Future<List<MonthlyAssessment>> getAssessmentGraph({int months = 12}) =>
       DashboardService.getAssessmentGraph(months: months);

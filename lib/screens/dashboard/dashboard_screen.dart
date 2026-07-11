@@ -33,6 +33,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // State untuk menyimpan data dari API
   DashboardSummary? _summaryData;
   AsesiDashboardSummary? _asesiSummaryData;
+  AsesorDashboardData? _asesorDashboardData;
   List<MonthlyAssessment>? _chartData;
   List<JadwalBaru>? _jadwalData;
   List<BeritaItem>? _beritaData;
@@ -84,9 +85,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _isLoading = false;
         });
       } else if (isAsesor) {
-        // Asesor does not need to load berita or chart graph
+        // Fetch Asesor Dashboard API data
+        final data = await ApiService.getAsesorDashboard();
         if (_isDisposed || !mounted) return;
         setState(() {
+          _asesorDashboardData = data;
           _isLoading = false;
         });
       } else {
@@ -408,6 +411,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ? RangkumanAsesor(
                                   isLoading: _isLoading,
                                   onNavigateToJadwal: widget.onNavigateToJadwal,
+                                  data: _asesorDashboardData,
                                 )
                               : RangkumanUtama(
                                   data: _summaryData,

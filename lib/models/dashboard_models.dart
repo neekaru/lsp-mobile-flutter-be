@@ -465,3 +465,205 @@ class AsesiDashboardSummary {
     );
   }
 }
+
+// ============================================================================
+// Asesor Dashboard Model
+// ============================================================================
+
+class AsesorDashboardSummaryCount {
+  final int menungguVerifikasi;
+  final int asesmenBerlangsung;
+  final int asesmenSelesai;
+  final int menungguPenugasan;
+
+  const AsesorDashboardSummaryCount({
+    required this.menungguVerifikasi,
+    required this.asesmenBerlangsung,
+    required this.asesmenSelesai,
+    required this.menungguPenugasan,
+  });
+
+  factory AsesorDashboardSummaryCount.fromJson(Map<String, dynamic> json) {
+    return AsesorDashboardSummaryCount(
+      menungguVerifikasi: json['menunggu_verifikasi'] ?? 0,
+      asesmenBerlangsung: json['asesmen_berlangsung'] ?? 0,
+      asesmenSelesai: json['asesmen_selesai'] ?? 0,
+      menungguPenugasan: json['menunggu_penugasan'] ?? 0,
+    );
+  }
+
+  factory AsesorDashboardSummaryCount.mock() {
+    return const AsesorDashboardSummaryCount(
+      menungguVerifikasi: 1,
+      asesmenBerlangsung: 0,
+      asesmenSelesai: 12,
+      menungguPenugasan: 2,
+    );
+  }
+}
+
+class AsesorDashboardAlertBanner {
+  final bool hasAlert;
+  final String title;
+  final String subtitle;
+
+  const AsesorDashboardAlertBanner({
+    required this.hasAlert,
+    required this.title,
+    required this.subtitle,
+  });
+
+  factory AsesorDashboardAlertBanner.fromJson(Map<String, dynamic> json) {
+    return AsesorDashboardAlertBanner(
+      hasAlert: json['has_alert'] ?? false,
+      title: json['title'] ?? '',
+      subtitle: json['subtitle'] ?? '',
+    );
+  }
+
+  factory AsesorDashboardAlertBanner.mock() {
+    return const AsesorDashboardAlertBanner(
+      hasAlert: true,
+      title: "Verifikasi laporan tertunda",
+      subtitle: "Anda memiliki 1 laporan yang menunggu verifikasi",
+    );
+  }
+}
+
+class AsesorDashboardJadwal {
+  final int idJadwal;
+  final String skema;
+  final String tanggal;
+  final String waktu;
+  final String tuk;
+  final String status;
+
+  const AsesorDashboardJadwal({
+    required this.idJadwal,
+    required this.skema,
+    required this.tanggal,
+    required this.waktu,
+    required this.tuk,
+    required this.status,
+  });
+
+  factory AsesorDashboardJadwal.fromJson(Map<String, dynamic> json) {
+    return AsesorDashboardJadwal(
+      idJadwal: json['id_jadwal'] ?? 0,
+      skema: json['skema'] ?? '',
+      tanggal: json['tanggal'] ?? '',
+      waktu: json['waktu'] ?? '',
+      tuk: json['tuk'] ?? '',
+      status: json['status']?.toString() ?? '0',
+    );
+  }
+
+  JadwalItem toJadwalItem() {
+    String mapStatus(String statusVal) {
+      switch (statusVal) {
+        case '0':
+          return 'waiting';
+        case '1':
+          return 'completed';
+        case '2':
+          return 'canceled';
+        case '3':
+          return 'running';
+        case '4':
+          return 'pelaporan';
+        default:
+          return 'waiting';
+      }
+    }
+
+    return JadwalItem(
+      id: idJadwal,
+      skema: skema,
+      tuk: tuk,
+      tanggalMulai: tanggal,
+      tanggalSelesai: tanggal,
+      status: mapStatus(status),
+      jumlahAsesi: 0,
+      asesor: const [],
+      sisaHari: 0,
+    );
+  }
+}
+
+class AsesorDashboardTugas {
+  final int idTugas;
+  final String title;
+  final String subtitle;
+  final String type;
+
+  const AsesorDashboardTugas({
+    required this.idTugas,
+    required this.title,
+    required this.subtitle,
+    required this.type,
+  });
+
+  factory AsesorDashboardTugas.fromJson(Map<String, dynamic> json) {
+    return AsesorDashboardTugas(
+      idTugas: json['id_tugas'] ?? 0,
+      title: json['title'] ?? '',
+      subtitle: json['subtitle'] ?? '',
+      type: json['type'] ?? '',
+    );
+  }
+}
+
+class AsesorDashboardData {
+  final AsesorDashboardSummaryCount summary;
+  final AsesorDashboardAlertBanner alertBanner;
+  final List<AsesorDashboardJadwal> jadwalHariIni;
+  final List<AsesorDashboardTugas> tugasPrioritas;
+
+  const AsesorDashboardData({
+    required this.summary,
+    required this.alertBanner,
+    required this.jadwalHariIni,
+    required this.tugasPrioritas,
+  });
+
+  factory AsesorDashboardData.fromJson(Map<String, dynamic> json) {
+    final summaryJson = json['summary'] ?? {};
+    final alertJson = json['alert_banner'] ?? {};
+    final List<dynamic> jadwalList = json['jadwal_hari_ini'] ?? [];
+    final List<dynamic> tugasList = json['tugas_prioritas'] ?? [];
+
+    return AsesorDashboardData(
+      summary: AsesorDashboardSummaryCount.fromJson(summaryJson),
+      alertBanner: AsesorDashboardAlertBanner.fromJson(alertJson),
+      jadwalHariIni:
+          jadwalList.map((j) => AsesorDashboardJadwal.fromJson(j)).toList(),
+      tugasPrioritas:
+          tugasList.map((t) => AsesorDashboardTugas.fromJson(t)).toList(),
+    );
+  }
+
+  factory AsesorDashboardData.mock() {
+    return AsesorDashboardData(
+      summary: AsesorDashboardSummaryCount.mock(),
+      alertBanner: AsesorDashboardAlertBanner.mock(),
+      jadwalHariIni: [
+        const AsesorDashboardJadwal(
+          idJadwal: 11152,
+          skema: "Sertifikasi Junior Web Developer",
+          tanggal: "2026-04-27",
+          waktu: "08:00",
+          tuk: "SMK Media Informatika",
+          status: "1",
+        ),
+      ],
+      tugasPrioritas: [
+        const AsesorDashboardTugas(
+          idTugas: 28054,
+          title: "Laporan menunggu verifikasi",
+          subtitle: "Sertifikasi Junior Web Developer - SMK Media Informatika",
+          type: "menunggu_verifikasi",
+        ),
+      ],
+    );
+  }
+}
