@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/jadwal/custom_tab_bar.dart';
-import '../../widgets/jadwal/jadwal_list_item.dart';
+import '../../widgets/penugasan/penugasan_list_item.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/auth_repository.dart';
-import '../jadwal/jadwal_detail_screen.dart';
+import 'penugasan_detail_screen.dart';
 
 class PenugasanScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -375,7 +375,7 @@ class _PenugasanScreenState extends State<PenugasanScreen>
                 final item = filteredList[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
-                  child: JadwalListItem(
+                  child: PenugasanListItem(
                     item: item,
                     onTap: () => _navigateToDetail(item),
                   ),
@@ -400,7 +400,7 @@ class _PenugasanScreenState extends State<PenugasanScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => JadwalDetailScreen(jadwal: item, userRole: role),
+        builder: (context) => PenugasanDetailScreen(jadwal: item, userRole: role),
       ),
     );
   }
