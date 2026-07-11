@@ -1,29 +1,41 @@
-# Jadwal Saya Asesor - API Ready
+# Penugasan & Detail Peserta Asesor - API Contract & Documentation
 
-Semua endpoint berikut hanya untuk user dengan role `asesor`. Backend mengambil identitas asesor dari email pada JWT dan hanya mengizinkan jadwal yang memang ditugaskan kepada asesor tersebut.
+Dokumen ini mendefinisikan seluruh endpoint API yang dibutuhkan oleh modul **Penugasan** pada aplikasi mobile, mencakup daftar jadwal penugasan, detail penugasan, daftar peserta, dan detail kelengkapan/status asesmen masing-masing peserta.
 
-## Headers
+Semua endpoint berikut bersifat privat dan hanya dapat diakses oleh user dengan role `asesor`. Backend wajib mengambil identitas asesor dari JWT token untuk memvalidasi kepemilikan jadwal penugasan.
+
+---
+
+## Headers Utama
 
 ```http
 Authorization: Bearer <access_token>
 Accept: application/json
 ```
 
-## Daftar Jadwal Saya
+---
+
+## 1. Penugasan (Daftar Jadwal Saya)
+
+Menampilkan daftar jadwal penugasan ujian sertifikasi yang ditugaskan kepada Asesor yang sedang login.
 
 ```http
 GET /api/asesor/jadwal?status_jadwal=:status
 ```
 
-| Tab | Request |
-|---|---|
-| Menunggu | `GET /api/asesor/jadwal?status_jadwal=0` |
-| Dibatalkan | `GET /api/asesor/jadwal?status_jadwal=2` |
-| Selesai | `GET /api/asesor/jadwal?status_jadwal=1,4` |
+### Query Parameters
 
-Jika `status_jadwal` tidak dikirim, backend menggunakan nilai `0` atau Menunggu.
+| Parameter | Tipe | Keterangan |
+|---|---|---|
+| `status_jadwal` | String | Memfilter status jadwal. Nilai yang diperbolehkan:<br>- `0` : Menunggu / Aktif<br>- `1,4` : Selesai / Pelaporan<br>- `2` : Dibatalkan |
 
-### Response 200 OK
+### Contoh Request
+
+```http
+GET /api/asesor/jadwal?status_jadwal=0
+```
+
+### Response (200 OK)
 
 ```json
 {
@@ -33,10 +45,10 @@ Jika `status_jadwal` tidak dikirim, backend menggunakan nilai `0` atau Menunggu.
     {
       "id": 11152,
       "nama_jadwal": "Sertifikasi Junior Web Developer",
-      "tanggal": "2026-04-27",
-      "tanggal_akhir": "2026-04-30",
-      "status_jadwal": "1",
-      "tuk": "SMK Media Informatika",
+      "tanggal": "2026-07-24",
+      "tanggal_akhir": "2026-07-27",
+      "status_jadwal": "0",
+      "tuk": "LPP Cahaya Borneo",
       "jumlah_peserta": 54
     }
   ],
@@ -44,63 +56,69 @@ Jika `status_jadwal` tidak dikirim, backend menggunakan nilai `0` atau Menunggu.
 }
 ```
 
-Nilai `status_jadwal` yang diterima hanya `0`, `1`, `2`, dan `4`. Nilai lain menghasilkan `400 Bad Request`.
+---
 
-## Detail Jadwal
+## 2. Detail Penugasan
+
+Menampilkan informasi rinci dari jadwal penugasan tertentu, termasuk waktu, lokasi TUK, dan nama lead asesor.
 
 ```http
 GET /api/asesor/jadwal/:id/detail
 ```
 
-Contoh:
+### Contoh Request
 
 ```http
 GET /api/asesor/jadwal/11152/detail
 ```
 
-### Response 200 OK
+### Response (200 OK)
 
 ```json
 {
   "status": "success",
   "message": "Assessor schedule detail retrieved successfully",
   "data": {
-    "status_label": "Selesai",
-    "tanggal_asesmen": "2026-04-27",
-    "waktu_asesmen": "08:00",
-    "lokasi_asesmen": "Jl. Contoh No. 1",
+    "status_label": "Menunggu",
+    "tanggal_asesmen": "2026-07-24",
+    "waktu_asesmen": "09:00 - 12:00 WIB",
+    "lokasi_asesmen": "Gedung A Lantai 2, Kota Yogyakarta",
     "jumlah_peserta": 54,
-    "lead_asesor": "",
+    "lead_asesor": "Eko Setiabudi",
     "nama_jadwal": "Sertifikasi Junior Web Developer",
-    "tuk": "SMK Media Informatika"
+    "tuk": "LPP Cahaya Borneo"
   }
 }
 ```
 
-### Keterangan Field
+### Keterangan Field Response
 
-| Field | Keterangan |
-|---|---|
-| `status_label` | `Menunggu`, `Selesai`, `Dibatalkan`, `Berlangsung`, atau `Pelaporan` |
-| `tanggal_asesmen` | Format `YYYY-MM-DD` |
-| `waktu_asesmen` | Waktu jadwal dari backend, dapat berupa string kosong jika belum diisi |
-| `lokasi_asesmen` | Alamat TUK, dapat berupa string kosong jika belum diisi |
-| `jumlah_peserta` | Total peserta dari `lsp275_asesi` dan `lsp275_asesi_2024` |
-| `lead_asesor` | Saat ini selalu string kosong karena database belum memiliki penanda asesor utama |
+| Field | Tipe | Keterangan |
+|---|---|---|
+| `status_label` | String | Label status (`Menunggu`, `Selesai`, `Dibatalkan`, `Berlangsung`, `Pelaporan`) |
+| `tanggal_asesmen` | String | Tanggal pelaksanaan format `YYYY-MM-DD` |
+| `waktu_asesmen` | String | Waktu pelaksanaan (contoh: `"09:00 - 12:00 WIB"`) |
+| `lokasi_asesmen` | String | Alamat lengkap Tempat Uji Kompetensi (TUK) |
+| `jumlah_peserta` | Integer| Total peserta terdaftar dalam jadwal penugasan ini |
+| `lead_asesor` | String | Nama ketua asesor pelaksana |
 
-## Daftar Peserta
+---
+
+## 3. Daftar Peserta (Jadwal Asesi List)
+
+Menampilkan daftar peserta (asesi) yang mengikuti sertifikasi pada jadwal penugasan tersebut beserta ringkasan status kelulusan (Kompeten/Belum Kompeten/Belum Dinilai).
 
 ```http
 GET /api/asesor/jadwal/:id/peserta
 ```
 
-Contoh:
+### Contoh Request
 
 ```http
 GET /api/asesor/jadwal/11152/peserta
 ```
 
-### Response 200 OK
+### Response (200 OK)
 
 ```json
 {
@@ -108,59 +126,75 @@ GET /api/asesor/jadwal/11152/peserta
   "message": "Participants list retrieved successfully",
   "data": [
     {
-      "id": 1,
-      "nama_lengkap": "Nama Peserta",
+      "id": 101,
+      "nama_lengkap": "Andi Pratama",
       "hasil_rekomendasi": "K"
+    },
+    {
+      "id": 102,
+      "nama_lengkap": "Budi Santoso",
+      "hasil_rekomendasi": "BK"
+    },
+    {
+      "id": 103,
+      "nama_lengkap": "Citra Lestari",
+      "hasil_rekomendasi": null
     }
   ],
   "meta": {
     "jadwal_id": 11152,
-    "total_asesi": 54,
-    "jumlah_kompeten": 30,
-    "jumlah_belum_kompeten": 10,
-    "jumlah_belum_dinilai": 14
+    "total_asesi": 3,
+    "jumlah_kompeten": 1,
+    "jumlah_belum_kompeten": 1,
+    "jumlah_belum_dinilai": 1
   }
 }
 ```
 
-`hasil_rekomendasi` bernilai `K` untuk Kompeten, `BK` untuk Belum Kompeten, atau `-` jika belum dinilai.
+### Keterangan Field Response
 
-## Detail Peserta
+- `hasil_rekomendasi`: Bernilai `"K"` (Kompeten), `"BK"` (Belum Kompeten), atau `null` jika asesi belum dinilai.
+
+---
+
+## 4. Detail Peserta
+
+Menampilkan profil lengkap peserta, status kelengkapan dokumen persyaratan/portofolio, serta status tahapan assessment peserta.
 
 ```http
-GET /api/asesor/jadwal/:id/peserta/:peserta_id
+GET /api/asesor/jadwal/:jadwal_id/peserta/:peserta_id
 ```
 
-Contoh:
+### Contoh Request
 
 ```http
-GET /api/asesor/jadwal/11152/peserta/241269
+GET /api/asesor/jadwal/11152/peserta/101
 ```
 
-### Response 200 OK
+### Response (200 OK)
 
 ```json
 {
   "status": "success",
   "message": "Participant detail retrieved successfully",
   "data": {
-    "peserta_id": 241269,
-    "no_peserta": "",
-    "nama_lengkap": "Nama Peserta",
-    "nik": "0000000000000000",
+    "peserta_id": 101,
+    "no_peserta": "PES-2026-0724-001",
+    "nama_lengkap": "Andi Pratama",
+    "nik": "6253748567382",
     "tempat_lahir": "Yogyakarta",
     "tanggal_lahir": "1998-05-10",
-    "skema_sertifikat": "Junior Web Developer",
-    "institusi": "Nama Institusi",
-    "email": "peserta@example.com",
-    "no_telepon": "08123456789",
+    "skema_sertifikat": "UI/UX Design",
+    "institusi": "LPP Jigja",
+    "email": "andipratama@gmail.com",
+    "no_telepon": "085678736521",
     "status_kelengkapan": {
       "portofolio": "Lengkap",
-      "dokumen_pendukung": "Belum Lengkap",
-      "persyaratan": "Belum Lengkap"
+      "dokumen_pendukung": "Lengkap",
+      "persyaratan": "Lengkap"
     },
     "status_assessment": {
-      "kehadiran": "Belum tersedia",
+      "kehadiran": "Hadir",
       "tugas_asesmen": "Belum Dinilai",
       "laporan": "Belum Dibuat",
       "rekaman": "Belum Diunggah"
@@ -169,36 +203,48 @@ GET /api/asesor/jadwal/11152/peserta/241269
 }
 ```
 
-| Field | Nilai yang mungkin |
-|---|---|
-| `status_kelengkapan.portofolio` | `Lengkap`, `Belum Lengkap` |
-| `status_kelengkapan.dokumen_pendukung` | `Lengkap`, `Belum Lengkap` |
-| `status_kelengkapan.persyaratan` | `Lengkap`, `Belum Lengkap` |
-| `status_assessment.kehadiran` | Saat ini `Belum tersedia`; database belum memiliki data kehadiran peserta. |
-| `status_assessment.tugas_asesmen` | `Kompeten`, `Belum Kompeten`, `Belum Dinilai` |
-| `status_assessment.laporan` | `Selesai`, `Belum Dibuat` |
-| `status_assessment.rekaman` | `Selesai`, `Belum Diunggah` |
+### Keterangan Field Response
 
-## Surat Tugas
+#### `status_kelengkapan`
+- `portofolio`: `"Lengkap"` atau `"Belum Lengkap"`
+- `dokumen_pendukung`: `"Lengkap"` atau `"Belum Lengkap"`
+- `persyaratan`: `"Lengkap"` atau `"Belum Lengkap"`
+
+#### `status_assessment`
+- `kehadiran`: `"Hadir"` atau `"Absen"`
+- `tugas_asesmen`: `"Kompeten"`, `"Belum Kompeten"`, atau `"Belum Dinilai"`
+- `laporan`: `"Selesai"` atau `"Belum Dibuat"`
+- `rekaman`: `"Selesai"` atau `"Belum Diunggah"`
+
+---
+
+## 5. Surat Tugas
+
+Mengambil file PDF Surat Perintah Tugas untuk jadwal penugasan tertentu.
 
 ```http
 GET /api/asesor/jadwal/:id/surat-tugas
 ```
 
-Endpoint dan validasi kepemilikan jadwal sudah tersedia. Namun database saat ini belum menyimpan file atau URL Surat Perintah Tugas, sehingga endpoint mengembalikan:
+### Response (200 OK)
 
 ```json
 {
-  "status": "error",
-  "message": "Surat tugas file is not available for this schedule"
+  "status": "success",
+  "message": "Surat tugas retrieved successfully",
+  "data": {
+    "file_url": "https://lsp-example.com/storage/surat-tugas/st-11152.pdf"
+  }
 }
 ```
 
-Status HTTP: `404 Not Found`.
+---
 
-## Error Responses
+## Response Error Global
 
-- `400 Bad Request`: ID jadwal tidak valid.
-- `401 Unauthorized`: token tidak ada atau tidak valid.
-- `403 Forbidden`: role bukan `asesor`, atau jadwal bukan penugasan asesor login.
-- `404 Not Found`: jadwal tidak tersedia, atau file Surat Tugas belum tersimpan.
+Semua endpoint di atas mengembalikan status error seragam jika terjadi kegagalan:
+
+- **400 Bad Request**: Parameter ID jadwal/peserta tidak valid atau salah tipe data.
+- **401 Unauthorized**: Token JWT tidak disertakan atau telah kedaluwarsa.
+- **403 Forbidden**: Role user bukan `asesor` atau user mencoba mengakses data penugasan milik asesor lain.
+- **404 Not Found**: Data jadwal penugasan atau data peserta tidak ditemukan di database.

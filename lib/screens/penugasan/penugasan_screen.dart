@@ -4,6 +4,7 @@ import '../../widgets/jadwal/custom_tab_bar.dart';
 import '../../widgets/penugasan/penugasan_list_item.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/auth_repository.dart';
+import '../../services/api_service.dart';
 import 'penugasan_detail_screen.dart';
 
 class PenugasanScreen extends StatefulWidget {
@@ -19,6 +20,8 @@ class _PenugasanScreenState extends State<PenugasanScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _selectedMonthYear = 'Mei 2025';
+  bool _isLoading = true;
+  String _errorMessage = '';
 
   // List of Indonesian months for the month picker dialog
   final List<String> _months = [
@@ -37,8 +40,8 @@ class _PenugasanScreenState extends State<PenugasanScreen>
   ];
   final List<String> _years = ['2025', '2026', '2027'];
 
-  // Hardcoded dummy data matching the user's screenshot
-  late final List<JadwalItem> _allAssignments;
+  // All schedules loaded from the API
+  List<JadwalItem> _allAssignments = [];
 
   @override
   void initState() {
@@ -48,42 +51,13 @@ class _PenugasanScreenState extends State<PenugasanScreen>
       if (mounted) setState(() {});
     });
 
-    _allAssignments = [
-      const JadwalItem(
-        id: 101,
-        skema:
-            'UI/UX Design', // Professionally corrected spelling, detail screen maps to UI/UX Design
-        tuk: 'LPP Cahaya Borneo',
-        tanggalMulai: '2026-07-20',
-        tanggalSelesai: '2026-07-20',
-        status: 'waiting', // Waiting
-        jumlahAsesi: 10,
-        asesor: ['Eko Setiabudi'],
-        totalAsesi: 10,
-      ),
-      const JadwalItem(
-        id: 102,
-        skema: 'Digital Marketing',
-        tuk: 'LPP Jogja',
-        tanggalMulai: '2026-07-20',
-        tanggalSelesai: '2026-07-20',
-        status: 'completed', // Completed
-        jumlahAsesi: 10,
-        asesor: ['Eko Setiabudi'],
-        totalAsesi: 10,
-      ),
-      const JadwalItem(
-        id: 103,
-        skema: 'Digital Marketing',
-        tuk: 'LPP Jogja',
-        tanggalMulai: '2026-07-20',
-        tanggalSelesai: '2026-07-20',
-        status: 'canceled', // Canceled
-        jumlahAsesi: 10,
-        asesor: ['Eko Setiabudi'],
-        totalAsesi: 10,
-      ),
-    ];
+    // Set default month & year to current month & year
+    final now = DateTime.now();
+    final currentMonthName = _months[now.month - 1];
+    final shortMonth = currentMonthName == 'Mei' ? 'Mei' : currentMonthName.substring(0, 3);
+    _selectedMonthYear = '$shortMonth ${now.year}';
+
+    _loadPenugasanData();
   }
 
   @override
@@ -92,23 +66,101 @@ class _PenugasanScreenState extends State<PenugasanScreen>
     super.dispose();
   }
 
-  // Filter dummy list based on the active tab index
+  Future<void> _loadPenugasanData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      // Fetch in parallel for Menunggu (0), Selesai/Pelaporan (1,4), and Dibatalkan (2)
+      final results = await Future.wait([
+        ApiService.getJadwalList(
+          limit: 100,
+          statusJadwal: '0', // Menunggu
+          customRoutePath: '/api/asesor/jadwal',
+        ),
+        ApiService.getJadwalList(
+          limit: 100,
+          statusJadwal: '1,4', // Selesai / Pelaporan
+          customRoutePath: '/api/asesor/jadwal',
+        ),
+        ApiService.getJadwalList(
+          limit: 100,
+          statusJadwal: '2', // Dibatalkan
+          customRoutePath: '/api/asesor/jadwal',
+        ),
+      ]);
+
+      // Merge and sort all results
+      final merged = [...results[0], ...results[1], ...results[2]];
+      
+      // Sort: latest date first
+      merged.sort((a, b) => b.tanggalMulai.compareTo(a.tanggalMulai));
+
+      setState(() {
+        _allAssignments = merged;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('🔴 Error loading penugasan data: $e');
+      setState(() {
+        _errorMessage = 'Gagal memuat data penugasan.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  bool _matchesMonthYear(String dateStr) {
+    try {
+      final dt = DateTime.tryParse(dateStr);
+      if (dt == null) return true;
+
+      final parts = _selectedMonthYear.split(' ');
+      if (parts.length < 2) return true;
+
+      final selectedMonthName = parts[0].toLowerCase();
+      final selectedYear = int.tryParse(parts[1]) ?? dt.year;
+
+      int monthNum = -1;
+      for (int i = 0; i < _months.length; i++) {
+        final mLower = _months[i].toLowerCase();
+        if (mLower.startsWith(selectedMonthName) || selectedMonthName.startsWith(mLower.substring(0, 3))) {
+          monthNum = i + 1;
+          break;
+        }
+      }
+
+      return dt.month == monthNum && dt.year == selectedYear;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  // Filter list based on the active tab index and selected month-year
   List<JadwalItem> _getFilteredAssignments() {
+    List<JadwalItem> filteredByTab;
     switch (_tabController.index) {
       case 1: // Menunggu
-        return _allAssignments
+        filteredByTab = _allAssignments
             .where((item) => item.status == 'waiting')
             .toList();
+        break;
       case 2: // Selesai
-        return _allAssignments
+        filteredByTab = _allAssignments
             .where(
-              (item) => item.status == 'completed' || item.status == 'canceled',
+              (item) => item.status == 'completed' || item.status == 'canceled' || item.status == 'pelaporan',
             )
             .toList();
+        break;
       case 0: // Semua
       default:
-        return _allAssignments;
+        filteredByTab = _allAssignments;
+        break;
     }
+
+    // Apply month & year filter
+    return filteredByTab.where((item) => _matchesMonthYear(item.tanggalMulai)).toList();
   }
 
   // Opens a custom premium month/year picker bottom sheet
@@ -166,12 +218,12 @@ class _PenugasanScreenState extends State<PenugasanScreen>
                             controller: FixedExtentScrollController(
                               initialItem: _months.indexWhere(
                                 (m) =>
-                                    m.startsWith(tempMonth) || m == tempMonth,
+                                    m.toLowerCase().startsWith(tempMonth.toLowerCase()) || m == tempMonth,
                               ),
                             ),
                             children: _months.map((m) {
                               final isSel =
-                                  m.startsWith(tempMonth) || m == tempMonth;
+                                  m.toLowerCase().startsWith(tempMonth.toLowerCase()) || m == tempMonth;
                               return Center(
                                 child: Text(
                                   m,
@@ -258,6 +310,85 @@ class _PenugasanScreenState extends State<PenugasanScreen>
           },
         );
       },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE5F1FC),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.assignment_late_outlined,
+                color: Color(0xFF2C6C9C),
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Tidak ada penugasan',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Tidak ada jadwal penugasan ditemukan pada periode $_selectedMonthYear.',
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.black54,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 48,
+              color: Colors.redAccent,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage,
+              style: const TextStyle(fontSize: 14, color: Colors.black54),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _loadPenugasanData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2C6C9C),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -367,21 +498,30 @@ class _PenugasanScreenState extends State<PenugasanScreen>
 
           // List content
           Expanded(
-            child: ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: filteredList.length,
-              itemBuilder: (context, index) {
-                final item = filteredList[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: PenugasanListItem(
-                    item: item,
-                    onTap: () => _navigateToDetail(item),
-                  ),
-                );
-              },
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage.isNotEmpty
+                    ? _buildErrorWidget()
+                    : RefreshIndicator(
+                        onRefresh: _loadPenugasanData,
+                        child: filteredList.isEmpty
+                            ? _buildEmptyState()
+                            : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                itemCount: filteredList.length,
+                                itemBuilder: (context, index) {
+                                  final item = filteredList[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12.0),
+                                    child: PenugasanListItem(
+                                      item: item,
+                                      onTap: () => _navigateToDetail(item),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
           ),
         ],
       ),
