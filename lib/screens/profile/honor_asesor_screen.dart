@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class HonorAsesorScreen extends StatefulWidget {
   const HonorAsesorScreen({super.key});
@@ -176,56 +177,13 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F6F8),
       body: Column(
         children: [
-          // Custom Header to match the screenshot design
-          Container(
-            color: const Color(0xFFF5F5F5),
-            padding: EdgeInsets.only(
-              top: statusBarHeight + 8,
-              bottom: 12,
-              left: 16,
-              right: 16,
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF1E293B),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.chevron_left_rounded,
-                          color: Color(0xFF1E293B),
-                          size: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Honor',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          SizedBox(height: statusBarHeight + 8),
+          const CustomAppBar(
+            title: 'Honor Saya',
           ),
-          
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_repository.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class LaporanTugasScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -265,78 +266,34 @@ class _LaporanTugasScreenState extends State<LaporanTugasScreen> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F6F8),
       body: Column(
         children: [
-          // Header / Custom AppBar
-          Container(
-            color: const Color(0xFFF5F5F5),
-            padding: EdgeInsets.only(
-              top: statusBarHeight + 8,
-              bottom: 12,
-              left: 16,
-              right: 16,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (widget.onBackToHome != null) {
-                      widget.onBackToHome!();
-                    } else {
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF1E293B),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.chevron_left_rounded,
-                          color: Color(0xFF1E293B),
-                          size: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Laporan Tugas',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Three dots option
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: const Icon(
-                    Icons.more_horiz,
-                    color: Color(0xFF1E293B),
-                    size: 24,
-                  ),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Pilihan opsi ditekan (Simulasi)')),
-                    );
-                  },
-                ),
-              ],
+          SizedBox(height: statusBarHeight + 8),
+          CustomAppBar(
+            title: 'Laporan Tugas',
+            onBack: () {
+              if (widget.onBackToHome != null) {
+                widget.onBackToHome!();
+              } else {
+                Navigator.pop(context);
+              }
+            },
+            rightWidget: IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              icon: const Icon(
+                Icons.more_horiz_rounded,
+                color: Colors.black,
+                size: 24,
+              ),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Pilihan opsi ditekan (Simulasi)')),
+                );
+              },
             ),
           ),
-
           // List of Laporan Cards
           Expanded(
             child: ListView.builder(
