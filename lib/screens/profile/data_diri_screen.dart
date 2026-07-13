@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_repository.dart';
+import '../../services/asesor_service.dart';
 import '../../models/auth_models.dart';
 import 'edit_data_diri_screen.dart';
 
@@ -15,6 +16,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -25,6 +27,29 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
     _emailController = TextEditingController(text: user?.email ?? 'muhammadhanafi_12@gmail.com');
     _phoneController = TextEditingController(text: '0858978655634');
     _addressController = TextEditingController(text: 'Jl.Pramuka km 4,5 No 34, Baamang Hulu, Kalimantan Tengah');
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final profile = await AsesorService.getProfile();
+      if (profile != null && mounted) {
+        setState(() {
+          _nameController.text = profile['nama_lengkap'] ?? _nameController.text;
+          _emailController.text = profile['email'] ?? _emailController.text;
+          _phoneController.text = profile['no_telepon'] ?? _phoneController.text;
+          _addressController.text = profile['alamat'] ?? _addressController.text;
+        });
+      }
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -169,6 +194,12 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
               ],
             ),
           ),
+          if (_isLoading)
+            const LinearProgressIndicator(
+              minHeight: 2,
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B9FD8)),
+            ),
           
           // Form Fields Section
           Expanded(

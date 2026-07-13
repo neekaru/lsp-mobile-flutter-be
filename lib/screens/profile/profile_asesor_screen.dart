@@ -24,9 +24,66 @@ class ProfileAsesorScreen extends StatefulWidget {
 
 class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
   bool _isLoggingOut = false;
+  bool _isLoadingProfile = true;
+  Map<String, dynamic>? _profileData;
+  Map<String, dynamic>? _honorData;
+  int _totalPenugasan = 0;
+  int _totalLaporan = 0;
+  int _totalLaporanSukses = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfileAndHonor();
+  }
+
+  Future<void> _fetchProfileAndHonor() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoadingProfile = true;
+    });
+    try {
+      final profile = await AsesorService.getProfile();
+      final honor = await AsesorService.getHonorList('Juli 2026');
+      
+      // Fetch assignment count
+      int penugasanCount = 0;
+      try {
+        final res = await ApiService.dio.get('/api/asesor/jadwal');
+        if (res.data != null && res.data['data'] is List) {
+          penugasanCount = (res.data['data'] as List).length;
+        }
+      } catch (_) {}
+
+      // Fetch reports count
+      int laporanCount = 0;
+      int laporanSuksesCount = 0;
+      try {
+        final reports = await AsesorService.getLaporanList();
+        laporanCount = reports.length;
+        laporanSuksesCount = reports.where((item) => item['status'] == 'Terkonfirmasi').length;
+      } catch (_) {}
+
+      if (mounted) {
+        setState(() {
+          _profileData = profile;
+          _honorData = honor;
+          _totalPenugasan = penugasanCount;
+          _totalLaporan = laporanCount;
+          _totalLaporanSukses = laporanSuksesCount;
+        });
+      }
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _isLoadingProfile = false;
+      });
+    }
+  }
 
   void _copyAsesorId() {
-    Clipboard.setData(const ClipboardData(text: 'ASR-2026-000123'));
+    final String idText = _profileData?['id_asesor'] ?? 'ASR-2026-000123';
+    Clipboard.setData(ClipboardData(text: idText));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Row(
@@ -299,7 +356,9 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
-      body: SingleChildScrollView(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
         child: Column(
           children: [
             // Header Section
@@ -418,7 +477,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
 
                   // User Name
                   Text(
-                    userName,
+                    _profileData?['nama_lengkap'] ?? userName,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -435,7 +494,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'ID : ASR-2026-000123',
+                          'ID : ${_profileData?["id_asesor"] ?? "ASR-2026-000123"}',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.75),
                             fontSize: 11.5,
@@ -463,9 +522,9 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
                       color: Colors.white.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
-                      'Aktif',
-                      style: TextStyle(
+                    child: Text(
+                      _profileData?['status_aktif'] ?? 'Aktif',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
@@ -594,7 +653,20 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
           ],
         ),
       ),
-    );
+      if (_isLoadingProfile)
+        Positioned(
+          top: statusBarHeight,
+          left: 0,
+          right: 0,
+          child: const LinearProgressIndicator(
+            minHeight: 2,
+            backgroundColor: Colors.transparent,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        ),
+    ],
+  ),
+);
   }
 
   Widget _buildRingkasanCards() {
@@ -602,7 +674,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
       children: [
         Expanded(
           child: _buildRingkasanCard(
-            value: '01',
+            value: _totalPenugasan.toString().padLeft(2, '0'),
             label: 'Penugasan',
             sublabel: 'Yang diterima',
             icon: Icons.assignment_outlined,
@@ -613,7 +685,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: _buildRingkasanCard(
-            value: '18',
+            value: _totalLaporan.toString().padLeft(2, '0'),
             label: 'Laporan',
             sublabel: 'Terkirim ke LSP',
             icon: Icons.description_outlined,
@@ -624,9 +696,9 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: _buildRingkasanCard(
-            value: '18',
+            value: _totalLaporanSukses.toString().padLeft(2, '0'),
             label: 'Laporan',
-            sublabel: 'Terkirim ke LSP',
+            sublabel: 'Terkonfirmasi',
             icon: Icons.check_circle_outline_rounded,
             iconColor: const Color(0xFF4CAF50),
             iconBgColor: const Color(0xFFE8F5E9),
@@ -758,27 +830,27 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Total Honor (Juli 2026)',
-                    style: TextStyle(
+                  Text(
+                    'Total Honor (${_honorData?["periode"] ?? "Juli 2026"})',
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Rp. 2.500.000',
-                    style: TextStyle(
+                  Text(
+                    _honorData?['total_honor'] ?? 'Rp. 0',
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1E293B),
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    '4 Asessment selesai',
-                    style: TextStyle(
+                  Text(
+                    _honorData?['jumlah_asesmen_selesai'] ?? '0 Asesmen selesai',
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF94A3B8),

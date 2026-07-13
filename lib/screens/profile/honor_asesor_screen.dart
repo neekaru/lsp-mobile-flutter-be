@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../services/asesor_service.dart';
 
 class HonorAsesorScreen extends StatefulWidget {
   const HonorAsesorScreen({super.key});
@@ -10,102 +11,39 @@ class HonorAsesorScreen extends StatefulWidget {
 
 class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
   String _selectedMonth = 'Juli 2026';
+  bool _isLoading = true;
+  Map<String, dynamic>? _honorData;
 
-  final List<Map<String, dynamic>> monthlyHistory = [
-    {
-      'month': 'Juli 2026',
-      'total': 'Rp. 2.500.000',
-      'count': '4 Asesmen selesai',
-      'details': [
-        {
-          'title': 'Uji Kompetensi: Junior Web Programmer',
-          'date': '12 Juli 2026',
-          'tuk': 'Politeknik Sampit',
-          'honor': 'Rp. 625.000',
-        },
-        {
-          'title': 'Uji Kompetensi: Digital Marketing',
-          'date': '10 Juli 2026',
-          'tuk': 'TUK Sewaktu LSP',
-          'honor': 'Rp. 625.000',
-        },
-        {
-          'title': 'Uji Kompetensi: Network Administrator',
-          'date': '06 Juli 2026',
-          'tuk': 'SMKN 1 Sampit',
-          'honor': 'Rp. 625.000',
-        },
-        {
-          'title': 'Uji Kompetensi: Junior Graphic Designer',
-          'date': '02 Juli 2026',
-          'tuk': 'Politeknik Sampit',
-          'honor': 'Rp. 625.000',
-        },
-      ]
-    },
-    {
-      'month': 'Juni 2026',
-      'total': 'Rp. 1.875.000',
-      'count': '3 Asesmen selesai',
-      'details': [
-        {
-          'title': 'Uji Kompetensi: Junior Web Programmer',
-          'date': '24 Juni 2026',
-          'tuk': 'Politeknik Sampit',
-          'honor': 'Rp. 625.000',
-        },
-        {
-          'title': 'Uji Kompetensi: Digital Marketing',
-          'date': '18 Juni 2026',
-          'tuk': 'TUK Sewaktu LSP',
-          'honor': 'Rp. 625.000',
-        },
-        {
-          'title': 'Uji Kompetensi: Junior Graphic Designer',
-          'date': '11 Juni 2026',
-          'tuk': 'Politeknik Sampit',
-          'honor': 'Rp. 625.000',
-        },
-      ]
-    },
-    {
-      'month': 'Mei 2026',
-      'total': 'Rp. 3.125.000',
-      'count': '5 Asesmen selesai',
-      'details': [
-        {
-          'title': 'Uji Kompetensi: Junior Web Programmer',
-          'date': '28 Mei 2026',
-          'tuk': 'Politeknik Sampit',
-          'honor': 'Rp. 625.000',
-        },
-        {
-          'title': 'Uji Kompetensi: Digital Marketing',
-          'date': '22 Mei 2026',
-          'tuk': 'TUK Sewaktu LSP',
-          'honor': 'Rp. 625.000',
-        },
-        {
-          'title': 'Uji Kompetensi: Network Administrator',
-          'date': '15 Mei 2026',
-          'tuk': 'SMKN 1 Sampit',
-          'honor': 'Rp. 625.000',
-        },
-        {
-          'title': 'Uji Kompetensi: Junior Graphic Designer',
-          'date': '08 Mei 2026',
-          'tuk': 'Politeknik Sampit',
-          'honor': 'Rp. 625.000',
-        },
-        {
-          'title': 'Uji Kompetensi: Network Administrator',
-          'date': '04 Mei 2026',
-          'tuk': 'SMKN 1 Sampit',
-          'honor': 'Rp. 625.000',
-        },
-      ]
-    }
+  final List<String> _availableMonths = [
+    'Juli 2026',
+    'Juni 2026',
+    'Mei 2026',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHonorData();
+  }
+
+  Future<void> _fetchHonorData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final res = await AsesorService.getHonorList(_selectedMonth);
+      if (mounted) {
+        setState(() {
+          _honorData = res;
+        });
+      }
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   void _showMonthPicker(BuildContext context) {
     showModalBottomSheet(
@@ -131,8 +69,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  ...monthlyHistory.map((item) {
-                    final monthName = item['month'] as String;
+                  ..._availableMonths.map((monthName) {
                     final isSelected = monthName == _selectedMonth;
                     return ListTile(
                       leading: Icon(
@@ -154,6 +91,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                           _selectedMonth = monthName;
                         });
                         Navigator.pop(context);
+                        _fetchHonorData();
                       },
                     );
                   }),
@@ -168,13 +106,11 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double statusBarHeight = MediaQuery.paddingOf(context).top;
 
-    // Get selected month details
-    final selectedData = monthlyHistory.firstWhere(
-      (item) => item['month'] == _selectedMonth,
-      orElse: () => monthlyHistory.first,
-    );
+    final String totalHonor = _honorData?['total_honor'] ?? 'Rp. 0';
+    final String countText = _honorData?['jumlah_asesmen_selesai'] ?? '0 Asesmen selesai';
+    final List<dynamic> details = _honorData?['rincian'] ?? [];
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -184,6 +120,12 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
           const CustomAppBar(
             title: 'Honor Saya',
           ),
+          if (_isLoading)
+            const LinearProgressIndicator(
+              minHeight: 2,
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF378CE7)),
+            ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
@@ -235,35 +177,37 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Total Honor',
-                              style: TextStyle(
-                                color: Color(0xFF64748B),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Total Honor',
+                                style: TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              selectedData['total'] as String,
-                              style: const TextStyle(
-                                color: Color(0xFF1E293B),
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
+                              const SizedBox(height: 6),
+                              Text(
+                                totalHonor,
+                                style: const TextStyle(
+                                  color: Color(0xFF1E293B),
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              selectedData['count'] as String,
-                              style: const TextStyle(
-                                color: Color(0xFF64748B),
-                                fontSize: 11,
+                              const SizedBox(height: 6),
+                              Text(
+                                countText,
+                                style: const TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 11,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         // Premium Vector Illustration of smartphone & transaction details
                         _buildIllustration(),
@@ -272,9 +216,9 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Menu Profil Section
+                  // Rincian Section Title
                   const Text(
-                    'Menu Profil',
+                    'Rincian Honor',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -295,6 +239,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                         dividerColor: Colors.transparent,
                       ),
                       child: ExpansionTile(
+                        initiallyExpanded: true,
                         collapsedShape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -327,14 +272,14 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                           ),
                         ),
                         subtitle: Text(
-                          selectedData['count'] as String,
+                          countText,
                           style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFF64748B),
                           ),
                         ),
                         trailing: Text(
-                          selectedData['total'] as String,
+                          totalHonor,
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -343,55 +288,71 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                         ),
                         children: [
                           const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: (selectedData['details'] as List).length,
-                            separatorBuilder: (context, i) =>
-                                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                            itemBuilder: (context, i) {
-                              final detail = (selectedData['details'] as List)[i]
-                                  as Map<String, String>;
-                              return Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      detail['title']!,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E293B),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          '${detail['date']} | ${detail['tuk']}',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Color(0xFF64748B),
-                                          ),
-                                        ),
-                                        Text(
-                                          detail['honor']!,
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF378CE7),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                          if (details.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.all(24.0),
+                              child: Center(
+                                child: Text(
+                                  'Tidak ada rincian honor untuk periode ini',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF64748B),
+                                  ),
                                 ),
-                              );
-                            },
-                          ),
+                              ),
+                            )
+                          else
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: details.length,
+                              separatorBuilder: (context, i) =>
+                                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                              itemBuilder: (context, i) {
+                                final detail = details[i] as Map<String, dynamic>;
+                                return Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        detail['judul_asesmen'] ?? '',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              '${detail['tanggal'] ?? ""} | ${detail['tuk'] ?? ""}',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                color: Color(0xFF64748B),
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          Text(
+                                            detail['honor'] ?? 'Rp. 0',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF378CE7),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                         ],
                       ),
                     ),

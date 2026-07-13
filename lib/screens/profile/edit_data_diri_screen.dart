@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../services/asesor_service.dart';
 
 class EditDataDiriScreen extends StatefulWidget {
   final String currentName;
@@ -56,8 +57,13 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
       _isSaving = true;
     });
 
-    // Simulate saving delay
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      // Perform API call to update profile on backend
+      await AsesorService.updateProfile(
+        noTelepon: _phoneController.text,
+        alamat: _addressController.text,
+      );
+    } catch (_) {}
 
     widget.onSave(
       _nameController.text,

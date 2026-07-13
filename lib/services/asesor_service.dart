@@ -170,4 +170,156 @@ class AsesorService {
       TopMitra(name: 'SMK Muhammadiyah Malang', value: 97, percentage: '8,7%'),
     ];
   }
+
+  /// 6. Daftar Laporan Tugas Asesor
+  static Future<List<Map<String, dynamic>>> getLaporanList() async {
+    try {
+      final response = await _dio.get('/api/asesor/laporan');
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> list = response.data['data'] ?? [];
+        return list.map((item) => item as Map<String, dynamic>).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// 7. Detail Laporan Tugas Asesor
+  static Future<Map<String, dynamic>?> getLaporanDetail(int id) async {
+    try {
+      final response = await _dio.get('/api/asesor/laporan/$id');
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 8. Daftar Skema & TUK (Dropdown)
+  static Future<List<Map<String, dynamic>>> getSkemaTukDropdown() async {
+    try {
+      final response = await _dio.get('/api/asesor/skema-tuk');
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> list = response.data['data'] ?? [];
+        return list.map((item) => item as Map<String, dynamic>).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// 9. Upload Lampiran Pendukung
+  static Future<Map<String, dynamic>?> uploadLampiran(String filePath) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+      });
+      final response = await _dio.post(
+        '/api/asesor/laporan/upload-lampiran',
+        data: formData,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 10. Kirim Laporan Tugas Baru (Submit Wizard)
+  static Future<Map<String, dynamic>?> submitLaporan({
+    required int jadwalId,
+    required String namaAsesor,
+    required int skemaId,
+    required String tanggalPelaksanaan,
+    required String suratTugasUrl,
+    required String linkDokumentasi,
+    required String catatan,
+    required List<Map<String, dynamic>> daftarPeserta,
+    required List<String> lampiranPendukung,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/asesor/laporan',
+        data: {
+          'jadwal_id': jadwalId,
+          'nama_asesor': namaAsesor,
+          'skema_id': skemaId,
+          'tanggal_pelaksanaan': tanggalPelaksanaan,
+          'surat_tugas_url': suratTugasUrl,
+          'link_dokumentasi': linkDokumentasi,
+          'catatan': catatan,
+          'daftar_peserta': daftarPeserta,
+          'lampiran_pendukung': lampiranPendukung,
+        },
+      );
+      if ((response.statusCode == 200 || response.statusCode == 201) && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 11. Profil Asesor (Data Diri)
+  static Future<Map<String, dynamic>?> getProfile() async {
+    try {
+      final response = await _dio.get('/api/asesor/profile');
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 12. Update Profil Asesor
+  static Future<Map<String, dynamic>?> updateProfile({
+    String? noTelepon,
+    String? alamat,
+    String? instansi,
+    String? fotoProfilUrl,
+  }) async {
+    try {
+      final Map<String, dynamic> payload = {};
+      if (noTelepon != null) payload['no_telepon'] = noTelepon;
+      if (alamat != null) payload['alamat'] = alamat;
+      if (instansi != null) payload['instansi'] = instansi;
+      if (fotoProfilUrl != null) payload['foto_profil_url'] = fotoProfilUrl;
+
+      final response = await _dio.put(
+        '/api/asesor/profile',
+        data: payload,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 13. Daftar Honor Asesor (Berdasarkan Periode)
+  static Future<Map<String, dynamic>?> getHonorList(String periode) async {
+    try {
+      final response = await _dio.get(
+        '/api/asesor/honor',
+        queryParameters: {'periode': periode},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 }

@@ -1,6 +1,6 @@
-# Jadwal Saya Asesor - API Ready
+# Asesor API - Endpoints 6-13 Ready
 
-Semua endpoint berikut hanya untuk user dengan role `asesor`. Backend mengambil identitas asesor dari email pada JWT dan hanya mengizinkan jadwal yang memang ditugaskan kepada asesor tersebut.
+Semua endpoint berikut hanya untuk user dengan role `asesor`. Backend mengambil identitas asesor dari email pada JWT.
 
 ## Headers
 
@@ -9,71 +9,33 @@ Authorization: Bearer <access_token>
 Accept: application/json
 ```
 
-## Daftar Jadwal Saya
+---
+
+## 6. Daftar Laporan Tugas Asesor
 
 ```http
-GET /api/asesor/jadwal?status_jadwal=:status
+GET /api/asesor/laporan
 ```
 
-| Tab | Request |
-|---|---|
-| Menunggu | `GET /api/asesor/jadwal?status_jadwal=0` |
-| Dibatalkan | `GET /api/asesor/jadwal?status_jadwal=2` |
-| Selesai | `GET /api/asesor/jadwal?status_jadwal=1,4` |
-
-Jika `status_jadwal` tidak dikirim, backend menggunakan nilai `0` atau Menunggu.
+Menampilkan riwayat laporan tugas dari jadwal yang telah selesai (status `1`/Selesai atau `4`/Pelaporan).
 
 ### Response 200 OK
 
 ```json
 {
   "status": "success",
-  "message": "Asesor schedules retrieved successfully",
+  "message": "Riwayat laporan tugas berhasil diambil",
   "data": [
     {
-      "id": 11152,
-      "nama_jadwal": "Sertifikasi Junior Web Developer",
-      "tanggal": "2026-04-27",
-      "tanggal_akhir": "2026-04-30",
-      "status_jadwal": "1",
-      "tuk": "SMK Media Informatika",
-      "jumlah_peserta": 54
+      "id": 24346,
+      "kode_laporan": "LAP-2025-0819",
+      "skema_sertifikasi": "Sertifikasi Disnaker B. Baru -Karir Jitu - Desainer Grafis Muda",
+      "tanggal_pelaksanaan": "2025-08-19",
+      "tuk": "TUK Mandiri Disnaker Kab. Barito Timur",
+      "nama_asesor": "Bambang Fadjar Buwono",
+      "status": "Terkonfirmasi"
     }
-  ],
-  "count": 1
-}
-```
-
-Nilai `status_jadwal` yang diterima hanya `0`, `1`, `2`, dan `4`. Nilai lain menghasilkan `400 Bad Request`.
-
-## Detail Jadwal
-
-```http
-GET /api/asesor/jadwal/:id/detail
-```
-
-Contoh:
-
-```http
-GET /api/asesor/jadwal/11152/detail
-```
-
-### Response 200 OK
-
-```json
-{
-  "status": "success",
-  "message": "Assessor schedule detail retrieved successfully",
-  "data": {
-    "status_label": "Selesai",
-    "tanggal_asesmen": "2026-04-27",
-    "waktu_asesmen": "08:00",
-    "lokasi_asesmen": "Jl. Contoh No. 1",
-    "jumlah_peserta": 54,
-    "lead_asesor": "",
-    "nama_jadwal": "Sertifikasi Junior Web Developer",
-    "tuk": "SMK Media Informatika"
-  }
+  ]
 }
 ```
 
@@ -81,23 +43,26 @@ GET /api/asesor/jadwal/11152/detail
 
 | Field | Keterangan |
 |---|---|
-| `status_label` | `Menunggu`, `Selesai`, `Dibatalkan`, `Berlangsung`, atau `Pelaporan` |
-| `tanggal_asesmen` | Format `YYYY-MM-DD` |
-| `waktu_asesmen` | Waktu jadwal dari backend, dapat berupa string kosong jika belum diisi |
-| `lokasi_asesmen` | Alamat TUK, dapat berupa string kosong jika belum diisi |
-| `jumlah_peserta` | Total peserta dari `lsp275_asesi` dan `lsp275_asesi_2024` |
-| `lead_asesor` | Saat ini selalu string kosong karena database belum memiliki penanda asesor utama |
+| `id` | ID dari `lsp275_mapping_asesor` |
+| `kode_laporan` | Dibuat otomatis: `LAP-YYYY-MMDD` dari tanggal jadwal |
+| `skema_sertifikasi` | Nama jadwal dari `lsp275_jadual_asesmen.jadual` |
+| `tanggal_pelaksanaan` | Format `YYYY-MM-DD` |
+| `tuk` | Nama TUK dari `lsp275_tuk.tuk` |
+| `nama_asesor` | Nama asesor dari `lsp275_users.users` |
+| `status` | `Terkonfirmasi` jika laporan sudah terisi (`ak06` ada data), `Draft` jika belum |
 
-## Daftar Peserta
+---
+
+## 7. Detail Laporan Tugas Asesor
 
 ```http
-GET /api/asesor/jadwal/:id/peserta
+GET /api/asesor/laporan/:id
 ```
 
 Contoh:
 
 ```http
-GET /api/asesor/jadwal/11152/peserta
+GET /api/asesor/laporan/24346
 ```
 
 ### Response 200 OK
@@ -105,36 +70,202 @@ GET /api/asesor/jadwal/11152/peserta
 ```json
 {
   "status": "success",
-  "message": "Participants list retrieved successfully",
+  "message": "Detail laporan tugas berhasil diambil",
+  "data": {
+    "id": 24346,
+    "kode_laporan": "LAP-2025-0819",
+    "status": "Terkonfirmasi",
+    "asesor": "Bambang Fadjar Buwono",
+    "skema_sertifikasi": "Sertifikasi Disnaker B. Baru -Karir Jitu - Desainer Grafis Muda",
+    "tanggal_pelaksanaan": "19 Agustus 2025",
+    "link_dokumentasi": "https://drive.google.com/drive/folders/...",
+    "catatan": "Tingkatkan kemampuan kompetensi",
+    "kpi_pelaksanaan": {
+      "total_asesi": 10,
+      "hadir": 10,
+      "absen": 0,
+      "kompeten": 7,
+      "tidak_kompeten": 1
+    },
+    "dokumen": {
+      "surat_tugas_name": "",
+      "surat_tugas_url": ""
+    },
+    "daftar_asesi_dinilai": [
+      {
+        "nama": "M NOOR",
+        "nim": "DKV 1565 39018 2025",
+        "kehadiran": "Hadir",
+        "penilaian": "K"
+      }
+    ],
+    "lampiran_pendukung": []
+  }
+}
+```
+
+### Keterangan Field
+
+| Field | Sumber DB | Keterangan |
+|---|---|---|
+| `id` | `mapping_asesor.id` | |
+| `kode_laporan` | generated | Format `LAP-YYYY-MMDD` |
+| `status` | `ak06` column | `Terkonfirmasi` jika ada data, `Draft` jika kosong |
+| `asesor` | `users.users` | |
+| `skema_sertifikasi` | `jadual_asesmen.jadual` | |
+| `tanggal_pelaksanaan` | `jadual_asesmen.tanggal` | Format Indonesia: `19 Agustus 2025` |
+| `link_dokumentasi` | `mapping_asesor.link_rekaman` | Bisa kosong string |
+| `catatan` | `mapping_asesor.rekomendasi_peningkatan` | Bisa kosong string |
+| `kpi_pelaksanaan.total_asesi` | count from `lsp275_asesi` + `lsp275_asesi_2024` | |
+| `kpi_pelaksanaan.hadir` | = total_asesi | DB tidak punya data kehadiran, asumsi semua hadir |
+| `kpi_pelaksanaan.absen` | = 0 | DB tidak punya data kehadiran |
+| `kpi_pelaksanaan.kompeten` | count where `rekomendasi_asesor = '1'` | |
+| `kpi_pelaksanaan.tidak_kompeten` | count where `rekomendasi_asesor = '2'` | |
+| `dokumen.surat_tugas_*` | - | Selalu kosong, DB belum menyimpan file Surat Tugas |
+| `daftar_asesi_dinilai[].nim` | `asesi.no_registrasi` | |
+| `daftar_asesi_dinilai[].kehadiran` | - | Selalu `"Hadir"`, DB belum punya data kehadiran |
+| `daftar_asesi_dinilai[].penilaian` | `asesi.rekomendasi_asesor` | `K` (1), `TK` (2), atau `-` (belum dinilai) |
+| `lampiran_pendukung` | - | Selalu array kosong `[]`, belum ada storage lampiran |
+
+---
+
+## 8. Daftar Skema & TUK (Dropdown)
+
+```http
+GET /api/asesor/skema-tuk
+```
+
+Mengembalikan daftar skema sertifikasi yang aktif beserta TUK tempat skema tersebut tersedia, dari relasi `lsp275_tuk_skema`.
+
+### Response 200 OK
+
+```json
+{
+  "status": "success",
+  "message": "Daftar skema sertifikasi & TUK berhasil diambil",
   "data": [
     {
-      "id": 1,
-      "nama_lengkap": "Nama Peserta",
-      "hasil_rekomendasi": "K"
+      "id": 335,
+      "nama_skema": "Network Administrator Muda",
+      "tuk": "LPK Kompetensi Akademi Digital"
     }
-  ],
-  "meta": {
-    "jadwal_id": 11152,
-    "total_asesi": 54,
-    "jumlah_kompeten": 30,
-    "jumlah_belum_kompeten": 10,
-    "jumlah_belum_dinilai": 14
+  ]
+}
+```
+
+### Keterangan Field
+
+| Field | Sumber DB |
+|---|---|
+| `id` | `lsp275_skema.id` |
+| `nama_skema` | `lsp275_skema.skema` |
+| `tuk` | `lsp275_tuk.tuk` |
+
+---
+
+## 9. Upload Lampiran Pendukung
+
+```http
+POST /api/asesor/laporan/upload-lampiran
+Content-Type: multipart/form-data
+```
+
+### Request Body (Multipart)
+
+| Parameter | Tipe | Keterangan |
+|---|---|---|
+| `file` | File | Berkas PDF atau Gambar (PNG/JPG/JPEG, Maksimal 5MB) |
+
+### Response 200 OK
+
+```json
+{
+  "status": "success",
+  "message": "Upload File Berhasil",
+  "data": {
+    "file_name": "Bukti_Pendukung_1.pdf",
+    "file_url": "http://host:port/storage/attachments/uuid-generated-name.pdf"
   }
 }
 ```
 
-`hasil_rekomendasi` bernilai `K` untuk Kompeten, `BK` untuk Belum Kompeten, atau `-` jika belum dinilai.
+File disimpan di direktori `storage/attachments/` dengan nama UUID. URL dibangun dari protocol + hostname server.
 
-## Detail Peserta
+---
+
+## 10. Kirim Laporan Tugas Baru (Submit Wizard)
 
 ```http
-GET /api/asesor/jadwal/:id/peserta/:peserta_id
+POST /api/asesor/laporan
+Content-Type: application/json
 ```
 
-Contoh:
+### Request Body (JSON)
+
+```json
+{
+  "jadwal_id": 9954,
+  "nama_asesor": "Muhammad Hanafi",
+  "skema_id": 1,
+  "tanggal_pelaksanaan": "2026-07-24",
+  "surat_tugas_url": "https://example.com/surat-tugas.pdf",
+  "link_dokumentasi": "https://drive.google.com/drive/folders/123xyz",
+  "catatan": "Evaluasi pelaksanaan berjalan kondusif.",
+  "daftar_peserta": [
+    {
+      "nim": "0897556789",
+      "kehadiran": "Hadir",
+      "is_kompeten": true
+    },
+    {
+      "nim": "09769990862",
+      "kehadiran": "Absen",
+      "is_kompeten": false
+    }
+  ],
+  "lampiran_pendukung": [
+    "https://example.com/storage/attachments/temp-bukti-1.pdf"
+  ]
+}
+```
+
+> **PENTING:** `jadwal_id` WAJIB dikirim. Field ini tidak ada di spesifikasi awal tetapi diperlukan backend untuk mengaitkan laporan dengan penugasan asesor di `lsp275_mapping_asesor`. Frontend wajib mengirim `jadwal_id` dari jadwal yang sedang dipilih asesor.
+
+### Response 201 Created
+
+```json
+{
+  "status": "success",
+  "message": "Laporan tugas berhasil dibuat",
+  "data": {
+    "id": 24346,
+    "kode_laporan": "LAP-2026-0724",
+    "status": "Terkonfirmasi"
+  }
+}
+```
+
+### Penyimpanan Data
+
+| Field Request | Disimpan ke DB | Keterangan |
+|---|---|---|
+| `jadwal_id` | lookup `mapping_asesor` | WAJIB, untuk mencari record asesor-jadwal |
+| `link_dokumentasi` | `mapping_asesor.link_rekaman` | |
+| `catatan` | `mapping_asesor.rekomendasi_peningkatan` | |
+| `daftar_peserta[].nim` | lookup `asesi.no_registrasi` | Update `rekomendasi_asesor`: `is_kompeten=true` -> `'1'`, `false` -> `'2'` |
+| `surat_tugas_url` | tidak disimpan | DB tidak punya kolom untuk ini |
+| `lampiran_pendukung` | tidak disimpan | DB tidak punya tabel storage lampiran |
+| `skema_id` | tidak disimpan | Hanya untuk konteks frontend |
+| `nama_asesor` | tidak disimpan | Diambil dari JWT |
+
+Backend juga set `mapping_asesor.is_complete = '1'` untuk menandai laporan sudah dikirim.
+
+---
+
+## 11. Profil Asesor (Data Diri)
 
 ```http
-GET /api/asesor/jadwal/11152/peserta/241269
+GET /api/asesor/profile
 ```
 
 ### Response 200 OK
@@ -142,63 +273,153 @@ GET /api/asesor/jadwal/11152/peserta/241269
 ```json
 {
   "status": "success",
-  "message": "Participant detail retrieved successfully",
+  "message": "Profil asesor berhasil diambil",
   "data": {
-    "peserta_id": 241269,
-    "no_peserta": "",
-    "nama_lengkap": "Nama Peserta",
-    "nik": "0000000000000000",
-    "tempat_lahir": "Yogyakarta",
-    "tanggal_lahir": "1998-05-10",
-    "skema_sertifikat": "Junior Web Developer",
-    "institusi": "Nama Institusi",
-    "email": "peserta@example.com",
-    "no_telepon": "08123456789",
-    "status_kelengkapan": {
-      "portofolio": "Lengkap",
-      "dokumen_pendukung": "Belum Lengkap",
-      "persyaratan": "Belum Lengkap"
-    },
-    "status_assessment": {
-      "kehadiran": "Belum tersedia",
-      "tugas_asesmen": "Belum Dinilai",
-      "laporan": "Belum Dibuat",
-      "rekaman": "Belum Diunggah"
-    }
+    "id_asesor": "MET.DEMO.000001.2026",
+    "nama_lengkap": "Asesor Demo LSP",
+    "status_aktif": "Aktif",
+    "nik": "",
+    "email": "asesor.demo@lsp.id",
+    "no_telepon": "081234567891",
+    "foto_profil_url": "",
+    "instansi": "",
+    "alamat": ""
   }
 }
 ```
 
-| Field | Nilai yang mungkin |
-|---|---|
-| `status_kelengkapan.portofolio` | `Lengkap`, `Belum Lengkap` |
-| `status_kelengkapan.dokumen_pendukung` | `Lengkap`, `Belum Lengkap` |
-| `status_kelengkapan.persyaratan` | `Lengkap`, `Belum Lengkap` |
-| `status_assessment.kehadiran` | Saat ini `Belum tersedia`; database belum memiliki data kehadiran peserta. |
-| `status_assessment.tugas_asesmen` | `Kompeten`, `Belum Kompeten`, `Belum Dinilai` |
-| `status_assessment.laporan` | `Selesai`, `Belum Dibuat` |
-| `status_assessment.rekaman` | `Selesai`, `Belum Diunggah` |
+### Keterangan Field
 
-## Surat Tugas
+| Field | Sumber DB | Keterangan |
+|---|---|---|
+| `id_asesor` | `lsp275_users.no_reg` | Nomor registrasi asesor |
+| `nama_lengkap` | `lsp275_users.users` | |
+| `status_aktif` | `lsp275_users.status_aktif` | `Y` -> `"Aktif"`, lainnya -> `"Tidak Aktif"` |
+| `nik` | - | Selalu kosong, tabel `lsp275_users` tidak punya kolom NIK |
+| `email` | `lsp275_users.email` | |
+| `no_telepon` | `lsp275_users.hp` | |
+| `foto_profil_url` | `lsp275_users.foto_user` | Bisa kosong |
+| `instansi` | `lsp275_users.instansi_asesor_external` | Bisa kosong |
+| `alamat` | `lsp275_users.alamat` | Bisa kosong |
+
+---
+
+## 12. Update Profil Asesor
 
 ```http
-GET /api/asesor/jadwal/:id/surat-tugas
+PUT /api/asesor/profile
+Content-Type: application/json
 ```
 
-Endpoint dan validasi kepemilikan jadwal sudah tersedia. Namun database saat ini belum menyimpan file atau URL Surat Perintah Tugas, sehingga endpoint mengembalikan:
+### Request Body (JSON)
 
 ```json
 {
-  "status": "error",
-  "message": "Surat tugas file is not available for this schedule"
+  "no_telepon": "0858978655634",
+  "alamat": "Jl. Pramuka km 4,5 No 34, Baamang Hulu, Kalimantan Tengah",
+  "instansi": "Politeknik Negeri Sampit",
+  "foto_profil_url": "https://example.com/storage/profiles/hanafi.jpg"
 }
 ```
 
-Status HTTP: `404 Not Found`.
+Semua field bersifat opsional. Hanya field yang dikirim yang akan diupdate.
+
+### Response 200 OK
+
+```json
+{
+  "status": "success",
+  "message": "Profil berhasil diperbarui",
+  "data": {
+    "id_asesor": "MET.DEMO.000001.2026",
+    "nama_lengkap": "Asesor Demo LSP",
+    "no_telepon": "0858978655634",
+    "alamat": "Jl. Pramuka km 4,5 No 34, Baamang Hulu, Kalimantan Tengah",
+    "instansi": "Politeknik Negeri Sampit"
+  }
+}
+```
+
+### Pemetaan Field
+
+| Field Request | Field DB |
+|---|---|
+| `no_telepon` | `lsp275_users.hp` |
+| `alamat` | `lsp275_users.alamat` |
+| `instansi` | `lsp275_users.instansi_asesor_external` |
+| `foto_profil_url` | `lsp275_users.foto_user` |
+
+---
+
+## 13. Daftar Honor Asesor (Berdasarkan Periode)
+
+```http
+GET /api/asesor/honor?periode=:bulan_tahun
+```
+
+### Query Parameters
+
+| Parameter | Tipe | Keterangan |
+|---|---|---|
+| `periode` | String | Format `NamaBulan Tahun` (contoh: `Juli 2026`, `Juni 2026`). Wajib diisi. |
+
+### Contoh Request
+
+```http
+GET /api/asesor/honor?periode=Juli+2026
+```
+
+### Response 200 OK
+
+```json
+{
+  "status": "success",
+  "message": "Daftar honor berhasil diambil",
+  "data": {
+    "periode": "Juli 2026",
+    "total_honor": "Rp. 2.500.000",
+    "jumlah_asesmen_selesai": "4 Asesmen selesai",
+    "rincian": [
+      {
+        "id_detail": 501,
+        "judul_asesmen": "Uji Kompetensi: Junior Web Programmer",
+        "tanggal": "12 Juli 2026",
+        "tuk": "Politeknik Sampit",
+        "honor": "Rp. 625.000"
+      }
+    ]
+  }
+}
+```
+
+### Keterangan Field
+
+| Field | Sumber DB | Keterangan |
+|---|---|---|
+| `periode` | dari query param | Nama bulan Indonesia + tahun |
+| `total_honor` | sum of `mapping_asesor.honor` | Format `Rp. X.XXX.XXX` |
+| `jumlah_asesmen_selesai` | count of records | Format `N Asesmen selesai` |
+| `rincian[].id_detail` | `mapping_asesor.id` | |
+| `rincian[].judul_asesmen` | `jadual_asesmen.jadual` | |
+| `rincian[].tanggal` | `jadual_asesmen.tanggal` | Format Indonesia: `12 Juli 2026` |
+| `rincian[].tuk` | `lsp275_tuk.tuk` | |
+| `rincian[].honor` | `mapping_asesor.honor` | Format `Rp. X.XXX.XXX` |
+
+### Catatan Honor
+
+- Data berasal dari `lsp275_mapping_asesor.honor` (varchar) yang difilter untuk jadwal dengan `status_jadwal = '1'` (Selesai).
+- Nilai honor di DB bisa berupa angka (`600000`), format titik (`1.000.000`), teks (`Langsung dari TUK`), atau URL.
+- Backend membersihkan nilai: menghapus titik, parse sebagai integer. Jika tidak bisa diparse, dianggap `0`.
+- Nama bulan yang diterima: `Januari`, `Februari`, `Maret`, `April`, `Mei`, `Juni`, `Juli`, `Agustus`, `September`, `Oktober`, `November`, `Desember` (case-insensitive).
+
+---
 
 ## Error Responses
 
-- `400 Bad Request`: ID jadwal tidak valid.
-- `401 Unauthorized`: token tidak ada atau tidak valid.
-- `403 Forbidden`: role bukan `asesor`, atau jadwal bukan penugasan asesor login.
-- `404 Not Found`: jadwal tidak tersedia, atau file Surat Tugas belum tersimpan.
+Semua endpoint mengembalikan error seragam:
+
+- `400 Bad Request`: Parameter tidak valid, `jadwal_id` tidak dikirim (EP10), format `periode` salah (EP13).
+- `401 Unauthorized`: Token JWT tidak disertakan atau kedaluwarsa.
+- `403 Forbidden`: Role user bukan `asesor`, atau asesor mencoba akses data milik asesor lain.
+- `404 Not Found`: Data laporan tidak ditemukan (EP7), atau asesor tidak terdaftar.
+- `500 Internal Server Error`: Kesalahan database atau server.
