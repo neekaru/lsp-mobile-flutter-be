@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../services/auth_repository.dart';
@@ -44,6 +45,8 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
 
   // Step 2 State
   String _searchQuery = '';
+  Timer? _searchDebounce;
+  final _searchController = TextEditingController();
   final List<ParticipantItem> _participants = [
     ParticipantItem(name: 'Ayu Putri Sri', nim: '0897556789', isPresent: true),
     ParticipantItem(name: 'Arya Pamungkas', nim: '125809872315', isPresent: true),
@@ -82,6 +85,8 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
     _nameController.dispose();
     _linkController.dispose();
     _notesController.dispose();
+    _searchController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -190,7 +195,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double statusBarHeight = MediaQuery.paddingOf(context).top;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -245,7 +250,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20.0),
-              child: _buildCurrentStepContent(),
+              child: RepaintBoundary(
+                child: _buildCurrentStepContent(),
+              ),
             ),
           ),
 
@@ -518,8 +525,16 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
           const SizedBox(height: 8),
           TextFormField(
             controller: _linkController,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF1E293B),
+            ),
             decoration: InputDecoration(
               hintText: 'Unggah link dokumentasi',
+              hintStyle: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF94A3B8),
+              ),
               fillColor: Colors.white,
               filled: true,
               border: OutlineInputBorder(
@@ -618,9 +633,13 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
             border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
           child: TextFormField(
+            controller: _searchController,
             onChanged: (val) {
-              setState(() {
-                _searchQuery = val;
+              _searchDebounce?.cancel();
+              _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+                setState(() {
+                  _searchQuery = val;
+                });
               });
             },
             decoration: const InputDecoration(
@@ -680,122 +699,15 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
 
               // Table Body Rows
               ...filtered.map((participant) {
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      child: Row(
-                        children: [
-                          // Name Col
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              participant.name,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF1E293B),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          // NIM Col
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              participant.nim,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                          ),
-                          // Attendance Switch Col
-                          SizedBox(
-                            width: 80,
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: _buildAttendanceSwitch(participant),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                  ],
+                return _AttendanceRow(
+                  key: ValueKey(participant.nim),
+                  participant: participant,
                 );
               }),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  // Beautiful custom toggle switch matching the mockup screenshot
-  Widget _buildAttendanceSwitch(ParticipantItem participant) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          participant.isPresent = !participant.isPresent;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 75,
-        height: 28,
-        decoration: BoxDecoration(
-          color: participant.isPresent ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Row(
-          mainAxisAlignment:
-              participant.isPresent ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
-          children: [
-            if (participant.isPresent) ...[
-              const Padding(
-                padding: EdgeInsets.only(left: 8.0),
-                child: Text(
-                  'Hadir',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Container(
-                width: 20,
-                height: 20,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ] else ...[
-              Container(
-                width: 20,
-                height: 20,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.only(left: 8.0),
-                child: Text(
-                  'Absen',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 
@@ -981,170 +893,24 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
         const SizedBox(height: 8),
 
         // Participant Mobile-First List Card
-        ListView.builder(
-          shrinkWrap: true,
-          padding: EdgeInsets.zero,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _participants.length,
-          itemBuilder: (context, index) {
-            final participant = _participants[index];
-            final firstLetter = participant.name.isNotEmpty ? participant.name[0].toUpperCase() : 'A';
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  // Left: Avatar + Name & NIM
-                  Expanded(
-                    flex: 11,
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: const Color(0xFFF1F5F9),
-                          child: Text(
-                            firstLetter,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                participant.name,
-                                style: const TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'NIM: ${participant.nim}',
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-
-                  // Right: Premium Mobile-First Selector Switch/Buttons
-                  Expanded(
-                    flex: 9,
-                    child: Row(
-                      children: [
-                        // Pill for Kompeten [K]
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                participant.isCompetent = true;
-                                // Recalculate bulk state if needed
-                                _allKSelected = _participants.every((p) => p.isCompetent);
-                                _allTKSelected = false;
-                              });
-                            },
-                            child: Container(
-                              height: 34,
-                              decoration: BoxDecoration(
-                                color: participant.isCompetent ? const Color(0xFFECFDF5) : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: participant.isCompetent ? const Color(0xFF10B981) : const Color(0xFFE2E8F0),
-                                  width: participant.isCompetent ? 1.5 : 1,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '[K]',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: participant.isCompetent ? const Color(0xFF047857) : const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                  if (participant.isCompetent) ...[
-                                    const SizedBox(width: 4),
-                                    const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 12),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-
-                        // Pill for Tidak Kompeten [TK]
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                participant.isCompetent = false;
-                                // Recalculate bulk state if needed
-                                _allTKSelected = _participants.every((p) => !p.isCompetent);
-                                _allKSelected = false;
-                              });
-                            },
-                            child: Container(
-                              height: 34,
-                              decoration: BoxDecoration(
-                                color: !participant.isCompetent ? const Color(0xFFFEF2F2) : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: !participant.isCompetent ? const Color(0xFFEF4444) : const Color(0xFFE2E8F0),
-                                  width: !participant.isCompetent ? 1.5 : 1,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '[TK]',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: !participant.isCompetent ? const Color(0xFFB91C1C) : const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                  if (!participant.isCompetent) ...[
-                                    const SizedBox(width: 4),
-                                    const Icon(Icons.cancel_rounded, color: Color(0xFFEF4444), size: 12),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+        Column(
+          children: _participants.map((participant) {
+            return _Step3ParticipantCard(
+              key: ValueKey(participant.nim),
+              participant: participant,
+              onCompetenceChanged: (bool isCompetent) {
+                participant.isCompetent = isCompetent;
+                final newAllK = _participants.every((p) => p.isCompetent);
+                final newAllTK = _participants.every((p) => !p.isCompetent);
+                if (newAllK != _allKSelected || newAllTK != _allTKSelected) {
+                  setState(() {
+                    _allKSelected = newAllK;
+                    _allTKSelected = newAllTK;
+                  });
+                }
+              },
             );
-          },
+          }).toList(),
         ),
       ],
     );
@@ -1274,6 +1040,306 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
           }),
         ],
       ],
+    );
+  }
+}
+
+class _Step3ParticipantCard extends StatefulWidget {
+  final ParticipantItem participant;
+  final ValueChanged<bool> onCompetenceChanged;
+
+  const _Step3ParticipantCard({
+    super.key,
+    required this.participant,
+    required this.onCompetenceChanged,
+  });
+
+  @override
+  State<_Step3ParticipantCard> createState() => _Step3ParticipantCardState();
+}
+
+class _Step3ParticipantCardState extends State<_Step3ParticipantCard> {
+  @override
+  Widget build(BuildContext context) {
+    final participant = widget.participant;
+    final firstLetter = participant.name.isNotEmpty ? participant.name[0].toUpperCase() : 'A';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          // Left: Avatar + Name & NIM
+          Expanded(
+            flex: 11,
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: const Color(0xFFF1F5F9),
+                  child: Text(
+                    firstLetter,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        participant.name,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'NIM: ${participant.nim}',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // Right: Premium Mobile-First Selector Switch/Buttons
+          Expanded(
+            flex: 9,
+            child: Row(
+              children: [
+                // Pill for Kompeten [K]
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        participant.isCompetent = true;
+                      });
+                      widget.onCompetenceChanged(true);
+                    },
+                    child: Container(
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: participant.isCompetent ? const Color(0xFFECFDF5) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: participant.isCompetent ? const Color(0xFF10B981) : const Color(0xFFE2E8F0),
+                          width: participant.isCompetent ? 1.5 : 1,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '[K]',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: participant.isCompetent ? const Color(0xFF047857) : const Color(0xFF64748B),
+                            ),
+                          ),
+                          if (participant.isCompetent) ...[
+                            const SizedBox(width: 4),
+                            const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 12),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+
+                // Pill for Tidak Kompeten [TK]
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        participant.isCompetent = false;
+                      });
+                      widget.onCompetenceChanged(false);
+                    },
+                    child: Container(
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: !participant.isCompetent ? const Color(0xFFFEF2F2) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: !participant.isCompetent ? const Color(0xFFEF4444) : const Color(0xFFE2E8F0),
+                          width: !participant.isCompetent ? 1.5 : 1,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '[TK]',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: !participant.isCompetent ? const Color(0xFFB91C1C) : const Color(0xFF64748B),
+                            ),
+                          ),
+                          if (!participant.isCompetent) ...[
+                            const SizedBox(width: 4),
+                            const Icon(Icons.cancel_rounded, color: Color(0xFFEF4444), size: 12),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AttendanceRow extends StatefulWidget {
+  final ParticipantItem participant;
+
+  const _AttendanceRow({super.key, required this.participant});
+
+  @override
+  State<_AttendanceRow> createState() => _AttendanceRowState();
+}
+
+class _AttendanceRowState extends State<_AttendanceRow> {
+  @override
+  Widget build(BuildContext context) {
+    final participant = widget.participant;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              // Name Col
+              Expanded(
+                flex: 2,
+                child: Text(
+                  participant.name,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF1E293B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              // NIM Col
+              Expanded(
+                flex: 2,
+                child: Text(
+                  participant.nim,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+              ),
+              // Attendance Switch Col
+              SizedBox(
+                width: 80,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: _buildAttendanceSwitch(participant),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1, color: Color(0xFFE2E8F0)),
+      ],
+    );
+  }
+
+  Widget _buildAttendanceSwitch(ParticipantItem participant) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          participant.isPresent = !participant.isPresent;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 75,
+        height: 28,
+        decoration: BoxDecoration(
+          color: participant.isPresent ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(
+          mainAxisAlignment:
+              participant.isPresent ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+          children: [
+            if (participant.isPresent) ...[
+              const Padding(
+                padding: EdgeInsets.only(left: 8.0),
+                child: Text(
+                  'Hadir',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Container(
+                width: 20,
+                height: 20,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ] else ...[
+              Container(
+                width: 20,
+                height: 20,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(left: 8.0),
+                child: Text(
+                  'Absen',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
