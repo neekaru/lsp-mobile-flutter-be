@@ -44,6 +44,7 @@ class ApiRoutes {
   static const String jadwalNotificationsCount =
       '/api/jadwal/notifications/count';
   static const String jadwalWaiting = '/api/jadwal/waiting';
+  static const String jadwalDraft = '/api/jadwal/draft';
 
   // ============================================================================
   // Sertifikat Routes

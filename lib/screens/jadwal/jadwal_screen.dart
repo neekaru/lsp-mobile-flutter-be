@@ -5,6 +5,7 @@ import '../../services/api_service.dart';
 import '../../widgets/jadwal/jadwal_list_item.dart';
 import '../../widgets/jadwal/custom_tab_bar.dart';
 import '../../services/auth_repository.dart';
+import '../../helpers/api_routes.dart';
 import 'jadwal_detail_screen.dart';
 
 class JadwalScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class _JadwalScreenState extends State<JadwalScreen>
 
   // Pagination state
   bool _isLoadingMore = false;
+  bool _hasMoreDraft = true;
   bool _hasMoreRunning = true;
   bool _hasMorePelaporan = true;
   bool _hasMoreSelesai = true;
@@ -40,6 +42,7 @@ class _JadwalScreenState extends State<JadwalScreen>
   }
 
   // Data dari API
+  List<JadwalItem> draftList = [];
   List<JadwalItem> runningList = [];
   List<JadwalItem> pelaporanList = [];
   List<JadwalItem> selesaiList = [];
@@ -49,6 +52,7 @@ class _JadwalScreenState extends State<JadwalScreen>
   String trendPercentage = '+0%';
 
   // Scroll controllers for pagination
+  final ScrollController _scrollControllerDraft = ScrollController();
   final ScrollController _scrollControllerRunning = ScrollController();
   final ScrollController _scrollControllerPelaporan = ScrollController();
   final ScrollController _scrollControllerSelesai = ScrollController();
@@ -57,10 +61,13 @@ class _JadwalScreenState extends State<JadwalScreen>
   void initState() {
     super.initState();
     final bool isAsesi = currentUser.role == 'asesi';
-    _tabController = TabController(length: isAsesi ? 2 : 3, vsync: this);
+    final bool isAsesor = currentUser.role == 'asesor';
+    final bool isAdmin = currentUser.role == 'admin' || (!isAsesi && !isAsesor);
+    _tabController = TabController(length: isAsesi ? 2 : (isAdmin ? 4 : 3), vsync: this);
     _loadJadwalData();
 
     // Setup scroll listeners for pagination
+    _scrollControllerDraft.addListener(_onScrollDraft);
     _scrollControllerRunning.addListener(_onScrollRunning);
     _scrollControllerPelaporan.addListener(_onScrollPelaporan);
     _scrollControllerSelesai.addListener(_onScrollSelesai);
@@ -69,6 +76,7 @@ class _JadwalScreenState extends State<JadwalScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _scrollControllerDraft.dispose();
     _scrollControllerRunning.dispose();
     _scrollControllerPelaporan.dispose();
     _scrollControllerSelesai.dispose();
@@ -76,6 +84,13 @@ class _JadwalScreenState extends State<JadwalScreen>
   }
 
   // Scroll listeners for pagination
+  void _onScrollDraft() {
+    if (_scrollControllerDraft.position.pixels >=
+        _scrollControllerDraft.position.maxScrollExtent - 200) {
+      _loadMoreDraft();
+    }
+  }
+
   void _onScrollRunning() {
     if (_scrollControllerRunning.position.pixels >=
         _scrollControllerRunning.position.maxScrollExtent - 200) {
@@ -100,6 +115,7 @@ class _JadwalScreenState extends State<JadwalScreen>
   Future<void> _loadJadwalData() async {
     setState(() {
       _isLoading = true;
+      _hasMoreDraft = true;
       _hasMoreRunning = true;
       _hasMorePelaporan = true;
       _hasMoreSelesai = true;
@@ -108,6 +124,7 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final bool isAsesi = currentUser.role == 'asesi';
       final bool isAsesor = currentUser.role == 'asesor';
+      final bool isAdmin = currentUser.role == 'admin' || (!isAsesi && !isAsesor);
 
       // Custom parameters per role
       String status1 = isAsesi ? '0' : '3';
@@ -132,7 +149,15 @@ class _JadwalScreenState extends State<JadwalScreen>
       }
 
       // Fetch data untuk setiap tab secara parallel
-      final results = await Future.wait([
+      final futures = <Future<List<JadwalItem>>>[
+        if (isAdmin)
+          ApiService.getJadwalList(
+            limit: _pageSize,
+            statusJadwal: '0',
+            sortBy: 'tanggal',
+            sortOrder: 'desc',
+            customRoutePath: ApiRoutes.jadwalDraft,
+          ),
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: status1,
@@ -154,22 +179,33 @@ class _JadwalScreenState extends State<JadwalScreen>
           sortOrder: 'desc',
           customRoutePath: path3,
         ),
-      ]);
+      ];
+
+      final results = await Future.wait(futures);
 
       setState(() {
+        int resultIndex = 0;
+        if (isAdmin) {
+          draftList = _sortJadwalList(results[resultIndex]);
+          _hasMoreDraft = results[resultIndex].length >= _pageSize;
+          resultIndex++;
+        }
+
         // Sort di frontend untuk memastikan urutan konsisten
-        runningList = _sortJadwalList(results[0]);
-        pelaporanList = _sortJadwalList(results[1]);
-        selesaiList = _sortJadwalList(results[2]);
+        runningList = _sortJadwalList(results[resultIndex]);
+        _hasMoreRunning = results[resultIndex].length >= _pageSize;
+        resultIndex++;
+
+        pelaporanList = _sortJadwalList(results[resultIndex]);
+        _hasMorePelaporan = results[resultIndex].length >= _pageSize;
+        resultIndex++;
+
+        selesaiList = _sortJadwalList(results[resultIndex]);
+        _hasMoreSelesai = results[resultIndex].length >= _pageSize;
 
         // Calculate total from all tabs
         totalAsesmen =
-            runningList.length + pelaporanList.length + selesaiList.length;
-
-        // Check if there's more data
-        _hasMoreRunning = results[0].length >= _pageSize;
-        _hasMorePelaporan = results[1].length >= _pageSize;
-        _hasMoreSelesai = results[2].length >= _pageSize;
+            runningList.length + pelaporanList.length + selesaiList.length + draftList.length;
 
         _isLoading = false;
       });
@@ -182,6 +218,38 @@ class _JadwalScreenState extends State<JadwalScreen>
   }
 
   // Load more methods for pagination
+  Future<void> _loadMoreDraft() async {
+    if (_isLoadingMore || !_hasMoreDraft) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final newData = await ApiService.getJadwalList(
+        limit: _pageSize,
+        offset: draftList.length,
+        statusJadwal: '0',
+        sortBy: 'tanggal',
+        sortOrder: 'desc',
+        customRoutePath: ApiRoutes.jadwalDraft,
+      );
+
+      setState(() {
+        if (newData.length < _pageSize) {
+          _hasMoreDraft = false;
+        }
+        draftList.addAll(_sortJadwalList(newData));
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      debugPrint('🔴 Error loading more data: $e');
+      setState(() {
+        _isLoadingMore = false;
+      });
+    }
+  }
+
   Future<void> _loadMoreRunning() async {
     if (_isLoadingMore || !_hasMoreRunning) return;
 
@@ -365,6 +433,7 @@ class _JadwalScreenState extends State<JadwalScreen>
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: JadwalTabBar(
                 controller: _tabController,
+                draftCount: draftList.length,
                 runningCount: runningList.length,
                 pelaporanCount: pelaporanList.length,
                 selesaiCount: selesaiList.length,
@@ -376,6 +445,18 @@ class _JadwalScreenState extends State<JadwalScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
+                  // Tab Draft (Only for Admin)
+                  if (currentUser.role == 'admin' || (currentUser.role != 'asesi' && currentUser.role != 'asesor'))
+                    _JadwalTabContent(
+                      key: const PageStorageKey('draft_tab'),
+                      child: _buildJadwalList(
+                        draftList,
+                        'waiting',
+                        _scrollControllerDraft,
+                        _hasMoreDraft,
+                      ),
+                    ),
+
                   // Tab 1: Sedang Berjalan (Mendatang for Asesi)
                   _JadwalTabContent(
                     key: const PageStorageKey('sedang_berjalan_tab'),

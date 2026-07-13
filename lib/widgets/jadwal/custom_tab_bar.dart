@@ -3,6 +3,7 @@ import '../../services/auth_repository.dart';
 
 class JadwalTabBar extends StatefulWidget {
   final TabController controller;
+  final int draftCount;
   final int runningCount;
   final int pelaporanCount;
   final int selesaiCount;
@@ -10,6 +11,7 @@ class JadwalTabBar extends StatefulWidget {
   const JadwalTabBar({
     super.key,
     required this.controller,
+    this.draftCount = 0,
     required this.runningCount,
     this.pelaporanCount = 0,
     this.selesaiCount = 0,
@@ -52,6 +54,7 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
     final role = AuthRepository.currentUserInstance?.role;
     final bool isAsesi = role == 'asesi';
     final bool isAsesor = role == 'asesor';
+    final bool isAdmin = role == 'admin' || (role != 'asesi' && role != 'asesor');
 
     if (isAsesor) {
       return Row(
@@ -89,40 +92,59 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
       );
     }
 
-    return Row(
-      children: [
-        Expanded(
-          child: TabItem(
-            label: isAsesi ? 'Mendatang' : 'Running',
-            badgeCount: widget.runningCount > 0 ? widget.runningCount : null,
-            isSelected: widget.controller.index == 0,
-            onTap: () => widget.controller.animateTo(0),
-            usePillStyle: isAsesi,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: TabItem(
-            label: isAsesi ? 'Berjalan' : 'Pelaporan',
-            badgeCount: isAsesi && widget.pelaporanCount > 0 ? widget.pelaporanCount : null,
-            isSelected: widget.controller.index == 1,
-            onTap: () => widget.controller.animateTo(1),
-            usePillStyle: isAsesi,
-          ),
-        ),
-        if (!isAsesi) ...[
-          const SizedBox(width: 8),
-          Expanded(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          if (isAdmin) ...[
+            SizedBox(
+              width: 100,
+              child: TabItem(
+                label: 'Draft',
+                badgeCount: widget.draftCount > 0 ? widget.draftCount : null,
+                isSelected: widget.controller.index == 0,
+                onTap: () => widget.controller.animateTo(0),
+                usePillStyle: false,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          SizedBox(
+            width: 100,
             child: TabItem(
-              label: 'Selesai',
-              badgeCount: widget.selesaiCount > 0 ? widget.selesaiCount : null,
-              isSelected: widget.controller.index == 2,
-              onTap: () => widget.controller.animateTo(2),
+              label: isAsesi ? 'Mendatang' : 'Running',
+              badgeCount: widget.runningCount > 0 ? widget.runningCount : null,
+              isSelected: widget.controller.index == (isAdmin ? 1 : 0),
+              onTap: () => widget.controller.animateTo(isAdmin ? 1 : 0),
               usePillStyle: isAsesi,
             ),
           ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 100,
+            child: TabItem(
+              label: isAsesi ? 'Berjalan' : 'Pelaporan',
+              badgeCount: isAsesi && widget.pelaporanCount > 0 ? widget.pelaporanCount : null,
+              isSelected: widget.controller.index == (isAdmin ? 2 : 1),
+              onTap: () => widget.controller.animateTo(isAdmin ? 2 : 1),
+              usePillStyle: isAsesi,
+            ),
+          ),
+          if (!isAsesi) ...[
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 100,
+              child: TabItem(
+                label: 'Selesai',
+                badgeCount: widget.selesaiCount > 0 ? widget.selesaiCount : null,
+                isSelected: widget.controller.index == (isAdmin ? 3 : 2),
+                onTap: () => widget.controller.animateTo(isAdmin ? 3 : 2),
+                usePillStyle: isAsesi,
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

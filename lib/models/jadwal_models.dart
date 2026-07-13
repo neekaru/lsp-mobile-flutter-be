@@ -37,6 +37,7 @@ class JadwalItem {
   final int totalAsesi;
   final int jumlahKompeten;
   final int jumlahBelumKompeten;
+  final bool needsAcc;
 
   const JadwalItem({
     required this.id,
@@ -53,13 +54,14 @@ class JadwalItem {
     this.totalAsesi = 0,
     this.jumlahKompeten = 0,
     this.jumlahBelumKompeten = 0,
+    this.needsAcc = false,
   });
 
   factory JadwalItem.fromJson(Map<String, dynamic> json) {
     // Map status_jadwal dari API ke status internal
     String mapStatus(String statusJadwal, int daysOverdue) {
       switch (statusJadwal) {
-        case '0': // Waiting
+        case '0': // Waiting / Draft
           return 'waiting';
         case '1': // Completed
           return 'completed';
@@ -81,6 +83,7 @@ class JadwalItem {
     final totalAsesi = json['total_asesi'] ?? json['jumlah_asesi'] ?? 0;
     final jumlahKompeten = json['jumlah_kompeten'] ?? 0;
     final jumlahBelumKompeten = json['jumlah_belum_kompeten'] ?? 0;
+    final needsAcc = json['needs_acc'] ?? false;
 
     return JadwalItem(
       id: json['id'] ?? 0,
@@ -97,6 +100,7 @@ class JadwalItem {
       totalAsesi: totalAsesi,
       jumlahKompeten: jumlahKompeten,
       jumlahBelumKompeten: jumlahBelumKompeten,
+      needsAcc: needsAcc,
     );
   }
 }

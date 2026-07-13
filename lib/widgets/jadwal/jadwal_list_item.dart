@@ -859,19 +859,20 @@ class JadwalListItem extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _getStatusColor().withValues(alpha: 0.1),
+                          color: item.needsAcc ? const Color(0xFFFFEBEE) : _getStatusColor().withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
+                          item.needsAcc ? 'Butuh ACC' : (
                           item.status == 'waiting' ? 'Waiting' : 
                           item.status == 'completed' ? 'Completed' :
                           item.status == 'canceled' ? 'Canceled' :
                           item.status == 'running' ? 'Running' :
-                          item.status == 'pelaporan' ? 'Pelaporan' : item.status,
+                          item.status == 'pelaporan' ? 'Pelaporan' : item.status),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: _getStatusColor(),
+                            color: item.needsAcc ? const Color(0xFFE53935) : _getStatusColor(),
                           ),
                         ),
                       ),
@@ -904,8 +905,48 @@ class JadwalListItem extends StatelessWidget {
               ),
             ),
 
-            // Bottom Action Button (hanya untuk status aktif yang belum selesai/batal)
-            if (item.status != 'completed' && item.status != 'canceled' && item.status != 'pelaporan')
+            // Bottom Action Button
+            if (item.needsAcc)
+              Container(
+                decoration: const BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: Color(0xFFF0F0F0), width: 1),
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onTap,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            LucideIcons.circle_check,
+                            size: 16,
+                            color: const Color(0xFF2C6C9C),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Detail & ACC Jadwal',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2C6C9C),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else if (item.status != 'completed' && item.status != 'canceled' && item.status != 'pelaporan')
               Container(
                 decoration: const BoxDecoration(
                   border: Border(
