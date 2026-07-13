@@ -674,7 +674,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
       children: [
         Expanded(
           child: _buildRingkasanCard(
-            value: _totalPenugasan.toString().padLeft(2, '0'),
+            value: _totalPenugasan.toString(),
             label: 'Penugasan',
             sublabel: 'Yang diterima',
             icon: Icons.assignment_outlined,
@@ -685,7 +685,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: _buildRingkasanCard(
-            value: _totalLaporan.toString().padLeft(2, '0'),
+            value: _totalLaporan.toString(),
             label: 'Laporan',
             sublabel: 'Terkirim ke LSP',
             icon: Icons.description_outlined,
@@ -696,7 +696,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
         const SizedBox(width: 8),
         Expanded(
           child: _buildRingkasanCard(
-            value: _totalLaporanSukses.toString().padLeft(2, '0'),
+            value: _totalLaporanSukses.toString(),
             label: 'Laporan',
             sublabel: 'Terkonfirmasi',
             icon: Icons.check_circle_outline_rounded,
