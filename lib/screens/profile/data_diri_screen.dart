@@ -40,6 +40,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final blueColor = const Color(0xFF5B9FD8);
+    final user = AuthRepository.currentUserInstance;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -146,7 +147,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                 ),
                 const SizedBox(height: 16),
                 
-                // Badge "Peserta"
+                // Badge Role
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -156,9 +157,9 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                     color: Colors.white.withValues(alpha: 0.35),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'Peserta',
-                    style: TextStyle(
+                  child: Text(
+                    user?.role == 'asesor' ? 'Aktif' : 'Peserta',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
                       fontWeight: FontWeight.bold,

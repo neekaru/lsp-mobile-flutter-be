@@ -117,52 +117,56 @@ class _EditInstansiScreenState extends State<EditInstansiScreen> {
       backgroundColor: Colors.white,
       builder: (context) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Text(
-                  'Pilih Status Pekerjaan',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+          child: Material(
+            color: Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Text(
+                    'Pilih Status Pekerjaan',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
                   ),
                 ),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.school_rounded, color: Color(0xFF378CE7)),
-                title: const Text('Mahasiswa', style: TextStyle(fontWeight: FontWeight.bold)),
-                onTap: () {
-                  setState(() {
-                    _selectedType = 'Mahasiswa';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.business_center_rounded, color: Color(0xFF378CE7)),
-                title: const Text('Karyawan', style: TextStyle(fontWeight: FontWeight.bold)),
-                onTap: () {
-                  setState(() {
-                    _selectedType = 'Karyawan';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.store_rounded, color: Color(0xFF378CE7)),
-                title: const Text('Wirausaha', style: TextStyle(fontWeight: FontWeight.bold)),
-                onTap: () {
-                  setState(() {
-                    _selectedType = 'Wirausaha';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-            ],
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.school_rounded, color: Color(0xFF378CE7)),
+                  title: const Text('Mahasiswa', style: TextStyle(fontWeight: FontWeight.bold)),
+                  onTap: () {
+                    setState(() {
+                      _selectedType = 'Mahasiswa';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.business_center_rounded, color: Color(0xFF378CE7)),
+                  title: const Text('Karyawan', style: TextStyle(fontWeight: FontWeight.bold)),
+                  onTap: () {
+                    setState(() {
+                      _selectedType = 'Karyawan';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.store_rounded, color: Color(0xFF378CE7)),
+                  title: const Text('Wirausaha', style: TextStyle(fontWeight: FontWeight.bold)),
+                  onTap: () {
+                    setState(() {
+                      _selectedType = 'Wirausaha';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },

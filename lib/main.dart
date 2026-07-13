@@ -18,6 +18,7 @@ import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/dashboard/statistik_screen.dart';
 import 'screens/jadwal/jadwal_screen.dart';
 import 'screens/profile/profile_screen.dart';
+import 'screens/profile/profile_asesor_screen.dart';
 import 'screens/sertifikat/sertifikat_screen.dart';
 import 'screens/sertifikat/skema_sertifikasi_screen.dart';
 import 'screens/sertifikat/validasi_sertifikat_screen.dart';
@@ -242,7 +243,7 @@ class MainNavigatorState extends State<MainNavigator> {
           JadwalScreen(onBackToHome: () => setTab(0)),
           PenugasanScreen(onBackToHome: () => setTab(0)),
           PlaceholderScreen(title: 'Laporan', onBackToHome: () => setTab(0)),
-          PlaceholderScreen(title: 'Profil', onBackToHome: () => setTab(0)),
+          ProfileAsesorScreen(onBackToHome: () => setTab(0)),
         ];
       } else {
         _screens = [

@@ -7,42 +7,33 @@ import '../../services/token_storage.dart';
 import '../../services/notification_service.dart';
 import '../auth/login_screen.dart';
 import 'data_diri_screen.dart';
-import 'edit_instansi_screen.dart';
 import 'keamanan_screen.dart';
-import '../../widgets/profile/ringkasan_widget.dart';
-import '../../widgets/profile/menu_profil_widget.dart';
+import 'honor_asesor_screen.dart';
+import 'tiket_bantuan_screen.dart';
+import '../dashboard/faq_screen.dart';
 import 'public_profile_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileAsesorScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
 
-  const ProfileScreen({super.key, this.onBackToHome});
+  const ProfileAsesorScreen({super.key, this.onBackToHome});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<ProfileAsesorScreen> createState() => _ProfileAsesorScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
   bool _isLoggingOut = false;
-  bool _isInstansiExpanded = false;
-  String _instansiType = 'Mahasiswa';
-  Map<String, String> _instansiData = {
-    'Nama Perguruan Tinggi': 'Politeknik Sampit',
-    'Falkutas': 'Teknologi Informasi',
-    'Program Studi': 'Sisitem Informasi',
-    'NIM': '087685674568',
-    'Alamat': 'Jl. Wengga Metropolitan',
-  };
 
-  void _copyTukId() {
-    Clipboard.setData(const ClipboardData(text: 'DM-2026-000123'));
+  void _copyAsesorId() {
+    Clipboard.setData(const ClipboardData(text: 'ASR-2026-000123'));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Row(
           children: [
             Icon(Icons.check_circle_outline, color: Colors.white),
             SizedBox(width: 8),
-            Text('ID TUK disalin ke clipboard!'),
+            Text('ID Asesor disalin ke clipboard!'),
           ],
         ),
         backgroundColor: const Color(0xFF2E7D32),
@@ -259,7 +250,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Membuka Galeri (Simulasi)')),
+                      const SnackBar(
+                        content: Text('Membuka Galeri (Simulasi)'),
+                      ),
                     );
                   },
                 ),
@@ -279,7 +272,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: () {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Membuka Kamera (Simulasi)')),
+                      const SnackBar(
+                        content: Text('Membuka Kamera (Simulasi)'),
+                      ),
                     );
                   },
                 ),
@@ -290,8 +285,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -335,17 +328,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'Profil Saya',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      const Text(
+                        'Profil Saya',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(
@@ -439,35 +428,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 8),
 
-                  // TUK Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'TUK Digital Marketing',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ID TUK Copyable Row
+                  // ID copyable row
                   GestureDetector(
-                    onTap: _copyTukId,
+                    onTap: _copyAsesorId,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'ID TUK : DM-2026-000123',
+                          'ID : ASR-2026-000123',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.75),
                             fontSize: 11.5,
@@ -483,6 +451,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
+
+                  // Status Badge "Aktif"
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Aktif',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -491,16 +480,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const RingkasanWidget(
-                    sertifikatAktif: 12,
-                    skemaKompetensi: 8,
-                    sertifikatKadaluarsa: 2,
-                    totalUjiKompetensi: 12,
+                  // Ringkasan Title & Row of 3 Cards
+                  const Text(
+                    'Ringkasan',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
                   ),
+                  const SizedBox(height: 12),
+                  _buildRingkasanCards(),
                   const SizedBox(height: 24),
-                  MenuProfilWidget(
-                    onDataDiriTap: () {
+
+                  // Honor Section
+                  _buildHonorCard(),
+                  const SizedBox(height: 24),
+
+                  // Menu Profil Section
+                  const Text(
+                    'Menu Profil',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildMenuCard(
+                    icon: Icons.person_rounded,
+                    title: 'Data Diri',
+                    iconColor: const Color(0xFF378CE7),
+                    iconBgColor: const Color(0xFFE3F2FD),
+                    onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -508,32 +522,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       );
                     },
-                    isInstansiExpanded: _isInstansiExpanded,
-                    instansiType: _instansiType,
-                    instansiData: _instansiData,
-                    onInstansiTap: () {
-                      setState(() {
-                        _isInstansiExpanded = !_isInstansiExpanded;
-                      });
-                    },
-                    onInstansiEditTap: () {
+                  ),
+                  _buildMenuCard(
+                    icon: Icons.account_balance_wallet_rounded,
+                    title: 'Honor',
+                    iconColor: const Color(0xFF378CE7),
+                    iconBgColor: const Color(0xFFE3F2FD),
+                    onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => EditInstansiScreen(
-                            currentType: _instansiType,
-                            currentData: _instansiData,
-                            onSave: (type, data) {
-                              setState(() {
-                                _instansiType = type;
-                                _instansiData = data;
-                              });
-                            },
-                          ),
+                          builder: (context) => const HonorAsesorScreen(),
                         ),
                       );
                     },
-                    onKeamananTap: () {
+                  ),
+                  _buildMenuCard(
+                    icon: Icons.shield_rounded,
+                    title: 'Keamanan',
+                    iconColor: const Color(0xFF378CE7),
+                    iconBgColor: const Color(0xFFE3F2FD),
+                    onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -541,22 +550,311 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       );
                     },
-                    onSertifikasiTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Menu Sertifikasi dipilih'),
+                  ),
+                  _buildMenuCard(
+                    icon: Icons.local_play_rounded,
+                    title: 'Tiket Bantuan',
+                    iconColor: const Color(0xFF378CE7),
+                    iconBgColor: const Color(0xFFE3F2FD),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TiketBantuanScreen(),
                         ),
                       );
                     },
-                    onKeluarTap: _isLoggingOut
-                        ? null
-                        : _showLogoutConfirmDialog,
+                  ),
+                  _buildMenuCard(
+                    icon: Icons.help_rounded,
+                    title: 'FAQ',
+                    iconColor: const Color(0xFF378CE7),
+                    iconBgColor: const Color(0xFFE3F2FD),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FaqScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildMenuCard(
+                    icon: Icons.logout_rounded,
+                    title: 'Keluar',
+                    iconColor: const Color(0xFFEF4444),
+                    iconBgColor: const Color(0xFFFEE2E2),
+                    textColor: const Color(0xFFEF4444),
+                    onTap: _isLoggingOut ? () {} : _showLogoutConfirmDialog,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRingkasanCards() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildRingkasanCard(
+            value: '01',
+            label: 'Penugasan',
+            sublabel: 'Yang diterima',
+            icon: Icons.assignment_outlined,
+            iconColor: const Color(0xFFF97316),
+            iconBgColor: const Color(0xFFFFF3E0),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildRingkasanCard(
+            value: '18',
+            label: 'Laporan',
+            sublabel: 'Terkirim ke LSP',
+            icon: Icons.description_outlined,
+            iconColor: const Color(0xFF378CE7),
+            iconBgColor: const Color(0xFFE3F2FD),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildRingkasanCard(
+            value: '18',
+            label: 'Laporan',
+            sublabel: 'Terkirim ke LSP',
+            icon: Icons.check_circle_outline_rounded,
+            iconColor: const Color(0xFF4CAF50),
+            iconBgColor: const Color(0xFFE8F5E9),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRingkasanCard({
+    required String value,
+    required String label,
+    required String sublabel,
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBgColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Icon Container
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(icon, color: iconColor, size: 18),
+          ),
+          const SizedBox(height: 12),
+          // Value
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 2),
+          // Label
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          // Sublabel
+          Text(
+            sublabel,
+            style: const TextStyle(fontSize: 9.5, color: Color(0xFF64748B)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHonorCard() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Honor Bulan Ini',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HonorAsesorScreen(),
+                  ),
+                );
+              },
+              child: const Row(
+                children: [
+                  Text(
+                    'Lihat semua',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF378CE7),
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: Color(0xFF378CE7),
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Total Honor (Juli 2026)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Rp. 2.500.000',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    '4 Asessment selesai',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE3F2FD),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.account_balance_wallet_rounded,
+                    color: Color(0xFF378CE7),
+                    size: 24,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuCard({
+    required IconData icon,
+    required String title,
+    required Color iconColor,
+    required Color iconBgColor,
+    required VoidCallback onTap,
+    Color textColor = const Color(0xFF1E293B),
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.white,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        child: ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+          trailing: const Icon(
+            Icons.chevron_right_rounded,
+            color: Color(0xFF378CE7),
+            size: 22,
+          ),
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 4,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
     );
