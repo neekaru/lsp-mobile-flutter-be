@@ -45,7 +45,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
     try {
       final profile = await AsesorService.getProfile();
       final honor = await AsesorService.getHonorList('Juli 2026');
-      
+
       // Fetch assignment count
       int penugasanCount = 0;
       try {
@@ -61,7 +61,9 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
       try {
         final reports = await AsesorService.getLaporanList();
         laporanCount = reports.length;
-        laporanSuksesCount = reports.where((item) => item['status'] == 'Terkonfirmasi').length;
+        laporanSuksesCount = reports
+            .where((item) => item['status'] == 'Terkonfirmasi')
+            .length;
       } catch (_) {}
 
       if (mounted) {
@@ -358,315 +360,325 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
       backgroundColor: const Color(0xFFFAFAFA),
       body: Stack(
         children: [
-          SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header Section
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF5B9FD8), Color(0xFF4FA8E8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
-              ),
-              padding: EdgeInsets.only(
-                top: statusBarHeight + 12,
-                bottom: 24,
-                left: 20,
-                right: 20,
-              ),
+          RefreshIndicator(
+            onRefresh: _fetchProfileAndHonor,
+            color: const Color(0xFF5B9FD8),
+            child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // App Bar Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Profil Saya',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  // Header Section
+                  Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF5B9FD8), Color(0xFF4FA8E8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.settings_outlined,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const KeamananScreen(),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(32),
+                        bottomRight: Radius.circular(32),
+                      ),
+                    ),
+                    padding: EdgeInsets.only(
+                      top: statusBarHeight + 12,
+                      bottom: 24,
+                      left: 20,
+                      right: 20,
+                    ),
+                    child: Column(
+                      children: [
+                        // App Bar Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Profil Saya',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.settings_outlined,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const KeamananScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
 
-                  // Profile Image Avatar Stack
-                  Stack(
-                    children: [
-                      GestureDetector(
-                        onTap: _showPhotoPickerDemo,
-                        child: Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              width: 3,
+                        // Profile Image Avatar Stack
+                        Stack(
+                          children: [
+                            GestureDetector(
+                              onTap: _showPhotoPickerDemo,
+                              child: Container(
+                                width: 110,
+                                height: 110,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                    width: 3,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.person_rounded,
+                                    size: 70,
+                                    color: Color(0xFFCBD5E1),
+                                  ),
+                                ),
+                              ),
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
+                            Positioned(
+                              bottom: 0,
+                              right: 4,
+                              child: GestureDetector(
+                                onTap: _showPhotoPickerDemo,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt_outlined,
+                                    color: Color(0xFF378CE7),
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // User Name
+                        Text(
+                          _profileData?['nama_lengkap'] ?? userName,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // ID copyable row
+                        GestureDetector(
+                          onTap: _copyAsesorId,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'ID : ${_profileData?["id_asesor"] ?? "ASR-2026-000123"}',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.75),
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.copy_rounded,
+                                color: Colors.white.withValues(alpha: 0.75),
+                                size: 13,
                               ),
                             ],
                           ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.person_rounded,
-                              size: 70,
-                              color: Color(0xFFCBD5E1),
-                            ),
-                          ),
                         ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 4,
-                        child: GestureDetector(
-                          onTap: _showPhotoPickerDemo,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
+                        const SizedBox(height: 12),
+
+                        // Status Badge "Aktif"
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            _profileData?['status_aktif'] ?? 'Aktif',
+                            style: const TextStyle(
                               color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt_outlined,
-                              color: Color(0xFF378CE7),
-                              size: 18,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // User Name
-                  Text(
-                    _profileData?['nama_lengkap'] ?? userName,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // ID copyable row
-                  GestureDetector(
-                    onTap: _copyAsesorId,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'ID : ${_profileData?["id_asesor"] ?? "ASR-2026-000123"}',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.75),
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Icon(
-                          Icons.copy_rounded,
-                          color: Colors.white.withValues(alpha: 0.75),
-                          size: 13,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
 
-                  // Status Badge "Aktif"
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      _profileData?['status_aktif'] ?? 'Aktif',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  // Content Body Section
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Ringkasan Title & Row of 3 Cards
+                        const Text(
+                          'Ringkasan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildRingkasanCards(),
+                        const SizedBox(height: 24),
+
+                        // Honor Section
+                        _buildHonorCard(),
+                        const SizedBox(height: 24),
+
+                        // Menu Profil Section
+                        const Text(
+                          'Menu Profil',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildMenuCard(
+                          icon: Icons.person_rounded,
+                          title: 'Data Diri',
+                          iconColor: const Color(0xFF378CE7),
+                          iconBgColor: const Color(0xFFE3F2FD),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const DataDiriScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuCard(
+                          icon: Icons.account_balance_wallet_rounded,
+                          title: 'Honor',
+                          iconColor: const Color(0xFF378CE7),
+                          iconBgColor: const Color(0xFFE3F2FD),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const HonorAsesorScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuCard(
+                          icon: Icons.shield_rounded,
+                          title: 'Keamanan',
+                          iconColor: const Color(0xFF378CE7),
+                          iconBgColor: const Color(0xFFE3F2FD),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const KeamananScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuCard(
+                          icon: Icons.local_play_rounded,
+                          title: 'Tiket Bantuan',
+                          iconColor: const Color(0xFF378CE7),
+                          iconBgColor: const Color(0xFFE3F2FD),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const TiketBantuanScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuCard(
+                          icon: Icons.help_rounded,
+                          title: 'FAQ',
+                          iconColor: const Color(0xFF378CE7),
+                          iconBgColor: const Color(0xFFE3F2FD),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const FaqScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuCard(
+                          icon: Icons.logout_rounded,
+                          title: 'Keluar',
+                          iconColor: const Color(0xFFEF4444),
+                          iconBgColor: const Color(0xFFFEE2E2),
+                          textColor: const Color(0xFFEF4444),
+                          onTap: _isLoggingOut
+                              ? () {}
+                              : _showLogoutConfirmDialog,
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
-
-            // Content Body Section
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Ringkasan Title & Row of 3 Cards
-                  const Text(
-                    'Ringkasan',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildRingkasanCards(),
-                  const SizedBox(height: 24),
-
-                  // Honor Section
-                  _buildHonorCard(),
-                  const SizedBox(height: 24),
-
-                  // Menu Profil Section
-                  const Text(
-                    'Menu Profil',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildMenuCard(
-                    icon: Icons.person_rounded,
-                    title: 'Data Diri',
-                    iconColor: const Color(0xFF378CE7),
-                    iconBgColor: const Color(0xFFE3F2FD),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const DataDiriScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.account_balance_wallet_rounded,
-                    title: 'Honor',
-                    iconColor: const Color(0xFF378CE7),
-                    iconBgColor: const Color(0xFFE3F2FD),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HonorAsesorScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.shield_rounded,
-                    title: 'Keamanan',
-                    iconColor: const Color(0xFF378CE7),
-                    iconBgColor: const Color(0xFFE3F2FD),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const KeamananScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.local_play_rounded,
-                    title: 'Tiket Bantuan',
-                    iconColor: const Color(0xFF378CE7),
-                    iconBgColor: const Color(0xFFE3F2FD),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TiketBantuanScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.help_rounded,
-                    title: 'FAQ',
-                    iconColor: const Color(0xFF378CE7),
-                    iconBgColor: const Color(0xFFE3F2FD),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FaqScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuCard(
-                    icon: Icons.logout_rounded,
-                    title: 'Keluar',
-                    iconColor: const Color(0xFFEF4444),
-                    iconBgColor: const Color(0xFFFEE2E2),
-                    textColor: const Color(0xFFEF4444),
-                    onTap: _isLoggingOut ? () {} : _showLogoutConfirmDialog,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-      if (_isLoadingProfile)
-        Positioned(
-          top: statusBarHeight,
-          left: 0,
-          right: 0,
-          child: const LinearProgressIndicator(
-            minHeight: 2,
-            backgroundColor: Colors.transparent,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
           ),
-        ),
-    ],
-  ),
-);
+          if (_isLoadingProfile)
+            Positioned(
+              top: statusBarHeight,
+              left: 0,
+              right: 0,
+              child: const LinearProgressIndicator(
+                minHeight: 2,
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _buildRingkasanCards() {
@@ -849,7 +861,8 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    _honorData?['jumlah_asesmen_selesai'] ?? '0 Asesmen selesai',
+                    _honorData?['jumlah_asesmen_selesai'] ??
+                        '0 Asesmen selesai',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,

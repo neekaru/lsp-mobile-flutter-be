@@ -27,15 +27,17 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
     });
     try {
       // If _selectedMonth is 'Semua', fetch without periode parameter
-      final res = _selectedMonth == 'Semua' 
+      final res = _selectedMonth == 'Semua'
           ? await AsesorService.getHonorList()
           : await AsesorService.getHonorList(_selectedMonth);
       if (mounted) {
         setState(() {
           _honorData = res;
-          
+
           // Populate available months from API response (only when fetching all)
-          if (_selectedMonth == 'Semua' && res != null && res['available_months'] != null) {
+          if (_selectedMonth == 'Semua' &&
+              res != null &&
+              res['available_months'] != null) {
             final apiMonths = (res['available_months'] as List<dynamic>)
                 .map((e) => e.toString())
                 .toList();
@@ -80,17 +82,26 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                     return ListTile(
                       leading: Icon(
                         Icons.calendar_today_rounded,
-                        color: isSelected ? const Color(0xFF378CE7) : const Color(0xFF64748B),
+                        color: isSelected
+                            ? const Color(0xFF378CE7)
+                            : const Color(0xFF64748B),
                       ),
                       title: Text(
                         monthName,
                         style: TextStyle(
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected ? const Color(0xFF378CE7) : const Color(0xFF1E293B),
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isSelected
+                              ? const Color(0xFF378CE7)
+                              : const Color(0xFF1E293B),
                         ),
                       ),
                       trailing: isSelected
-                          ? const Icon(Icons.check_circle_rounded, color: Color(0xFF378CE7))
+                          ? const Icon(
+                              Icons.check_circle_rounded,
+                              color: Color(0xFF378CE7),
+                            )
                           : null,
                       onTap: () {
                         setState(() {
@@ -115,7 +126,8 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
 
     final String totalHonor = _honorData?['total_honor'] ?? 'Rp. 0';
-    final String countText = _honorData?['jumlah_asesmen_selesai'] ?? '0 Asesmen selesai';
+    final String countText =
+        _honorData?['jumlah_asesmen_selesai'] ?? '0 Asesmen selesai';
     final List<dynamic> details = _honorData?['rincian'] ?? [];
 
     return Scaffold(
@@ -123,9 +135,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          const CustomAppBar(
-            title: 'Honor Saya',
-          ),
+          const CustomAppBar(title: 'Honor Saya'),
           if (_isLoading)
             const LinearProgressIndicator(
               minHeight: 2,
@@ -133,243 +143,259 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF378CE7)),
             ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Month Picker Button
-                  GestureDetector(
-                    onTap: () => _showMonthPicker(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: RefreshIndicator(
+              onRefresh: _fetchHonorData,
+              color: const Color(0xFF378CE7),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 16.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Month Picker Button
+                    GestureDetector(
+                      onTap: () => _showMonthPicker(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.calendar_today_outlined,
+                              color: Color(0xFF378CE7),
+                              size: 14,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _selectedMonth,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_drop_down,
+                              color: Color(0xFF378CE7),
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Highlight Total Honor Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20.0),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                       ),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(
-                            Icons.calendar_today_outlined,
-                            color: Color(0xFF378CE7),
-                            size: 14,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Total Honor',
+                                  style: TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  totalHonor,
+                                  style: const TextStyle(
+                                    color: Color(0xFF1E293B),
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  countText,
+                                  style: const TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            _selectedMonth,
+                          // Premium Vector Illustration of smartphone & transaction details
+                          _buildIllustration(),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Rincian Section Title
+                    const Text(
+                      'Rincian Honor',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Collapsible Month Card detailed view
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Theme(
+                        data: Theme.of(
+                          context,
+                        ).copyWith(dividerColor: Colors.transparent),
+                        child: ExpansionTile(
+                          initiallyExpanded: true,
+                          collapsedShape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFFBFDBFE,
+                              ), // Soft blue square
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.account_balance_wallet_rounded,
+                              color: Color(0xFF2563EB),
+                              size: 20,
+                            ),
+                          ),
+                          title: Text(
+                            'Total Honor ($_selectedMonth)',
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1E293B),
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.arrow_drop_down,
-                            color: Color(0xFF378CE7),
-                            size: 18,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Highlight Total Honor Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Total Honor',
-                                style: TextStyle(
-                                  color: Color(0xFF64748B),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                totalHonor,
-                                style: const TextStyle(
-                                  color: Color(0xFF1E293B),
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                countText,
-                                style: const TextStyle(
-                                  color: Color(0xFF64748B),
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Premium Vector Illustration of smartphone & transaction details
-                        _buildIllustration(),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Rincian Section Title
-                  const Text(
-                    'Rincian Honor',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Collapsible Month Card detailed view
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                        dividerColor: Colors.transparent,
-                      ),
-                      child: ExpansionTile(
-                        initiallyExpanded: true,
-                        collapsedShape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        tilePadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        leading: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFBFDBFE), // Soft blue square
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.account_balance_wallet_rounded,
-                            color: Color(0xFF2563EB),
-                            size: 20,
-                          ),
-                        ),
-                        title: Text(
-                          'Total Honor ($_selectedMonth)',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        subtitle: Text(
-                          countText,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                        trailing: Text(
-                          totalHonor,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        children: [
-                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                          if (details.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.all(24.0),
-                              child: Center(
-                                child: Text(
-                                  'Tidak ada rincian honor untuk periode ini',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: details.length,
-                              separatorBuilder: (context, i) =>
-                                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                              itemBuilder: (context, i) {
-                                final detail = details[i] as Map<String, dynamic>;
-                                return Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        detail['judul_asesmen'] ?? '',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              '${detail['tanggal'] ?? ""} | ${detail['tuk'] ?? ""}',
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                color: Color(0xFF64748B),
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Text(
-                                            detail['honor'] ?? 'Rp. 0',
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF378CE7),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
+                          subtitle: Text(
+                            countText,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF64748B),
                             ),
-                        ],
+                          ),
+                          trailing: Text(
+                            totalHonor,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          children: [
+                            const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                            if (details.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.all(24.0),
+                                child: Center(
+                                  child: Text(
+                                    'Tidak ada rincian honor untuk periode ini',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            else
+                              ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: details.length,
+                                separatorBuilder: (context, i) => const Divider(
+                                  height: 1,
+                                  color: Color(0xFFF1F5F9),
+                                ),
+                                itemBuilder: (context, i) {
+                                  final detail =
+                                      details[i] as Map<String, dynamic>;
+                                  return Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          detail['judul_asesmen'] ?? '',
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF1E293B),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                '${detail['tanggal'] ?? ""} | ${detail['tuk'] ?? ""}',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Color(0xFF64748B),
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            Text(
+                                              detail['honor'] ?? 'Rp. 0',
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF378CE7),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -383,7 +409,9 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       width: 90,
       height: 90,
       decoration: BoxDecoration(
-        color: const Color(0xFFBFDBFE).withValues(alpha: 0.6), // Light blue background box
+        color: const Color(
+          0xFFBFDBFE,
+        ).withValues(alpha: 0.6), // Light blue background box
         borderRadius: BorderRadius.circular(8),
       ),
       child: ClipRect(
@@ -402,7 +430,9 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF4ADE80), // Green bill
                     borderRadius: BorderRadius.circular(4),
-                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 2)],
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black12, blurRadius: 2),
+                    ],
                   ),
                   child: Center(
                     child: Container(
@@ -429,7 +459,11 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: Colors.white, width: 1.5),
                   boxShadow: const [
-                    BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
                   ],
                 ),
                 child: Column(
@@ -448,7 +482,10 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                     // Screen content with a tiny credit card
                     Expanded(
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 2,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF3B82F6), // Blue screen
                           borderRadius: BorderRadius.circular(3),
@@ -464,7 +501,10 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                                 height: 18,
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
-                                    colors: [Color(0xFFF97316), Color(0xFFEA580C)], // Orange card
+                                    colors: [
+                                      Color(0xFFF97316),
+                                      Color(0xFFEA580C),
+                                    ], // Orange card
                                   ),
                                   borderRadius: BorderRadius.circular(2),
                                 ),
@@ -476,9 +516,17 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(width: 25, height: 2, color: Colors.white),
+                                  Container(
+                                    width: 25,
+                                    height: 2,
+                                    color: Colors.white,
+                                  ),
                                   const SizedBox(height: 2),
-                                  Container(width: 18, height: 2, color: Colors.white70),
+                                  Container(
+                                    width: 18,
+                                    height: 2,
+                                    color: Colors.white70,
+                                  ),
                                 ],
                               ),
                             ),
@@ -502,7 +550,11 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                   decoration: const BoxDecoration(
                     color: Colors.white, // White receipt paper
                     boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 2,
+                        offset: Offset(0, 1),
+                      ),
                     ],
                   ),
                   padding: const EdgeInsets.all(3),
@@ -511,11 +563,23 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                     children: [
                       Container(width: 20, height: 2, color: Colors.grey[400]),
                       const SizedBox(height: 2),
-                      Container(width: 15, height: 1.5, color: Colors.grey[300]),
+                      Container(
+                        width: 15,
+                        height: 1.5,
+                        color: Colors.grey[300],
+                      ),
                       const SizedBox(height: 2),
-                      Container(width: 18, height: 1.5, color: Colors.grey[300]),
+                      Container(
+                        width: 18,
+                        height: 1.5,
+                        color: Colors.grey[300],
+                      ),
                       const SizedBox(height: 2),
-                      Container(width: 10, height: 1.5, color: Colors.grey[300]),
+                      Container(
+                        width: 10,
+                        height: 1.5,
+                        color: Colors.grey[300],
+                      ),
                     ],
                   ),
                 ),
@@ -531,8 +595,13 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFFBBF24), // Gold color
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFD97706), width: 1.5),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 1)],
+                  border: Border.all(
+                    color: const Color(0xFFD97706),
+                    width: 1.5,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black12, blurRadius: 1),
+                  ],
                 ),
                 child: Center(
                   child: Container(
