@@ -90,6 +90,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   }
 
   Future<void> _loadSchedules() async {
+    if (!mounted) return;
     setState(() {
       _isLoadingSchedules = true;
     });
@@ -121,6 +122,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
       ];
     }
 
+    if (!mounted) return;
     setState(() {
       _selectedSchedule = _schedulesList.first;
       _selectedSkema = _selectedSchedule?['nama_jadwal'] ?? '';
@@ -134,11 +136,13 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   }
 
   Future<void> _loadDropdownData() async {
+    if (!mounted) return;
     setState(() {
       _isLoadingDropdown = true;
     });
     try {
       final list = await AsesorService.getSkemaTukDropdown();
+      if (!mounted) return;
       setState(() {
         _skemaTukList = list;
         if (_skemaTukList.isNotEmpty) {
@@ -148,6 +152,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
     } catch (e) {
       debugPrint('Error loading skema-tuk dropdown: $e');
     }
+    if (!mounted) return;
     setState(() {
       _isLoadingDropdown = false;
     });
@@ -157,6 +162,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
     try {
       final res = await JadwalService.getAsesiList(scheduleId);
       if (res.data.isNotEmpty) {
+        if (!mounted) return;
         setState(() {
           _participants.clear();
           for (var asesi in res.data) {
@@ -177,6 +183,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
 
     // If still empty, load mock participants so screen is never blank
     if (_participants.isEmpty) {
+      if (!mounted) return;
       setState(() {
         _participants.addAll([
           ParticipantItem(name: 'Ayu Putri Sri', nim: '0897556789', isPresent: true),
@@ -233,6 +240,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _isSubmitting = true;
     });
@@ -255,6 +263,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
       lampiranPendukung: _attachments,
     );
 
+    if (!mounted) return;
     setState(() {
       _isSubmitting = false;
     });
@@ -343,6 +352,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                             ? const Icon(Icons.check_circle_rounded, color: Color(0xFF378CE7))
                             : null,
                         onTap: () {
+                          if (!mounted) return;
                           setState(() {
                             _selectedSchedule = schedule;
                             _selectedSkema = schedule['nama_jadwal'] ?? '';
@@ -806,6 +816,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
             onChanged: (val) {
               _searchDebounce?.cancel();
               _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+                if (!mounted) return;
                 setState(() {
                   _searchQuery = val;
                 });
@@ -1154,12 +1165,14 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
                 onPressed: () async {
+                  if (!mounted) return;
                   setState(() {
                     _isUploadingAttachment = true;
                   });
 
                   final uploadResult = await AsesorService.uploadLampiran('/dummy/path/bukti_pendukung.pdf');
 
+                  if (!mounted) return;
                   setState(() {
                     _isUploadingAttachment = false;
                   });
@@ -1170,6 +1183,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                       isSuccess: true,
                       message: 'Upload File Berhasil',
                       onConfirm: () {
+                        if (!mounted) return;
                         setState(() {
                           _attachments.add(fileUrl.isNotEmpty ? fileUrl : 'Bukti_Pendukung_${_attachments.length + 1}.pdf');
                         });
@@ -1180,6 +1194,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                       isSuccess: true,
                       message: 'Upload File Berhasil (Simulasi)',
                       onConfirm: () {
+                        if (!mounted) return;
                         setState(() {
                           _attachments.add('bukti-pendukung-${_attachments.length + 1}.pdf');
                         });

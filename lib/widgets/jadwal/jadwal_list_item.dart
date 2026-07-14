@@ -186,7 +186,7 @@ class JadwalListItem extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Color(0xFF1F2937), // Dark gray
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -199,7 +199,7 @@ class JadwalListItem extends StatelessWidget {
                                 item.tuk,
                                 style: const TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey,
+                                  color: Color(0xFF6B7280), // Gray 500
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -216,7 +216,7 @@ class JadwalListItem extends StatelessWidget {
                               'Yogyakarta',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey,
+                                color: Color(0xFF6B7280), // Gray 500
                               ),
                             ),
                           ],
@@ -276,7 +276,7 @@ class JadwalListItem extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Color(0xFF1F2937), // Dark gray
                           ),
                         ),
                       ],
@@ -303,11 +303,11 @@ class JadwalListItem extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _getDisplayAsesor(),
+                          _getDisplayAsesi(),
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Color(0xFF1F2937), // Dark gray
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -340,7 +340,7 @@ class JadwalListItem extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Color(0xFF1F2937), // Dark gray
                           ),
                         ),
                       ],
@@ -465,7 +465,7 @@ class JadwalListItem extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Color(0xFF1F2937), // Dark gray
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -478,7 +478,7 @@ class JadwalListItem extends StatelessWidget {
                                 item.tuk,
                                 style: const TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey,
+                                  color: Color(0xFF6B7280), // Gray 500
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -495,7 +495,7 @@ class JadwalListItem extends StatelessWidget {
                               'Yogyakarta',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey,
+                                color: Color(0xFF6B7280), // Gray 500
                               ),
                             ),
                           ],
@@ -555,7 +555,7 @@ class JadwalListItem extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Color(0xFF1F2937), // Dark gray
                           ),
                         ),
                       ],
@@ -582,11 +582,11 @@ class JadwalListItem extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _getDisplayAsesor(),
+                          _getDisplayAsesi(),
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Color(0xFF1F2937), // Dark gray
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -619,7 +619,7 @@ class JadwalListItem extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Color(0xFF1F2937), // Dark gray
                           ),
                         ),
                       ],

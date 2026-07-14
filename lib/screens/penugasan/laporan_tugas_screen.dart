@@ -45,11 +45,11 @@ class _LaporanTugasScreenState extends State<LaporanTugasScreen> {
   Map<String, String> _mapToReportData(Map<String, dynamic> item) {
     return {
       'id': item['id']?.toString() ?? '',
-      'code': item['code']?.toString() ?? '',
+      'code': item['kode_laporan']?.toString() ?? '',
       'status': item['status']?.toString() ?? 'Draf',
-      'asesor': item['asesor']?.toString() ?? '',
-      'skema': item['skema']?.toString() ?? '',
-      'tanggal': item['tanggal']?.toString() ?? '',
+      'asesor': item['nama_asesor']?.toString() ?? '',
+      'skema': item['skema_sertifikasi']?.toString() ?? '',
+      'tanggal': item['tanggal_pelaksanaan']?.toString() ?? '',
     };
   }
 

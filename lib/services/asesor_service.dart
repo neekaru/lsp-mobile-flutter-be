@@ -308,11 +308,16 @@ class AsesorService {
   }
 
   /// 13. Daftar Honor Asesor (Berdasarkan Periode)
-  static Future<Map<String, dynamic>?> getHonorList(String periode) async {
+  /// If periode is null or empty, returns all honor.
+  static Future<Map<String, dynamic>?> getHonorList([String? periode]) async {
     try {
+      final Map<String, dynamic> queryParams = {};
+      if (periode != null && periode.isNotEmpty) {
+        queryParams['periode'] = periode;
+      }
       final response = await _dio.get(
         '/api/asesor/honor',
-        queryParameters: {'periode': periode},
+        queryParameters: queryParams,
       );
       if (response.statusCode == 200 && response.data != null) {
         return response.data['data'] as Map<String, dynamic>?;

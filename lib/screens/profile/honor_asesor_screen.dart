@@ -10,15 +10,10 @@ class HonorAsesorScreen extends StatefulWidget {
 }
 
 class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
-  String _selectedMonth = 'Juli 2026';
+  String _selectedMonth = 'Semua';
   bool _isLoading = true;
   Map<String, dynamic>? _honorData;
-
-  final List<String> _availableMonths = [
-    'Juli 2026',
-    'Juni 2026',
-    'Mei 2026',
-  ];
+  List<String> _availableMonths = ['Semua']; // Will be populated from API
 
   @override
   void initState() {
@@ -31,10 +26,21 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       _isLoading = true;
     });
     try {
-      final res = await AsesorService.getHonorList(_selectedMonth);
+      // If _selectedMonth is 'Semua', fetch without periode parameter
+      final res = _selectedMonth == 'Semua' 
+          ? await AsesorService.getHonorList()
+          : await AsesorService.getHonorList(_selectedMonth);
       if (mounted) {
         setState(() {
           _honorData = res;
+          
+          // Populate available months from API response (only when fetching all)
+          if (_selectedMonth == 'Semua' && res != null && res['available_months'] != null) {
+            final apiMonths = (res['available_months'] as List<dynamic>)
+                .map((e) => e.toString())
+                .toList();
+            _availableMonths = ['Semua', ...apiMonths];
+          }
         });
       }
     } catch (_) {}
@@ -158,6 +164,12 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1E293B),
                             ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.arrow_drop_down,
+                            color: Color(0xFF378CE7),
+                            size: 18,
                           ),
                         ],
                       ),

@@ -87,7 +87,7 @@ class JadwalItem {
 
     return JadwalItem(
       id: json['id'] ?? 0,
-      skema: json['jadwal'] ?? '', // API uses 'jadwal' field
+      skema: json['jadwal'] ?? json['nama_jadwal'] ?? '', // API uses 'jadwal' field
       tuk: json['tuk'] ?? '',
       tanggalMulai: json['tanggal'] ?? json['tanggal_mulai'] ?? '',
       tanggalSelesai: json['tanggal_akhir'] ?? json['tanggal_selesai'] ?? '',
