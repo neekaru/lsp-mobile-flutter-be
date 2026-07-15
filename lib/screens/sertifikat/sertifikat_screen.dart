@@ -200,22 +200,29 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
           Expanded(
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // 1. Validation Style Input Card (Mirroring Public ValidasiSertifikatScreen)
-                  _buildSearchInputCard(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _buildSearchInputCard(),
+                  ),
 
                   const SizedBox(height: 20),
 
                   // 2. Loading State
-                  if (_isLoading) _buildLoadingWidget(),
+                  if (_isLoading)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: _buildLoadingWidget(),
+                    ),
 
                   // 3. Search Results List
                   if (!_isLoading && _hasSearched && _searchResults.isNotEmpty) ...[
                     Padding(
-                      padding: const EdgeInsets.only(left: 4.0, bottom: 12.0),
+                      padding: const EdgeInsets.only(left: 20.0, bottom: 12.0),
                       child: Text(
                         'Hasil Pencarian (${_searchResults.length} ditemukan)',
                         style: const TextStyle(
@@ -249,10 +256,18 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
                   ],
 
                   // 4. Error / Not Found State (Mirroring Public ValidasiSertifikatScreen error card style)
-                  if (!_isLoading && _hasSearched && _errorMessage != null) _buildErrorWidget(),
+                  if (!_isLoading && _hasSearched && _errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: _buildErrorWidget(),
+                    ),
 
                   // 5. Welcome/Initial Guidelines when not searched yet
-                  if (!_isLoading && !_hasSearched) _buildInitialGuidelines(),
+                  if (!_isLoading && !_hasSearched)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: _buildInitialGuidelines(),
+                    ),
 
                   const SizedBox(height: 40),
                 ],
