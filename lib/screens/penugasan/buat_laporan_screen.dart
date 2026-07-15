@@ -5,6 +5,7 @@ import '../../services/auth_repository.dart';
 import '../../services/asesor_service.dart';
 import '../../services/api_client.dart';
 import '../../services/jadwal_service.dart';
+import '../pengajuan/widgets/animated_success_badge.dart';
 
 class ParticipantItem {
   final String name;
@@ -831,7 +832,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
     if (response != null) {
       _showFeedbackDialog(
         isSuccess: true,
-        message: 'Laporan tugas berhasil dibuat',
+        message: 'Laporan Tugas Berhasil Dibuat',
         onConfirm: () {
           final newReport = {
             'id': response['id']?.toString() ?? '',
@@ -848,7 +849,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
       // Offline fallback success for flawless review
       _showFeedbackDialog(
         isSuccess: true,
-        message: 'Laporan tugas berhasil dibuat',
+        message: 'Laporan Tugas Berhasil Dibuat',
         onConfirm: () {
           final newReport = {
             'id': '24346',
@@ -1248,34 +1249,6 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
               ),
             ),
           ),
-          if (_uploadedFileName != null) ...[
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.insert_drive_file_outlined,
-                    color: Color(0xFF64748B),
-                    size: 16,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      _uploadedFileName!,
-                      style: const TextStyle(
-                        color: Color(0xFF1E293B),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
           const SizedBox(height: 6),
           const Text(
             'Surat tugas harus PDF minimal 2 mb.',
@@ -1879,51 +1852,20 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 10),
-                SizedBox(
-                  height: 140,
-                  width: 140,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      ..._buildDecorCircles(isSuccess),
-                      isSuccess
-                          ? TweenAnimationBuilder<double>(
-                              tween: Tween<double>(begin: 0.0, end: 1.0),
-                              duration: const Duration(milliseconds: 1000),
-                              curve: Curves.elasticOut,
-                              builder: (context, value, child) {
-                                return Transform.scale(
-                                  scale: value,
-                                  child: child,
-                                );
-                              },
-                              child: Container(
-                                width: 90,
-                                height: 90,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                    BoxShadow(
-                                      color: const Color(0xFF4FA8E8).withOpacity(0.2),
-                                      blurRadius: 15,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                                padding: const EdgeInsets.all(12),
-                                child: Image.asset(
-                                  'assets/logo.png',
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            )
-                          : Container(
+                isSuccess
+                    ? const SizedBox(
+                        height: 140,
+                        width: 140,
+                        child: AnimatedSuccessBadge(),
+                      )
+                    : SizedBox(
+                        height: 140,
+                        width: 140,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            ..._buildDecorCircles(isSuccess),
+                            Container(
                               width: 90,
                               height: 90,
                               decoration: const BoxDecoration(
@@ -1950,9 +1892,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                                 ),
                               ),
                             ),
-                    ],
-                  ),
-                ),
+                          ],
+                        ),
+                      ),
                 const SizedBox(height: 24),
                 Text(
                   message,
