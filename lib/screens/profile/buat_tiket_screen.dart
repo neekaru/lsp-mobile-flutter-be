@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../services/asesor_service.dart';
 
@@ -31,7 +32,6 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
   void _pickDocument() {
     String? tempFileName = _selectedFileName;
     String? tempFileSize = _selectedFileSize;
-    bool tempUploading = false;
 
     showModalBottomSheet(
       context: context,
@@ -158,43 +158,45 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
                             ),
                           ],
                           const SizedBox(height: 20),
-                          if (tempUploading)
-                            const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF3B82F6)),
-                            )
-                          else
-                            ElevatedButton(
-                              onPressed: () {
-                                setSheetState(() {
-                                  tempUploading = true;
-                                });
-                                Future.delayed(const Duration(milliseconds: 1000), () {
+                          ElevatedButton(
+                            onPressed: () async {
+                              try {
+                                final result = await FilePicker.pickFiles(
+                                  type: FileType.custom,
+                                  allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+                                );
+                                if (result != null && result.files.isNotEmpty) {
+                                  final file = result.files.first;
                                   setSheetState(() {
-                                    tempUploading = false;
-                                    tempFileName = 'screenshot_kendala.png';
-                                    tempFileSize = '1.8 MB';
+                                    tempFileName = file.name;
+                                    final double kb = file.size / 1024;
+                                    final double mb = kb / 1024;
+                                    tempFileSize = mb >= 1
+                                        ? '${mb.toStringAsFixed(1)} MB'
+                                        : '${kb.toStringAsFixed(1)} KB';
                                   });
-                                });
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF54A0EB),
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: Text(
-                                tempFileName == null ? 'Pilih File' : 'Ganti File',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
+                                }
+                              } catch (e) {
+                                debugPrint('Error picking file: $e');
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF54A0EB),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
+                            child: Text(
+                              tempFileName == null ? 'Pilih File' : 'Ganti File',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
