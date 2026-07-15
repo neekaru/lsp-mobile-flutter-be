@@ -6,8 +6,6 @@ import '../../services/token_storage.dart';
 import '../../services/auth_repository.dart';
 import '../../services/notification_service.dart';
 import '../../models/auth_models.dart';
-import 'register_screen.dart';
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -450,40 +448,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Footer: Belum punya akun?
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Belum punya akun? ',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Daftar sekarang',
-                      style: TextStyle(
-                        color: Color(0xFF1E88E5),
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
               ),
               const SizedBox(height: 20),
             ],
