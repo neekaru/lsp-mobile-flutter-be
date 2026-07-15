@@ -205,7 +205,7 @@ class SertifikatListItem extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      'Lihat Sertifikat',
+                      'Detail',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,

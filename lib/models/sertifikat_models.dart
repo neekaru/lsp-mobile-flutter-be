@@ -12,6 +12,11 @@ class SertifikatItem {
   final String status; // 'aktif', 'kadaluarsa', 'akan_kadaluarsa'
   final String kategori; // 'Digital Marketing', 'Informatika', dll
   final String? institusi;
+  final String nomorRegistrasi;
+  final String nomorBlanko;
+  final String nomorSeri;
+  final String tempatUji;
+  final String namaAsesor;
 
   const SertifikatItem({
     required this.id,
@@ -23,6 +28,11 @@ class SertifikatItem {
     required this.status,
     required this.kategori,
     this.institusi,
+    this.nomorRegistrasi = 'REG-12345-2026',
+    this.nomorBlanko = 'BLANKO-998877',
+    this.nomorSeri = 'SERI-001A',
+    this.tempatUji = 'TUK LSP Digital',
+    this.namaAsesor = 'Dr. Ir. Asesor Utama, M.Kom',
   });
 
   factory SertifikatItem.fromJson(Map<String, dynamic> json) {
@@ -36,6 +46,11 @@ class SertifikatItem {
       status: json['status'] ?? 'aktif',
       kategori: json['kategori'] ?? '',
       institusi: json['institusi'],
+      nomorRegistrasi: json['nomor_registrasi'] ?? 'REG-12345-2026',
+      nomorBlanko: json['nomor_blanko'] ?? 'BLANKO-998877',
+      nomorSeri: json['nomor_seri'] ?? 'SERI-001A',
+      tempatUji: json['tempat_uji'] ?? 'TUK LSP Digital',
+      namaAsesor: json['nama_asesor'] ?? 'Dr. Ir. Asesor Utama, M.Kom',
     );
   }
 }

@@ -4,6 +4,7 @@ import '../../services/api_service.dart';
 import '../../widgets/sertifikat/sertifikat_list_item.dart';
 import '../../widgets/sertifikat/sertifikat_tab_bar.dart';
 import '../../widgets/custom_app_bar.dart';
+import 'detail_sertifikat_screen.dart';
 
 class SertifikatScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -132,7 +133,9 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
 
   // Helper to filter and search certificates based on tab and query
   List<SertifikatItem> _getFilteredCertificates() {
-    final listToFilter = _apiSertifikats.isNotEmpty ? _apiSertifikats : _mockSertifikats;
+    final listToFilter = _apiSertifikats.isNotEmpty
+        ? _apiSertifikats
+        : _mockSertifikats;
     final query = _searchController.text.toLowerCase();
 
     // Map tab index to status
@@ -150,10 +153,12 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
 
     return listToFilter.where((item) {
       final matchesStatus = item.status.toLowerCase() == targetStatus;
-      final matchesQuery = query.isEmpty ||
-          item.skema.toLowerCase().contains(query) ||
+      final matchesQuery =
+          query.isEmpty ||
+          item.pemegang.toLowerCase().contains(query) ||
+          item.nomorRegistrasi.toLowerCase().contains(query) ||
           item.nomorSertifikat.toLowerCase().contains(query) ||
-          (item.institusi?.toLowerCase().contains(query) ?? false);
+          item.nomorBlanko.toLowerCase().contains(query);
       return matchesStatus && matchesQuery;
     }).toList();
   }
@@ -162,22 +167,30 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final filteredItems = _getFilteredCertificates();
-    
+
     // Calculate global counts for badge notifications
-    final totalList = _apiSertifikats.isNotEmpty ? _apiSertifikats : _mockSertifikats;
-    final aktifCount = totalList.where((item) => item.status.toLowerCase() == 'aktif').length;
-    final akanBerakhirCount = totalList.where((item) => item.status.toLowerCase() == 'akan_kadaluarsa').length;
-    final kadaluarsaCount = totalList.where((item) => item.status.toLowerCase() == 'kadaluarsa').length;
+    final totalList = _apiSertifikats.isNotEmpty
+        ? _apiSertifikats
+        : _mockSertifikats;
+    final aktifCount = totalList
+        .where((item) => item.status.toLowerCase() == 'aktif')
+        .length;
+    final akanBerakhirCount = totalList
+        .where((item) => item.status.toLowerCase() == 'akan_kadaluarsa')
+        .length;
+    final kadaluarsaCount = totalList
+        .where((item) => item.status.toLowerCase() == 'kadaluarsa')
+        .length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          
+
           // Header with consistent style
           CustomAppBar(
-            title: 'Sertifikat',
+            title: 'Sertifikat (Admin)',
             onBack: () {
               if (widget.onBackToHome != null) {
                 widget.onBackToHome!();
@@ -189,7 +202,10 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
 
           // Custom Tab Bar matching screenshot aesthetics
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
             child: SertifikatTabBar(
               currentTab: _currentTab,
               aktifCount: aktifCount,
@@ -208,7 +224,7 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: _buildSearchBar(),
           ),
-          
+
           const SizedBox(height: 12),
 
           // Certificate List
@@ -219,20 +235,28 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
               child: _isLoading && _apiSertifikats.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : filteredItems.isEmpty
-                      ? _buildEmptyState()
-                      : ListView.builder(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.only(bottom: 24),
-                          itemCount: filteredItems.length,
-                          itemBuilder: (context, index) {
-                            final item = filteredItems[index];
-                            return SertifikatListItem(
-                              item: item,
-                              onView: () => _showViewCertificateDialog(item),
-                              onDownload: () => _handleDownloadCertificate(item),
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(bottom: 24),
+                      itemCount: filteredItems.length,
+                      itemBuilder: (context, index) {
+                        final item = filteredItems[index];
+                        return SertifikatListItem(
+                          item: item,
+                          onView: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    DetailSertifikatScreen(item: item),
+                              ),
                             );
                           },
-                        ),
+                          onDownload: () => _handleDownloadCertificate(item),
+                        );
+                      },
+                    ),
             ),
           ),
         ],
@@ -270,10 +294,7 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
           const SizedBox(height: 8),
           const Text(
             'Coba ubah filter atau kata pencarian Anda.',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 13, color: Colors.grey),
           ),
         ],
       ),
@@ -286,19 +307,13 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFFE0E0E0),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
       ),
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Cari sertifikat',
-          hintStyle: const TextStyle(
-            color: Color(0xFF9E9E9E),
-            fontSize: 14,
-          ),
+          hintStyle: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 14),
           prefixIcon: const Icon(
             Icons.search,
             color: Color(0xFF9E9E9E),
@@ -317,106 +332,12 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-        style: const TextStyle(fontSize: 14),
-      ),
-    );
-  }
-
-  void _showViewCertificateDialog(SertifikatItem item) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Detail Sertifikat',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                height: 180,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.workspace_premium_rounded,
-                        size: 48,
-                        color: Color(0xFF5B9FD8),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        item.skema,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'No: ${item.nomorSertifikat}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Pemegang: ${item.pemegang}',
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 4),
-              Text('Terbit: ${item.tanggalTerbit} | Berlaku s/d: ${item.tanggalBerlaku}'),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _handleDownloadCertificate(item);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5B9FD8),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text('Download PDF'),
-                ),
-              ),
-            ],
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
           ),
         ),
+        style: const TextStyle(fontSize: 14),
       ),
     );
   }
