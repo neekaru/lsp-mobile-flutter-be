@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../services/asesor_service.dart';
 
@@ -54,7 +55,7 @@ class _DetailLaporanScreenState extends State<DetailLaporanScreen> {
     final String skema = _apiDetails?['skema_sertifikasi']?.toString() ?? widget.reportData['skema'] ?? 'Desaign UI/Ux';
     final String asesor = _apiDetails?['nama_asesor']?.toString() ?? widget.reportData['asesor'] ?? 'Muhammad Hanafi';
     final String tuk = _apiDetails?['tuk']?.toString() ?? widget.reportData['tuk'] ?? 'LPP Jogja';
-    final String noSuratTugas = _apiDetails?['no_surat_tugas']?.toString() ?? 'ST-2026-00125';
+    final String noSuratTugas = _apiDetails?['dokumen']?['surat_tugas_name']?.toString() ?? _apiDetails?['no_surat_tugas']?.toString() ?? 'ST-2026-00125';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -192,7 +193,25 @@ class _DetailLaporanScreenState extends State<DetailLaporanScreen> {
                               ),
                               foregroundColor: const Color(0xFF3B82F6),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              final url = _apiDetails?['dokumen']?['surat_tugas_url']?.toString();
+                              if (url != null && url.isNotEmpty) {
+                                Clipboard.setData(ClipboardData(text: url));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Link Surat Tugas disalin ke clipboard: $url'),
+                                    backgroundColor: const Color(0xFF3B82F6),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Link Surat Tugas tidak tersedia'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: const [
@@ -254,16 +273,16 @@ class _DetailLaporanScreenState extends State<DetailLaporanScreen> {
                                 ),
                               ),
                               const SizedBox(height: 2),
-                              const Text(
-                                'Dokumentasi_Pelaksanaan.mp4',
-                                style: TextStyle(
+                              Text(
+                                _apiDetails?['link_dokumentasi']?.toString().split('/').last ?? 'Dokumentasi_Pelaksanaan.mp4',
+                                style: const TextStyle(
                                   fontSize: 11,
                                   color: Color(0xFF64748B),
                                 ),
                               ),
                               const SizedBox(height: 2),
                               const Text(
-                                'Mp4 . 87 MB',
+                                'Video Pelaksanaan',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: Color(0xFF94A3B8),
@@ -284,7 +303,25 @@ class _DetailLaporanScreenState extends State<DetailLaporanScreen> {
                               foregroundColor: const Color(0xFF3B82F6),
                               padding: const EdgeInsets.symmetric(horizontal: 10),
                             ),
-                            onPressed: () {},
+                            onPressed: () {
+                              final url = _apiDetails?['link_dokumentasi']?.toString();
+                              if (url != null && url.isNotEmpty) {
+                                Clipboard.setData(ClipboardData(text: url));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Link Video disalin ke clipboard: $url'),
+                                    backgroundColor: const Color(0xFF3B82F6),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Link Video tidak tersedia'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: const [

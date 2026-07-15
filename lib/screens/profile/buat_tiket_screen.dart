@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../services/asesor_service.dart';
 
 class BuatTiketScreen extends StatefulWidget {
   const BuatTiketScreen({super.key});
@@ -313,7 +314,7 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
     );
   }
 
-  void _kirimTiket() {
+  void _kirimTiket() async {
     if (_formKey.currentState!.validate()) {
       if (_namaController.text.trim().isEmpty ||
           _judulController.text.trim().isEmpty ||
@@ -324,13 +325,40 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
         return;
       }
 
-      // Return the new ticket data to the list screen
-      Navigator.pop(context, {
-        'nama': _namaController.text.trim(),
-        'title': _judulController.text.trim(),
-        'message': _pesanController.text.trim(),
-        'documentation': _dokumentasiController.text.trim(),
-      });
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      try {
+        final res = await AsesorService.createTiket(
+          judul: _judulController.text.trim(),
+          pesan: _pesanController.text.trim(),
+          namaLengkap: _namaController.text.trim(),
+          dokumentasiUrl: _dokumentasiController.text.trim(),
+        );
+
+        if (mounted) {
+          Navigator.pop(context); // Dismiss loading dialog
+          if (res != null) {
+            Navigator.pop(context, true); // Return success
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Gagal membuat tiket bantuan.')),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          Navigator.pop(context); // Dismiss loading dialog
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Terjadi kesalahan: $e')),
+          );
+        }
+      }
     }
   }
 

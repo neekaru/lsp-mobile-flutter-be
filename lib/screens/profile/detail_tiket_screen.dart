@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../services/asesor_service.dart';
 
 class DetailTiketScreen extends StatefulWidget {
   final Map<String, dynamic> ticket;
@@ -13,11 +14,13 @@ class DetailTiketScreen extends StatefulWidget {
 class _DetailTiketScreenState extends State<DetailTiketScreen> {
   final _replyController = TextEditingController();
   late List<Map<String, dynamic>> _messages;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _messages = List<Map<String, dynamic>>.from(widget.ticket['messages'] ?? []);
+    _fetchTicketDetail();
   }
 
   @override
@@ -26,20 +29,67 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
     super.dispose();
   }
 
-  void _sendReply() {
+  Future<void> _fetchTicketDetail() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final res = await AsesorService.getTiketDetail(widget.ticket['id'].toString());
+      if (res != null && mounted) {
+        setState(() {
+          _messages = List<Map<String, dynamic>>.from(res['messages'] ?? []);
+          _isLoading = false;
+        });
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _sendReply() async {
     final text = _replyController.text.trim();
     if (text.isEmpty) return;
 
+    final ticketId = widget.ticket['id'].toString();
+
+    // Optimistically add message
     setState(() {
       _messages.add({
         'sender': 'Asesor',
-        'time': 'Hari ini',
+        'time': 'Baru saja',
         'text': text,
       });
       _replyController.clear();
     });
 
-    // Scroll to bottom if list controller is attached
+    try {
+      final res = await AsesorService.replyTiket(ticketId, text);
+      if (res != null) {
+        _fetchTicketDetail();
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal mengirim tanggapan.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -53,6 +103,11 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
         children: [
           SizedBox(height: statusBarHeight + 8),
           CustomAppBar(title: 'Detail Tiket #${ticket['id']}'),
+          if (_isLoading)
+            const LinearProgressIndicator(
+              color: Color(0xFF3B82F6),
+              backgroundColor: Color(0xFFEFF6FF),
+            ),
           
           // Ticket Metadata Info Card
           Container(

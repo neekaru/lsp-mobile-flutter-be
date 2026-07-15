@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 
 import 'api_client.dart';
@@ -324,6 +325,81 @@ class AsesorService {
       }
       return null;
     } catch (e) {
+      return null;
+    }
+  }
+
+  /// 14. Daftar Tiket Bantuan Asesor
+  static Future<List<Map<String, dynamic>>> getTiketList() async {
+    try {
+      final response = await _dio.get('/api/asesor/tiket');
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> list = response.data['data'] ?? [];
+        return list.map((item) => item as Map<String, dynamic>).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error fetching tiket list: $e');
+      return [];
+    }
+  }
+
+  /// 15. Detail Tiket Bantuan Asesor
+  static Future<Map<String, dynamic>?> getTiketDetail(String id) async {
+    try {
+      final response = await _dio.get('/api/asesor/tiket/$id');
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching tiket detail: $e');
+      return null;
+    }
+  }
+
+  /// 16. Buat Tiket Baru
+  static Future<Map<String, dynamic>?> createTiket({
+    required String judul,
+    required String pesan,
+    String? namaLengkap,
+    String? dokumentasiUrl,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/asesor/tiket',
+        data: {
+          'judul': judul,
+          'pesan': pesan,
+          'nama_lengkap':? namaLengkap,
+          'dokumentasi_url': dokumentasiUrl ?? '',
+        },
+      );
+      if ((response.statusCode == 200 || response.statusCode == 201) && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error creating tiket: $e');
+      return null;
+    }
+  }
+
+  /// 17. Kirim Tanggapan / Reply Chat Tiket Bantuan
+  static Future<Map<String, dynamic>?> replyTiket(String id, String text) async {
+    try {
+      final response = await _dio.post(
+        '/api/asesor/tiket/$id/reply',
+        data: {
+          'text': text,
+        },
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error replying to tiket: $e');
       return null;
     }
   }

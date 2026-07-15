@@ -606,7 +606,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   Map<String, dynamic>? _selectedSchedule;
   List<Map<String, dynamic>> _skemaTukList = [];
   Map<String, dynamic>? _selectedSkemaTuk;
-  bool _isUploadingAttachment = false;
+  final bool _isUploadingAttachment = false;
   // ignore: unused_field
   bool _isLoadingSchedules = false;
   // ignore: unused_field
