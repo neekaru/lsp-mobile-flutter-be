@@ -421,8 +421,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
 
-            // 1.5. Mulai Skema Sertifikasi Section - Hapus untuk guest/asesor (diganti berita)
-            if (!isGuest && !isAsesor)
+            // 1.5. Mulai Skema Sertifikasi Section - Hanya untuk Asesi (sembunyi untuk admin/guest/asesor)
+            if (isAsesi)
               const Padding(
                 padding: EdgeInsets.only(
                   left: 16.0,

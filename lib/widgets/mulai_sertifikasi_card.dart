@@ -18,7 +18,9 @@ class MulaiSertifikasiCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A), // Sleek slate-900 color for premium feel
+                color: Color(
+                  0xFF0F172A,
+                ), // Sleek slate-900 color for premium feel
               ),
             ),
             GestureDetector(
@@ -108,7 +110,9 @@ class MulaiSertifikasiCard extends StatelessWidget {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE0F2FE), // Very light sky blue background
+                      color: const Color(
+                        0xFFE0F2FE,
+                      ), // Very light sky blue background
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,
@@ -157,7 +161,9 @@ class MulaiSertifikasiCard extends StatelessWidget {
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7CB9E8), // Matching Aero blue color from screenshot
+                    backgroundColor: const Color(
+                      0xFF7CB9E8,
+                    ), // Matching Aero blue color from screenshot
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
