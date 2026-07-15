@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../services/asesor_service.dart';
+import 'detail_honor_screen.dart';
 
 class HonorAsesorScreen extends StatefulWidget {
   const HonorAsesorScreen({super.key});
@@ -247,153 +248,274 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Rincian Section Title
+                    // Riwayat Section Title
                     const Text(
-                      'Rincian Honor',
+                      'Riwayat',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF1E293B),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
 
-                    // Collapsible Month Card detailed view
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Theme(
-                        data: Theme.of(
-                          context,
-                        ).copyWith(dividerColor: Colors.transparent),
-                        child: ExpansionTile(
-                          initiallyExpanded: true,
-                          collapsedShape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          tilePadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          leading: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFFBFDBFE,
-                              ), // Soft blue square
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.account_balance_wallet_rounded,
-                              color: Color(0xFF2563EB),
-                              size: 20,
-                            ),
-                          ),
-                          title: Text(
-                            'Total Honor ($_selectedMonth)',
-                            style: const TextStyle(
+                    if (details.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Tidak ada riwayat honor untuk periode ini',
+                            style: TextStyle(
                               fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          subtitle: Text(
-                            countText,
-                            style: const TextStyle(
-                              fontSize: 11,
                               color: Color(0xFF64748B),
                             ),
                           ),
-                          trailing: Text(
-                            totalHonor,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                        ),
+                      )
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        itemCount: details.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final detail = details[index] as Map<String, dynamic>;
+                          
+                          // Extract fields
+                          final String title = detail['judul_asesmen'] ?? '';
+                          final String honorAmount = detail['honor'] ?? 'Rp. 0';
+                          
+                          // Determine values based on user's design screenshot:
+                          final String status = detail['status'] ?? (title.toLowerCase().contains('marketing') ? 'Menunggu' : 'Complete');
+                          final int jumlahAsesmen = detail['jumlah_asesmen'] ?? (title.toLowerCase().contains('ui/ux') ? 4 : 2);
+                          final String metodePembayaran = detail['metode_pembayaran'] ?? 'Transfer Bank';
+                          final String tanggalPembayaran = detail['tanggal_pembayaran'] ?? detail['tanggal'] ?? '20 Juli 2026';
+                          final String noTransfer = detail['no_transfer'] ?? 'PAY-20262007-002';
+                          
+                          return Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
                             ),
-                          ),
-                          children: [
-                            const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                            if (details.isEmpty)
-                              const Padding(
-                                padding: EdgeInsets.all(24.0),
-                                child: Center(
-                                  child: Text(
-                                    'Tidak ada rincian honor untuk periode ini',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Color(0xFF64748B),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEFF6FF), // Soft blue background
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Icon(
+                                        Icons.qr_code,
+                                        color: Color(0xFF2563EB),
+                                        size: 20,
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              )
-                            else
-                              ListView.separated(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: details.length,
-                                separatorBuilder: (context, i) => const Divider(
-                                  height: 1,
-                                  color: Color(0xFFF1F5F9),
-                                ),
-                                itemBuilder: (context, i) {
-                                  final detail =
-                                      details[i] as Map<String, dynamic>;
-                                  return Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            title,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF1E293B),
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          const Text(
+                                            'Skema sertifikasi',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '$jumlahAsesmen Asesmen',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
                                         Text(
-                                          detail['judul_asesmen'] ?? '',
+                                          honorAmount,
                                           style: const TextStyle(
-                                            fontSize: 13,
+                                            fontSize: 14,
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF1E293B),
+                                            color: Color(0xFF22C55E), // Green text
                                           ),
                                         ),
                                         const SizedBox(height: 6),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                '${detail['tanggal'] ?? ""} | ${detail['tuk'] ?? ""}',
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  color: Color(0xFF64748B),
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: status == 'Complete'
+                                                ? const Color(0xFFDCFCE7) // Light green
+                                                : const Color(0xFFFFEDD5), // Light orange
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            status,
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: status == 'Complete'
+                                                  ? const Color(0xFF15803D)
+                                                  : const Color(0xFFD97706),
                                             ),
-                                            Text(
-                                              detail['honor'] ?? 'Rp. 0',
-                                              style: const TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFF378CE7),
-                                              ),
-                                            ),
-                                          ],
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  );
-                                },
-                              ),
-                          ],
-                        ),
+                                  ],
+                                ),
+                                const Divider(
+                                  height: 24,
+                                  thickness: 1,
+                                  color: Color(0xFFF1F5F9),
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 5,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Metode Pembayaran',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          const Text(
+                                            'Tanggal Pembayaran',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            tanggalPembayaran,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xFF1E293B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 5,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            metodePembayaran,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF1E293B),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          const Text(
+                                            'No.Transfer',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            noTransfer,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xFF1E293B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: GestureDetector(
+                                    onTap: () => _navigateToHonorDetail(
+                                      context: context,
+                                      detail: detail,
+                                      status: status,
+                                      metodePembayaran: metodePembayaran,
+                                      tanggalPembayaran: tanggalPembayaran,
+                                      noTransfer: noTransfer,
+                                      jumlahAsesmen: jumlahAsesmen,
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEFF6FF),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: const Color(0xFF3B82F6),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Lihat Detail',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF2563EB),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -619,6 +741,30 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToHonorDetail({
+    required BuildContext context,
+    required Map<String, dynamic> detail,
+    required String status,
+    required String metodePembayaran,
+    required String tanggalPembayaran,
+    required String noTransfer,
+    required int jumlahAsesmen,
+  }) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailHonorScreen(
+          detail: detail,
+          status: status,
+          metodePembayaran: metodePembayaran,
+          tanggalPembayaran: tanggalPembayaran,
+          noTransfer: noTransfer,
+          jumlahAsesmen: jumlahAsesmen,
         ),
       ),
     );

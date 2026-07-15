@@ -35,8 +35,288 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   final _nameController = TextEditingController();
   String _selectedSkema = 'Desaign UI/Ux';
   String _selectedDate = '';
-  final String _uploadedFileName = 'Surat tugas.pdf';
+  String? _uploadedFileName = 'Surat tugas.pdf';
   final _linkController = TextEditingController();
+
+  void _pickSuratTugas() {
+    String? tempFileName = _uploadedFileName;
+    String? tempFileSize = '2.4 MB';
+    bool tempUploading = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.72,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              padding: const EdgeInsets.only(top: 14, left: 20, right: 20, bottom: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  const Text(
+                    'Upload Surat Tugas',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  const Divider(height: 24, color: Color(0xFFE2E8F0)),
+                  
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.description_outlined,
+                          color: Color(0xFF3B82F6),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Berkas Surat Tugas',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Upload file PDF Surat Tugas resmi dari lembaga Anda.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF64748B),
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 72,
+                            color: Color(0xFF2563EB),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            tempFileName ?? 'Tidak ada file terpilih',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: tempFileName != null ? FontWeight.bold : FontWeight.normal,
+                              color: tempFileName != null ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                            ),
+                          ),
+                          if (tempFileName != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              tempFileSize ?? '',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 20),
+                          if (tempUploading)
+                            const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF3B82F6)),
+                            )
+                          else
+                            ElevatedButton(
+                              onPressed: () {
+                                setSheetState(() {
+                                  tempUploading = true;
+                                });
+                                Future.delayed(const Duration(milliseconds: 1000), () {
+                                  if (context.mounted) {
+                                    setSheetState(() {
+                                      tempUploading = false;
+                                      tempFileName = 'Surat tugas.pdf';
+                                      tempFileSize = '2.4 MB';
+                                    });
+                                  }
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF54A0EB),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                tempFileName == null ? 'Pilih File' : 'Ganti File',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        color: Color(0xFFF59E0B),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Format : PDF. Maksimal 10MB',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      if (tempFileName != null)
+                        TextButton(
+                          onPressed: () {
+                            setSheetState(() {
+                              tempFileName = null;
+                              tempFileSize = null;
+                            });
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Hapus',
+                            style: TextStyle(
+                              color: Color(0xFFEF4444),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFE2E8F0),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(
+                                color: Color(0xFF64748B),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _uploadedFileName = tempFileName;
+                              });
+                              Navigator.pop(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF54A0EB),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Upload',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   // API State fields
   List<Map<String, dynamic>> _schedulesList = [];
@@ -570,13 +850,18 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    _selectedSkema,
-                    style: const TextStyle(
-                      color: Color(0xFF1E293B),
-                      fontSize: 14,
+                  Expanded(
+                    child: Text(
+                      _selectedSkema,
+                      style: const TextStyle(
+                        color: Color(0xFF1E293B),
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   const Icon(
                     Icons.chevron_right_rounded,
                     color: Color(0xFF94A3B8),
@@ -654,12 +939,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Mengunggah File PDF (Simulasi)')),
-              );
-            },
+          InkWell(
+            onTap: _pickSuratTugas,
+            borderRadius: BorderRadius.circular(8),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
@@ -671,21 +953,54 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _uploadedFileName,
-                    style: const TextStyle(
-                      color: Color(0xFF1E293B),
+                    _uploadedFileName ?? 'Pilih Surat Tugas',
+                    style: TextStyle(
+                      color: _uploadedFileName != null ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
                       fontSize: 14,
                     ),
+                  ),
+                  const Icon(
+                    Icons.cloud_upload_outlined,
+                    color: Color(0xFF94A3B8),
+                    size: 20,
                   ),
                 ],
               ),
             ),
           ),
+          if (_uploadedFileName != null) ...[
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.insert_drive_file_outlined,
+                    color: Color(0xFF64748B),
+                    size: 16,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      _uploadedFileName!,
+                      style: const TextStyle(
+                        color: Color(0xFF1E293B),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 6),
           const Text(
             'Surat tugas harus PDF minimal 2 mb.',
             style: TextStyle(
-              color: Color(0xFF16A34A),
+              color: Color(0xFF0D9488),
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
@@ -704,6 +1019,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
           const SizedBox(height: 8),
           TextFormField(
             controller: _linkController,
+            onChanged: (val) {
+              setState(() {});
+            },
             style: const TextStyle(
               fontSize: 14,
               color: Color(0xFF1E293B),
@@ -727,11 +1045,38 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
           ),
+          if (_linkController.text.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: GestureDetector(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Membuka ${_linkController.text}...')),
+                    );
+                  },
+                  child: Text(
+                    '🔗 ${_linkController.text}',
+                    style: const TextStyle(
+                      color: Color(0xFF2563EB),
+                      decoration: TextDecoration.underline,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 6),
           const Text(
             'Bukti dokumentasi berupa link video/foto.',
             style: TextStyle(
-              color: Color(0xFF16A34A),
+              color: Color(0xFF0D9488),
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
