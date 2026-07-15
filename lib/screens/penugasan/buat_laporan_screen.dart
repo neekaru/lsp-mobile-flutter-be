@@ -35,7 +35,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   final _nameController = TextEditingController();
   String _selectedSkema = 'Desaign UI/Ux';
   String _selectedDate = '';
-  String? _uploadedFileName = 'Surat tugas.pdf';
+  String? _uploadedFileName;
   final _linkController = TextEditingController();
 
   void _pickSuratTugas() {
@@ -318,6 +318,288 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
     );
   }
 
+  void _pickLampiran() {
+    String? tempFileName;
+    String? tempFileSize;
+    bool tempUploading = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.72,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              padding: const EdgeInsets.only(top: 14, left: 20, right: 20, bottom: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  const Text(
+                    'Upload Lampiran Pendukung',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  const Divider(height: 24, color: Color(0xFFE2E8F0)),
+                  
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.description_outlined,
+                          color: Color(0xFF3B82F6),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Dokumen Lampiran',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Upload berkas atau dokumen pendukung tambahan (opsional).',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF64748B),
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 72,
+                            color: Color(0xFF2563EB),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            tempFileName ?? 'Tidak ada file terpilih',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: tempFileName != null ? FontWeight.bold : FontWeight.normal,
+                              color: tempFileName != null ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                            ),
+                          ),
+                          if (tempFileName != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              tempFileSize ?? '',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 20),
+                          if (tempUploading)
+                            const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF3B82F6)),
+                            )
+                          else
+                            ElevatedButton(
+                              onPressed: () {
+                                setSheetState(() {
+                                  tempUploading = true;
+                                });
+                                Future.delayed(const Duration(milliseconds: 1000), () {
+                                  if (context.mounted) {
+                                    setSheetState(() {
+                                      tempUploading = false;
+                                      tempFileName = 'bukti-pendukung-${_attachments.length + 1}.pdf';
+                                      tempFileSize = '1.5 MB';
+                                    });
+                                  }
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF54A0EB),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                tempFileName == null ? 'Pilih File' : 'Ganti File',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        color: Color(0xFFF59E0B),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Format : PDF, JPG, PNG. Maksimal 10MB',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      if (tempFileName != null)
+                        TextButton(
+                          onPressed: () {
+                            setSheetState(() {
+                              tempFileName = null;
+                              tempFileSize = null;
+                            });
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Hapus',
+                            style: TextStyle(
+                              color: Color(0xFFEF4444),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFE2E8F0),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(
+                                color: Color(0xFF64748B),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (tempFileName != null) {
+                                setState(() {
+                                  _attachments.add(tempFileName!);
+                                });
+                              }
+                              Navigator.pop(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF54A0EB),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Upload',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   // API State fields
   List<Map<String, dynamic>> _schedulesList = [];
   Map<String, dynamic>? _selectedSchedule;
@@ -338,9 +620,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   final List<ParticipantItem> _participants = [];
 
   // Step 4 State
-  final _notesController = TextEditingController(
-    text: 'Asesi telah mengumpulkan seluruh tugas implementasi UI Design dengan lengkap. Melalui sesi wawancara, Asesi mampu membuktikan keaslian karya secara mandiri, menjelaskan alur user flow dengan logis, serta menggunakan design system yang terkini. Seluruh kriteria unjuk kerja telah terpenuhi dengan cukup.',
-  );
+  final _notesController = TextEditingController();
   final List<String> _attachments = [];
 
   // Step 3 State
@@ -512,7 +792,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   }
 
   void _submitLaporan() async {
-    if (_attachments.isEmpty) {
+    if (_uploadedFileName == null) {
       _showFeedbackDialog(
         isSuccess: false,
         message: 'Ada Kesalahan, Periksa Kembali Dokumen Anda',
@@ -1499,58 +1779,33 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               )
-            : ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFDBEAFE),
-                  foregroundColor: const Color(0xFF1E40AF),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+            : InkWell(
+                onTap: _pickLampiran,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                onPressed: () async {
-                  if (!mounted) return;
-                  setState(() {
-                    _isUploadingAttachment = true;
-                  });
-
-                  final uploadResult = await AsesorService.uploadLampiran('/dummy/path/bukti_pendukung.pdf');
-
-                  if (!mounted) return;
-                  setState(() {
-                    _isUploadingAttachment = false;
-                  });
-
-                  if (uploadResult != null) {
-                    final fileUrl = uploadResult['file_url'] ?? '';
-                    _showFeedbackDialog(
-                      isSuccess: true,
-                      message: 'Upload File Berhasil',
-                      onConfirm: () {
-                        if (!mounted) return;
-                        setState(() {
-                          _attachments.add(fileUrl.isNotEmpty ? fileUrl : 'Bukti_Pendukung_${_attachments.length + 1}.pdf');
-                        });
-                      },
-                    );
-                  } else {
-                    _showFeedbackDialog(
-                      isSuccess: true,
-                      message: 'Upload File Berhasil (Simulasi)',
-                      onConfirm: () {
-                        if (!mounted) return;
-                        setState(() {
-                          _attachments.add('bukti-pendukung-${_attachments.length + 1}.pdf');
-                        });
-                      },
-                    );
-                  }
-                },
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text(
-                  'Tambah Lampiran',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Pilih Berkas Lampiran',
+                        style: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 14,
+                        ),
+                      ),
+                      Icon(
+                        Icons.cloud_upload_outlined,
+                        color: Color(0xFF94A3B8),
+                        size: 20,
+                      ),
+                    ],
+                  ),
                 ),
               ),
         
@@ -1623,16 +1878,6 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
-                      onPressed: () => Navigator.pop(context),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 10),
                 SizedBox(
                   height: 140,
@@ -1641,21 +1886,52 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     alignment: Alignment.center,
                     children: [
                       ..._buildDecorCircles(isSuccess),
-                      Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          color: isSuccess ? const Color(0xFFE2FBE9) : const Color(0xFFFFF0E6),
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: isSuccess
-                            ? const Icon(
-                                Icons.check_circle_rounded,
-                                size: 54,
-                                color: Color(0xFF4ADE80),
-                              )
-                            : Container(
+                      isSuccess
+                          ? TweenAnimationBuilder<double>(
+                              tween: Tween<double>(begin: 0.0, end: 1.0),
+                              duration: const Duration(milliseconds: 1000),
+                              curve: Curves.elasticOut,
+                              builder: (context, value, child) {
+                                return Transform.scale(
+                                  scale: value,
+                                  child: child,
+                                );
+                              },
+                              child: Container(
+                                width: 90,
+                                height: 90,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                    BoxShadow(
+                                      color: const Color(0xFF4FA8E8).withOpacity(0.2),
+                                      blurRadius: 15,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.all(12),
+                                child: Image.asset(
+                                  'assets/logo.png',
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            )
+                          : Container(
+                              width: 90,
+                              height: 90,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFFF0E6),
+                                shape: BoxShape.circle,
+                              ),
+                              alignment: Alignment.center,
+                              child: Container(
                                 width: 50,
                                 height: 50,
                                 decoration: BoxDecoration(
@@ -1673,7 +1949,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                                   ),
                                 ),
                               ),
-                      ),
+                            ),
                     ],
                   ),
                 ),
