@@ -95,20 +95,13 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
     }
   }
 
-  Future<void> _handleSearch() async {
-    final query = _searchController.text.trim().toLowerCase();
+  void _handleSearchInstant(String val) {
+    final query = val.trim().toLowerCase();
     
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    await Future.delayed(const Duration(milliseconds: 300));
-
     if (query.isEmpty) {
       setState(() {
         _displayedSertifikats = List.from(_allSertifikats);
-        _isLoading = false;
+        _errorMessage = null;
       });
       return;
     }
@@ -121,19 +114,12 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
     }).toList();
 
     setState(() {
-      _isLoading = false;
       _displayedSertifikats = results;
       if (results.isEmpty) {
-        _errorMessage = 'Sertifikat tidak ditemukan. Coba gunakan nomor registrasi atau kata kunci skema yang lain.';
+        _errorMessage = 'Sertifikat tidak ditemukan.';
+      } else {
+        _errorMessage = null;
       }
-    });
-  }
-
-  void _handleReset() {
-    setState(() {
-      _searchController.clear();
-      _displayedSertifikats = List.from(_allSertifikats);
-      _errorMessage = null;
     });
   }
 
@@ -168,35 +154,30 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
             },
           ),
 
+          _buildSearchBar(),
+
           Expanded(
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: _buildSearchInputCard(),
-                  ),
-
-                  const SizedBox(height: 20),
-
                   if (_isLoading)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
                       child: _buildLoadingWidget(),
                     ),
 
                   if (!_isLoading && _errorMessage != null)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
                       child: _buildErrorWidget(),
                     ),
 
                   if (!_isLoading && _errorMessage == null) ...[
                     Padding(
-                      padding: const EdgeInsets.only(left: 20.0, bottom: 12.0),
+                      padding: const EdgeInsets.only(left: 20.0, top: 8.0, bottom: 12.0),
                       child: Text(
                         'Sertifikat Terdaftar (${_displayedSertifikats.length})',
                         style: const TextStyle(
@@ -242,141 +223,49 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
     );
   }
 
-  Widget _buildSearchInputCard() {
+  Widget _buildSearchBar() {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 48,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x04000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: Color(0x02000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.verified_user_rounded,
-                    color: Color(0xFF3B82F6),
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Validasi & Pencarian Sertifikat',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Masukkan kata kunci skema, nomor registrasi, nomor blanko, atau nomor sertifikat Anda untuk melakukan pencarian.',
-              style: TextStyle(
-                fontSize: 12.5,
-                color: Color(0xFF64748B),
-                height: 1.4,
+      child: Row(
+        children: [
+          const SizedBox(width: 14),
+          const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              onChanged: _handleSearchInstant,
+              decoration: const InputDecoration(
+                hintText: 'Cari berdasarkan skema atau nomor registrasi...',
+                hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+                border: InputBorder.none,
+                isDense: true,
               ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
             ),
-            const SizedBox(height: 16),
-            Container(
-              height: 46,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 14),
-                  const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onSubmitted: (_) => _handleSearch(),
-                      decoration: const InputDecoration(
-                        hintText: 'Cari sertifikat...',
-                        hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
-                    ),
-                  ),
-                  if (_searchController.text.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
-                      onPressed: _handleReset,
-                    ),
-                ],
-              ),
+          ),
+          if (_searchController.text.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
+              onPressed: () {
+                _searchController.clear();
+                _handleSearchInstant('');
+              },
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 42,
-                    child: OutlinedButton(
-                      onPressed: _handleReset,
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFCBD5E1)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        foregroundColor: const Color(0xFF475569),
-                      ),
-                      child: const Text(
-                        'Reset',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SizedBox(
-                    height: 42,
-                    child: ElevatedButton(
-                      onPressed: _handleSearch,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3B82F6),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Cari',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
