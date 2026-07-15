@@ -303,46 +303,54 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
             ),
           )
         else
-          Column(
-            children: widget.data!.tugasPrioritas.map((task) {
-              IconData icon = Icons.assignment_rounded;
-              Color iconColor = const Color(0xFF3FA8F8);
-              Color iconBgColor = const Color(0xFFE8F5FF);
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 360),
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: widget.data!.tugasPrioritas.length,
+              itemBuilder: (context, index) {
+                final task = widget.data!.tugasPrioritas[index];
+                IconData icon = Icons.assignment_rounded;
+                Color iconColor = const Color(0xFF3FA8F8);
+                Color iconBgColor = const Color(0xFFE8F5FF);
 
-              switch (task.type) {
-                case 'menunggu_verifikasi':
-                  icon = Icons.access_time_rounded;
-                  iconColor = const Color(0xFFF59E0B);
-                  iconBgColor = const Color(0xFFFEF3C7);
-                  break;
-                case 'penugasan_baru':
-                  icon = Icons.assignment_rounded;
-                  iconColor = const Color(0xFF3FA8F8);
-                  iconBgColor = const Color(0xFFE8F5FF);
-                  break;
-                case 'asesmen_berlangsung':
-                  icon = Icons.play_circle_outline_rounded;
-                  iconColor = const Color(0xFF3F8CFF);
-                  iconBgColor = const Color(0xFFF0F5FF);
-                  break;
-                case 'asesmen_selesai':
-                  icon = Icons.check_circle_rounded;
-                  iconColor = const Color(0xFF10B981);
-                  iconBgColor = const Color(0xFFECFDF5);
-                  break;
-              }
+                switch (task.type) {
+                  case 'menunggu_verifikasi':
+                    icon = Icons.access_time_rounded;
+                    iconColor = const Color(0xFFF59E0B);
+                    iconBgColor = const Color(0xFFFEF3C7);
+                    break;
+                  case 'penugasan_baru':
+                    icon = Icons.assignment_rounded;
+                    iconColor = const Color(0xFF3FA8F8);
+                    iconBgColor = const Color(0xFFE8F5FF);
+                    break;
+                  case 'asesmen_berlangsung':
+                    icon = Icons.play_circle_outline_rounded;
+                    iconColor = const Color(0xFF3F8CFF);
+                    iconBgColor = const Color(0xFFF0F5FF);
+                    break;
+                  case 'asesmen_selesai':
+                    icon = Icons.check_circle_rounded;
+                    iconColor = const Color(0xFF10B981);
+                    iconBgColor = const Color(0xFFECFDF5);
+                    break;
+                }
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _buildPriorityTaskCard(
-                  title: task.title,
-                  subtitle: task.subtitle,
-                  icon: icon,
-                  iconColor: iconColor,
-                  iconBgColor: iconBgColor,
-                ),
-              );
-            }).toList(),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _buildPriorityTaskCard(
+                    title: task.title,
+                    subtitle: task.subtitle,
+                    icon: icon,
+                    iconColor: iconColor,
+                    iconBgColor: iconBgColor,
+                  ),
+                );
+              },
+            ),
           ),
         const SizedBox(height: 24),
       ],

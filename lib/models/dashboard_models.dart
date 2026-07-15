@@ -663,6 +663,36 @@ class AsesorDashboardData {
           subtitle: "Sertifikasi Junior Web Developer - SMK Media Informatika",
           type: "menunggu_verifikasi",
         ),
+        const AsesorDashboardTugas(
+          idTugas: 28055,
+          title: "Unggah Surat Tugas",
+          subtitle: "Sertifikasi Junior Graphic Designer - Politeknik Sampit",
+          type: "penugasan_baru",
+        ),
+        const AsesorDashboardTugas(
+          idTugas: 28056,
+          title: "Isi Catatan Asesmen",
+          subtitle: "Sertifikasi Network Security Engineer - UI",
+          type: "penugasan_baru",
+        ),
+        const AsesorDashboardTugas(
+          idTugas: 28057,
+          title: "Evaluasi Portofolio Mandiri",
+          subtitle: "Sertifikasi Cloud Computing Admin - SMK Media Informatika",
+          type: "asesmen_berlangsung",
+        ),
+        const AsesorDashboardTugas(
+          idTugas: 28058,
+          title: "Verifikasi Kehadiran Asesi",
+          subtitle: "Sertifikasi Junior Web Developer - SMK Media Informatika",
+          type: "asesmen_berlangsung",
+        ),
+        const AsesorDashboardTugas(
+          idTugas: 28059,
+          title: "Kirim Laporan Akhir",
+          subtitle: "Sertifikasi Junior Graphic Designer - Politeknik Sampit",
+          type: "asesmen_selesai",
+        ),
       ],
     );
   }
