@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../models/sertifikat_models.dart';
 import '../../services/api_service.dart';
 import '../../widgets/sertifikat/sertifikat_list_item.dart';
-import '../../widgets/sertifikat/sertifikat_tab_bar.dart';
 import '../../widgets/custom_app_bar.dart';
 import 'detail_sertifikat_screen.dart';
 
@@ -17,11 +16,13 @@ class SertifikatScreen extends StatefulWidget {
 
 class _SertifikatScreenState extends State<SertifikatScreen> {
   final TextEditingController _searchController = TextEditingController();
-  int _currentTab = 0; // 0: Aktif, 1: Akan Berakhir, 2: Kadaluarsa
   bool _isLoading = false;
+  bool _hasSearched = false;
   List<SertifikatItem> _apiSertifikats = [];
+  List<SertifikatItem> _searchResults = [];
+  String? _errorMessage;
 
-  // Mock data as fallback to ensure the UI looks exactly like the screenshot
+  // Mock data as fallback
   final List<SertifikatItem> _mockSertifikats = [
     const SertifikatItem(
       id: 1,
@@ -33,69 +34,82 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
       status: 'aktif',
       kategori: 'Digital Marketing',
       institusi: 'LSP Digital Marketing',
+      nomorRegistrasi: 'REG-55431-2026',
+      nomorBlanko: 'BLANKO-778811',
+      nomorSeri: 'SERI-001A',
+      tempatUji: 'TUK LSP Digital',
+      namaAsesor: 'Dr. Ir. Ahmad Yani, M.Kom',
     ),
     const SertifikatItem(
       id: 2,
-      skema: 'Oprator Komputer Muda',
-      pemegang: 'Muhammad Hanafi',
-      nomorSertifikat: 'FR-APR-02',
-      tanggalTerbit: '20 April 2026',
-      tanggalBerlaku: '20 April 2028',
+      skema: 'Operator Komputer Muda',
+      pemegang: 'Budi Santoso',
+      nomorSertifikat: 'FR-APR-03',
+      tanggalTerbit: '12 Mei 2025',
+      tanggalBerlaku: '12 Mei 2028',
       status: 'aktif',
       kategori: 'TIK',
-      institusi: 'LSP Oprator Komputer',
+      institusi: 'LSP Operator Komputer',
+      nomorRegistrasi: 'REG-99881-2025',
+      nomorBlanko: 'BLANKO-112233',
+      nomorSeri: 'SERI-002B',
+      tempatUji: 'TUK Komputer Jaya',
+      namaAsesor: 'Joko Widodo, S.T., M.T.',
     ),
     const SertifikatItem(
       id: 3,
       skema: 'Manajer Proyek TIK',
-      pemegang: 'Muhammad Hanafi',
-      nomorSertifikat: 'FR-APR-02',
-      tanggalTerbit: '20 April 2026',
-      tanggalBerlaku: '20 April 2028',
+      pemegang: 'Siti Aminah',
+      nomorSertifikat: 'FR-APR-04',
+      tanggalTerbit: '10 Januari 2026',
+      tanggalBerlaku: '10 Januari 2029',
       status: 'aktif',
       kategori: 'TIK',
-      institusi: 'LSP Manajer Proyek TIK',
+      institusi: 'LSP Informatika',
+      nomorRegistrasi: 'REG-22334-2026',
+      nomorBlanko: 'BLANKO-445566',
+      nomorSeri: 'SERI-003C',
+      tempatUji: 'TUK Universitas LPP',
+      namaAsesor: 'Rian Adiputra, M.T.',
     ),
     const SertifikatItem(
       id: 4,
-      skema: 'Manajer Proyek TIK',
-      pemegang: 'Muhammad Hanafi',
-      nomorSertifikat: 'FR-APR-02',
-      tanggalTerbit: '20 April 2026',
-      tanggalBerlaku: '20 April 2028',
-      status: 'aktif',
-      kategori: 'TIK',
-      institusi: 'LSP Manajer Proyek TIK',
-    ),
-    const SertifikatItem(
-      id: 5,
       skema: 'Desainer Grafis Muda',
       pemegang: 'Muhammad Hanafi',
-      nomorSertifikat: 'FR-APR-03',
+      nomorSertifikat: 'FR-APR-05',
       tanggalTerbit: '15 Mei 2025',
       tanggalBerlaku: '15 Juni 2026',
       status: 'akan_kadaluarsa',
       kategori: 'Desain',
       institusi: 'LSP Desain Kreatif',
+      nomorRegistrasi: 'REG-77665-2025',
+      nomorBlanko: 'BLANKO-889900',
+      nomorSeri: 'SERI-004D',
+      tempatUji: 'TUK Desain Indah',
+      namaAsesor: 'Santi Wijaya, M.Sn.',
     ),
     const SertifikatItem(
-      id: 6,
+      id: 5,
       skema: 'Junior Web Programmer',
-      pemegang: 'Muhammad Hanafi',
+      pemegang: 'Andi Wijaya',
       nomorSertifikat: 'FR-APR-01',
       tanggalTerbit: '10 Maret 2021',
       tanggalBerlaku: '10 Maret 2024',
       status: 'kadaluarsa',
       kategori: 'IT',
       institusi: 'LSP Informatika Jaya',
+      nomorRegistrasi: 'REG-11223-2021',
+      nomorBlanko: 'BLANKO-556677',
+      nomorSeri: 'SERI-005E',
+      tempatUji: 'TUK IT Center',
+      namaAsesor: 'Hendra Gunawan, M.T.',
     ),
   ];
 
   @override
   void initState() {
     super.initState();
-    _loadData();
-    _searchController.addListener(_onSearchChanged);
+    _loadInitialData();
   }
 
   @override
@@ -104,90 +118,73 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
     super.dispose();
   }
 
-  void _onSearchChanged() {
-    setState(() {});
-  }
-
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+  Future<void> _loadInitialData() async {
     try {
       final results = await ApiService.searchSertifikat(query: '');
       setState(() {
         _apiSertifikats = results;
-        _isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error loading API certificates: $e');
+      debugPrint('Error loading initial certificates: $e');
+    }
+  }
+
+  Future<void> _handleSearch() async {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) {
       setState(() {
-        _isLoading = false;
+        _errorMessage = 'Kata kunci pencarian tidak boleh kosong.';
+        _searchResults = [];
+        _hasSearched = false;
       });
-    }
-  }
-
-  Future<void> _handleRefresh() async {
-    await _loadData();
-  }
-
-  // Helper to filter and search certificates based on tab and query
-  List<SertifikatItem> _getFilteredCertificates() {
-    final listToFilter = _apiSertifikats.isNotEmpty
-        ? _apiSertifikats
-        : _mockSertifikats;
-    final query = _searchController.text.toLowerCase();
-
-    // Map tab index to status
-    // 0: Aktif -> 'aktif'
-    // 1: Akan Berakhir -> 'akan_kadaluarsa'
-    // 2: Kadaluarsa -> 'kadaluarsa'
-    String targetStatus;
-    if (_currentTab == 0) {
-      targetStatus = 'aktif';
-    } else if (_currentTab == 1) {
-      targetStatus = 'akan_kadaluarsa';
-    } else {
-      targetStatus = 'kadaluarsa';
+      return;
     }
 
-    return listToFilter.where((item) {
-      final matchesStatus = item.status.toLowerCase() == targetStatus;
-      final matchesQuery =
-          query.isEmpty ||
-          item.pemegang.toLowerCase().contains(query) ||
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _hasSearched = true;
+    });
+
+    // Simulate database lookup latency to match the premium public checker feel
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    final sourceList = _apiSertifikats.isNotEmpty ? _apiSertifikats : _mockSertifikats;
+    final results = sourceList.where((item) {
+      return item.pemegang.toLowerCase().contains(query) ||
           item.nomorRegistrasi.toLowerCase().contains(query) ||
           item.nomorSertifikat.toLowerCase().contains(query) ||
           item.nomorBlanko.toLowerCase().contains(query);
-      return matchesStatus && matchesQuery;
     }).toList();
+
+    setState(() {
+      _isLoading = false;
+      _searchResults = results;
+      if (results.isEmpty) {
+        _errorMessage = 'Sertifikat tidak ditemukan dalam sistem. Pastikan keyword yang diinputkan benar.';
+      }
+    });
+  }
+
+  void _handleReset() {
+    setState(() {
+      _searchController.clear();
+      _searchResults = [];
+      _hasSearched = false;
+      _errorMessage = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-    final filteredItems = _getFilteredCertificates();
-
-    // Calculate global counts for badge notifications
-    final totalList = _apiSertifikats.isNotEmpty
-        ? _apiSertifikats
-        : _mockSertifikats;
-    final aktifCount = totalList
-        .where((item) => item.status.toLowerCase() == 'aktif')
-        .length;
-    final akanBerakhirCount = totalList
-        .where((item) => item.status.toLowerCase() == 'akan_kadaluarsa')
-        .length;
-    final kadaluarsaCount = totalList
-        .where((item) => item.status.toLowerCase() == 'kadaluarsa')
-        .length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8),
+      backgroundColor: const Color(0xFFF8FAFC),
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-
+          
           // Header with consistent style
           CustomAppBar(
             title: 'Sertifikat (Admin)',
@@ -200,56 +197,48 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
             },
           ),
 
-          // Custom Tab Bar matching screenshot aesthetics
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 12.0,
-            ),
-            child: SertifikatTabBar(
-              currentTab: _currentTab,
-              aktifCount: aktifCount,
-              akanBerakhirCount: akanBerakhirCount,
-              kadaluarsaCount: kadaluarsaCount,
-              onTabChanged: (index) {
-                setState(() {
-                  _currentTab = index;
-                });
-              },
-            ),
-          ),
-
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _buildSearchBar(),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Certificate List
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: _handleRefresh,
-              color: const Color(0xFF4FA8E8),
-              child: _isLoading && _apiSertifikats.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : filteredItems.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.only(bottom: 24),
-                      itemCount: filteredItems.length,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. Validation Style Input Card (Mirroring Public ValidasiSertifikatScreen)
+                  _buildSearchInputCard(),
+
+                  const SizedBox(height: 20),
+
+                  // 2. Loading State
+                  if (_isLoading) _buildLoadingWidget(),
+
+                  // 3. Search Results List
+                  if (!_isLoading && _hasSearched && _searchResults.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4.0, bottom: 12.0),
+                      child: Text(
+                        'Hasil Pencarian (${_searchResults.length} ditemukan)',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      itemCount: _searchResults.length,
                       itemBuilder: (context, index) {
-                        final item = filteredItems[index];
+                        final item = _searchResults[index];
                         return SertifikatListItem(
                           item: item,
                           onView: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    DetailSertifikatScreen(item: item),
+                                builder: (context) => DetailSertifikatScreen(item: item),
                               ),
                             );
                           },
@@ -257,6 +246,17 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
                         );
                       },
                     ),
+                  ],
+
+                  // 4. Error / Not Found State (Mirroring Public ValidasiSertifikatScreen error card style)
+                  if (!_isLoading && _hasSearched && _errorMessage != null) _buildErrorWidget(),
+
+                  // 5. Welcome/Initial Guidelines when not searched yet
+                  if (!_isLoading && !_hasSearched) _buildInitialGuidelines(),
+
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         ],
@@ -264,80 +264,263 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildSearchInputCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x04000000),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Premium Certificate Shield Icon
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFDBEAFE),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.verified_user_rounded,
+                    color: Color(0xFF2C6C9C),
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // Titles
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Pencarian Sertifikat (Admin)',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Masukkan data sertifikat pemegang untuk konfirmasi keabsahan dokumen dalam database.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF64748B),
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Input TextField
+            Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search,
+                onSubmitted: (_) => _handleSearch(),
+                decoration: InputDecoration(
+                  hintText: 'Nama / No. Regis / No. Sertifikat / No. Blanko',
+                  hintStyle: const TextStyle(
+                    color: Color(0xFF94A3B8),
+                    fontSize: 13,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: Color(0xFF94A3B8),
+                    size: 20,
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.clear_rounded,
+                            color: Color(0xFF94A3B8),
+                            size: 18,
+                          ),
+                          onPressed: _handleReset,
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+                style: const TextStyle(fontSize: 14),
+                onChanged: (text) {
+                  setState(() {});
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Search/Cari Button
+            Container(
+              height: 44,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2C6C9C), Color(0xFF4FA8E8)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x222C6C9C),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: _handleSearch,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Cari Sertifikat',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingWidget() {
     return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            CircularProgressIndicator(color: Color(0xFF2C6C9C)),
+            SizedBox(height: 16),
+            Text(
+              'Menghubungi database LSP...',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFECDD3), width: 1),
+      ),
+      padding: const EdgeInsets.all(20),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: 44,
+            height: 44,
             decoration: const BoxDecoration(
-              color: Color(0xFFE5F1FC),
+              color: Color(0xFFFFE4E6),
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.workspace_premium_rounded,
-              color: Color(0xFF2C6C9C),
-              size: 36,
+              Icons.warning_amber_rounded,
+              color: Color(0xFFE11D48),
+              size: 24,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           const Text(
-            'Tidak ada sertifikat',
+            'Sertifikat Tidak Ditemukan',
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black54,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF9F1239),
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Coba ubah filter atau kata pencarian Anda.',
-            style: TextStyle(fontSize: 13, color: Colors.grey),
+          const SizedBox(height: 6),
+          Text(
+            _errorMessage ?? 'Data tidak ditemukan dalam sistem.',
+            style: const TextStyle(fontSize: 13, color: Color(0xFFBE123C)),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildInitialGuidelines() {
     return Container(
-      height: 44,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
-      ),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Cari sertifikat',
-          hintStyle: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 14),
-          prefixIcon: const Icon(
-            Icons.search,
-            color: Color(0xFF9E9E9E),
-            size: 20,
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.search_off_rounded,
+            size: 64,
+            color: Color(0xFFCBD5E1),
           ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(
-                    Icons.clear,
-                    color: Color(0xFF9E9E9E),
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+          const SizedBox(height: 16),
+          const Text(
+            'Mulai Pencarian Sertifikat',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF64748B),
+            ),
           ),
-        ),
-        style: const TextStyle(fontSize: 14),
+          const SizedBox(height: 6),
+          const Text(
+            'Gunakan kolom pencarian di atas untuk memvalidasi nomor seri, nomor sertifikat, nomor registrasi, atau nama pemegang.',
+            style: TextStyle(
+              fontSize: 12,
+              color: Color(0xFF94A3B8),
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
