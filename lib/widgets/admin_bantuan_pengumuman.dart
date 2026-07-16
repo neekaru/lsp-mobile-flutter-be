@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../screens/dashboard/tentang_sistem_screen.dart';
+import '../screens/dashboard/panduan_sertifikasi_screen.dart';
+import '../screens/dashboard/faq_screen.dart';
 
 class AdminBantuanPengumuman extends StatelessWidget {
   final bool showBantuan;
@@ -28,10 +31,10 @@ class AdminBantuanPengumuman extends StatelessWidget {
             icon: Icons.info_outline_rounded,
             title: 'Tentang Sistem Sertifikasi Digital LSP',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Tentang Sistem Sertifikasi Digital LSP'),
-                  behavior: SnackBarBehavior.floating,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TentangSistemScreen(),
                 ),
               );
             },
@@ -41,10 +44,10 @@ class AdminBantuanPengumuman extends StatelessWidget {
             icon: Icons.menu_book_rounded,
             title: 'Panduan Mendaftar Sertifikasi',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Panduan Mendaftar Sertifikasi'),
-                  behavior: SnackBarBehavior.floating,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PanduanSertifikasiScreen(),
                 ),
               );
             },
@@ -54,10 +57,10 @@ class AdminBantuanPengumuman extends StatelessWidget {
             icon: Icons.help_outline_rounded,
             title: 'Tanya Jawab (FAQ)',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Tanya Jawab (FAQ)'),
-                  behavior: SnackBarBehavior.floating,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FaqScreen(),
                 ),
               );
             },
