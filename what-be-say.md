@@ -66,7 +66,9 @@ Akun demo asesi:
   "data": {
     "summary": {
       "skema_diikuti": 1,
-      "sertifikat_aktif": 2
+      "sertifikat_aktif": 2,
+      "tuk_terdekat": 5,
+      "hasil_asesmen": 3
     },
     "alert_banner": {
       "has_alert": true,

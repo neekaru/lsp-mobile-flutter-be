@@ -55,12 +55,14 @@ class DashboardService {
 
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data['data'];
+        debugPrint('🟢 [AsesiDashboard] raw data: $data');
         return AsesiDashboardSummary.fromJson(data);
       }
 
+      debugPrint('🔴 [AsesiDashboard] non-200 status: ${response.statusCode}');
       return AsesiDashboardSummary.empty();
     } catch (e) {
-      debugPrint('Error fetching asesi summary: $e');
+      debugPrint('🔴 [AsesiDashboard] error: $e');
       return AsesiDashboardSummary.empty();
     }
   }

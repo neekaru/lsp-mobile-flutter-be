@@ -524,8 +524,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (isGuest)
               const TentangKamiSection(),
 
-            // 3. Jadwal Asesmen Mendekati Baru Section (Imported list widget) - Hanya untuk Admin
-            if (AuthRepository.currentUserInstance?.role == 'admin' &&
+            // 3. Jadwal Asesmen Mendekati Baru Section - Untuk Admin dan Asesi
+            if (AuthRepository.currentUserInstance?.role == 'admin' ||
                 AuthRepository.currentUserInstance?.role == 'asesi')
               Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -533,7 +533,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   8.0,
                   16.0,
                   32.0,
-                ), // 8 (bottom of previous) + 8 (top of this) = 16px gap
+                ),
                 child: JadwalAsesmen(
                   data: _jadwalData,
                   isLoading: _isLoading,

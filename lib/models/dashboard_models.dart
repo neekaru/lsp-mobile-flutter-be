@@ -465,8 +465,8 @@ class AsesiDashboardSummary {
     return AsesiDashboardSummary(
       totalJadwalDiikuti: summary['skema_diikuti'] ?? summary['total_jadwal_diikuti'] ?? 0,
       sertifikatDiterima: summary['sertifikat_aktif'] ?? summary['sertifikat_diterima'] ?? 0,
-      tukTerdekat: json['tuk_terdekat'] ?? 0,
-      skemaPernahDijalani: json['skema_pernah_dijalani'] ?? 0,
+      tukTerdekat: summary['tuk_terdekat'] ?? json['tuk_terdekat'] ?? 0,
+      skemaPernahDijalani: summary['hasil_asesmen'] ?? summary['skema_pernah_dijalani'] ?? json['skema_pernah_dijalani'] ?? 0,
       hasAlert: alert['has_alert'] ?? false,
       alertTitle: alert['title'] ?? '',
       alertSubtitle: alert['subtitle'] ?? '',
