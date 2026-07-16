@@ -474,9 +474,9 @@ class _NotificationPanelState extends State<NotificationPanel> {
                                       final isAsesi = AuthRepository.currentUserInstance?.role == 'asesi';
                                       if (isAsesi) {
                                         if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
-                                          state.setTab(3); // Switch to Profil Tab
+                                          state.setTab(3); // Switch to Sertifikat Tab
                                         } else if (type == 'rekomendasi_asesor') {
-                                          state.setTab(1); // Switch to Jadwal Tab
+                                          state.setTab(2); // Switch to Jadwal Tab
                                         }
                                       } else {
                                         if (type == 'status_kompeten' || type == 'sertifikat_terbit') {

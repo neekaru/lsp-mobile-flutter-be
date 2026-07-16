@@ -20,6 +20,7 @@ import 'screens/jadwal/jadwal_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/profile/profile_asesor_screen.dart';
 import 'screens/sertifikat/sertifikat_screen.dart';
+import 'screens/sertifikat/asesi_sertifikat_screen.dart';
 import 'screens/sertifikat/skema_sertifikasi_screen.dart';
 import 'screens/sertifikat/validasi_sertifikat_screen.dart';
 import 'screens/dashboard/berita_screen.dart';
@@ -247,9 +248,10 @@ class MainNavigatorState extends State<MainNavigator> {
         ];
       } else if (isAsesi) {
         _screens = [
-          DashboardScreen(onNavigateToJadwal: () => setTab(1)),
-          JadwalScreen(onBackToHome: () => setTab(0)),
+          DashboardScreen(onNavigateToJadwal: () => setTab(2)),
           SkemaSertifikasiScreen(onBackToHome: () => setTab(0)),
+          JadwalScreen(onBackToHome: () => setTab(0)),
+          AsesiSertifikatScreen(onBackToHome: () => setTab(0)),
           ProfileScreen(onBackToHome: () => setTab(0)),
         ];
       } else {

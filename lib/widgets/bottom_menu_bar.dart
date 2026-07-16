@@ -88,16 +88,21 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
                     ),
                     _buildMenuItem(
                       index: 1,
+                      icon: Icons.assignment_rounded,
+                      label: 'Skema',
+                    ),
+                    _buildMenuItem(
+                      index: 2,
                       icon: Icons.calendar_month_rounded,
                       label: 'Jadwal',
                     ),
                     _buildMenuItem(
-                      index: 2,
+                      index: 3,
                       icon: Icons.workspace_premium_rounded,
-                      label: 'Skema',
+                      label: 'Sertifikat',
                     ),
                     _buildMenuItem(
-                      index: 3,
+                      index: 4,
                       icon: Icons.account_circle_rounded,
                       label: 'Profil',
                     ),

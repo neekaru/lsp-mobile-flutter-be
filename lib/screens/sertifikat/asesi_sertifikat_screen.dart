@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/sertifikat_models.dart';
 import '../../services/api_service.dart';
 import '../../widgets/sertifikat/sertifikat_list_item.dart';
+import '../../widgets/sertifikat/sertifikat_tab_bar.dart';
 import '../../widgets/custom_app_bar.dart';
 import 'detail_sertifikat_screen.dart';
 
@@ -19,8 +20,36 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = false;
   List<SertifikatItem> _allSertifikats = [];
-  List<SertifikatItem> _displayedSertifikats = [];
   String? _errorMessage;
+  int _currentTab = 0;
+
+  List<SertifikatItem> get _filteredSertifikats {
+    final query = _searchController.text.trim().toLowerCase();
+    
+    // Filter by tab
+    final tabFiltered = _allSertifikats.where((item) {
+      final status = item.status.toLowerCase();
+      if (_currentTab == 0) {
+        return status == 'aktif';
+      } else if (_currentTab == 1) {
+        return status == 'akan_kadaluarsa';
+      } else {
+        return status == 'kadaluarsa' || (status != 'aktif' && status != 'akan_kadaluarsa');
+      }
+    }).toList();
+
+    // Filter by search query
+    if (query.isEmpty) {
+      return tabFiltered;
+    } else {
+      return tabFiltered.where((item) {
+        return item.skema.toLowerCase().contains(query) ||
+            item.nomorRegistrasi.toLowerCase().contains(query) ||
+            item.nomorSertifikat.toLowerCase().contains(query) ||
+            item.nomorBlanko.toLowerCase().contains(query);
+      }).toList();
+    }
+  }
 
   @override
   void initState() {
@@ -46,14 +75,12 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
       
       setState(() {
         _allSertifikats = mappedResults;
-        _displayedSertifikats = List.from(_allSertifikats);
         _isLoading = false;
       });
     } catch (e) {
       debugPrint('Error loading initial certificates: $e');
       setState(() {
         _allSertifikats = [];
-        _displayedSertifikats = [];
         _errorMessage = 'Gagal memuat daftar sertifikat.';
         _isLoading = false;
       });
@@ -61,31 +88,7 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
   }
 
   void _handleSearchInstant(String val) {
-    final query = val.trim().toLowerCase();
-    
-    if (query.isEmpty) {
-      setState(() {
-        _displayedSertifikats = List.from(_allSertifikats);
-        _errorMessage = null;
-      });
-      return;
-    }
-
-    final results = _allSertifikats.where((item) {
-      return item.skema.toLowerCase().contains(query) ||
-          item.nomorRegistrasi.toLowerCase().contains(query) ||
-          item.nomorSertifikat.toLowerCase().contains(query) ||
-          item.nomorBlanko.toLowerCase().contains(query);
-    }).toList();
-
-    setState(() {
-      _displayedSertifikats = results;
-      if (results.isEmpty) {
-        _errorMessage = 'Sertifikat tidak ditemukan.';
-      } else {
-        _errorMessage = null;
-      }
-    });
+    setState(() {});
   }
 
   Future<void> _handleDownloadCertificate(SertifikatItem item) async {
@@ -142,6 +145,10 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    
+    final int aktifCount = _allSertifikats.where((item) => item.status.toLowerCase() == 'aktif').length;
+    final int akanBerakhirCount = _allSertifikats.where((item) => item.status.toLowerCase() == 'akan_kadaluarsa').length;
+    final int kadaluarsaCount = _allSertifikats.where((item) => item.status.toLowerCase() != 'aktif' && item.status.toLowerCase() != 'akan_kadaluarsa').length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -150,7 +157,7 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
           SizedBox(height: statusBarHeight + 8),
           
           CustomAppBar(
-            title: 'Sertifikat Saya',
+            title: 'Sertifikat',
             onBack: () {
               if (widget.onBackToHome != null) {
                 widget.onBackToHome!();
@@ -158,6 +165,21 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
                 Navigator.of(context).pop();
               }
             },
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: SertifikatTabBar(
+              currentTab: _currentTab,
+              aktifCount: aktifCount,
+              akanBerakhirCount: akanBerakhirCount,
+              kadaluarsaCount: kadaluarsaCount,
+              onTabChanged: (index) {
+                setState(() {
+                  _currentTab = index;
+                });
+              },
+            ),
           ),
 
           _buildSearchBar(),
@@ -182,41 +204,55 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
                     ),
 
                   if (!_isLoading && _errorMessage == null) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, top: 8.0, bottom: 12.0),
-                      child: Text(
-                        'Sertifikat Terdaftar (${_displayedSertifikats.length})',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF64748B),
+                    if (_filteredSertifikats.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 32.0),
+                        child: Center(
+                          child: Text(
+                            _searchController.text.isNotEmpty
+                                ? 'Sertifikat tidak ditemukan.'
+                                : 'Tidak ada sertifikat di tab ini.',
+                            style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                          ),
+                        ),
+                      )
+                    else ...[
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20.0, top: 8.0, bottom: 12.0),
+                        child: Text(
+                          'Sertifikat Terdaftar (${_filteredSertifikats.length})',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF64748B),
+                          ),
                         ),
                       ),
-                    ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      itemCount: _displayedSertifikats.length,
-                      itemBuilder: (context, index) {
-                        final item = _displayedSertifikats[index];
-                        return SertifikatListItem(
-                          item: item,
-                          onView: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DetailSertifikatScreen(
-                                  item: item,
-                                  isAsesiView: true,
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        itemCount: _filteredSertifikats.length,
+                        itemBuilder: (context, index) {
+                          final item = _filteredSertifikats[index];
+                          return SertifikatListItem(
+                            item: item,
+                            onView: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DetailSertifikatScreen(
+                                    item: item,
+                                    isAsesiView: true,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                          onDownload: () => _handleDownloadCertificate(item),
-                        );
-                      },
-                    ),
+                              );
+                            },
+                            onDownload: () => _handleDownloadCertificate(item),
+                          );
+                        },
+                      ),
+                    ],
                   ],
 
                   const SizedBox(height: 40),
