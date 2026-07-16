@@ -4,7 +4,7 @@ import '../../widgets/rangkuman_utama.dart';
 import '../../widgets/rangkuman_asesi.dart';
 import '../../widgets/rangkuman_asesor.dart';
 import '../../widgets/tren_asesmen_chart.dart';
-import '../../widgets/jadwal_asesmen.dart';
+// import '../../widgets/jadwal_asesmen.dart';
 import '../../widgets/notification_bell.dart';
 import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
@@ -15,6 +15,7 @@ import '../../widgets/berita_terkini_section.dart';
 import '../auth/login_screen.dart';
 import '../../widgets/public_sertifikat_card.dart';
 import '../../widgets/tentang_kami_section.dart';
+import '../../widgets/admin_bantuan_pengumuman.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -35,6 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   AsesiDashboardSummary? _asesiSummaryData;
   AsesorDashboardData? _asesorDashboardData;
   List<MonthlyAssessment>? _chartData;
+  // ignore: unused_field
   List<JadwalBaru>? _jadwalData;
   List<BeritaItem>? _beritaData;
 
@@ -120,6 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // ignore: unused_element
   Future<void> _refreshJadwalData() async {
     try {
       final jadwalData = await ApiService.getJadwalBaru();
@@ -524,21 +527,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (isGuest)
               const TentangKamiSection(),
 
-            // 3. Jadwal Asesmen Mendekati Baru Section - Hanya untuk Admin
+            // 3. Jadwal Asesmen Mendekati Baru Section - Hanya untuk Admin (Diubah ke Bantuan & Informasi serta Pengumuman Baru)
             if (AuthRepository.currentUserInstance?.role == 'admin')
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
+              const Padding(
+                padding: EdgeInsets.fromLTRB(
                   16.0,
                   8.0,
                   16.0,
                   32.0,
                 ),
+                child: AdminBantuanPengumuman(),
+                /*
                 child: JadwalAsesmen(
                   data: _jadwalData,
                   isLoading: _isLoading,
                   onTapLihatSemua: widget.onNavigateToJadwal,
                   onRefreshNeeded: () => _refreshJadwalData(),
                 ),
+                */
               )
             else
               const SizedBox(height: 32),
