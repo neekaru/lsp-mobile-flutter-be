@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/sertifikat_models.dart';
 import '../../services/sertifikat_service.dart';
 import '../pengajuan/pengajuan_sertifikat_screen.dart';
@@ -57,17 +58,23 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
     }
   }
 
-  void _handleDownloadDokumen() {
+  void _handleDownloadDokumen() async {
     final link = _detail?.linkDownload ?? '';
     if (link.isNotEmpty) {
-      // TODO: implement actual download via url_launcher
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Mengunduh dokumen skema ${_detail?.title ?? ""}...'),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      final uri = Uri.parse(link);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tidak dapat membuka tautan dokumen.'),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

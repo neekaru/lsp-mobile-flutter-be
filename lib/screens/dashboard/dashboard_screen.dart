@@ -228,14 +228,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   Text(
                                     isAsesor ? 'Hallo' : 'Hallo,',
                                     style: const TextStyle(
-                                      color: Color(0xE6FFFFFF), // white with 0.9 opacity
+                                      color: Color(
+                                        0xE6FFFFFF,
+                                      ), // white with 0.9 opacity
                                       fontSize: 14,
                                       fontWeight: FontWeight.w400,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    user?.name ?? (isAsesor ? 'Muhammad Hanafi' : 'Asesi'),
+                                    user?.name ??
+                                        (isAsesor
+                                            ? 'Muhammad Hanafi'
+                                            : 'Asesi'),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
@@ -314,14 +319,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ElevatedButton(
                               onPressed: () {
                                 Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                  MaterialPageRoute(
+                                    builder: (context) => const LoginScreen(),
+                                  ),
                                 );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 foregroundColor: Colors.black87,
                                 elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -406,27 +416,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: isGuest
                       ? const PublicSertifikatCard()
                       : (isAsesi
-                          ? RangkumanAsesi(
-                              data: _asesiSummaryData,
-                              isLoading: _isLoading,
-                            )
-                          : (isAsesor
-                              ? RangkumanAsesor(
-                                  isLoading: _isLoading,
-                                  onNavigateToJadwal: widget.onNavigateToJadwal,
-                                  data: _asesorDashboardData,
-                                )
-                              : RangkumanUtama(
-                                  data: _summaryData,
-                                  isLoading: _isLoading,
-                                ))),
+                            ? RangkumanAsesi(
+                                data: _asesiSummaryData,
+                                isLoading: _isLoading,
+                              )
+                            : (isAsesor
+                                  ? RangkumanAsesor(
+                                      isLoading: _isLoading,
+                                      onNavigateToJadwal:
+                                          widget.onNavigateToJadwal,
+                                      data: _asesorDashboardData,
+                                    )
+                                  : RangkumanUtama(
+                                      data: _summaryData,
+                                      isLoading: _isLoading,
+                                    ))),
                 ),
               ],
             ),
 
             if (isAsesi && _asesiSummaryData?.hasAlert == true)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
@@ -435,7 +449,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFFFE082), width: 1.5),
+                    border: Border.all(
+                      color: const Color(0xFFFFE082),
+                      width: 1.5,
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.orange.withValues(alpha: 0.1),
@@ -520,22 +537,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   top: 8.0,
                   bottom: 8.0,
                 ),
-                child: TrenAsesmenChart(data: _chartData, isLoading: _isLoading),
+                child: TrenAsesmenChart(
+                  data: _chartData,
+                  isLoading: _isLoading,
+                ),
               ),
 
             // 2.5. Tentang Kami Section - Hanya untuk Guest (Public Landing Page)
-            if (isGuest)
-              const TentangKamiSection(),
+            if (isGuest) const TentangKamiSection(),
 
-            // 3. Jadwal Asesmen Mendekati Baru Section - Hanya untuk Admin (Diubah ke Bantuan & Informasi serta Pengumuman Baru)
-            if (AuthRepository.currentUserInstance?.role == 'admin')
+            // 3. Bantuan & Informasi serta Pengumuman Baru Section - Tampil untuk semua role terautentikasi (Admin, Asesi, Asesor)
+            if (!isGuest)
               const Padding(
-                padding: EdgeInsets.fromLTRB(
-                  16.0,
-                  8.0,
-                  16.0,
-                  32.0,
-                ),
+                padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0),
                 child: AdminBantuanPengumuman(),
                 /*
                 child: JadwalAsesmen(
