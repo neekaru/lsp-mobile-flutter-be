@@ -1,678 +1,611 @@
-# LSP Mobile - Asesor Role API Contract & Specifications
+# LSP Mobile - Asesi Role API Contract & Specifications
 
-Dokumen ini mendefinisikan seluruh kontrak API yang dibutuhkan untuk peran (role) **Asesor** di aplikasi LSP Mobile. Dokumen ini berfungsi sebagai acuan tunggal (Single Source of Truth) bagi tim backend untuk mengimplementasikan layanan yang dibutuhkan agar aplikasi mobile dapat berjalan secara dinamis tanpa data simulasi (mock data).
+Dokumen ini mendefinisikan seluruh kontrak API yang digunakan untuk peran (role) **Asesi** (Peserta Sertifikasi) di aplikasi LSP Mobile. Dokumen ini berfungsi sebagai acuan tunggal bagi tim backend untuk mengimplementasikan layanan yang dibutuhkan agar aplikasi mobile dapat berjalan secara dinamis menggunakan API live.
 
 ---
 
 ## 1. Headers & Autentikasi Global
 
-Semua endpoint untuk peran Asesor bersifat privat dan wajib menyertakan token autentikasi JWT di dalam header HTTP:
+Semua request dari aplikasi (kecuali login & register) wajib menyertakan token autentikasi JWT di dalam header HTTP:
 
 ```http
 Authorization: Bearer <access_token>
 Accept: application/json
 ```
 
-Backend wajib mengekstrak identitas asesor dari JWT token untuk memvalidasi otorisasi kepemilikan jadwal penugasan dan data profil.
-
 ---
 
 ## 2. Ringkasan Endpoint
 
-Berikut adalah daftar 18 endpoint API yang dibutuhkan oleh peran Asesor:
+Berikut adalah daftar lengkap endpoint API yang terintegrasi di sisi aplikasi mobile:
 
-| No | Metode | Endpoint | Deskripsi | Status di UI Mobile |
-|----|--------|----------|-----------|---------------------|
-| 1 | `GET` | `/api/asesor/dashboard?tanggal=:tanggal` | Mengambil data rangkuman tugas, alert banner, jadwal hari ini, dan tugas prioritas. | Dinonaktifkan mock jika endpoint siap |
-| 2 | `GET` | `/api/asesor/jadwal?status_jadwal=:status` | Mengambil daftar jadwal penugasan milik asesor berdasarkan status filter. | Dinamis |
-| 3 | `GET` | `/api/asesor/jadwal/:id/detail` | Mengambil informasi rinci suatu jadwal penugasan. | Sebagian disimulasikan jika ID dummy |
-| 4 | `GET` | `/api/asesor/jadwal/:id/peserta` | Mengambil daftar peserta (asesi) terdaftar dalam suatu jadwal penugasan. | Dinamis |
-| 5 | `GET` | `/api/asesor/jadwal/:jadwal_id/peserta/:peserta_id` | Mengambil detail profil, kelengkapan, dan status asesmen peserta tertentu. | Sebagian disimulasikan jika ID dummy |
-| 6 | `GET` | `/api/asesor/jadwal/:id/surat-tugas` | Mengambil URL file PDF Surat Perintah Tugas resmi. | Dinamis |
-| 7 | `GET` | `/api/asesor/laporan` | Mengambil riwayat laporan tugas asesor yang telah dikirim. | Dinamis |
-| 8 | `GET` | `/api/asesor/laporan/:id` | Mengambil detail lengkap laporan tugas asesor. | Dinamis |
-| 9 | `GET` | `/api/asesor/skema-tuk` | Mengambil data skema sertifikasi dan TUK untuk dropdown pilihan. | Dinamis |
-| 10 | `POST` | `/api/asesor/laporan/upload-lampiran` | Mengunggah file berkas bukti lampiran pendukung. | Dinamis |
-| 11 | `POST` | `/api/asesor/laporan` | Mengirim data pembuatan laporan tugas baru (Wizard submit). | Dinamis |
-| 12 | `GET` | `/api/asesor/profile` | Mengambil informasi profil data diri lengkap asesor. | Dinamis |
-| 13 | `PUT` | `/api/asesor/profile` | Memperbarui data profil asesor (Telepon, Alamat, Instansi, Foto). | Dinamis |
-| 14 | `GET` | `/api/asesor/honor?periode=:bulan_tahun` | Mengambil rincian honor asesor berdasarkan periode bulan tertentu beserta data transaksi/pembayaran lengkap. | Dinamis |
-| 15 | `GET` | `/api/asesor/tiket` | Mengambil daftar tiket bantuan yang dikirimkan oleh asesor. | Disimulasikan (Local State) |
-| 16 | `GET` | `/api/asesor/tiket/:id` | Mengambil rincian dan riwayat pesan dalam satu tiket bantuan. | Disimulasikan (Local State) |
-| 17 | `POST` | `/api/asesor/tiket` | Mengirim formulir pembuatan tiket bantuan baru beserta berkas dokumentasi. | Disimulasikan (Local State) |
-| 18 | `POST` | `/api/asesor/tiket/:id/reply` | Mengirim pesan balasan (tanggapan) baru ke dalam utas obrolan tiket bantuan. | Disimulasikan (Local State) |
+### A. Autentikasi & Manajemen Sesi
+| No | Metode | Endpoint | Deskripsi | Layar/Fungsi di Flutter |
+|----|--------|----------|-----------|------------------------|
+| 1  | `POST` | `/api/auth/login` | Melakukan autentikasi pengguna berdasarkan email/akun, password, dan role. | `LoginScreen` |
+| 2  | `POST` | `/api/auth/logout` | Menghapus session saat ini di server (opsional menyertakan device token FCM). | Tombol Logout / Keluar |
+| 3  | `GET`  | `/api/auth/current` | Mengambil data pengguna yang sedang login berdasarkan JWT Token. | Init session / Auto-login |
+| 4  | `POST` | `/api/auth/refresh` | Menggunakan refresh token untuk memperbarui access token yang kadaluarsa. | Dio Interceptor |
+| 5  | `GET`  | `/api/sessions` | Mengambil daftar sesi login yang aktif di perangkat lain. | `KeamananScreen` |
+| 6  | `DELETE`| `/api/sessions/:id` | Menghentikan paksa (revoke) sesi login perangkat lain tertentu. | `KeamananScreen` |
+
+### B. Dashboard, Berita, & Jadwal
+| No | Metode | Endpoint | Deskripsi | Layar/Fungsi di Flutter |
+|----|--------|----------|-----------|------------------------|
+| 7  | `GET`  | `/api/asesi/dashboard` | Mengambil data summary (jumlah skema/sertifikat), alert banner, dan berita terkini. | `DashboardScreen` |
+| 8  | `GET`  | `/api/asesi/jadwal` | Mengambil daftar jadwal asesmen yang diikuti oleh Asesi. | `JadwalScreen` (Role Asesi) |
+| 9  | `GET`  | `/api/berita` | Mengambil daftar berita dan artikel dengan pagination. | `DashboardScreen` / List Berita |
+
+### C. Skema Sertifikasi (Pencarian & Detail)
+| No | Metode | Endpoint | Deskripsi | Layar/Fungsi di Flutter |
+|----|--------|----------|-----------|------------------------|
+| 10 | `GET`  | `/api/sertifikat/skema` | Mengambil daftar skema sertifikasi yang tersedia dengan filter & pencarian. | `MulaiSertifikasiCard` / `PublicProfileScreen` |
+| 11 | `GET`  | `/api/sertifikat/skema/bidang` | Mengambil kategori/bidang skema untuk chips filter di frontend. | `MulaiSertifikasiCard` |
+| 12 | `GET`  | `/api/sertifikat/skema/:id` | Mengambil detail skema tertentu (termasuk list Unit Kompetensi & persyaratan). | `DetailSkemaScreen` |
+| 13 | `GET`  | `/api/sertifikat/skema/:id/asesor` | Mengambil daftar rekomendasi asesor untuk skema yang dipilih. | `AsesorRecommendationScreen` |
+
+### D. Alur Pendaftaran & Pra-Asesmen
+| No | Metode | Endpoint | Deskripsi | Layar/Fungsi di Flutter |
+|----|--------|----------|-----------|------------------------|
+| 14 | `POST` | `/api/sertifikasi/daftar` | Mendaftarkan diri ke skema sertifikasi tertentu dengan memilih TUK & tanggal rencana. | `KonfirmasiPendaftaran` |
+| 15 | `GET`  | `/api/sertifikasi/status` | Mengecek status pendaftaran aktif (apakah terdaftar, sedang pra-asesmen, dll). | `DetailSkemaScreen` |
+| 16 | `GET`  | `/api/pra-asesmen/skema/:id/info` | Mengambil informasi status/judul pra-asesmen untuk skema tertentu. | `PraAsesmenWizard` |
+| 17 | `GET`  | `/api/pra-asesmen/skema/:id/kompetensi` | Mengambil daftar unit kompetensi, elemen, dan KUK untuk asesmen mandiri. | `StepEvaluasiKompetensi` |
+| 18 | `POST` | `/api/pra-asesmen/skema/:id/submit` | Mengirimkan jawaban asesmen mandiri (Kompeten [K] / Belum Kompeten [BK]). | `PraAsesmenWizard` (Submit) |
+
+### E. Portofolio & Dokumen Persyaratan
+| No | Metode | Endpoint | Deskripsi | Layar/Fungsi di Flutter |
+|----|--------|----------|-----------|------------------------|
+| 19 | `GET`  | `/api/sertifikasi/:id/portofolio` | Mengambil list dokumen persyaratan yang harus diunggah beserta statusnya. | `BuktiPortofolioScreen` |
+| 20 | `POST` | `/api/sertifikasi/:id/portofolio/upload` | Mengunggah berkas portofolio (KTP, pasfoto, ijazah, dll) (Multipart). | `BuktiPortofolioScreen` |
+
+### F. Profil Asesi (Data Diri & Instansi)
+| No | Metode | Endpoint | Deskripsi | Layar/Fungsi di Flutter |
+|----|--------|----------|-----------|------------------------|
+| 21 | `GET`  | `/api/asesor/profile` | Mengambil data diri asesi (nama_lengkap, email, no_telepon, alamat, pasfoto). | `DataDiriScreen` |
+| 22 | `PUT`  | `/api/asesor/profile` | Memperbarui data diri asesi (no_telepon, alamat, dll). | `EditDataDiriScreen` |
+| 23 | `GET`  | `/api/asesi/instansi` | Mengambil tipe status pekerjaan & rincian data instansi saat ini. | `EditInstansiScreen` |
+| 24 | `PUT`  | `/api/asesi/instansi` | Memperbarui tipe status instansi & kolom data instansi pendukung. | `EditInstansiScreen` |
+
+### G. Sertifikat & Validasi
+| No | Metode | Endpoint | Deskripsi | Layar/Fungsi di Flutter |
+|----|--------|----------|-----------|------------------------|
+| 25 | `GET`  | `/api/asesi/sertifikat` | Mengambil daftar sertifikat kompetensi yang telah diterbitkan untuk Asesi. | `AsesiSertifikatScreen` |
+| 26 | `GET`  | `/api/asesi/sertifikat/:id` | Mengambil detail lengkap satu sertifikat (Nomor Blanko, Seri, Asesor, dll). | `DetailSertifikatScreen` |
+| 27 | `POST` | `/api/asesi/sertifikat/:id/upload-ttd` | Mengunggah foto + TTD (PDF/PNG) pendukung sertifikat (Multipart/Multi-file). | `DetailSertifikatScreen` (Upload) |
+| 28 | `GET`  | `/api/asesi/sertifikat/:id/download` | Mengambil secure URL untuk mengunduh PDF Sertifikat asli. | `DetailSertifikatScreen` (Download) |
+| 29 | `POST` | `/api/sertifikat/validate` | Melakukan verifikasi validitas sertifikat untuk publik berdasarkan No. Sertifikat. | `ValidasiSertifikatScreen` |
+| 30 | `GET`  | `/api/sertifikat/search` | Mencari data sertifikat yang terdaftar secara publik. | `SertifikatScreen` |
 
 ---
 
-## 3. Spesifikasi Detail API
+## 3. Spesifikasi Detail API & Contoh Payload
 
-### MODUL 1: DASHBOARD & RINGKASAN
+### MODUL 1: AUTENTIKASI & SESI
 
-#### 1. Dashboard Asesor
-* **Endpoint**: `GET /api/asesor/dashboard`
-* **Query Parameters**:
-  * `tanggal` (String, opsional): Tanggal spesifik dalam format `YYYY-MM-DD` atau `DD Month` (contoh: `2026-04-27` atau `20 April`). Jika kosong, backend menggunakan tanggal hari ini.
+#### 1. Login Pengguna
+* **Endpoint**: `POST /api/auth/login`
+* **Request Body**:
+```json
+{
+  "identity": "muhammadhanafi_12@gmail.com",
+  "password": "SecretPassword123",
+  "role": "asesi"
+}
+```
 * **Response (200 OK)**:
 ```json
 {
   "status": "success",
-  "message": "Asesor dashboard data retrieved successfully",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "def456...",
+    "user": {
+      "id": 1,
+      "name": "Muhammad Hanafi",
+      "email": "muhammadhanafi_12@gmail.com",
+      "role": "asesi",
+      "roles": ["asesi"]
+    }
+  }
+}
+```
+
+#### 2. Get Sesi Aktif
+* **Endpoint**: `GET /api/sessions`
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 12,
+      "device_name": "Chrome on Windows",
+      "ip_address": "192.168.1.15",
+      "last_active": "2026-07-15T12:00:00Z",
+      "is_current": true
+    },
+    {
+      "id": 13,
+      "device_name": "Samsung Galaxy S23",
+      "ip_address": "192.168.1.99",
+      "last_active": "2026-07-14T08:30:00Z",
+      "is_current": false
+    }
+  ]
+}
+```
+
+---
+
+### MODUL 2: DASHBOARD, BERITA, & JADWAL
+
+#### 3. Dashboard Asesi
+* **Endpoint**: `GET /api/asesi/dashboard`
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
   "data": {
     "summary": {
-      "menunggu_verifikasi": 1,
-      "asesmen_berlangsung": 0,
-      "asesmen_selesai": 12,
-      "menunggu_penugasan": 2
+      "skema_diikuti": 1,
+      "sertifikat_aktif": 2
     },
     "alert_banner": {
       "has_alert": true,
-      "title": "Verifikasi laporan tertunda",
-      "subtitle": "Anda memiliki 1 laporan yang menunggu verifikasi"
+      "title": "Pra-Asesmen Menunggu Pengisian",
+      "subtitle": "Silakan selesaikan pengisian Pra-Asesmen untuk skema Digital Marketing Madya"
     },
-    "jadwal_hari_ini": [
+    "berita_terkini": [
       {
-        "id_jadwal": 11152,
-        "skema": "Sertifikasi Junior Web Developer",
-        "tanggal": "2026-04-27",
-        "waktu": "08:00",
-        "tuk": "SMK Media Informatika",
-        "status": "1"
-      }
-    ],
-    "tugas_prioritas": [
-      {
-        "id_tugas": 28054,
-        "title": "Laporan menunggu verifikasi",
-        "subtitle": "Sertifikasi Junior Web Developer - SMK Media Informatika",
-        "type": "menunggu_verifikasi"
-      },
-      {
-        "id_tugas": 28055,
-        "title": "Unggah Surat Tugas",
-        "subtitle": "Sertifikasi Junior Graphic Designer - Politeknik Sampit",
-        "type": "penugasan_baru"
-      },
-      {
-        "id_tugas": 28056,
-        "title": "Isi Catatan Asesmen",
-        "subtitle": "Sertifikasi Network Security Engineer - UI",
-        "type": "penugasan_baru"
-      },
-      {
-        "id_tugas": 28057,
-        "title": "Evaluasi Portofolio Mandiri",
-        "subtitle": "Sertifikasi Cloud Computing Admin - SMK Media Informatika",
-        "type": "asesmen_berlangsung"
+        "id": 1,
+        "title": "Sosialisasi LSP Digital Gelombang 2",
+        "date": "15 Juli 2026",
+        "summary": "Pendaftaran sertifikasi kompetensi gelombang kedua resmi dibuka bagi pelaku industri digital.",
+        "image_url": "https://lsp-example.com/images/berita1.jpg"
       }
     ]
   }
 }
 ```
-* **Keterangan Field**:
-  * `summary`: Menghitung jumlah asesmen berdasarkan tahapan status.
-  * `alert_banner`: Pesan info penting yang mendesak untuk ditindaklanjuti.
-  * `jadwal_hari_ini`: Jadwal asesmen yang harus dihadiri hari ini. Nilai status: `"0"` (waiting), `"1"` (completed), `"2"` (canceled), `"3"` (running), `"4"` (pelaporan).
-  * `tugas_prioritas.type`: Kategori tugas (`menunggu_verifikasi`, `penugasan_baru`, `asesmen_berlangsung`, `asesmen_selesai`) untuk menentukan ikon dan warna di UI.
 
----
-
-### MODUL 2: JADWAL & PENUGASAN
-
-#### 2. Daftar Jadwal Penugasan Saya
-* **Endpoint**: `GET /api/asesor/jadwal`
+#### 4. Jadwal Saya (Asesi)
+* **Endpoint**: `GET /api/asesi/jadwal`
 * **Query Parameters**:
-  * `status_jadwal` (String, opsional): Memfilter status penugasan. Nilai:
-    * `0` : Menunggu / Aktif
-    * `1,4` : Selesai / Pelaporan
-    * `2` : Dibatalkan
+  * `status_jadwal`: status filter (`0`=Mendatang, `3`=Sedang Berjalan, `1`=Selesai)
+  * `limit`: default `20`
+  * `offset`: default `0`
 * **Response (200 OK)**:
 ```json
 {
   "status": "success",
-  "message": "Asesor schedules retrieved successfully",
   "data": [
     {
-      "id": 11152,
-      "nama_jadwal": "Sertifikasi Junior Web Developer",
-      "tanggal": "2026-07-24",
-      "tanggal_akhir": "2026-07-27",
-      "status_jadwal": "0",
-      "tuk": "LPP Cahaya Borneo",
-      "jumlah_peserta": 54
-    }
-  ],
-  "count": 1
-}
-```
-
-#### 3. Detail Penugasan
-* **Endpoint**: `GET /api/asesor/jadwal/:id/detail`
-* **Response (200 OK)**:
-```json
-{
-  "status": "success",
-  "message": "Assessor schedule detail retrieved successfully",
-  "data": {
-    "id": 11152,
-    "jadwal": "Sertifikasi Junior Web Developer",
-    "tanggal": "2026-07-24",
-    "tanggal_akhir": "2026-07-27",
-    "status_jadwal": "0",
-    "status_label": "Waiting",
-    "id_tuk": 1,
-    "tuk": "LPP Cahaya Borneo",
-    "alamat_tuk": "Kalimantan Tengah",
-    "jenis_tuk": "Sewaktu",
-    "waktu_asesmen": "09:00 - 12:00 WIB",
-    "lokasi_asesmen": "Gedung A Lantai 2, Kota Yogyakarta",
-    "jumlah_peserta": 54,
-    "lead_asesor": "Eko Setiabudi",
-    "asesor": [
-      {
-        "id_asesor": 1,
-        "nama_asesor": "Eko Setiabudi",
-        "no_reg": "MET.000.001928 2023",
-        "email": "eko.setiabudi@lsp.com",
-        "hp": "08123456789",
-        "jenis_asesmen": "Mandiri",
-        "status_spt": "Disetujui",
-        "is_complete": "1",
-        "masa_berlaku": "2028-12-31",
-        "kabupaten_kota": "Yogyakarta",
-        "provinsi_id": "34",
-        "kabupaten_id": "3471",
-        "total_asesmen": 15
-      }
-    ]
-  }
-}
-```
-
-#### 4. Daftar Peserta (Jadwal Asesi List)
-* **Endpoint**: `GET /api/asesor/jadwal/:id/peserta`
-* **Response (200 OK)**:
-```json
-{
-  "status": "success",
-  "message": "Participants list retrieved successfully",
-  "data": [
-    {
-      "id": 101,
-      "nama_lengkap": "Andi Pratama",
-      "hasil_rekomendasi": "K"
-    },
-    {
-      "id": 102,
-      "nama_lengkap": "Budi Santoso",
-      "hasil_rekomendasi": "BK"
-    },
-    {
-      "id": 103,
-      "nama_lengkap": "Citra Lestari",
-      "hasil_rekomendasi": "-"
-    }
-  ],
-  "meta": {
-    "jadwal_id": 11152,
-    "total_asesi": 3,
-    "jumlah_kompeten": 1,
-    "jumlah_belum_kompeten": 1,
-    "jumlah_belum_dinilai": 1
-  }
-}
-```
-* **Keterangan Field**:
-  * `hasil_rekomendasi`: `"K"` (Kompeten), `"BK"` (Belum Kompeten), atau `"-"` / `null` jika belum dinilai.
-
-#### 5. Detail Peserta
-* **Endpoint**: `GET /api/asesor/jadwal/:jadwal_id/peserta/:peserta_id`
-* **Response (200 OK)**:
-```json
-{
-  "status": "success",
-  "message": "Participant detail retrieved successfully",
-  "data": {
-    "peserta_id": 101,
-    "no_peserta": "PES-2026-0724-001",
-    "nama_lengkap": "Andi Pratama",
-    "nik": "6253748567382",
-    "tempat_lahir": "Yogyakarta",
-    "tanggal_lahir": "1998-05-10",
-    "skema_sertifikat": "UI/UX Design",
-    "institusi": "LPP Jigja",
-    "email": "andipratama@gmail.com",
-    "no_telepon": "085678736521",
-    "status_kelengkapan": {
-      "portofolio": "Lengkap",
-      "dokumen_pendukung": "Lengkap",
-      "persyaratan": "Lengkap"
-    },
-    "status_assessment": {
-      "kehadiran": "Hadir",
-      "tugas_asesmen": "Kompeten",
-      "laporan": "Belum Dibuat",
-      "rekaman": "Belum Diunggah"
-    }
-  }
-}
-```
-
-#### 6. Mengambil File Surat Tugas PDF
-* **Endpoint**: `GET /api/asesor/jadwal/:id/surat-tugas`
-* **Response (200 OK)**:
-```json
-{
-  "status": "success",
-  "message": "Surat tugas retrieved successfully",
-  "data": {
-    "file_url": "https://lsp-example.com/storage/surat-tugas/st-11152.pdf"
-  }
-}
-```
-
----
-
-### MODUL 3: PELAPORAN TUGAS ASESOR
-
-#### 7. Riwayat Daftar Laporan Tugas Asesor
-* **Endpoint**: `GET /api/asesor/laporan`
-* **Response (200 OK)**:
-```json
-{
-  "status": "success",
-  "message": "Riwayat laporan tugas berhasil diambil",
-  "data": [
-    {
-      "id": 8810,
-      "kode_laporan": "LAP-2026-0724",
-      "skema_sertifikasi": "Design UI/UX",
-      "tanggal_pelaksanaan": "2026-07-24",
-      "tuk": "LPP Cahaya Borneo",
-      "nama_asesor": "Muhammad Hanafi",
-      "status": "Terkonfirmasi"
+      "id": 45,
+      "jadwal": "Asesmen Kompetensi Digital Marketing Madya - Juli 2026",
+      "tuk": "TUK LSP Digital Utama",
+      "tanggal": "2026-07-25",
+      "tanggal_akhir": "2026-07-26",
+      "status_jadwal": "3",
+      "status_label": "Sedang Berjalan",
+      "jumlah_asesi": 1,
+      "asesor": [
+        "Dr. Ir. Ahmad Yani, M.Kom"
+      ],
+      "days_overdue": 0,
+      "catatan": "Harap membawa laptop dan berkas portofolio fisik asli saat asesmen."
     }
   ]
 }
 ```
 
-#### 8. Detail Laporan Tugas Asesor
-* **Endpoint**: `GET /api/asesor/laporan/:id`
-* **Response (200 OK)**:
-```json
-{
-  "status": "success",
-  "message": "Detail laporan tugas berhasil diambil",
-  "data": {
-    "id": 8810,
-    "kode_laporan": "LAP-2026-0724",
-    "status": "Terkonfirmasi",
-    "nama_asesor": "Muhammad Hanafi",
-    "skema_sertifikasi": "Design UI/UX",
-    "tanggal_pelaksanaan": "24 Juli 2026",
-    "link_dokumentasi": "https://drive.google.com/drive/folders/123xyz",
-    "catatan": "Asesi telah mengumpulkan seluruh tugas implementasi UI Design dengan lengkap. Melalui sesi wawancara, Asesi mampu membuktikan keaslian karya secara mandiri, menjelaskan alur user flow dengan logis, serta menggunakan design system yang terkini.",
-    "ringkasan": {
-      "total_peserta": 10,
-      "hadir": 8,
-      "absen": 2,
-      "kompeten": 7,
-      "belum_kompeten": 1
-    },
-    "dokumen": {
-      "surat_tugas_name": "Surat tugas.pdf",
-      "surat_tugas_url": "https://lsp-example.com/storage/surat-tugas/st-11152.pdf"
-    },
-    "daftar_asesi_dinilai": [
-      {
-        "nama": "Ayu Putri Sri",
-        "nim": "0897556789",
-        "kehadiran": "Hadir",
-        "penilaian": "K"
-      },
-      {
-        "nama": "Bayu Nugrahan",
-        "nim": "09769990862",
-        "kehadiran": "Absen",
-        "penilaian": "TK"
-      }
-    ],
-    "lampiran_pendukung": [
-      "https://lsp-example.com/storage/attachments/bukti-1.pdf",
-      "https://lsp-example.com/storage/attachments/foto-2.png"
-    ]
-  }
-}
-```
+---
 
-#### 9. Dropdown Skema & TUK
-* **Endpoint**: `GET /api/asesor/skema-tuk`
+### MODUL 3: SKEMA SERTIFIKASI & PENDAFTARAN
+
+#### 5. Kategori/Bidang Skema
+* **Endpoint**: `GET /api/sertifikat/skema/bidang`
 * **Response (200 OK)**:
 ```json
 {
   "status": "success",
-  "message": "Daftar skema sertifikasi & TUK berhasil diambil",
   "data": [
     {
       "id": 1,
-      "nama_skema": "Desaign UI/Ux",
-      "tuk": "LPP Cahaya Borneo"
+      "nama_bidang": "Digital Marketing"
     },
     {
       "id": 2,
-      "nama_skema": "Junior Web Programmer",
-      "tuk": "TUK Mandiri Universitas"
+      "nama_bidang": "Informatika"
     }
   ]
 }
 ```
 
-#### 10. Upload Berkas Lampiran Pendukung (Multipart)
-* **Endpoint**: `POST /api/asesor/laporan/upload-lampiran`
-* **Content-Type**: `multipart/form-data`
-* **Request Body**:
-  * `file`: Berkas PDF/Gambar (Maksimal 10MB)
+#### 6. Detail Skema
+* **Endpoint**: `GET /api/sertifikat/skema/:id`
 * **Response (200 OK)**:
 ```json
 {
   "status": "success",
-  "message": "Upload File Berhasil",
   "data": {
-    "file_name": "Bukti_Pendukung_1.pdf",
-    "file_url": "https://lsp-example.com/storage/attachments/temp-bukti-1.pdf"
+    "id_skema": 1,
+    "kode_skema": "SKM-DM-002",
+    "skema": "Digital Marketing Madya",
+    "kategori": "Digital Marketing",
+    "deskripsi": "Skema sertifikasi pemasaran digital tingkat madya.",
+    "unit_kompetensi": [
+      {
+        "kode_unit": "DM-01",
+        "judul_unit": "Melakukan Riset Pasar Digital"
+      }
+    ],
+    "persyaratan": [
+      "CV Terbaru",
+      "Pasfoto latar belakang merah",
+      "KTP",
+      "Fotokopi Ijazah terakhir"
+    ],
+    "is_registered": false,
+    "sertifikasi_id": null,
+    "status_pendaftaran": null
   }
 }
 ```
 
-#### 11. Kirim Laporan Tugas Baru (Wizard Submit)
-* **Endpoint**: `POST /api/asesor/laporan`
-* **Content-Type**: `application/json`
-* **Request Body (JSON)**:
+#### 7. Rekomendasi Asesor
+* **Endpoint**: `GET /api/sertifikat/skema/:id/asesor`
+* **Response (200 OK)**:
 ```json
 {
-  "jadwal_id": 11152,
-  "nama_asesor": "Muhammad Hanafi",
-  "skema_id": 1,
-  "tanggal_pelaksanaan": "2026-07-24",
-  "surat_tugas_url": "https://lsp-example.com/storage/surat-tugas/st-11152.pdf",
-  "link_dokumentasi": "https://drive.google.com/drive/folders/123xyz",
-  "catatan": "Evaluasi pelaksanaan berjalan kondusif.",
-  "daftar_peserta": [
+  "status": "success",
+  "data": [
     {
-      "nim": "0897556789",
-      "kehadiran": "Hadir",
-      "is_kompeten": true
-    },
-    {
-      "nim": "09769990862",
-      "kehadiran": "Absen",
-      "is_kompeten": false
+      "id_asesor": 23,
+      "nama_asesor": "Dr. Ir. Ahmad Yani, M.Kom",
+      "no_reg": "MET.000.123456",
+      "email": "ahmadyani@example.com",
+      "hp": "08123456789",
+      "kabupaten_kota": "Sampit",
+      "masa_berlaku": "2028-12-31"
     }
-  ],
-  "lampiran_pendukung": [
-    "https://lsp-example.com/storage/attachments/temp-bukti-1.pdf"
   ]
+}
+```
+
+#### 8. Pendaftaran Baru
+* **Endpoint**: `POST /api/sertifikasi/daftar`
+* **Request Body**:
+```json
+{
+  "skema_id": 1,
+  "tuk_id": 2,
+  "tanggal_rencana": "2026-08-10"
 }
 ```
 * **Response (201 Created)**:
 ```json
 {
   "status": "success",
-  "message": "Laporan tugas berhasil dibuat",
+  "message": "Pendaftaran berhasil disimpan",
   "data": {
-    "id": 8810,
-    "kode_laporan": "LAP-2026-0724",
-    "status": "Terkonfirmasi"
+    "sertifikasi_id": 451,
+    "status": "terdaftar"
   }
 }
 ```
 
 ---
 
-### MODUL 4: PROFIL, HONOR & TIKET BANTUAN ASESOR
+### MODUL 4: PRA-ASESMEN WIZARD
 
-#### 12. Mengambil Profil Data Diri Asesor
-* **Endpoint**: `GET /api/asesor/profile`
+#### 9. Get Info Pra-Asesmen
+* **Endpoint**: `GET /api/pra-asesmen/skema/:id/info`
 * **Response (200 OK)**:
 ```json
 {
   "status": "success",
-  "message": "Profil asesor berhasil diambil",
   "data": {
-    "id_asesor": "ASR-2026-000123",
+    "id": 1,
+    "skema": "Digital Marketing Madya",
+    "kode_skema": "SKM-DM-002",
+    "status_pra_asesmen": "belum_diisi"
+  }
+}
+```
+
+#### 10. Get Unit & Elemen Kompetensi
+* **Endpoint**: `GET /api/pra-asesmen/skema/:id/kompetensi`
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "data": {
+    "skema": "Digital Marketing Madya",
+    "unit_kompetensi": [
+      {
+        "kode_unit": "DM-01",
+        "judul_unit": "Melakukan Riset Pasar Digital",
+        "elemen": [
+          {
+            "id_elemen": 101,
+            "pertanyaan_kuk": "Apakah Anda dapat menentukan segmentasi pasar di media sosial?",
+            "pilihan_rekomendasi": "K"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### 11. Kirim Pra-Asesmen Mandiri
+* **Endpoint**: `POST /api/pra-asesmen/skema/:id/submit`
+* **Request Body**:
+```json
+{
+  "evaluasi": [
+    {
+      "id_elemen": 101,
+      "nilai": "K"
+    }
+  ]
+}
+```
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "message": "Pra-Asesmen mandiri berhasil disimpan"
+}
+```
+
+---
+
+### MODUL 5: PORTOFOLIO & DOKUMEN PERSYARATAN
+
+#### 12. List Dokumen Portofolio
+* **Endpoint**: `GET /api/sertifikasi/:id/portofolio`
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "data": {
+    "documents": [
+      {
+        "key": "ktp",
+        "label": "Kartu Tanda Penduduk (KTP)",
+        "is_required": true,
+        "status": "Terverifikasi",
+        "file_name": "ktp_hanafi.pdf",
+        "comment": null
+      },
+      {
+        "key": "pasfoto",
+        "label": "Pas Foto Terbaru 4x6",
+        "is_required": true,
+        "status": "Ditolak",
+        "file_name": "foto_lama.jpg",
+        "comment": "Foto buram & latar harus merah"
+      }
+    ]
+  }
+}
+```
+
+#### 13. Upload Portofolio (Multipart)
+* **Endpoint**: `POST /api/sertifikasi/:id/portofolio/upload`
+* **Content-Type**: `multipart/form-data`
+* **Request Body**:
+  * `key`: "ktp" / "pasfoto" / dll.
+  * `file`: Berkas PDF/PNG/JPG (Maksimal 2MB)
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "message": "Berkas berhasil diunggah",
+  "data": {
+    "file_name": "foto_terbaru_merah.jpg",
+    "status": "Menunggu Verifikasi"
+  }
+}
+```
+
+---
+
+### MODUL 6: PROFIL (DATA DIRI & INSTANSI)
+
+#### 14. Data Diri
+* **Endpoint**: `GET /api/asesor/profile` (Catatan: Digunakan bersama oleh Asesor & Asesi)
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "data": {
     "nama_lengkap": "Muhammad Hanafi",
-    "status_aktif": "Aktif",
-    "nik": "6303001204950002",
     "email": "muhammadhanafi_12@gmail.com",
     "no_telepon": "0858978655634",
-    "foto_profil_url": "https://lsp-example.com/storage/profiles/hanafi.jpg",
-    "instansi": "Politeknik Negeri Sampit",
+    "alamat": "Jl. Pramuka km 4,5 No 34, Baamang Hulu, Kalimantan Tengah",
+    "foto_profil_url": "https://lsp-example.com/storage/profile/foto.jpg"
+  }
+}
+```
+
+#### 15. Update Data Diri
+* **Endpoint**: `PUT /api/asesor/profile`
+* **Request Body**:
+```json
+{
+  "no_telepon": "0858978655634",
+  "alamat": "Jl. Pramuka km 4,5 No 34, Baamang Hulu, Kalimantan Tengah",
+  "instansi": "Politeknik Sampit",
+  "foto_profil_url": "https://lsp-example.com/storage/profile/foto.jpg"
+}
+```
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "data": {
+    "nama_lengkap": "Muhammad Hanafi",
+    "no_telepon": "0858978655634",
     "alamat": "Jl. Pramuka km 4,5 No 34, Baamang Hulu, Kalimantan Tengah"
   }
 }
 ```
 
-#### 13. Update Profil Asesor
-* **Endpoint**: `PUT /api/asesor/profile`
-* **Content-Type**: `application/json`
-* **Request Body (JSON)**:
-```json
-{
-  "no_telepon": "0858978655634",
-  "alamat": "Jl. Pramuka km 4,5 No 34, Baamang Hulu, Kalimantan Tengah",
-  "instansi": "Politeknik Negeri Sampit",
-  "foto_profil_url": "https://lsp-example.com/storage/profiles/hanafi.jpg"
-}
-```
+#### 16. Get Informasi Instansi
+* **Endpoint**: `GET /api/asesi/instansi`
 * **Response (200 OK)**:
 ```json
 {
   "status": "success",
-  "message": "Profil berhasil diperbarui",
   "data": {
-    "id_asesor": "ASR-2026-000123",
-    "nama_lengkap": "Muhammad Hanafi",
-    "no_telepon": "0858978655634",
-    "alamat": "Jl. Pramuka km 4,5 No 34, Baamang Hulu, Kalimantan Tengah",
-    "instansi": "Politeknik Negeri Sampit",
-    "foto_profil_url": "https://lsp-example.com/storage/profiles/hanafi.jpg"
+    "tipe_instansi": "Mahasiswa",
+    "data_instansi": {
+      "nama_perguruan_tinggi": "Politeknik Sampit",
+      "fakultas": "Teknologi Informasi",
+      "program_studi": "Sistem Informasi",
+      "nim": "087685674568",
+      "alamat": "Jl. Wengga Metropolitan"
+    }
   }
 }
 ```
 
-#### 14. Daftar Honor Asesor
-* **Endpoint**: `GET /api/asesor/honor`
-* **Query Parameters**:
-  * `periode` (String, opsional): Memfilter berdasarkan format `NamaBulan Tahun` (contoh: `Juli 2026`). Jika kosong, backend wajib mengembalikan seluruh riwayat honor/pendapatan.
-* **Response (200 OK)**:
+#### 17. Update Informasi Instansi
+* **Endpoint**: `PUT /api/asesi/instansi`
+* **Request Body**:
 ```json
 {
-  "status": "success",
-  "message": "Daftar honor berhasil diambil",
-  "data": {
-    "periode": "Juli 2026",
-    "total_honor": "Rp. 2.500.000",
-    "jumlah_asesmen_selesai": "4 Asesmen selesai",
-    "rincian": [
-      {
-        "id_detail": 501,
-        "judul_asesmen": "Uji Kompetensi: Junior Web Programmer",
-        "tanggal": "12 Juli 2026",
-        "tuk": "Politeknik Sampit",
-        "honor": "Rp. 625.000",
-        "status": "Complete",
-        "jumlah_asesmen": 2,
-        "metode_pembayaran": "Transfer Bank",
-        "tanggal_pembayaran": "20 Juli 2026, 10:00 WIB",
-        "no_transfer": "PAY-20262007-001",
-        "jumlah_asesi": 12,
-        "jenis_asesmen": "Asesmen Mandiri / Praktik"
-      },
-      {
-        "id_detail": 502,
-        "judul_asesmen": "Uji Kompetensi: Digital Marketing",
-        "tanggal": "10 Juli 2026",
-        "tuk": "TUK Sewaktu LSP",
-        "honor": "Rp. 625.000",
-        "status": "Menunggu",
-        "jumlah_asesmen": 1,
-        "metode_pembayaran": "Transfer Bank",
-        "tanggal_pembayaran": "-",
-        "no_transfer": "-",
-        "jumlah_asesi": 18,
-        "jenis_asesmen": "Asesmen Portofolio"
-      },
-      {
-        "id_detail": 503,
-        "judul_asesmen": "Uji Kompetensi: Network Administrator",
-        "tanggal": "06 Juli 2026",
-        "tuk": "SMKN 1 Sampit",
-        "honor": "Rp. 625.000",
-        "status": "Complete",
-        "jumlah_asesmen": 3,
-        "metode_pembayaran": "Transfer Bank",
-        "tanggal_pembayaran": "08 Juli 2026, 14:20 WIB",
-        "no_transfer": "PAY-20262007-003",
-        "jumlah_asesi": 15,
-        "jenis_asesmen": "Asesmen Praktik Langsung"
-      },
-      {
-        "id_detail": 504,
-        "judul_asesmen": "Uji Kompetensi: Junior Graphic Designer",
-        "tanggal": "02 Juli 2026",
-        "tuk": "Politeknik Sampit",
-        "honor": "Rp. 625.000",
-        "status": "Complete",
-        "jumlah_asesmen": 4,
-        "metode_pembayaran": "Transfer Bank",
-        "tanggal_pembayaran": "04 Juli 2026, 09:15 WIB",
-        "no_transfer": "PAY-20262007-004",
-        "jumlah_asesi": 20,
-        "jenis_asesmen": "Asesmen Wawancara"
-      }
-    ]
+  "tipe_instansi": "Mahasiswa",
+  "data_instansi": {
+    "nama_perguruan_tinggi": "Politeknik Sampit",
+    "fakultas": "Teknologi Informasi",
+    "program_studi": "Sistem Informasi",
+    "nim": "087685674568",
+    "alamat": "Jl. Wengga Metropolitan"
   }
 }
 ```
-
-#### 15. Daftar Tiket Bantuan Asesor
-* **Endpoint**: `GET /api/asesor/tiket`
 * **Response (200 OK)**:
 ```json
 {
   "status": "success",
-  "message": "Daftar tiket bantuan berhasil diambil",
+  "message": "Data instansi berhasil disimpan"
+}
+```
+
+---
+
+### MODUL 7: SERTIFIKAT ASESI & VALIDASI PUBLIC
+
+#### 18. List Sertifikat Asesi
+* **Endpoint**: `GET /api/asesi/sertifikat`
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
   "data": [
     {
-      "id": "TK-072026-001",
-      "title": "Jadwal Tidak Dapat Dibuka",
-      "date": "20 Juli 2026, 13:00",
-      "category": "Jadwal",
-      "status": "Proses",
-      "messages": [
-        {
-          "sender": "Asesor",
-          "time": "20 Juli 2026 13:00",
-          "text": "Saya tidak bisa membuka detail jadwal asesmen saya pada hari ini. Muncul pesan error koneksi."
-        },
-        {
-          "sender": "LSP Admin",
-          "time": "20 Juli 2026 13:15",
-          "text": "Halo Pak, mohon pastikan koneksi internet stabil atau coba restart aplikasi ya."
-        }
-      ]
-    },
-    {
-      "id": "TK-072026-002",
-      "title": "Surat Tugas Tidak ada",
-      "date": "18 Juli 2026, 08:00",
-      "category": "Surat Tugas",
-      "status": "Proses",
-      "messages": [
-        {
-          "sender": "Asesor",
-          "time": "18 Juli 2026 08:00",
-          "text": "Mohon bantuannya, surat tugas untuk skema sertifikasi UI/UX tidak terlampir di dashboard."
-        }
-      ]
+      "id": 1,
+      "skema": "Digital Marketing Madya",
+      "pemegang": "Muhammad Hanafi",
+      "nomor_sertifikat": "FR-APR-02",
+      "tanggal_terbit": "2026-04-20",
+      "tanggal_berlaku": "2028-04-20",
+      "status": "aktif",
+      "kategori": "Digital Marketing",
+      "institusi": "LSP Digital Marketing",
+      "nomor_registrasi": "REG-55431-2026",
+      "nomor_blanko": "BLANKO-778811",
+      "nomor_seri": "SERI-001A",
+      "tempat_uji": "TUK LSP Digital Utama",
+      "nama_asesor": "Dr. Ir. Ahmad Yani, M.Kom"
     }
   ]
 }
 ```
 
-#### 16. Detail Tiket Bantuan Asesor
-* **Endpoint**: `GET /api/asesor/tiket/:id`
+#### 19. Detail Sertifikat Asesi
+* **Endpoint**: `GET /api/asesi/sertifikat/:id`
 * **Response (200 OK)**:
 ```json
 {
   "status": "success",
-  "message": "Detail tiket bantuan berhasil diambil",
   "data": {
-    "id": "TK-072026-001",
-    "title": "Jadwal Tidak Dapat Dibuka",
-    "date": "20 Juli 2026, 13:00",
-    "category": "Jadwal",
-    "status": "Proses",
-    "messages": [
+    "id": 1,
+    "skema": "Digital Marketing Madya",
+    "pemegang": "Muhammad Hanafi",
+    "nomor_sertifikat": "FR-APR-02",
+    "tanggal_terbit": "2026-04-20",
+    "tanggal_berlaku": "2028-04-20",
+    "status": "aktif",
+    "kategori": "Digital Marketing",
+    "institusi": "LSP Digital Marketing",
+    "nomor_registrasi": "REG-55431-2026",
+    "nomor_blanko": "BLANKO-778811",
+    "nomor_seri": "SERI-001A",
+    "tempat_uji": "TUK LSP Digital Utama",
+    "nama_asesor": "Dr. Ir. Ahmad Yani, M.Kom"
+  }
+}
+```
+
+#### 20. Upload Foto & TTD Sertifikat (Multipart)
+* **Endpoint**: `POST /api/asesi/sertifikat/:id/upload-ttd`
+* **Content-Type**: `multipart/form-data`
+* **Request Body**:
+  * `file`: Berkas PDF/PNG berisi foto + tanda tangan (Maksimal 5MB, mendukung multi-file)
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "message": "Berkas foto & tanda tangan berhasil disimpan",
+  "data": {
+    "uploaded_files": [
       {
-        "sender": "Asesor",
-        "time": "20 Juli 2026 13:00",
-        "text": "Saya tidak bisa membuka detail jadwal asesmen saya pada hari ini. Muncul pesan error koneksi."
-      },
-      {
-        "sender": "LSP Admin",
-        "time": "20 Juli 2026 13:15",
-        "text": "Halo Pak, mohon pastikan koneksi internet stabil atau coba restart aplikasi ya."
+        "name": "ttd_hanafi.png",
+        "url": "https://lsp-example.com/storage/sertifikat/ttd/1_ttd.png"
       }
     ]
   }
 }
 ```
 
-#### 17. Kirim Tiket Bantuan Baru
-* **Endpoint**: `POST /api/asesor/tiket`
-* **Content-Type**: `application/json` (atau `multipart/form-data` jika menyertakan upload file lampiran)
-* **Request Body (JSON)**:
-```json
-{
-  "nama_lengkap": "Muhammad Hanafi",
-  "judul": "Jadwal Tidak Dapat Dibuka",
-  "pesan": "Saya tidak bisa membuka detail jadwal asesmen saya pada hari ini. Muncul pesan error koneksi.",
-  "dokumentasi_url": "https://lsp-example.com/storage/attachments/screenshot_kendala.png"
-}
-```
-* **Response (201 Created)**:
+#### 21. Download Sertifikat PDF
+* **Endpoint**: `GET /api/asesi/sertifikat/:id/download`
+* **Response (200 OK)**:
 ```json
 {
   "status": "success",
-  "message": "Tiket bantuan berhasil dibuat",
   "data": {
-    "id": "TK-072026-003",
-    "title": "Jadwal Tidak Dapat Dibuka",
-    "category": "Jadwal",
-    "status": "Proses",
-    "date": "Hari ini"
+    "download_url": "https://lsp-example.com/storage/sertifikat/pdf/sertifikat_1.pdf"
   }
 }
 ```
 
-#### 18. Kirim Pesan Tanggapan / Reply Chat Tiket Bantuan
-* **Endpoint**: `POST /api/asesor/tiket/:id/reply`
-* **Content-Type**: `application/json`
-* **Request Body (JSON)**:
+#### 22. Validasi Sertifikat Publik
+* **Endpoint**: `POST /api/sertifikat/validate`
+* **Request Body**:
 ```json
 {
-  "text": "Baik, saya coba restart aplikasinya dahulu."
+  "no_dokumen": "FR-APR-02"
 }
 ```
 * **Response (200 OK)**:
 ```json
 {
-  "status": "success",
-  "message": "Tanggapan berhasil dikirim",
+  "valid": true,
+  "message": "Sertifikat Terverifikasi Valid",
   "data": {
-    "sender": "Asesor",
-    "time": "Hari ini",
-    "text": "Baik, saya coba restart aplikasinya dahulu."
+    "id": 1,
+    "skema": "Digital Marketing Madya",
+    "pemegang": "Muhammad Hanafi",
+    "nomor_sertifikat": "FR-APR-02",
+    "tanggal_terbit": "20 April 2026",
+    "tanggal_berlaku": "20 April 2028",
+    "status": "aktif"
   }
 }
 ```
@@ -681,18 +614,18 @@ Berikut adalah daftar 18 endpoint API yang dibutuhkan oleh peran Asesor:
 
 ## 4. Status Kode & Respons Error Global
 
-Backend wajib mengembalikan format error standar JSON yang konsisten jika terjadi kegagalan transaksi/akses:
+Seluruh endpoint wajib mengembalikan format respons error JSON terstandar jika terjadi kegagalan transaksi/akses:
 
 ```json
 {
   "status": "error",
-  "message": "Pesan deskripsi kesalahan / alasan error"
+  "message": "Pesan rincian kesalahan yang ramah pengguna"
 }
 ```
 
-### Status Codes:
-* **400 Bad Request**: Payload data tidak lengkap, validasi tipe data salah, atau format input tidak sesuai (contoh: format tanggal tidak valid).
-* **401 Unauthorized**: Token JWT tidak valid, tidak dikirim, atau telah kedaluwarsa.
-* **403 Forbidden**: Otorisasi gagal karena user tidak memiliki peran `asesor`, atau mencoba mengakses jadwal/laporan milik asesor lain.
-* **404 Not Found**: Data jadwal, peserta, laporan, profil, atau honor tidak ditemukan.
-* **500 Internal Server Error**: Kegagalan sistem internal pada database atau server backend.
+### HTTP Status Codes:
+* **400 Bad Request**: Payload data tidak lengkap, validasi data gagal, atau ukuran berkas melebihi batas.
+* **401 Unauthorized**: JWT token tidak valid, kadaluarsa, atau tidak terlampir pada header Authorization.
+* **403 Forbidden**: Otorisasi gagal karena role bukan `asesi` atau mencoba mengakses data milik pengguna lain.
+* **404 Not Found**: Data skema, pendaftaran, portofolio, atau sertifikat tidak ditemukan.
+* **500 Internal Server Error**: Terjadi gangguan teknis pada server basis data atau sistem backend.

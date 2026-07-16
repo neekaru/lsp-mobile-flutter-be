@@ -178,9 +178,6 @@ class _EditInstansiScreenState extends State<EditInstansiScreen> {
       _isSaving = true;
     });
 
-    // Simulate saving delay
-    await Future.delayed(const Duration(milliseconds: 1000));
-
     Map<String, String> savedData = {};
     if (_selectedType == 'Mahasiswa') {
       savedData = {
@@ -207,7 +204,7 @@ class _EditInstansiScreenState extends State<EditInstansiScreen> {
       };
     }
 
-    widget.onSave(_selectedType, savedData);
+    await widget.onSave(_selectedType, savedData);
 
     if (mounted) {
       Navigator.pop(context);

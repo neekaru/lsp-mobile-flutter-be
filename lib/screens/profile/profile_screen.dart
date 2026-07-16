@@ -35,6 +35,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
     'Alamat': 'Jl. Wengga Metropolitan',
   };
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchInstansi();
+  }
+
+  Future<void> _fetchInstansi() async {
+    try {
+      final res = await AsesiService.getInstansi();
+      if (res != null && mounted) {
+        final type = res['tipe_instansi'] ?? 'Mahasiswa';
+        final data = res['data_instansi'] ?? {};
+        setState(() {
+          _instansiType = type;
+          if (type == 'Mahasiswa') {
+            _instansiData = {
+              'Nama Perguruan Tinggi': data['nama_perguruan_tinggi']?.toString() ?? '',
+              'Falkutas': data['fakultas']?.toString() ?? '',
+              'Program Studi': data['program_studi']?.toString() ?? '',
+              'NIM': data['nim']?.toString() ?? '',
+              'Alamat': data['alamat']?.toString() ?? '',
+            };
+          } else if (type == 'Pekerja' || type == 'Karyawan') {
+            _instansiData = {
+              'Nama Perusahaan': data['nama_perusahaan']?.toString() ?? '',
+              'Jabatan': data['jabatan']?.toString() ?? '',
+              'Bidang Pekerjaan': data['bidang_pekerjaan']?.toString() ?? '',
+              'Lama Bekerja': data['lama_bekerja']?.toString() ?? '',
+              'Alamat': data['alamat']?.toString() ?? '',
+            };
+          } else {
+            _instansiData = {
+              'Nama Usaha': data['nama_usaha']?.toString() ?? '',
+              'Bidang Usaha': data['bidang_usaha']?.toString() ?? '',
+              'Tahun Berdiri': data['tahun_berdiri']?.toString() ?? '',
+              'Alamat': data['alamat']?.toString() ?? '',
+            };
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching instansi: $e');
+    }
+  }
+
   void _copyTukId() {
     Clipboard.setData(const ClipboardData(text: 'DM-2026-000123'));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -524,11 +569,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           builder: (context) => EditInstansiScreen(
                             currentType: _instansiType,
                             currentData: _instansiData,
-                            onSave: (type, data) {
+                            onSave: (type, data) async {
                               setState(() {
                                 _instansiType = type;
                                 _instansiData = data;
                               });
+                              // Prepare fields for backend schema mapping
+                              final Map<String, String> dataMap = {};
+                              if (type == 'Mahasiswa') {
+                                dataMap['nama_perguruan_tinggi'] = data['Nama Perguruan Tinggi'] ?? '';
+                                dataMap['nim'] = data['NIM'] ?? '';
+                                dataMap['alamat'] = data['Alamat'] ?? '';
+                              } else if (type == 'Karyawan') {
+                                dataMap['nama_perusahaan'] = data['Nama Perusahaan'] ?? '';
+                                dataMap['jabatan'] = data['Jabatan'] ?? '';
+                                dataMap['bidang_pekerjaan'] = data['Bidang Pekerjaan'] ?? '';
+                                dataMap['lama_bekerja'] = data['Lama Bekerja'] ?? '';
+                                dataMap['alamat'] = data['Alamat'] ?? '';
+                              } else {
+                                dataMap['nama_usaha'] = data['Nama Usaha'] ?? '';
+                                dataMap['bidang_usaha'] = data['Bidang Usaha'] ?? '';
+                                dataMap['tahun_berdiri'] = data['Tahun Berdiri'] ?? '';
+                                dataMap['alamat'] = data['Alamat'] ?? '';
+                              }
+                              await AsesiService.updateInstansi(type, dataMap);
                             },
                           ),
                         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/sertifikat_models.dart';
 import '../../services/api_service.dart';
 import '../../widgets/sertifikat/sertifikat_list_item.dart';
@@ -21,41 +22,6 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
   List<SertifikatItem> _displayedSertifikats = [];
   String? _errorMessage;
 
-  final List<SertifikatItem> _mockSertifikats = [
-    const SertifikatItem(
-      id: 1,
-      skema: 'Digital Marketing Madya',
-      pemegang: 'Muhammad Hanafi',
-      nomorSertifikat: 'FR-APR-02',
-      tanggalTerbit: '20 April 2026',
-      tanggalBerlaku: '20 April 2028',
-      status: 'aktif',
-      kategori: 'Digital Marketing',
-      institusi: 'LSP Digital Marketing',
-      nomorRegistrasi: 'REG-55431-2026',
-      nomorBlanko: 'BLANKO-778811',
-      nomorSeri: 'SERI-001A',
-      tempatUji: 'TUK LSP Digital',
-      namaAsesor: 'Dr. Ir. Ahmad Yani, M.Kom',
-    ),
-    const SertifikatItem(
-      id: 4,
-      skema: 'Desainer Grafis Muda',
-      pemegang: 'Muhammad Hanafi',
-      nomorSertifikat: 'FR-APR-05',
-      tanggalTerbit: '15 Mei 2025',
-      tanggalBerlaku: '15 Juni 2026',
-      status: 'akan_kadaluarsa',
-      kategori: 'Desain',
-      institusi: 'LSP Desain Kreatif',
-      nomorRegistrasi: 'REG-77665-2025',
-      nomorBlanko: 'BLANKO-889900',
-      nomorSeri: 'SERI-004D',
-      tempatUji: 'TUK Desain Indah',
-      namaAsesor: 'Santi Wijaya, M.Sn.',
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -75,21 +41,20 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
     });
 
     try {
-      final results = await ApiService.searchSertifikat(query: '');
-      
-      // Filter only certificates belonging to Muhammad Hanafi
-      final filteredResults = results.where((item) => item.pemegang.toLowerCase().contains('hanafi')).toList();
+      final results = await AsesiService.getSertifikatList();
+      final mappedResults = results.map((e) => SertifikatItem.fromJson(e)).toList();
       
       setState(() {
-        _allSertifikats = filteredResults.isNotEmpty ? filteredResults : _mockSertifikats;
+        _allSertifikats = mappedResults;
         _displayedSertifikats = List.from(_allSertifikats);
         _isLoading = false;
       });
     } catch (e) {
       debugPrint('Error loading initial certificates: $e');
       setState(() {
-        _allSertifikats = _mockSertifikats;
-        _displayedSertifikats = List.from(_allSertifikats);
+        _allSertifikats = [];
+        _displayedSertifikats = [];
+        _errorMessage = 'Gagal memuat daftar sertifikat.';
         _isLoading = false;
       });
     }
@@ -123,14 +88,55 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
     });
   }
 
-  void _handleDownloadCertificate(SertifikatItem item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Mengunduh sertifikat ${item.skema}...'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  Future<void> _handleDownloadCertificate(SertifikatItem item) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Menghubungi server untuk unduh ${item.skema}...'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 1),
+        ),
+      );
+
+      final url = await AsesiService.downloadSertifikat(item.id);
+      if (url != null && url.isNotEmpty) {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Tidak dapat membuka link download.'),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sertifikat belum dapat diunduh.'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error launching download URL: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Terjadi kesalahan saat mengunduh.'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override

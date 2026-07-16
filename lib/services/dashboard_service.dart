@@ -51,17 +51,17 @@ class DashboardService {
   /// Fetch Asesi Dashboard Summary
   static Future<AsesiDashboardSummary> getAsesiSummary() async {
     try {
-      final response = await _dio.get('/api/asesi/dashboard/summary');
+      final response = await _dio.get('/api/asesi/dashboard');
 
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data['data'];
         return AsesiDashboardSummary.fromJson(data);
       }
 
-      return AsesiDashboardSummary.mock();
+      return AsesiDashboardSummary.empty();
     } catch (e) {
       debugPrint('Error fetching asesi summary: $e');
-      return AsesiDashboardSummary.mock();
+      return AsesiDashboardSummary.empty();
     }
   }
 

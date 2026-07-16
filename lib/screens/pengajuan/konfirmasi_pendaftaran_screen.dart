@@ -3,6 +3,7 @@ import '../../widgets/custom_app_bar.dart';
 import '../../widgets/pengajuan/periksa_data_banner.dart';
 import '../../widgets/pengajuan/ringkasan_pendaftaran_card.dart';
 import '../../widgets/pengajuan/data_diri_konfirmasi_card.dart';
+import '../../services/auth_repository.dart';
 import 'edit_data_pendaftaran_screen.dart';
 import 'konfirmasi_portofolio_screen.dart';
 
@@ -30,7 +31,15 @@ class _KonfirmasiPendaftaranScreenState extends State<KonfirmasiPendaftaranScree
   String _address = 'Jl. Pramuka Km 4,5 Baamang, Kalimantan Selatan';
   String _nik = '6256400136573124';
   String _pendidikan = 'D3 Teknik Informasi';
-
+  @override
+  void initState() {
+    super.initState();
+    final user = AuthRepository.currentUserInstance;
+    if (user != null) {
+      _name = user.name;
+      _email = user.email ?? '';
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;

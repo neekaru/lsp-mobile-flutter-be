@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/dashboard_models.dart';
 import '../helpers/number_format_helper.dart';
+import '../services/api_service.dart';
 
 class RangkumanAsesi extends StatefulWidget {
   final AsesiDashboardSummary? data;
@@ -38,7 +39,7 @@ class _RangkumanAsesiState extends State<RangkumanAsesi> {
     super.initState();
     // Standalone fallback: Only load if not provided by parent
     if (widget.data == null) {
-      _summaryFuture = Future.value(AsesiDashboardSummary.mock());
+      _summaryFuture = DashboardService.getAsesiSummary();
     } else {
       _summaryFuture = null;
     }
@@ -64,7 +65,7 @@ class _RangkumanAsesiState extends State<RangkumanAsesi> {
       future: _summaryFuture,
       builder: (context, snapshot) {
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
-        final data = snapshot.data ?? AsesiDashboardSummary.mock();
+        final data = snapshot.data ?? AsesiDashboardSummary.empty();
         return _buildContent(data, isLoading);
       },
     );

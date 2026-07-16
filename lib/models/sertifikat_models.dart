@@ -36,21 +36,24 @@ class SertifikatItem {
   });
 
   factory SertifikatItem.fromJson(Map<String, dynamic> json) {
+    final skemaMap = json['skema'] is Map<String, dynamic> ? json['skema'] : {};
+    final asesorMap = json['asesor'] is Map<String, dynamic> ? json['asesor'] : {};
+    
     return SertifikatItem(
       id: json['id'] ?? 0,
-      skema: json['skema'] ?? '',
+      skema: skemaMap['nama_skema'] ?? json['skema'] ?? '',
       pemegang: json['pemegang'] ?? '',
-      nomorSertifikat: json['nomor_sertifikat'] ?? '',
+      nomorSertifikat: json['no_sertifikat'] ?? json['nomor_sertifikat'] ?? '',
       tanggalTerbit: json['tanggal_terbit'] ?? '',
-      tanggalBerlaku: json['tanggal_berlaku'] ?? '',
-      status: json['status'] ?? 'aktif',
-      kategori: json['kategori'] ?? '',
+      tanggalBerlaku: json['tanggal_kadaluarsa'] ?? json['tanggal_berlaku'] ?? '',
+      status: json['status_sertifikat'] ?? json['status'] ?? 'aktif',
+      kategori: skemaMap['kategori'] ?? json['kategori'] ?? '',
       institusi: json['institusi'],
       nomorRegistrasi: json['nomor_registrasi'] ?? 'REG-12345-2026',
       nomorBlanko: json['nomor_blanko'] ?? 'BLANKO-998877',
       nomorSeri: json['nomor_seri'] ?? 'SERI-001A',
       tempatUji: json['tempat_uji'] ?? 'TUK LSP Digital',
-      namaAsesor: json['nama_asesor'] ?? 'Dr. Ir. Asesor Utama, M.Kom',
+      namaAsesor: asesorMap['nama'] ?? json['nama_asesor'] ?? 'Dr. Ir. Asesor Utama, M.Kom',
     );
   }
 }
@@ -644,40 +647,7 @@ class PraAsesmenKompetensi {
     return PraAsesmenKompetensi(
       skemaId: skemaId,
       namaSkema: title,
-      unitKompetensi: title.toLowerCase().contains('pemasaran') || title.toLowerCase().contains('marketing')
-          ? const [
-              UnitKompetensi(
-                kodeUnit: 'M.70MKT00.010.2',
-                judulUnit: 'Mengolah Data Riset',
-                elemen: [
-                  ElemenKompetensi(idElemen: 101, pertanyaanKuk: 'Apakah Anda dapat merancang instrumen riset pasar sesuai kebutuhan pemasaran?'),
-                  ElemenKompetensi(idElemen: 102, pertanyaanKuk: 'Apakah Anda dapat menganalisis data riset menggunakan software pengolah data?'),
-                ],
-              ),
-              UnitKompetensi(
-                kodeUnit: 'M.70MKT00.013.1',
-                judulUnit: 'Melaksanakan Kegiatan Analisis di Media Sosial',
-                elemen: [
-                  ElemenKompetensi(idElemen: 201, pertanyaanKuk: 'Apakah Anda dapat memonitor matrik engagement media sosial secara berkala?'),
-                ],
-              ),
-            ]
-          : const [
-              UnitKompetensi(
-                kodeUnit: 'SKM.620100.001.01',
-                judulUnit: 'Mempersiapkan Lingkungan Kerja',
-                elemen: [
-                  ElemenKompetensi(idElemen: 301, pertanyaanKuk: 'Mampukah Anda melakukan kegiatan terkait unit "Mempersiapkan Lingkungan Kerja" secara mandiri?'),
-                ],
-              ),
-              UnitKompetensi(
-                kodeUnit: 'SKM.620100.002.01',
-                judulUnit: 'Mengimplementasikan Fitur Utama',
-                elemen: [
-                  ElemenKompetensi(idElemen: 302, pertanyaanKuk: 'Mampukah Anda melakukan kegiatan terkait unit "Mengimplementasikan Fitur Utama" secara mandiri?'),
-                ],
-              ),
-            ],
+      unitKompetensi: const [],
     );
   }
 }

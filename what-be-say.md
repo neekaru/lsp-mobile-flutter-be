@@ -1,17 +1,17 @@
-# Asesor API — Contract & Notes for Frontend
+# Asesi API — Contract & Notes for Frontend
 
-Semua endpoint Asesor wajib Bearer token + role `asesor`. Identitas asesor diambil otomatis dari JWT.
+Semua endpoint Asesi wajib Bearer token + role `asesi`. Identitas asesi diambil otomatis dari JWT (claim `sub` = `t_users.id` yang merujuk langsung ke `lsp275_asesi.id_users`).
 
 ```http
 Authorization: Bearer <access_token>
 Accept: application/json
 ```
 
-Akun demo asesor:
-- `account`: `demo_asesor_001`
+Akun demo asesi:
+- `account`: `demo_asesi_001`
 - `password`: `demo123`
-- email: `asesor.demo@lsp.id`
-- t_users.id: 194330 / lsp275_users.id: 1428
+- `email`: `asesi.demo@lsp.id`
+- `t_users.id`: `194329` / `lsp275_asesi.id`: `251277` (registrasi utama)
 
 ---
 
@@ -19,602 +19,354 @@ Akun demo asesor:
 
 | # | Metode | Endpoint | Status | Catatan |
 |---|--------|----------|--------|---------|
-| 1 | GET | `/api/asesor/dashboard` | ✅ Sudah ada (live) | Tidak diubah |
-| 2 | GET | `/api/asesor/jadwal` | ✅ Sudah ada (live) | Tidak diubah |
-| 3 | GET | `/api/asesor/jadwal/:id/detail` | ✅ Sudah ada (live) | Tidak diubah |
-| 4 | GET | `/api/asesor/jadwal/:id/peserta` | ✅ Sudah ada (live) | Tidak diubah |
-| 5 | GET | `/api/asesor/jadwal/:jadwal_id/peserta/:peserta_id` | ✅ Sudah ada (live) | Tidak diubah |
-| 6 | GET | `/api/asesor/jadwal/:id/surat-tugas` | 🆕 DIPERBAIKI | Sebelumnya hardcode 404, sekarang ambil file dari DB |
-| 7 | GET | `/api/asesor/laporan` | ✅ Sudah ada (live) | Tidak diubah |
-| 8 | GET | `/api/asesor/laporan/:id` | 🆕 DIPERBAIKI | Field `ringkasan` (bukan kpi_pelaksanaan), field `nama_asesor` (bukan asesor), `dokumen` ambil dari DB |
-| 9 | GET | `/api/asesor/skema-tuk` | ✅ Sudah ada (live) | Tidak diubah |
-| 10 | POST | `/api/asesor/laporan/upload-lampiran` | ✅ Sudah ada (live) | Tidak diubah |
-| 11 | POST | `/api/asesor/laporan` | ✅ Sudah ada (live) | Tidak diubah |
-| 12 | GET | `/api/asesor/profile` | ✅ Sudah ada (live) | Tidak diubah |
-| 13 | PUT | `/api/asesor/profile` | ✅ Sudah ada (live) | Tidak diubah |
-| 14 | GET | `/api/asesor/honor` | 🆕 DIPERBAIKI | Response diperluas: status, metode_pembayaran, no_transfer, tanggal_pembayaran, jumlah_asesi, jenis_asesmen |
-| 15 | GET | `/api/asesor/tiket` | 🆕 BARU | Pakai table `t_pesan` |
-| 16 | GET | `/api/asesor/tiket/:id` | 🆕 BARU | Pakai table `t_pesan` |
-| 17 | POST | `/api/asesor/tiket` | 🆕 BARU | Pakai table `t_pesan` |
-| 18 | POST | `/api/asesor/tiket/:id/reply` | 🆕 BARU | Pakai table `t_pesan` |
+| 1 | POST | `/api/auth/login` | ✅ Sudah ada (live) | Tidak diubah |
+| 2 | POST | `/api/auth/logout` | ✅ Sudah ada (live) | Tidak diubah |
+| 3 | GET | `/api/auth/current` | ✅ Sudah ada (live) | Tidak diubah |
+| 4 | POST | `/api/auth/refresh` | ✅ Sudah ada (live) | Tidak diubah |
+| 5 | GET | `/api/sessions` | ✅ Sudah ada (live) | Tidak diubah |
+| 6 | DELETE | `/api/sessions/:id` | ✅ Sudah ada (live) | Tidak diubah |
+| 7 | GET | `/api/asesi/dashboard` | 🆕 BARU | Gabungan summary + alert_banner + berita_terkini |
+| 8 | GET | `/api/asesi/jadwal` | ✅ Sudah ada (live) | Tidak diubah |
+| 9 | GET | `/api/berita` | ✅ Sudah ada (live) | Tidak diubah |
+| 10 | GET | `/api/sertifikat/skema` | ✅ Sudah ada (live) | Tidak diubah |
+| 11 | GET | `/api/sertifikat/skema/bidang` | ✅ Sudah ada (live) | Tidak diubah |
+| 12 | GET | `/api/sertifikat/skema/:id` | ✅ Sudah ada (live) | Tidak diubah |
+| 13 | GET | `/api/sertifikat/skema/:id/asesor` | ✅ Sudah ada (live) | Tidak diubah |
+| 14 | POST | `/api/sertifikasi/daftar` | 🆕 BARU | Insert ke `lsp275_asesi` |
+| 15 | GET | `/api/sertifikasi/status` | 🆕 BARU | Cek status pendaftaran aktif |
+| 16 | GET | `/api/pra-asesmen/skema/:id/info` | ✅ Sudah ada (live) | Tidak diubah |
+| 17 | GET | `/api/pra-asesmen/skema/:id/kompetensi` | ✅ Sudah ada (live) | Tidak diubah |
+| 18 | POST | `/api/pra-asesmen/skema/:id/submit` | 🆕 BARU | Tandai pra-asesmen selesai |
+| 19 | GET | `/api/sertifikasi/:id/portofolio` | 🆕 BARU | List dokumen dari `lsp275_skema_syarat` |
+| 20 | POST | `/api/sertifikasi/:id/portofolio/upload` | 🆕 BARU | Simpan ke `storage/portofolio` + kolom `ch_portofolio` |
+| 21 | GET | `/api/asesor/profile` | ✅ Sudah ada (live) | Shared asesor/asesi |
+| 22 | PUT | `/api/asesor/profile` | ✅ Sudah ada (live) | Shared asesor/asesi |
+| 23 | GET | `/api/asesi/instansi` | 🆕 BARU | Baca kolom `lsp275_asesi` |
+| 24 | PUT | `/api/asesi/instansi` | 🆕 BARU | Tulis kolom `lsp275_asesi` |
+| 25 | GET | `/api/asesi/sertifikat` | 🆕 BARU | Dari `lsp275_asesi` (terbitkan='on') |
+| 26 | GET | `/api/asesi/sertifikat/:id` | 🆕 BARU | Detail sertifikat |
+| 27 | POST | `/api/asesi/sertifikat/:id/upload-ttd` | 🆕 BARU | Simpan ke `storage/sertifikat/ttd` |
+| 28 | GET | `/api/asesi/sertifikat/:id/download` | 🆕 BARU | Return URL PDF |
+| 29 | POST | `/api/sertifikat/validate` | ✅ Sudah ada (live) | Tidak diubah |
+| 30 | GET | `/api/sertifikat/search` | ✅ Sudah ada (live) | Tidak diubah |
 
 **Ringkasan:**
-- Endpoint 1-5, 7, 9-13: **sudah ada sebelumnya**, tidak diubah. FE bisa langsung pakai.
-- Endpoint 6, 8, 14: **diperbaiki** — response berubah, FE perlu update parser.
-- Endpoint 15-18: **baru ditambahkan** — sebelumnya FE pakai local state/mock, sekarang ada backend.
+- Endpoint 1-6, 8-13, 16-17, 21-22, 29-30: **sudah ada sebelumnya**, tidak diubah. FE bisa langsung pakai.
+- Endpoint 7, 14, 15, 18, 19, 20, 23, 24, 25, 26, 27, 28: **baru ditambahkan** untuk role asesi.
 
 ---
 
-## 1. Dashboard — `GET /api/asesor/dashboard`
+## 1. Dashboard — `GET /api/asesi/dashboard`
 
-**(Sudah ada, tidak diubah)**
-
-Query opsional `tanggal` (format `YYYY-MM-DD`). Default: hari ini.
+**🆕 BARU**
 
 ```json
 {
   "status": "success",
-  "message": "Asesor dashboard data retrieved successfully",
   "data": {
     "summary": {
-      "menunggu_verifikasi": 1,
-      "asesmen_berlangsung": 0,
-      "asesmen_selesai": 12,
-      "menunggu_penugasan": 2
+      "skema_diikuti": 1,
+      "sertifikat_aktif": 2
     },
     "alert_banner": {
       "has_alert": true,
-      "title": "Verifikasi laporan tertunda",
-      "subtitle": "Anda memiliki 1 laporan yang menunggu verifikasi"
+      "title": "Pra-Asesmen Menunggu Pengisian",
+      "subtitle": "Silakan selesaikan pengisian Pra-Asesmen untuk skema Digital Marketing Madya"
     },
-    "jadwal_hari_ini": [
-      { "id_jadwal": 11152, "skema": "...", "tanggal": "2026-04-27", "waktu": "08:00", "tuk": "...", "status": "1" }
-    ],
-    "tugas_prioritas": [
-      { "id_tugas": 28054, "title": "...", "subtitle": "...", "type": "menunggu_verifikasi" }
-    ]
-  }
-}
-```
-
-Backend notes:
-- `summary` menghitung jumlah jadwal per `status_jadwal` dari `lsp275_mapping_asesor` + `lsp275_jadual_asesmen`.
-- `alert_banner` aktif jika `menunggu_verifikasi > 0`.
-
----
-
-## 2. Daftar Jadwal — `GET /api/asesor/jadwal`
-
-**(Sudah ada, tidak diubah)**
-
-Query `status_jadwal` opsional, comma-separated. Nilai valid: `0,1,2,4`. Default `0`.
-
-```json
-{
-  "status": "success",
-  "message": "Asesor schedules retrieved successfully",
-  "data": [
-    {
-      "id": 11152,
-      "nama_jadwal": "Sertifikasi Junior Web Developer",
-      "tanggal": "2026-07-24",
-      "tanggal_akhir": "2026-07-27",
-      "status_jadwal": "0",
-      "tuk": "LPP Cahaya Borneo",
-      "jumlah_peserta": 54,
-      "asesor": ["Eko Setiabudi", "Andi Wijaya"]
-    }
-  ],
-  "count": 1
-}
-```
-
----
-
-## 3. Detail Jadwal — `GET /api/asesor/jadwal/:id/detail`
-
-**(Sudah ada, tidak diubah)**
-
-```json
-{
-  "status": "success",
-  "message": "Assessor schedule detail retrieved successfully",
-  "data": {
-    "status_label": "Menunggu",
-    "tanggal_asesmen": "2026-07-24",
-    "waktu_asesmen": "09:00 - 12:00 WIB",
-    "lokasi_asesmen": "Gedung A Lantai 2",
-    "jumlah_peserta": 54,
-    "lead_asesor": "",
-    "nama_jadwal": "Sertifikasi Junior Web Developer",
-    "tuk": "LPP Cahaya Borneo",
-    "asesor": ["Eko Setiabudi", "Andi Wijaya"]
-  }
-}
-```
-
-Backend notes:
-- `asesor` adalah array string nama (bukan array objek).
-- `lead_asesor` saat ini kosong (DB tidak punya kolom lead).
-
----
-
-## 4. Daftar Peserta — `GET /api/asesor/jadwal/:id/peserta`
-
-**(Sudah ada, tidak diubah)**
-
-```json
-{
-  "status": "success",
-  "message": "Participants list retrieved successfully",
-  "data": [
-    { "id": 101, "nama_lengkap": "Andi Pratama", "hasil_rekomendasi": "K" }
-  ],
-  "meta": {
-    "jadwal_id": 11152,
-    "total_asesi": 3,
-    "jumlah_kompeten": 1,
-    "jumlah_belum_kompeten": 1,
-    "jumlah_belum_dinilai": 1
-  }
-}
-```
-
-`hasil_rekomendasi`: `"K"` (Kompeten), `"BK"` (Belum Kompeten), `"-"` (belum dinilai).
-
----
-
-## 5. Detail Peserta — `GET /api/asesor/jadwal/:jadwal_id/peserta/:peserta_id`
-
-**(Sudah ada, tidak diubah)**
-
-```json
-{
-  "status": "success",
-  "message": "Participant detail retrieved successfully",
-  "data": {
-    "peserta_id": 101,
-    "no_peserta": "PES-2026-001",
-    "nama_lengkap": "Andi Pratama",
-    "nik": "6253748567382",
-    "tempat_lahir": "Yogyakarta",
-    "tanggal_lahir": "1998-05-10",
-    "skema_sertifikat": "UI/UX Design",
-    "institusi": "LPP Jigja",
-    "email": "andipratama@gmail.com",
-    "no_telepon": "085678736521",
-    "status_kelengkapan": {
-      "portofolio": "Lengkap",
-      "dokumen_pendukung": "Belum Lengkap",
-      "persyaratan": "Belum Lengkap"
-    },
-    "status_assessment": {
-      "kehadiran": "Belum tersedia",
-      "tugas_asesmen": "Belum Dinilai",
-      "laporan": "Belum Dibuat",
-      "rekaman": "Belum Diunggah"
-    }
-  }
-}
-```
-
-Backend notes:
-- `kehadiran` saat ini `"Belum tersedia"` (DB tidak track kehadiran per asesi).
-- `tugas_asesmen`: dari `rekomendasi_asesor` (0=Belum Dinilai, 1=Kompeten, 2=Belum Kompeten).
-
----
-
-## 6. Surat Tugas — `GET /api/asesor/jadwal/:id/surat-tugas`
-
-**(🆕 DIPERBAIKI — sebelumnya hardcode 404)**
-
-```json
-{
-  "status": "success",
-  "message": "Surat tugas retrieved successfully",
-  "data": {
-    "file_url": "https://drive.google.com/drive/folders/1DMyfskWovLbKHMXLXcRgi3QNWhLL7RwV",
-    "file_name": "1DMyfskWovLbKHMXLXcRgi3QNWhLL7RwV"
-  }
-}
-```
-
-Jika tidak ada file: `404` dengan `{ "status": "error", "message": "Surat tugas file is not available for this schedule" }`.
-
-Backend notes:
-- **Sumber file** (urutan prioritas, ambil yang pertama non-kosong):
-  1. `lsp275_jadual_asesmen.link_ba`
-  2. `lsp275_jadual_asesmen.dokumen_berita_acara`
-  3. `lsp275_jadual_asesmen.file_jadual`
-  4. `lsp275_jadual_asesmen.sk_lisensi`
-- Nilai `"0"`, `"undefined"`, `"null"`, `""` dianggap kosong → skip ke sumber berikutnya.
-- `file_name` diambil dari basename URL (segmen terakhir setelah `/`), **bukan** hardcode.
-- Banyak jadwal tidak punya link file sama sekali → return 404.
-
----
-
-## 7. Daftar Laporan — `GET /api/asesor/laporan`
-
-**(Sudah ada, tidak diubah)**
-
-```json
-{
-  "status": "success",
-  "message": "Riwayat laporan tugas berhasil diambil",
-  "data": [
-    {
-      "id": 8810,
-      "kode_laporan": "LAP-2026-0724",
-      "skema_sertifikasi": "Design UI/UX",
-      "tanggal_pelaksanaan": "2026-07-24",
-      "tuk": "LPP Cahaya Borneo",
-      "nama_asesor": "Muhammad Hanafi",
-      "status": "Terkonfirmasi"
-    }
-  ]
-}
-```
-
-Backend notes:
-- `id` = `lsp275_mapping_asesor.id`.
-- `status`: `"Terkonfirmasi"` jika `ak06` tidak kosong, selain itu `"Draft"`.
-- Hanya jadwal dengan `status_jadwal IN ('1','4')`.
-
----
-
-## 8. Detail Laporan — `GET /api/asesor/laporan/:id`
-
-**(🆕 DIPERBAIKI — response berubah)**
-
-```json
-{
-  "status": "success",
-  "message": "Detail laporan tugas berhasil diambil",
-  "data": {
-    "id": 8810,
-    "kode_laporan": "LAP-2026-0724",
-    "status": "Terkonfirmasi",
-    "nama_asesor": "Muhammad Hanafi",
-    "skema_sertifikasi": "Design UI/UX",
-    "tanggal_pelaksanaan": "24 Juli 2026",
-    "link_dokumentasi": "https://drive.google.com/...",
-    "catatan": "Evaluasi pelaksanaan berjalan kondusif.",
-    "ringkasan": {
-      "total_peserta": 10,
-      "hadir": 10,
-      "absen": 0,
-      "kompeten": 7,
-      "belum_kompeten": 1
-    },
-    "dokumen": {
-      "surat_tugas_name": "1DMyfskWovLbKHMXLXcRgi3QNWhLL7RwV",
-      "surat_tugas_url": "https://drive.google.com/drive/folders/1DMyfskWovLbKHMXLXcRgi3QNWhLL7RwV"
-    },
-    "daftar_asesi_dinilai": [
-      { "nama": "Ayu Putri Sri", "nim": "0897556789", "kehadiran": "Hadir", "penilaian": "K" },
-      { "nama": "Bayu Nugrahan", "nim": "09769990862", "kehadiran": "Hadir", "penilaian": "TK" }
-    ],
-    "lampiran_pendukung": []
-  }
-}
-```
-
-⚠️ **Perubahan dari draft awal FE (yang lama → yang baru):**
-- ~~`kpi_pelaksanaan`~~ → `ringkasan`
-- ~~`total_asesi`~~ → `total_peserta`
-- ~~`tidak_kompeten`~~ → `belum_kompeten`
-- ~~`asesor`~~ → `nama_asesor`
-- ~~`dokumen.surat_tugas_name: "Surat tugas.pdf"` (hardcode)~~ → `file_name` diambil dari basename URL file di DB
-- ~~`dokumen.surat_tugas_url: ""` (kosong)~~ → ambil dari `link_ba`/`dokumen_berita_acara`/`file_jadual`/`sk_lisensi`
-
-Backend notes:
-- `dokumen.surat_tugas_url` dan `surat_tugas_name` sama logikanya dengan endpoint surat-tugas (prioritas: link_ba → dokumen_berita_acara → file_jadual → sk_lisensi).
-- `surat_tugas_name` = basename URL (segmen terakhir setelah `/`). Jika kosong, kedua field kosong.
-- `ringkasan.hadir` = `total_peserta` (asumsi semua hadir, DB tidak track absensi).
-- `ringkasan.absen` selalu `0`.
-- `daftar_asesi_dinilai.kehadiran` saat ini selalu `"Hadir"`.
-- `lampiran_pendukung` saat ini `[]` (tidak dipersist di mapping_asesor).
-
----
-
-## 9. Skema & TUK — `GET /api/asesor/skema-tuk`
-
-**(Sudah ada, tidak diubah)**
-
-```json
-{
-  "status": "success",
-  "message": "Daftar skema sertifikasi & TUK berhasil diambil",
-  "data": [
-    { "id": 1, "nama_skema": "Desaign UI/Ux", "tuk": "LPP Cahaya Borneo" }
-  ]
-}
-```
-
----
-
-## 10. Upload Lampiran — `POST /api/asesor/laporan/upload-lampiran`
-
-**(Sudah ada, tidak diubah)**
-
-Content-Type: `multipart/form-data`. Field `file`. Max 5MB. Ekstensi: `.pdf,.png,.jpg,.jpeg`.
-
-```json
-{
-  "status": "success",
-  "message": "Upload File Berhasil",
-  "data": {
-    "file_name": "Bukti_Pendukung_1.pdf",
-    "file_url": "http://host/storage/attachments/uuid.pdf"
-  }
-}
-```
-
----
-
-## 11. Submit Laporan — `POST /api/asesor/laporan`
-
-**(Sudah ada, tidak diubah)**
-
-Content-Type: `application/json`.
-
-```json
-{
-  "jadwal_id": 11152,
-  "nama_asesor": "Muhammad Hanafi",
-  "skema_id": 1,
-  "tanggal_pelaksanaan": "2026-07-24",
-  "surat_tugas_url": "https://...",
-  "link_dokumentasi": "https://drive.google.com/...",
-  "catatan": "Evaluasi pelaksanaan berjalan kondusif.",
-  "daftar_peserta": [
-    { "nim": "0897556789", "kehadiran": "Hadir", "is_kompeten": true },
-    { "nim": "09769990862", "kehadiran": "Absen", "is_kompeten": false }
-  ],
-  "lampiran_pendukung": ["https://host/storage/attachments/temp.pdf"]
-}
-```
-
-Response `201`:
-```json
-{
-  "status": "success",
-  "message": "Laporan tugas berhasil dibuat",
-  "data": { "id": 8810, "kode_laporan": "LAP-2026-0724", "status": "Terkonfirmasi" }
-}
-```
-
-Backend notes:
-- Update `lsp275_mapping_asesor` (link_rekaman, rekomendasi_peningkatan, is_complete='1').
-- `daftar_peserta.nim` dipetakan ke `no_registrasi` di `lsp275_asesi`/`lsp275_asesi_2024`.
-- `lampiran_pendukung` dan `surat_tugas_url` tidak dipersist (tidak ada kolom).
-
----
-
-## 12. Profil — `GET /api/asesor/profile`
-
-**(Sudah ada, tidak diubah)**
-
-```json
-{
-  "status": "success",
-  "message": "Profil asesor berhasil diambil",
-  "data": {
-    "id_asesor": "MET.DEMO.000001.2026",
-    "nama_lengkap": "Muhammad Hanafi",
-    "status_aktif": "Aktif",
-    "nik": "",
-    "email": "muhammadhanafi_12@gmail.com",
-    "no_telepon": "0858978655634",
-    "foto_profil_url": "",
-    "instansi": "Politeknik Negeri Sampit",
-    "alamat": "Jl. Pramuka km 4,5 No 34"
-  }
-}
-```
-
-Backend notes:
-- `nik` selalu kosong (DB tidak punya kolom nik untuk asesor).
-- `id_asesor` = `no_reg`.
-
----
-
-## 13. Update Profil — `PUT /api/asesor/profile`
-
-**(Sudah ada, tidak diubah)**
-
-```json
-{
-  "no_telepon": "0858978655634",
-  "alamat": "Jl. Pramuka km 4,5 No 34",
-  "instansi": "Politeknik Negeri Sampit",
-  "foto_profil_url": "https://host/storage/profiles/hanafi.jpg"
-}
-```
-
-Response 200 mengembalikan data terbaru. Semua field opsional — jika tidak dikirim, tidak diubah.
-
----
-
-## 14. Honor — `GET /api/asesor/honor?periode=Juli+2026`
-
-**(🆕 DIPERBAIKI — response diperluas)**
-
-Query `periode` opsional format `NamaBulan Tahun` (contoh: `Juli 2026`). Jika kosong → semua periode + field tambahan `available_months`.
-
-```json
-{
-  "status": "success",
-  "message": "Daftar honor berhasil diambil",
-  "data": {
-    "periode": "Juli 2026",
-    "total_honor": "Rp. 2.500.000",
-    "jumlah_asesmen_selesai": "4 Asesmen selesai",
-    "rincian": [
+    "berita_terkini": [
       {
-        "id_detail": 501,
-        "judul_asesmen": "Uji Kompetensi: Junior Web Programmer",
-        "tanggal": "12 Juli 2026",
-        "tuk": "Politeknik Sampit",
-        "honor": "Rp. 625.000",
-        "status": "Complete",
-        "jumlah_asesmen": 1,
-        "metode_pembayaran": "Transfer Bank",
-        "tanggal_pembayaran": "12 Juli 2026",
-        "no_transfer": "PAY-20260712-501",
-        "jumlah_asesi": 12,
-        "jenis_asesmen": "Asesmen Mandiri / Praktik"
+        "id": 1,
+        "title": "Sosialisasi LSP Digital Gelombang 2",
+        "date": "15 Juli 2026",
+        "summary": "Pendaftaran sertifikasi kompetensi gelombang kedua resmi dibuka...",
+        "image_url": "https://host/storage/berita/1678doa.jpeg"
       }
-    ],
-    "available_months": ["Juli 2026", "Juni 2026"]
-  }
-}
-```
-
-⚠️ **Field baru yang ditambahkan (sebelumnya tidak ada):**
-- `status` (`"Complete"` / `"Menunggu"`)
-- `jumlah_asesmen` (selalu `1` per rincian)
-- `metode_pembayaran` (selalu `"Transfer Bank"`)
-- `tanggal_pembayaran` (`"-"` jika belum bayar)
-- `no_transfer` (`"-"` jika belum bayar, format `PAY-YYYYMMDD-{id_detail}` jika sudah)
-- `jumlah_asesi` (dari `mapping_asesor.jumlah_asesi`)
-- `jenis_asesmen` (dari enum `jenis_asesmen`, label Indonesia)
-- `judul_asesmen` sekarang prefix `"Uji Kompetensi: "`
-- `available_months` (hanya jika `periode` kosong)
-
-Backend notes:
-- `status`: dari `status_pembayaran_honor` ('1'=Complete, '0'=Menunggu).
-- `metode_pembayaran`: selalu `"Transfer Bank"` (DB tidak punya kolom metode).
-- `jumlah_asesmen`: selalu `1` (1 mapping = 1 asesmen).
-- `tanggal_pembayaran`: pakai `tanggal` jadwal (DB tidak track tanggal real pembayaran).
-- Source: `lsp275_mapping_asesor` JOIN `lsp275_jadual_asesmen` (filter `status_jadwal='1'`).
-
----
-
-## 15. Daftar Tiket — `GET /api/asesor/tiket`
-
-**(🆕 BARU — sebelumnya FE pakai local state/mock)**
-
-```json
-{
-  "status": "success",
-  "message": "Daftar tiket bantuan berhasil diambil",
-  "data": [
-    {
-      "id": "TK-28495",
-      "title": "Jadwal Tidak Dapat Dibuka",
-      "date": "20 Juli 2026, 13:00",
-      "category": "Jadwal",
-      "status": "Proses",
-      "messages": [
-        { "sender": "Asesor", "time": "20 Juli 2026 13:00", "text": "Saya tidak bisa membuka detail jadwal..." },
-        { "sender": "LSP Admin", "time": "20 Juli 2026 13:15", "text": "Halo Pak, mohon pastikan koneksi internet stabil..." }
-      ]
-    }
-  ]
-}
-```
-
-Backend notes:
-- Source: `t_pesan` WHERE `parent_id=0` AND (`sender_id` OR `reciepent_id` = t_users.id dari JWT).
-- `id` format `TK-{t_pesan.id}`.
-- `sender`: `"Asesor"` jika sender_id = user login, `"LSP Admin"` jika bukan.
-- `status`: selalu `"Proses"` (DB `status_ticket` enum hanya `0/1`, semua data existing = `1`).
-- `category`: auto-detected dari `title` (keyword match: jadwal→Jadwal, surat→Surat Tugas, honor→Honor, akun/login→Akun, else→Lainnya).
-- `messages` include parent message + semua reply (`parent_id=ticket.id`).
-
----
-
-## 16. Detail Tiket — `GET /api/asesor/tiket/:id`
-
-**(🆕 BARU)**
-
-`:id` bisa format `TK-123` atau `123` (plain int).
-
-```json
-{
-  "status": "success",
-  "message": "Detail tiket bantuan berhasil diambil",
-  "data": {
-    "id": "TK-28495",
-    "title": "Jadwal Tidak Dapat Dibuka",
-    "date": "20 Juli 2026, 13:00",
-    "category": "Jadwal",
-    "status": "Proses",
-    "messages": [
-      { "sender": "Asesor", "time": "20 Juli 2026 13:00", "text": "..." },
-      { "sender": "LSP Admin", "time": "20 Juli 2026 13:15", "text": "..." }
     ]
   }
 }
 ```
 
+Backend notes:
+- `summary.skema_diikuti` = `COUNT(DISTINCT jadwal_id)` di `lsp275_asesi` WHERE `id_users = :user`.
+- `summary.sertifikat_aktif` = jumlah row `lsp275_asesi` WHERE `id_users = :user` AND `terbitkan_sertifikat = 'on'` AND `no_sertifikat IS NOT NULL`.
+- `alert_banner.has_alert` = `true` jika ada registrasi dengan `pra_asesmen = '0'` (belum diisi). `subtitle` menyebutkan nama skema dari `lsp275_skema` jika diketahui.
+- `berita_terkini` = 5 artikel terbaru dari `lsp275_artikel` (ORDER BY `tanggal_buat DESC`). `image_url` = `{baseURL}/storage/berita/{foto}`.
+
 ---
 
-## 17. Buat Tiket Baru — `POST /api/asesor/tiket`
+## 2. Daftar Jadwal — `GET /api/asesi/jadwal`
 
-**(🆕 BARU)**
+**(Sudah ada, tidak diubah)** — lihat `route.go` (handler `JadwalController.JadwalAsesi`).
 
-Content-Type: `application/json`.
+---
 
+## 3. Pendaftaran — `POST /api/sertifikasi/daftar`
+
+**🆕 BARU**
+
+Request:
 ```json
-{
-  "nama_lengkap": "Muhammad Hanafi",
-  "judul": "Jadwal Tidak Dapat Dibuka",
-  "pesan": "Saya tidak bisa membuka detail jadwal asesmen...",
-  "dokumentasi_url": "https://host/storage/attachments/screenshot.png"
-}
+{ "skema_id": 1, "tuk_id": 2, "tanggal_rencana": "2026-08-10" }
 ```
 
 Response `201`:
 ```json
 {
   "status": "success",
-  "message": "Tiket bantuan berhasil dibuat",
+  "message": "Pendaftaran berhasil disimpan",
+  "data": { "sertifikasi_id": 251280, "status": "terdaftar" }
+}
+```
+
+Backend notes:
+- Insert ke `lsp275_asesi` dengan `id_users = :user`, `id_skema = skema_id`, `skema_sertifikasi = skema_id`.
+- `jadwal_id` diisi dari jadwal existing (`lsp275_jadual_asesmen` WHERE `id_skema` & `id_tuk` & `status_aktif='1'`) bila ada, else `0`.
+- `sertifikasi_id` = `lsp275_asesi.id` yang baru dibuat (== nomor registrasi asesi).
+- Field wajib: `skema_id`, `tuk_id`.
+
+---
+
+## 4. Status Pendaftaran — `GET /api/sertifikasi/status`
+
+**🆕 BARU**
+
+Query opsional: `?skema_id=1`.
+
+```json
+{
+  "status": "success",
   "data": {
-    "id": "TK-28496",
-    "title": "Jadwal Tidak Dapat Dibuka",
-    "category": "Jadwal",
-    "status": "Proses",
-    "date": "Hari ini"
+    "terdaftar": true,
+    "sertifikasi_id": 251280,
+    "status_pendaftaran": "pra_asesmen_menunggu",
+    "pra_asesmen_status": "0",
+    "skema_sertifikasi": 1
   }
 }
 ```
 
 Backend notes:
-- Insert ke `t_pesan`: `sender_id=user`, `reciepent_id=1` (admin), `parent_id=0`, `status_ticket='1'`.
-- `nama_lengkap` opsional (ambil dari `t_users.nama_user` jika kosong).
-- `dokumentasi_url` opsional (disimpan di `attachment`).
-- `judul` dan `pesan` wajib.
+- `terdaftar`: ada row `lsp275_asesi` untuk user (filter `skema_sertifikasi` bila `skema_id` dikirim).
+- `status_pendaftaran`: `belum_terdaftar` | `terdaftar` | `pra_asesmen_menunggu` (`pra_asesmen='0'`) | `pra_asesmen_selesai` (`pra_asesmen='1'`) | `pra_asesmen_perbaikan` (`pra_asesmen='2'`).
 
 ---
 
-## 18. Reply Tiket — `POST /api/asesor/tiket/:id/reply`
+## 5. Pra-Asesmen Submit — `POST /api/pra-asesmen/skema/:id/submit`
 
-**(🆕 BARU)**
+**🆕 BARU**
 
-Content-Type: `application/json`.
+Request:
+```json
+{ "evaluasi": [ { "id_elemen": 101, "nilai": "K" } ] }
+```
+
+Response `200`:
+```json
+{ "status": "success", "message": "Pra-Asesmen mandiri berhasil disimpan" }
+```
+
+Backend notes:
+- `:id` = `id_skema`.
+- Update row `lsp275_asesi` milik user (`skema_sertifikasi = :id`): set `pra_asesmen='1'`, `complete_praasesmen='1'`, `pra_asesmen_date=NOW()`, dan simpan array `evaluasi` ke kolom `validitas_dokumen_pra_asesmen` (JSON).
+- Jika belum ada registrasi, ambil registrasi terakhir user. Bila tidak ada sama sekali → `404`.
+
+---
+
+## 6. Portofolio — `GET /api/sertifikasi/:id/portofolio`
+
+**🆕 BARU**
+
+`:id` = `sertifikasi_id` (`lsp275_asesi.id`).
 
 ```json
-{ "text": "Baik, saya coba restart aplikasinya dahulu." }
+{
+  "status": "success",
+  "data": {
+    "documents": [
+      {
+        "key": "pendidikan_minimal_sma_sederajat",
+        "label": "Pendidikan minimal SMA/Sederajat;",
+        "is_required": false,
+        "status": "Belum Diunggah",
+        "file_name": null,
+        "comment": null
+      }
+    ]
+  }
+}
 ```
+
+Backend notes:
+- List dokumen diambil dari `lsp275_skema_syarat` WHERE `id_skema = registrasi.skema_sertifikasi`.
+- `key` = slug (`lowercase`, spasi→`_`) dari `nama_persyaratan`. **FE harus mengirim `key` yang sama saat upload.**
+- Status upload di-persist di kolom `lsp275_asesi.ch_portofolio` (JSON: `{ "<key>": { "file_name", "status", "comment" } }`).
+- Status tiap dokumen: `"Belum Diunggah"` → `"Menunggu Verifikasi"` (setelah upload).
+
+---
+
+## 7. Upload Portofolio — `POST /api/sertifikasi/:id/portofolio/upload`
+
+**🆕 BARU**
+
+Content-Type: `multipart/form-data`. Field: `key` (string), `file` (PDF/PNG/JPG, max 2MB).
 
 Response `200`:
 ```json
 {
   "status": "success",
-  "message": "Tanggapan berhasil dikirim",
+  "message": "Berkas berhasil diunggah",
+  "data": { "file_name": "foto_terbaru_merah.jpg", "status": "Menunggu Verifikasi", "url": "https://host/storage/portofolio/uuid.jpg" }
+}
+```
+
+Backend notes:
+- File disimpan ke `storage/portofolio/{uuid}{ext}`.
+- `key` + metadata disimpan ke `lsp275_asesi.ch_portofolio` (JSON, merge dengan existing).
+- Validasi: `key` wajib, `file` wajib, max 2MB, ekstensi `.pdf/.png/.jpg/.jpeg`.
+
+---
+
+## 8. Instansi — `GET /api/asesi/instansi`
+
+**🆕 BARU**
+
+```json
+{
+  "status": "success",
   "data": {
-    "sender": "Asesor",
-    "time": "Hari ini",
-    "text": "Baik, saya coba restart aplikasinya dahulu."
+    "tipe_instansi": "Mahasiswa",
+    "data_instansi": {
+      "nama_perguruan_tinggi": "Politeknik Sampit",
+      "fakultas": "",
+      "program_studi": "",
+      "nim": "087685674568",
+      "alamat": "Jl. Wengga Metropolitan"
+    }
+  }
+}
+```
+
+Backend notes (⚠️ limitasi DB — tidak ada tabel instansi dedicated):
+- `tipe_instansi`: `"Pekerja"` jika `id_pekerjaan > 0`, else `"Mahasiswa"`.
+- `nama_perguruan_tinggi` ← kolom `id_sekolah`.
+- `nim` ← kolom `kode_sekolah`.
+- `alamat` ← kolom `alamat_company`.
+- `fakultas` & `program_studi` **selalu `""`** (DB tidak punya kolom tersebut).
+
+---
+
+## 9. Update Instansi — `PUT /api/asesi/instansi`
+
+**🆕 BARU**
+
+```json
+{
+  "tipe_instansi": "Mahasiswa",
+  "data_instansi": { "nama_perguruan_tinggi": "Politeknik Sampit", "nim": "087685674568", "alamat": "Jl. Wengga Metropolitan" }
+}
+```
+
+Response `200`:
+```json
+{ "status": "success", "message": "Data instansi berhasil disimpan" }
+```
+
+Backend notes:
+- Tulis ke kolom `lsp275_asesi`: `id_sekolah`, `kode_sekolah`, `alamat_company`, `id_pekerjaan` (1 jika `tipe_instansi="Pekerja"`).
+- Bila user belum punya row `lsp275_asesi`, dibuatkan row minimal.
+- `fakultas`/`program_studi` tidak dipersist (tidak ada kolom).
+
+---
+
+## 10. List Sertifikat — `GET /api/asesi/sertifikat`
+
+**🆕 BARU**
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "skema": "Digital Marketing Madya",
+      "pemegang": "Muhammad Hanafi",
+      "nomor_sertifikat": "FR-APR-02",
+      "tanggal_terbit": "2026-04-20",
+      "tanggal_berlaku": "2028-04-20",
+      "status": "aktif",
+      "kategori": "Digital Marketing",
+      "institusi": "LSP Digital Marketing",
+      "nomor_registrasi": "REG-55431-2026",
+      "nomor_blanko": "BLANKO-778811",
+      "nomor_seri": "BLANKO-778811",
+      "tempat_uji": "TUK LSP Digital Utama",
+      "nama_asesor": "Dr. Ir. Ahmad Yani, M.Kom"
+    }
+  ]
+}
+```
+
+Backend notes:
+- Sumber: `lsp275_asesi` WHERE `id_users = :user` AND `terbitkan_sertifikat='on'` AND `no_sertifikat IS NOT NULL`.
+- Join: `lsp275_skema` (nama/kategori), `lsp275_jadual_asesmen`→`lsp275_tuk` (tempat_uji), `lsp275_mapping_asesor`→`lsp275_users` (nama_asesor).
+- **`nomor_blanko` diambil dari kolom `no_seri`** (sesuai instruksi pemilik project). `nomor_seri` juga dari `no_seri`.
+- `tanggal_berlaku` = `tanggal_terbit + 2 tahun` (konvensi berlaku 2 tahun).
+- `institusi` saat ini diisi dari `tempat_uji` (TUK) karena tidak ada kolom institusi terpisah.
+
+---
+
+## 11. Detail Sertifikat — `GET /api/asesi/sertifikat/:id`
+
+**🆕 BARU** — struktur `data` sama dengan item di list (lihat section 10). `:id` harus milik user login, else `404`.
+
+---
+
+## 12. Upload Foto & TTD — `POST /api/asesi/sertifikat/:id/upload-ttd`
+
+**🆕 BARU**
+
+Content-Type: `multipart/form-data`. Field `file` (bisa multi-file, PDF/PNG/JPG, max 5MB).
+
+```json
+{
+  "status": "success",
+  "message": "Berkas foto & tanda tangan berhasil disimpan",
+  "data": {
+    "uploaded_files": [ { "name": "ttd_hanafi.png", "url": "https://host/storage/sertifikat/ttd/1_uuid.png" } ]
   }
 }
 ```
 
 Backend notes:
-- Insert ke `t_pesan`: `parent_id=:id`, `sender_id=user`, `reciepent_id` = lawan dari parent ticket.
-- Verifikasi parent ticket milik user (sender/reciepent).
+- File disimpan ke `storage/sertifikat/ttd/{sertifikat_id}_{uuid}{ext}`.
+- Tidak dipersist ke DB (seperti lampiran asesor).
+
+---
+
+## 13. Download Sertifikat — `GET /api/asesi/sertifikat/:id/download`
+
+**🆕 BARU**
+
+```json
+{ "status": "success", "data": { "download_url": "https://host/storage/sertifikat/pdf/sertifikat_1.pdf" } }
+```
+
+Backend notes:
+- Mengembalikan URL konstruksi ke `storage/sertifikat/pdf/sertifikat_{id}.pdf`.
+- Validasi kepemilikan: `:id` harus `lsp275_asesi` milik user dengan `terbitkan_sertifikat='on'`, else `404`.
+
+---
+
+## Catatan Penting untuk Frontend
+
+1. **Endpoint 1-6, 8-13, 16-17, 21-22, 29-30 sudah ada** — FE yang sudah integrate tidak perlu ubah.
+2. **Endpoint 7, 14, 15, 18, 19, 20, 23, 24, 25, 26, 27, 28 baru** — tambahan untuk role asesi.
+3. **`nomor_blanko` = kolom `no_seri`** di `lsp275_asesi` (instruksi pemilik project). `no_seri` di DB banyak yang `NULL`, jadi field bisa kosong.
+4. **Portofolio `key`** = slug dari `nama_persyaratan` skema (spasi→`_`), mis. `"Pendidikan minimal SMA/Sederajat;"` → `"pendidikan_minimal_sma_sederajat"`. FE wajib pakai `key` yang sama saat upload agar status overlay benar di GET.
+5. **Instansi** dipetakan ke kolom existing `lsp275_asesi` (`id_sekolah`, `kode_sekolah`, `alamat_company`, `id_pekerjaan`) — tidak ada tabel instansi dedicated, sehingga `fakultas` & `program_studi` selalu `""`.
+6. **`tanggal_berlaku` sertifikat** = `tanggal_terbit + 2 tahun`.
+7. **Upload file** (portofolio/ttd) disimpan di folder `storage/` lokal; `url` mengandung `host` request — pastikan FE memakai base URL yang konsisten.
+8. Semua endpoint di atas (selain auth) memerlukan **role `asesi`**; request dengan role lain → `403`.
 
 ---
 
@@ -626,62 +378,77 @@ Backend notes:
 
 | Status | Penyebab |
 |--------|----------|
-| 400 | Payload tidak lengkap, format salah |
+| 400 | Payload tidak lengkap, format salah, atau ukuran berkas melebihi batas |
 | 401 | Token JWT tidak valid / kedaluwarsa |
-| 403 | Role bukan asesor, atau akses resource milik asesor lain |
-| 404 | Data tidak ditemukan |
+| 403 | Role bukan `asesi`, atau akses resource milik asesi lain |
+| 404 | Data skema, pendaftaran, portofolio, atau sertifikat tidak ditemukan |
 | 500 | Kegagalan database/server |
-
----
-
-## Catatan Penting untuk Frontend
-
-1. **Endpoint 1-5, 7, 9-13 sudah ada sebelumnya** — FE yang sudah integrate tidak perlu ubah.
-2. **Endpoint 6 (surat-tugas) diperbaiki** — sebelumnya selalu 404, sekarang ambil file dari DB (`link_ba`/`dokumen_berita_acara`/`file_jadual`/`sk_lisensi`).
-3. **Endpoint 8 (detail laporan) response berubah** — field `ringkasan` (bukan `kpi_pelaksanaan`), `nama_asesor` (bukan `asesor`), `dokumen.surat_tugas_name` dari basename URL.
-4. **Endpoint 14 (honor) response diperluas** — banyak field baru (status, metode_pembayaran, no_transfer, dll).
-5. **Endpoint 15-18 (tiket) baru** — sebelumnya FE pakai local state/mock, sekarang ada backend persistence.
-6. **`:id` tiket** menerima format `TK-123` atau `123` — backend handle keduanya.
-7. **`asesor` di detail jadwal** adalah array string (nama), bukan array objek.
-8. **`nik` profil** selalu kosong (DB tidak punya kolom nik untuk asesor).
-9. **`kehadiran`** di daftar_asesi_dinilai dan detail peserta saat ini placeholder — DB tidak track kehadiran per asesi.
-10. **`lampiran_pendukung`** di laporan tidak dipersist di DB (selalu `[]`).
-11. **Tiket `status`** selalu `"Proses"` — DB `t_pesan.status_ticket` hanya enum `0/1`, semua existing data = `1`.
-12. **`metode_pembayaran`** honor selalu `"Transfer Bank"` (DB tidak punya kolom metode).
-13. **`lead_asesor`** di detail jadwal saat ini kosong (DB tidak punya kolom lead).
-14. **Honor `tanggal_pembayaran`** menggunakan `tanggal` jadwal (bukan tanggal real pembayaran — DB tidak track).
-15. **`file_name`** di surat-tugas & detail laporan diambil dari basename URL (segmen terakhir setelah `/`), bukan hardcode.
 
 ---
 
 ## HTTP Client Examples
 
-Lihat:
-- `api/jadwal_asesor_detail.http`
-- `api/jadwal_asesi.http`
-
-Untuk tiket, contoh request:
-
 ```http
-### List Tiket
-GET /api/asesor/tiket
+### Dashboard Asesi
+GET /api/asesi/dashboard
 Authorization: Bearer {{token}}
 
-### Detail Tiket
-GET /api/asesor/tiket/TK-28495
-Authorization: Bearer {{token}}
-
-### Buat Tiket Baru
-POST /api/asesor/tiket
+### Daftar Sertifikasi
+POST /api/sertifikasi/daftar
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
-{ "judul": "Jadwal error", "pesan": "Jadwal tidak muncul", "dokumentasi_url": "" }
+{ "skema_id": 383, "tuk_id": 7, "tanggal_rencana": "2026-08-10" }
 
-### Reply Tiket
-POST /api/asesor/tiket/TK-28495/reply
+### Status Pendaftaran
+GET /api/sertifikasi/status?skema_id=383
+Authorization: Bearer {{token}}
+
+### Submit Pra-Asesmen
+POST /api/pra-asesmen/skema/383/submit
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
-{ "text": "Baik, terima kasih." }
+{ "evaluasi": [ { "id_elemen": 101, "nilai": "K" } ] }
+
+### List Portofolio
+GET /api/sertifikasi/251277/portofolio
+Authorization: Bearer {{token}}
+
+### Upload Portofolio
+POST /api/sertifikasi/251277/portofolio/upload
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data
+
+key=ktp
+file=@/path/ktp.jpg
+
+### Instansi
+GET /api/asesi/instansi
+Authorization: Bearer {{token}}
+
+PUT /api/asesi/instansi
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "tipe_instansi": "Mahasiswa", "data_instansi": { "nama_perguruan_tinggi": "Politeknik Sampit", "nim": "087685674568" } }
+
+### List Sertifikat
+GET /api/asesi/sertifikat
+Authorization: Bearer {{token}}
+
+### Detail Sertifikat
+GET /api/asesi/sertifikat/251277
+Authorization: Bearer {{token}}
+
+### Upload TTD
+POST /api/asesi/sertifikat/251277/upload-ttd
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data
+
+file=@/path/ttd.png
+
+### Download Sertifikat
+GET /api/asesi/sertifikat/251277/download
+Authorization: Bearer {{token}}
 ```

@@ -18,6 +18,7 @@ export 'api_client.dart';
 export 'dashboard_service.dart';
 export 'jadwal_service.dart';
 export 'asesor_service.dart';
+export 'asesi_service.dart';
 export 'sertifikat_service.dart';
 export 'master_service.dart';
 export 'misc_services.dart';

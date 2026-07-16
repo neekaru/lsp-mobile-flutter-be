@@ -18,98 +18,12 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = false;
   bool _hasSearched = false;
-  List<SertifikatItem> _apiSertifikats = [];
   List<SertifikatItem> _searchResults = [];
   String? _errorMessage;
-
-  // Mock data as fallback
-  final List<SertifikatItem> _mockSertifikats = [
-    const SertifikatItem(
-      id: 1,
-      skema: 'Digital Marketing Madya',
-      pemegang: 'Muhammad Hanafi',
-      nomorSertifikat: 'FR-APR-02',
-      tanggalTerbit: '20 April 2026',
-      tanggalBerlaku: '20 April 2028',
-      status: 'aktif',
-      kategori: 'Digital Marketing',
-      institusi: 'LSP Digital Marketing',
-      nomorRegistrasi: 'REG-55431-2026',
-      nomorBlanko: 'BLANKO-778811',
-      nomorSeri: 'SERI-001A',
-      tempatUji: 'TUK LSP Digital',
-      namaAsesor: 'Dr. Ir. Ahmad Yani, M.Kom',
-    ),
-    const SertifikatItem(
-      id: 2,
-      skema: 'Operator Komputer Muda',
-      pemegang: 'Budi Santoso',
-      nomorSertifikat: 'FR-APR-03',
-      tanggalTerbit: '12 Mei 2025',
-      tanggalBerlaku: '12 Mei 2028',
-      status: 'aktif',
-      kategori: 'TIK',
-      institusi: 'LSP Operator Komputer',
-      nomorRegistrasi: 'REG-99881-2025',
-      nomorBlanko: 'BLANKO-112233',
-      nomorSeri: 'SERI-002B',
-      tempatUji: 'TUK Komputer Jaya',
-      namaAsesor: 'Joko Widodo, S.T., M.T.',
-    ),
-    const SertifikatItem(
-      id: 3,
-      skema: 'Manajer Proyek TIK',
-      pemegang: 'Siti Aminah',
-      nomorSertifikat: 'FR-APR-04',
-      tanggalTerbit: '10 Januari 2026',
-      tanggalBerlaku: '10 Januari 2029',
-      status: 'aktif',
-      kategori: 'TIK',
-      institusi: 'LSP Informatika',
-      nomorRegistrasi: 'REG-22334-2026',
-      nomorBlanko: 'BLANKO-445566',
-      nomorSeri: 'SERI-003C',
-      tempatUji: 'TUK Universitas LPP',
-      namaAsesor: 'Rian Adiputra, M.T.',
-    ),
-    const SertifikatItem(
-      id: 4,
-      skema: 'Desainer Grafis Muda',
-      pemegang: 'Muhammad Hanafi',
-      nomorSertifikat: 'FR-APR-05',
-      tanggalTerbit: '15 Mei 2025',
-      tanggalBerlaku: '15 Juni 2026',
-      status: 'akan_kadaluarsa',
-      kategori: 'Desain',
-      institusi: 'LSP Desain Kreatif',
-      nomorRegistrasi: 'REG-77665-2025',
-      nomorBlanko: 'BLANKO-889900',
-      nomorSeri: 'SERI-004D',
-      tempatUji: 'TUK Desain Indah',
-      namaAsesor: 'Santi Wijaya, M.Sn.',
-    ),
-    const SertifikatItem(
-      id: 5,
-      skema: 'Junior Web Programmer',
-      pemegang: 'Andi Wijaya',
-      nomorSertifikat: 'FR-APR-01',
-      tanggalTerbit: '10 Maret 2021',
-      tanggalBerlaku: '10 Maret 2024',
-      status: 'kadaluarsa',
-      kategori: 'IT',
-      institusi: 'LSP Informatika Jaya',
-      nomorRegistrasi: 'REG-11223-2021',
-      nomorBlanko: 'BLANKO-556677',
-      nomorSeri: 'SERI-005E',
-      tempatUji: 'TUK IT Center',
-      namaAsesor: 'Hendra Gunawan, M.T.',
-    ),
-  ];
 
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
   }
 
   @override
@@ -118,19 +32,8 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
     super.dispose();
   }
 
-  Future<void> _loadInitialData() async {
-    try {
-      final results = await ApiService.searchSertifikat(query: '');
-      setState(() {
-        _apiSertifikats = results;
-      });
-    } catch (e) {
-      debugPrint('Error loading initial certificates: $e');
-    }
-  }
-
   Future<void> _handleSearch() async {
-    final query = _searchController.text.trim().toLowerCase();
+    final query = _searchController.text.trim();
     if (query.isEmpty) {
       setState(() {
         _errorMessage = 'Kata kunci pencarian tidak boleh kosong.';
@@ -146,24 +49,23 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
       _hasSearched = true;
     });
 
-    // Simulate database lookup latency to match the premium public checker feel
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    final sourceList = _apiSertifikats.isNotEmpty ? _apiSertifikats : _mockSertifikats;
-    final results = sourceList.where((item) {
-      return item.pemegang.toLowerCase().contains(query) ||
-          item.nomorRegistrasi.toLowerCase().contains(query) ||
-          item.nomorSertifikat.toLowerCase().contains(query) ||
-          item.nomorBlanko.toLowerCase().contains(query);
-    }).toList();
-
-    setState(() {
-      _isLoading = false;
-      _searchResults = results;
-      if (results.isEmpty) {
-        _errorMessage = 'Sertifikat tidak ditemukan dalam sistem. Pastikan keyword yang diinputkan benar.';
-      }
-    });
+    try {
+      final results = await ApiService.searchSertifikat(query: query);
+      setState(() {
+        _isLoading = false;
+        _searchResults = results;
+        if (results.isEmpty) {
+          _errorMessage = 'Sertifikat tidak ditemukan dalam sistem. Pastikan keyword yang diinputkan benar.';
+        }
+      });
+    } catch (e) {
+      debugPrint('Error searching certificates: $e');
+      setState(() {
+        _isLoading = false;
+        _searchResults = [];
+        _errorMessage = 'Terjadi kesalahan saat mencari sertifikat.';
+      });
+    }
   }
 
   void _handleReset() {

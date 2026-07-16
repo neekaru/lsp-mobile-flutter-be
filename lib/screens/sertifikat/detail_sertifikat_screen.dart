@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/sertifikat_models.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../services/api_service.dart';
 
 class DetailSertifikatScreen extends StatefulWidget {
   final SertifikatItem item;
@@ -50,42 +52,21 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
       }
     } catch (e) {
       debugPrint('Error picking files: $e');
-      _simulateFileSelection();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Akses file ditolak atau tidak ada file dipilih.'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
-  void _simulateFileSelection() {
-    setState(() {
-      final mockFileName = 'ttd_muhammad_hanafi_${_uploadedFiles.length + 1}.png';
-      if (!_uploadedFiles.any((f) => f['name'] == mockFileName)) {
-        _uploadedFiles.add({
-          'name': mockFileName,
-          'size': '256.4 KB',
-          'path': null,
-          'status': 'pending',
-        });
-      }
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.info_outline_rounded, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Simulasi: Berkas PNG tanda tangan ditambahkan.'),
-          ],
-        ),
-        backgroundColor: const Color(0xFFF59E0B),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
   Future<void> _uploadFiles() async {
-    if (_uploadedFiles.isEmpty) return;
+    final pendingFiles = _uploadedFiles.where((f) => f['status'] == 'pending').toList();
+    if (pendingFiles.isEmpty) return;
 
     setState(() {
       _isUploading = true;
@@ -96,34 +77,87 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
       }
     });
 
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    if (!mounted) return;
-
-    setState(() {
-      _isUploading = false;
-      for (var file in _uploadedFiles) {
-        if (file['status'] == 'uploading') {
-          file['status'] = 'success';
+    try {
+      final List<String> filePaths = [];
+      for (var file in pendingFiles) {
+        if (file['path'] != null) {
+          filePaths.add(file['path'] as String);
         }
       }
-    });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle_outline_rounded, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Dokumen foto & tanda tangan berhasil diunggah!'),
-          ],
-        ),
-        backgroundColor: const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+      if (filePaths.isEmpty) {
+        setState(() {
+          _isUploading = false;
+          for (var file in _uploadedFiles) {
+            if (file['status'] == 'uploading') {
+              file['status'] = 'pending';
+            }
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak ada berkas fisik valid untuk diunggah.'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      final res = await AsesiService.uploadTtd(widget.item.id, filePaths);
+      if (!mounted) return;
+
+      setState(() {
+        _isUploading = false;
+        if (res != null) {
+          for (var file in _uploadedFiles) {
+            if (file['status'] == 'uploading') {
+              file['status'] = 'success';
+            }
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle_outline_rounded, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Dokumen foto & tanda tangan berhasil diunggah!'),
+                ],
+              ),
+              backgroundColor: const Color(0xFF10B981),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        } else {
+          for (var file in _uploadedFiles) {
+            if (file['status'] == 'uploading') {
+              file['status'] = 'failed';
+            }
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Gagal mengunggah beberapa berkas.'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      });
+    } catch (e) {
+      debugPrint('Error uploading files: $e');
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+          for (var file in _uploadedFiles) {
+            if (file['status'] == 'uploading') {
+              file['status'] = 'failed';
+            }
+          }
+        });
+      }
+    }
   }
 
   void _removeFile(int index) {
@@ -662,14 +696,55 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
       width: double.infinity,
       height: 48,
       child: ElevatedButton.icon(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Mengunduh sertifikat ${widget.item.skema}...'),
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-            ),
-          );
+        onPressed: () async {
+          try {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Menghubungi server untuk unduh ${widget.item.skema}...'),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 1),
+              ),
+            );
+
+            final url = await AsesiService.downloadSertifikat(widget.item.id);
+            if (url != null && url.isNotEmpty) {
+              final uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } else {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Tidak dapat membuka link download.'),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
+            } else {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Sertifikat belum dapat diunduh.'),
+                    backgroundColor: Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            }
+          } catch (e) {
+            debugPrint('Error downloading certificate: $e');
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Terjadi kesalahan saat mengunduh.'),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          }
         },
         icon: const Icon(Icons.download_rounded, size: 20),
         label: const Text(

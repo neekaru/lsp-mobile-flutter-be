@@ -230,6 +230,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
   // Current active step
   int _currentStep = 0;
+  bool _isSubmitting = false;
 
   // Step 1: Data Pengajuan State
   int? _selectedSkemaId;
@@ -456,13 +457,84 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   }
 
   // Progress to next step with validation (bypassed for testing)
-  void _nextStep() {
+  Future<void> _nextStep() async {
     if (_currentStep < 5) {
       setState(() {
         _currentStep++;
       });
     } else {
-      _showSuccessDialog();
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      try {
+        final skemaId = _selectedSkemaId ?? 1;
+        final jadwalId = _selectedJadwalId ?? 1;
+
+        // 1. Register certification
+        final regRes = await AsesiService.daftarSertifikasi(
+          skemaId: skemaId,
+          tukId: jadwalId,
+        );
+
+        if (regRes == null) {
+          throw Exception('Gagal melakukan pendaftaran sertifikasi.');
+        }
+
+        final sertifikasiId = regRes['sertifikasi_id'] ?? regRes['id'];
+        if (sertifikasiId == null) {
+          throw Exception('ID Sertifikasi tidak valid.');
+        }
+
+        // 2. Upload portfolios
+        for (var entry in _uploadedFileNames.entries) {
+          final docKey = entry.key;
+          final filePath = entry.value;
+          if (filePath != null && !filePath.startsWith('http') && (filePath.contains('/') || filePath.contains('\\'))) {
+            await AsesiService.uploadPortofolio(sertifikasiId as int, docKey, filePath);
+          }
+        }
+
+        // 3. Submit Pra-Asesmen
+        final List<Map<String, dynamic>> evaluasi = [];
+        _kukAssessments.forEach((key, isKompeten) {
+          evaluasi.add({
+            'id_elemen': key.hashCode.abs() % 10000,
+            'nilai': isKompeten == true ? 'K' : 'KB',
+          });
+        });
+
+        // Fallback if empty evaluation
+        if (evaluasi.isEmpty) {
+          evaluasi.add({'id_elemen': 1, 'nilai': 'K'});
+        }
+
+        final submitRes = await AsesiService.submitPraAsesmen(skemaId, evaluasi);
+        if (!submitRes) {
+          throw Exception('Gagal submit evaluasi pra-asesmen.');
+        }
+
+        if (mounted) {
+          _showSuccessDialog();
+        }
+      } catch (e) {
+        debugPrint('Error during submission flow: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Terjadi kesalahan: $e'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+      }
     }
   }
 
@@ -1005,7 +1077,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                 child: SizedBox(
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _nextStep,
+                    onPressed: _isSubmitting ? null : _nextStep,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF378CE7),
                       foregroundColor: Colors.white,
@@ -1014,22 +1086,31 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _currentStep == 5 ? 'Kirim Pengajuan' : 'Selanjutnya',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _currentStep == 5 ? 'Kirim Pengajuan' : 'Selanjutnya',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (_currentStep < 5) ...[
+                                const SizedBox(width: 8),
+                                const Icon(Icons.arrow_forward_rounded, size: 18),
+                              ],
+                            ],
                           ),
-                        ),
-                        if (_currentStep < 5) ...[
-                          const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward_rounded, size: 18),
-                        ],
-                      ],
-                    ),
                   ),
                 ),
               ),
