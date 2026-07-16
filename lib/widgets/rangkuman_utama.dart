@@ -16,7 +16,6 @@ class RangkumanUtama extends StatefulWidget {
 class _RangkumanUtamaState extends State<RangkumanUtama> {
   late Future<DashboardSummary>? _summaryFuture;
 
-  /*
   String get _currentDayMonth {
     final now = DateTime.now();
     const months = [
@@ -34,7 +33,6 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
     ];
     return '${now.day} ${months[now.month - 1]} ${now.year}';
   }
-  */
 
   @override
   void initState() {
@@ -95,44 +93,6 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
             ? '1.200'
             : NumberFormatHelper.formatWithDots(data.totalAsesor));
 
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      childAspectRatio: 1.55,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      children: [
-        NewSummaryCard(
-          title: 'Asessi',
-          value: asesiValue,
-          subtitle: 'Asessi Terdaftar',
-          icon: Icons.people_outline_rounded,
-        ),
-        NewSummaryCard(
-          title: 'Jadwal',
-          value: jadwalValue,
-          subtitle: 'Jadwal belum terkonfirmasi',
-          icon: Icons.pending_actions_rounded,
-        ),
-        NewSummaryCard(
-          title: 'Asessor',
-          value: asesorValue,
-          subtitle: 'Asessor Aktif',
-          icon: Icons.person_search_rounded,
-        ),
-        NewSummaryCard(
-          title: 'Surat Tugas',
-          value: '3',
-          subtitle: 'Menunggu Pengiriman',
-          icon: Icons.assignment_turned_in_rounded,
-        ),
-      ],
-    );
-  }
-
-  /*
-  Widget _buildContentOld(DashboardSummary data, bool isLoading) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -213,9 +173,47 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
 
           // Current Month Warning Badge
           _buildWarningBadge(data),
+          
+          if (data.isCurrentMonth && data.note != null)
+            const SizedBox(height: 0)
+          else
+            const SizedBox(height: 12),
 
-          // 2x2 Grid of Summary Cards with premium modern rounded Material Icons
-          _buildSummaryGrid(data, isLoading),
+          // 2x2 Grid of Summary Cards
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            childAspectRatio: 1.55,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            children: [
+              NewSummaryCard(
+                title: 'Asessi',
+                value: asesiValue,
+                subtitle: 'Asessi Terdaftar',
+                icon: Icons.people_outline_rounded,
+              ),
+              NewSummaryCard(
+                title: 'Jadwal',
+                value: jadwalValue,
+                subtitle: 'Jadwal belum terkonfirmasi',
+                icon: Icons.pending_actions_rounded,
+              ),
+              NewSummaryCard(
+                title: 'Asessor',
+                value: asesorValue,
+                subtitle: 'Asessor Aktif',
+                icon: Icons.person_search_rounded,
+              ),
+              NewSummaryCard(
+                title: 'Surat Tugas',
+                value: '3',
+                subtitle: 'Menunggu Pengiriman',
+                icon: Icons.assignment_turned_in_rounded,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -224,7 +222,7 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
   Widget _buildWarningBadge(DashboardSummary data) {
     if (data.isCurrentMonth && data.note != null) {
       return Container(
-        margin: const EdgeInsets.only(top: 8, bottom: 4),
+        margin: const EdgeInsets.only(top: 8, bottom: 0),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: const Color(0x33FFA726), // Orange with opacity
@@ -253,68 +251,6 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
     }
     return const SizedBox.shrink();
   }
-
-  Widget _buildSummaryGrid(DashboardSummary data, bool isLoading) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      childAspectRatio: 1.32,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      children: [
-        SummaryCard(
-          title: 'Jadwal Asesmen',
-          value: isLoading
-              ? '...'
-              : NumberFormatHelper.formatWithDots(data.totalAsesmen),
-          trend: data.trendAsesmen,
-          subtitle: 'Total Terjadwal',
-          comparison: data.jadwalAsesmen,
-          icon: Icons.assignment_rounded,
-          iconColor: const Color(0xFF5C51DC),
-          iconBgColor: const Color(0xFFEEECFD),
-        ),
-        SummaryCard(
-          title: 'Asesi Aktif',
-          value: isLoading
-              ? '...'
-              : NumberFormatHelper.formatWithDots(data.totalPemegangSertifikat),
-          trend: data.trendPemegangSertifikat,
-          subtitle: 'Asesi Kompeten',
-          comparison: data.sertifikatPerSkema,
-          icon: Icons.verified_rounded,
-          iconColor: const Color(0xFFFFB300),
-          iconBgColor: const Color(0xFFFFF9E6),
-        ),
-        SummaryCard(
-          title: 'Asesor Aktif',
-          value: isLoading
-              ? '...'
-              : NumberFormatHelper.formatWithDots(data.totalAsesor),
-          trend: data.trendAsesor,
-          subtitle: 'Asesor Terverifikasi',
-          comparison: data.sebaranAsesor,
-          icon: Icons.assignment_ind_rounded,
-          iconColor: const Color(0xFF00D1B2),
-          iconBgColor: const Color(0xFFE6FAF7),
-        ),
-        SummaryCard(
-          title: 'Tempat Uji Kompetensi',
-          value: isLoading
-              ? '...'
-              : NumberFormatHelper.formatWithDots(data.totalTuk),
-          trend: data.trendTuk,
-          subtitle: 'Jumlah TUK',
-          comparison: data.tempatUjiKompetensi,
-          icon: Icons.domain_rounded,
-          iconColor: const Color(0xFFFF5252),
-          iconBgColor: const Color(0xFFFFEEEE),
-        ),
-      ],
-    );
-  }
-  */
 }
 
 class NewSummaryCard extends StatelessWidget {
