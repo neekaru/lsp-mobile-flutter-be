@@ -548,17 +548,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             // 3. Bantuan & Informasi serta Pengumuman Baru Section - Tampil untuk semua role terautentikasi (Admin, Asesi, Asesor)
             if (!isGuest)
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0),
-                child: AdminBantuanPengumuman(),
-                /*
-                child: JadwalAsesmen(
-                  data: _jadwalData,
-                  isLoading: _isLoading,
-                  onTapLihatSemua: widget.onNavigateToJadwal,
-                  onRefreshNeeded: () => _refreshJadwalData(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0),
+                child: AdminBantuanPengumuman(
+                  showBantuan: AuthRepository.currentUserInstance?.role == 'admin',
                 ),
-                */
               )
             else
               const SizedBox(height: 32),

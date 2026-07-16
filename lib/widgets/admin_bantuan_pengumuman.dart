@@ -1,62 +1,69 @@
 import 'package:flutter/material.dart';
 
 class AdminBantuanPengumuman extends StatelessWidget {
-  const AdminBantuanPengumuman({super.key});
+  final bool showBantuan;
+
+  const AdminBantuanPengumuman({
+    super.key,
+    this.showBantuan = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Section 1: Bantuan & Informasi
-        const Text(
-          'Bantuan & Informasi',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0F172A),
+        if (showBantuan) ...[
+          // Section 1: Bantuan & Informasi
+          const Text(
+            'Bantuan & Informasi',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        _buildBantuanCard(
-          icon: Icons.info_outline_rounded,
-          title: 'Tentang Sistem Sertifikasi Digital LSP',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Tentang Sistem Sertifikasi Digital LSP'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 10),
-        _buildBantuanCard(
-          icon: Icons.menu_book_rounded,
-          title: 'Panduan Mendaftar Sertifikasi',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Panduan Mendaftar Sertifikasi'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 10),
-        _buildBantuanCard(
-          icon: Icons.help_outline_rounded,
-          title: 'Tanya Jawab (FAQ)',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Tanya Jawab (FAQ)'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 24),
+          const SizedBox(height: 12),
+          _buildBantuanCard(
+            icon: Icons.info_outline_rounded,
+            title: 'Tentang Sistem Sertifikasi Digital LSP',
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Tentang Sistem Sertifikasi Digital LSP'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+          _buildBantuanCard(
+            icon: Icons.menu_book_rounded,
+            title: 'Panduan Mendaftar Sertifikasi',
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Panduan Mendaftar Sertifikasi'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+          _buildBantuanCard(
+            icon: Icons.help_outline_rounded,
+            title: 'Tanya Jawab (FAQ)',
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Tanya Jawab (FAQ)'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+        ],
 
         // Section 2: Pengumuman Baru Header
         Row(
