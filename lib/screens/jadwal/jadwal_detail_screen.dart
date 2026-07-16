@@ -1051,38 +1051,6 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                 _buildChecklistItem('Portofolio Lengkap'),
                 _buildChecklistItem('Bukti Kompetensi Valid'),
                 _buildChecklistItem('Pra Asesmen Disetujui'),
-
-                const SizedBox(height: 16),
-                // Hubungi Admin Button
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD2E3F4),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF6C8BB4), width: 1),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        // Action for Hubungi Admin
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          'Hubungi Admin',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C6C9C),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

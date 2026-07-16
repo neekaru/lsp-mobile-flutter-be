@@ -22,6 +22,7 @@ class DetailSkemaScreen extends StatefulWidget {
 class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
   int _activeTab = 0; // 0: Unit kompetensi, 1: Persyaratan
   bool _showAllUnits = false;
+  final Set<int> _expandedUnitIndices = {};
 
   SkemaSertifikatDetailResponse? _detail;
   bool _isLoading = true;
@@ -396,7 +397,7 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Cards List
+              // Cards List (Accordion Accordion)
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -404,6 +405,8 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                 itemCount: displayCount,
                 itemBuilder: (context, index) {
                   final unit = unitList[index];
+                  final bool isExpanded = _expandedUnitIndices.contains(index);
+
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
@@ -414,60 +417,193 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                         width: 1,
                       ),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Row(
-                        children: [
-                          Text(
-                            '${index + 1}.',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          if (isExpanded) {
+                            _expandedUnitIndices.remove(index);
+                          } else {
+                            _expandedUnitIndices.add(index);
+                          }
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  unit.code,
+                                  '${index + 1}.',
                                   style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF3B82F6),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  unit.title,
-                                  style: const TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF1E293B),
                                   ),
                                 ),
-                                if (unit.subtitle.isNotEmpty) ...[
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    unit.subtitle,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF64748B),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        unit.code,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF3B82F6),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        unit.title,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                      if (unit.subtitle.isNotEmpty) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          unit.subtitle,
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  isExpanded
+                                      ? Icons.keyboard_arrow_down_rounded
+                                      : Icons.chevron_right_rounded,
+                                  color: const Color(0xFF3B82F6),
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                            if (isExpanded) ...[
+                              if (unit.deskripsi.isNotEmpty || unit.elemen.isNotEmpty || unit.kriteria.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                
+                                if (unit.deskripsi.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  _buildDetailSection(
+                                    titleLetter: 'A.',
+                                    titleText: 'Deskripsi Unit',
+                                    child: Text(
+                                      unit.deskripsi,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF64748B),
+                                        height: 1.4,
+                                      ),
                                     ),
                                   ),
                                 ],
+                                
+                                if (unit.elemen.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  _buildDetailSection(
+                                    titleLetter: 'B.',
+                                    titleText: 'Elemen Kompetensi',
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: unit.elemen.map((e) => Padding(
+                                        padding: const EdgeInsets.only(bottom: 4.0),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              '> ',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: Color(0xFF64748B),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                e,
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Color(0xFF64748B),
+                                                  height: 1.4,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )).toList(),
+                                    ),
+                                  ),
+                                ],
+                                
+                                if (unit.kriteria.isNotEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  _buildDetailSection(
+                                    titleLetter: 'C.',
+                                    titleText: 'Kriteria Untuk Ujian',
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: unit.kriteria.asMap().entries.map((entry) {
+                                        final idx = entry.key + 1;
+                                        final val = entry.value;
+                                        return Padding(
+                                          padding: const EdgeInsets.only(bottom: 4.0),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '$idx. ',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Color(0xFF64748B),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  val,
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: Color(0xFF64748B),
+                                                    height: 1.4,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                ],
+                              ] else ...[
+                                const SizedBox(height: 12),
+                                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                const SizedBox(height: 12),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text(
+                                    'Detail unit kompetensi tidak tersedia.',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF64748B),
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ),
                               ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.chevron_right_rounded,
-                            color: Color(0xFF3B82F6),
-                            size: 20,
-                          ),
-                        ],
+                            ],
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -539,6 +675,52 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
     );
   }
 
+  Widget _buildDetailSection({
+    required String titleLetter,
+    required String titleText,
+    required Widget child,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 20,
+              child: Text(
+                titleLetter,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                titleText,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(width: 20),
+            Expanded(child: child),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildTabItem(int index, String title) {
     final bool isSelected = _activeTab == index;
     return GestureDetector(
@@ -547,29 +729,24 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
           _activeTab = index;
         });
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF64748B),
-              ),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? const Color(0xFF3B82F6) : Colors.transparent,
+              width: 2.0,
             ),
           ),
-          if (isSelected)
-            Container(
-              height: 2,
-              width: 40,
-              color: const Color(0xFF3B82F6),
-            )
-          else
-            const SizedBox(height: 2),
-        ],
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF64748B),
+          ),
+        ),
       ),
     );
   }

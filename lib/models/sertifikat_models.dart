@@ -472,18 +472,34 @@ class SkemaUnitKompetensiItem {
   final String code;
   final String title;
   final String subtitle;
+  final String deskripsi;
+  final List<String> elemen;
+  final List<String> kriteria;
 
   const SkemaUnitKompetensiItem({
     required this.code,
     required this.title,
     required this.subtitle,
+    required this.deskripsi,
+    required this.elemen,
+    required this.kriteria,
   });
 
   factory SkemaUnitKompetensiItem.fromJson(Map<String, dynamic> json) {
+    final elements = (json['elemen'] as List<dynamic>? ?? [])
+        .map((e) => e.toString())
+        .toList();
+    final criteria = (json['kriteria'] as List<dynamic>? ?? [])
+        .map((e) => e.toString())
+        .toList();
+
     return SkemaUnitKompetensiItem(
       code: json['code'] as String? ?? '',
       title: json['title'] as String? ?? '',
       subtitle: json['subtitle'] as String? ?? '',
+      deskripsi: json['deskripsi'] as String? ?? '',
+      elemen: elements,
+      kriteria: criteria,
     );
   }
 }

@@ -92,6 +92,32 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
       );
     }
 
+    if (isAsesi) {
+      return Row(
+        children: [
+          Expanded(
+            child: TabItem(
+              label: 'Mendatang',
+              badgeCount: widget.runningCount > 0 ? widget.runningCount : null,
+              isSelected: widget.controller.index == 0,
+              onTap: () => widget.controller.animateTo(0),
+              usePillStyle: true,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TabItem(
+              label: 'Berjalan',
+              badgeCount: widget.pelaporanCount > 0 ? widget.pelaporanCount : null,
+              isSelected: widget.controller.index == 1,
+              onTap: () => widget.controller.animateTo(1),
+              usePillStyle: true,
+            ),
+          ),
+        ],
+      );
+    }
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -181,8 +207,8 @@ class TabItem extends StatelessWidget {
       } else {
         containerColor = const Color(0xFFD2E3F4); // Very light grey-blue
         textColor = const Color(0xFF5A7EAA);
-        badgeBgColor = const Color(0xFF6C8BB4);
-        badgeTextColor = Colors.white;
+        badgeBgColor = Colors.white;
+        badgeTextColor = const Color(0xFF5A7EAA);
       }
     } else {
       containerColor = isSelected ? Colors.white : const Color(0xFF758FAD);
@@ -219,7 +245,7 @@ class TabItem extends StatelessWidget {
                 style: TextStyle(
                   color: textColor,
                   fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -234,14 +260,14 @@ class TabItem extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
+                  minWidth: 18,
+                  minHeight: 18,
                 ),
                 child: Center(
                   child: Text(
                     '$badgeCount',
                     style: TextStyle(
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: badgeTextColor,
                       height: 1.0,
