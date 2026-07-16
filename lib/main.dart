@@ -245,14 +245,19 @@ class MainNavigatorState extends State<MainNavigator> {
           LaporanTugasScreen(onBackToHome: () => setTab(0)),
           ProfileAsesorScreen(onBackToHome: () => setTab(0)),
         ];
+      } else if (isAsesi) {
+        _screens = [
+          DashboardScreen(onNavigateToJadwal: () => setTab(1)),
+          JadwalScreen(onBackToHome: () => setTab(0)),
+          SkemaSertifikasiScreen(onBackToHome: () => setTab(0)),
+          ProfileScreen(onBackToHome: () => setTab(0)),
+        ];
       } else {
         _screens = [
           DashboardScreen(onNavigateToJadwal: () => setTab(2)),
           StatistikScreen(onBackToHome: () => setTab(0)),
           JadwalScreen(onBackToHome: () => setTab(0)),
-          isAsesi
-              ? SkemaSertifikasiScreen(onBackToHome: () => setTab(0))
-              : SertifikatScreen(onBackToHome: () => setTab(0)),
+          SertifikatScreen(onBackToHome: () => setTab(0)),
           ProfileScreen(onBackToHome: () => setTab(0)),
         ];
       }

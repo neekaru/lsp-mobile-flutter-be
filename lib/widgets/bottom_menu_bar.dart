@@ -79,33 +79,56 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
                   isAsesor: true,
                 ),
               ]
-            : [
-                _buildMenuItem(
-                  index: 0,
-                  icon: Icons.home_rounded,
-                  label: 'Beranda',
-                ),
-                _buildMenuItem(
-                  index: 1,
-                  icon: Icons.bar_chart_rounded,
-                  label: isAsesi ? 'Asesmen' : 'Statistik',
-                ),
-                _buildMenuItem(
-                  index: 2,
-                  icon: Icons.calendar_month_rounded,
-                  label: 'Jadwal',
-                ),
-                _buildMenuItem(
-                  index: 3,
-                  icon: Icons.workspace_premium_rounded,
-                  label: 'Sertifikat',
-                ),
-                _buildMenuItem(
-                  index: 4,
-                  icon: Icons.account_circle_rounded,
-                  label: 'Profil',
-                ),
-              ]);
+            : (isAsesi
+                ? [
+                    _buildMenuItem(
+                      index: 0,
+                      icon: Icons.home_rounded,
+                      label: 'Beranda',
+                    ),
+                    _buildMenuItem(
+                      index: 1,
+                      icon: Icons.calendar_month_rounded,
+                      label: 'Jadwal',
+                    ),
+                    _buildMenuItem(
+                      index: 2,
+                      icon: Icons.workspace_premium_rounded,
+                      label: 'Skema',
+                    ),
+                    _buildMenuItem(
+                      index: 3,
+                      icon: Icons.account_circle_rounded,
+                      label: 'Profil',
+                    ),
+                  ]
+                : [
+                    _buildMenuItem(
+                      index: 0,
+                      icon: Icons.home_rounded,
+                      label: 'Beranda',
+                    ),
+                    _buildMenuItem(
+                      index: 1,
+                      icon: Icons.bar_chart_rounded,
+                      label: 'Statistik',
+                    ),
+                    _buildMenuItem(
+                      index: 2,
+                      icon: Icons.calendar_month_rounded,
+                      label: 'Jadwal',
+                    ),
+                    _buildMenuItem(
+                      index: 3,
+                      icon: Icons.workspace_premium_rounded,
+                      label: 'Sertifikat',
+                    ),
+                    _buildMenuItem(
+                      index: 4,
+                      icon: Icons.account_circle_rounded,
+                      label: 'Profil',
+                    ),
+                  ]));
 
     return Container(
       width: double.infinity,

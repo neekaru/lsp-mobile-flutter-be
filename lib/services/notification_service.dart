@@ -224,10 +224,19 @@ class NotificationService {
       return;
     }
 
-    if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
-      state.setTab(3);
-    } else if (type == 'rekomendasi_asesor') {
-      state.setTab(2);
+    final isAsesi = AuthRepository.currentUserInstance?.role == 'asesi';
+    if (isAsesi) {
+      if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
+        state.setTab(3); // Switch to Profil tab
+      } else if (type == 'rekomendasi_asesor') {
+        state.setTab(1); // Switch to Jadwal tab
+      }
+    } else {
+      if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
+        state.setTab(3); // Switch to Sertifikat tab
+      } else if (type == 'rekomendasi_asesor') {
+        state.setTab(2); // Switch to Jadwal tab
+      }
     }
   }
 
