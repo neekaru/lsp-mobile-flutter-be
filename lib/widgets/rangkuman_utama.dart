@@ -77,21 +77,19 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
   Widget _buildContent(DashboardSummary data, bool isLoading) {
     final asesiValue = isLoading
         ? '...'
-        : (data.totalPemegangSertifikat == 3045 || data.totalPemegangSertifikat == 0
-            ? '500'
-            : NumberFormatHelper.formatWithDots(data.totalPemegangSertifikat));
+        : NumberFormatHelper.formatWithDots(data.totalAsesi);
             
     final jadwalValue = isLoading
         ? '...'
-        : (data.totalAsesmen == 2545 || data.totalAsesmen == 0
-            ? '15'
-            : NumberFormatHelper.formatWithDots(data.totalAsesmen));
+        : NumberFormatHelper.formatWithDots(data.jadwalBelumTerkonfirmasi);
             
     final asesorValue = isLoading
         ? '...'
-        : (data.totalAsesor == 120 || data.totalAsesor == 0
-            ? '1.200'
-            : NumberFormatHelper.formatWithDots(data.totalAsesor));
+        : NumberFormatHelper.formatWithDots(data.totalAsesor);
+
+    final suratTugasValue = isLoading
+        ? '...'
+        : NumberFormatHelper.formatWithDots(data.suratTugasMenungguPengiriman);
 
     return Container(
       width: double.infinity,
@@ -208,7 +206,7 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
               ),
               NewSummaryCard(
                 title: 'Surat Tugas',
-                value: '3',
+                value: suratTugasValue,
                 subtitle: 'Menunggu Pengiriman',
                 icon: Icons.assignment_turned_in_rounded,
               ),

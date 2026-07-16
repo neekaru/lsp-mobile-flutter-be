@@ -22,11 +22,19 @@ class DashboardSummary {
   final String sebaranAsesor;
   final String tempatUjiKompetensi;
 
+  // Real API fields for Admin summary grid 2x2
+  final int totalAsesi;
+  final int jadwalBelumTerkonfirmasi;
+  final int suratTugasMenungguPengiriman;
+
   const DashboardSummary({
     required this.totalAsesmen,
     required this.totalPemegangSertifikat,
     required this.totalAsesor,
     required this.totalTuk,
+    this.totalAsesi = 0,
+    this.jadwalBelumTerkonfirmasi = 0,
+    this.suratTugasMenungguPengiriman = 0,
     this.trendAsesmen = '+15,7%',
     this.trendPemegangSertifikat = '+12,3%',
     this.trendAsesor = '+8,1%',
@@ -45,6 +53,9 @@ class DashboardSummary {
       totalPemegangSertifikat: 3045,
       totalAsesor: 120,
       totalTuk: 45,
+      totalAsesi: 15005,
+      jadwalBelumTerkonfirmasi: 15,
+      suratTugasMenungguPengiriman: 3,
       trendAsesmen: '+15,7%',
       trendPemegangSertifikat: '+12,3%',
       trendAsesor: '+8,1%',
