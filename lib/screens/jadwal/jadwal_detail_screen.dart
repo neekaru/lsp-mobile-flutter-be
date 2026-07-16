@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import 'jadwal_edit_screen.dart';
@@ -669,13 +670,21 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
               try {
                 final fileUrl = await ApiService.getSuratTugas(widget.jadwal.id);
                 if (context.mounted) Navigator.pop(context); // Dismiss loading dialog
-                if (fileUrl != null && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Surat tugas ditemukan: $fileUrl'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
+                if (fileUrl != null && fileUrl.isNotEmpty) {
+                  final uri = Uri.parse(fileUrl);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  } else {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Tidak dapat membuka file PDF Surat Tugas.'),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
                 } else if (context.mounted) {
                   throw Exception('Surat tugas belum tersedia');
                 }
