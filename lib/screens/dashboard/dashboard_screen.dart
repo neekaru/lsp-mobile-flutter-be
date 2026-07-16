@@ -524,9 +524,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (isGuest)
               const TentangKamiSection(),
 
-            // 3. Jadwal Asesmen Mendekati Baru Section - Untuk Admin dan Asesi
-            if (AuthRepository.currentUserInstance?.role == 'admin' ||
-                AuthRepository.currentUserInstance?.role == 'asesi')
+            // 3. Jadwal Asesmen Mendekati Baru Section - Hanya untuk Admin
+            if (AuthRepository.currentUserInstance?.role == 'admin')
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   16.0,
