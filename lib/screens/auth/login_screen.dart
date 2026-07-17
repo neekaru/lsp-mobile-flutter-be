@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (identityVal.isEmpty || passwordVal.isEmpty) {
       setState(() {
-        _errorMessage = 'Isi NIK/NIM/email dan password';
+        _errorMessage = 'Isi Username / Email / NIK dan password';
       });
       return;
     }
@@ -132,9 +132,9 @@ class _LoginScreenState extends State<LoginScreen> {
         if (e is DioException) {
           final statusCode = e.response?.statusCode;
           if (statusCode == 400) {
-            _errorMessage = 'Isi NIK/NIM/email dan password';
+            _errorMessage = 'Isi Username / Email / NIK dan password';
           } else if (statusCode == 401) {
-            _errorMessage = 'NIK/NIM/email atau password salah';
+            _errorMessage = 'Username / Email / NIK atau password salah';
           } else {
             _errorMessage = 'Login gagal. Coba lagi nanti.';
           }
@@ -249,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
 
                     const Text(
-                      'NIK / NIM / Email',
+                      'Username / Email / NIK',
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 14,
@@ -262,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _identityController,
                       keyboardType: TextInputType.text,
                       decoration: InputDecoration(
-                        hintText: 'NIK / NIM / Email / Akun',
+                        hintText: 'Masukkan Username / Email / NIK',
                         hintStyle: const TextStyle(
                           color: Color(0xFF9CA3AF),
                           fontSize: 13,
