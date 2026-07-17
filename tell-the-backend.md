@@ -136,6 +136,21 @@ Berikut adalah daftar lengkap endpoint API yang terintegrasi di sisi aplikasi mo
 }
 ```
 
+#### 3. Revoke/Hapus Sesi
+* **Endpoint**: `DELETE /api/sessions/:id`
+* **Deskripsi**: Menghapus/menghentikan sesi login tertentu.
+* **PENTING UNTUK TIM BACKEND**:
+  1. Ketika endpoint ini dipanggil, backend **WAJIB** membatalkan (revoke/blacklist) JWT Access Token dan Refresh Token yang terasosiasi dengan sesi tersebut.
+  2. Request berikutnya dari perangkat dengan token yang telah di-revoke tersebut **harus mengembalikan status HTTP 401 Unauthorized** (bukan 200 OK), sehingga aplikasi mobile dapat mendeteksi sesi berakhir dan otomatis me-logout pengguna.
+  3. Relasi FCM Device Token yang terdaftar pada sesi tersebut **harus dihapus** dari server sehingga perangkat tersebut tidak lagi menerima notifikasi push.
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "message": "Sesi berhasil dihentikan"
+}
+```
+
 ---
 
 ### MODUL 2: DASHBOARD, BERITA, & JADWAL

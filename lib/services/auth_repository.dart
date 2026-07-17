@@ -23,12 +23,16 @@ class AuthRepository {
   Future<LoginResult> login({
     required String account,
     required String password,
+    String? platform,
+    String? deviceToken,
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       ApiRoutes.authLogin,
       data: {
         'account': account,
         'password': password,
+        'platform': ?platform,
+        'device_token': ?deviceToken,
       },
     );
 

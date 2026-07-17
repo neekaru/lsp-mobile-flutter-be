@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../../main.dart';
@@ -14,7 +15,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _identityController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
@@ -22,12 +23,12 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
 
   Future<void> _handleLogin() async {
-    final emailVal = _emailController.text.trim();
+    final identityVal = _identityController.text.trim();
     final passwordVal = _passwordController.text;
 
-    if (emailVal.isEmpty || passwordVal.isEmpty) {
+    if (identityVal.isEmpty || passwordVal.isEmpty) {
       setState(() {
-        _errorMessage = 'Akun dan kata sandi wajib diisi.';
+        _errorMessage = 'Isi NIK/NIM/email dan password';
       });
       return;
     }
@@ -38,17 +39,17 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     // Jalur alternatif (Bypass) untuk testing / demo
-    if ((emailVal == 'user' && passwordVal == 'password123') ||
-        (emailVal == 'asesi' && passwordVal == 'deng123') ||
-        (emailVal == 'asesor' && passwordVal == 'deng123')) {
+    if ((identityVal == 'user' && passwordVal == 'password123') ||
+        (identityVal == 'asesi' && passwordVal == 'deng123') ||
+        (identityVal == 'asesor' && passwordVal == 'deng123')) {
       await Future.delayed(const Duration(milliseconds: 600));
       if (!mounted) return;
 
-      final isAsesi = emailVal == 'asesi';
-      final isAsesor = emailVal == 'asesor';
+      final isAsesi = identityVal == 'asesi';
+      final isAsesor = identityVal == 'asesor';
       final fakeUser = AuthUser(
         id: isAsesi ? 'fake-asesi-id' : (isAsesor ? 'fake-asesor-id' : 'fake-user-id'),
-        account: emailVal,
+        account: identityVal,
         name: isAsesi ? 'Asesi Demo' : (isAsesor ? 'Muhammad Hanafi' : 'User Demo'),
         role: isAsesi ? 'asesi' : (isAsesor ? 'asesor' : 'admin'),
         roles: [isAsesi ? 'asesi' : (isAsesor ? 'asesor' : 'admin')],
@@ -88,10 +89,19 @@ class _LoginScreenState extends State<LoginScreen> {
         dio: ApiService.dio,
         tokenStorage: TokenStorage.instance,
       );
+
+      String? fcmToken;
+      try {
+        fcmToken = await NotificationService.instance.getToken();
+      } catch (e) {
+        debugPrint('Failed to get FCM Token during login: $e');
+      }
       
       await authRepo.login(
-        account: emailVal,
+        account: identityVal,
         password: passwordVal,
+        platform: Platform.isIOS ? 'ios' : 'android',
+        deviceToken: fcmToken,
       );
 
       // Trigger token registration for all roles
@@ -122,9 +132,9 @@ class _LoginScreenState extends State<LoginScreen> {
         if (e is DioException) {
           final statusCode = e.response?.statusCode;
           if (statusCode == 400) {
-            _errorMessage = 'Akun dan password wajib diisi.';
+            _errorMessage = 'Isi NIK/NIM/email dan password';
           } else if (statusCode == 401) {
-            _errorMessage = 'Akun atau password salah.';
+            _errorMessage = 'NIK/NIM/email atau password salah';
           } else {
             _errorMessage = 'Login gagal. Coba lagi nanti.';
           }
@@ -137,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identityController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -239,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
 
                     const Text(
-                      'Email',
+                      'NIK / NIM / Email',
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 14,
@@ -249,10 +259,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
 
                     TextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      controller: _identityController,
+                      keyboardType: TextInputType.text,
                       decoration: InputDecoration(
-                        hintText: 'Masukan email aktif',
+                        hintText: 'NIK / NIM / Email / Akun',
                         hintStyle: const TextStyle(
                           color: Color(0xFF9CA3AF),
                           fontSize: 13,

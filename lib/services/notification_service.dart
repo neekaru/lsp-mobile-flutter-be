@@ -23,6 +23,14 @@ class NotificationService {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
+    // Register hooks to clear FCM token on logout or token expiration
+    AuthRepository.preLogoutHooks.add(() async {
+      await deleteToken();
+    });
+    AuthRepository.registerTokenExpiredCallback(() {
+      deleteToken();
+    });
+
     // 1. Request Permission
     await requestPermission();
 
@@ -84,6 +92,17 @@ class NotificationService {
     } catch (e) {
       debugPrint('Error getting FCM token: $e');
       return null;
+    }
+  }
+
+  Future<void> deleteToken() async {
+    try {
+      await _messaging.deleteToken();
+      if (kDebugMode) {
+        debugPrint('✅ FCM Token deleted successfully from Firebase.');
+      }
+    } catch (e) {
+      debugPrint('❌ Error deleting FCM token: $e');
     }
   }
 

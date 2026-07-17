@@ -63,11 +63,16 @@ class ApiClient {
 
                 final currentToken = await TokenStorage.instance.getAccessToken();
                 final isFakeToken = currentToken == 'fake-asesi-token' || currentToken == 'fake-user-token';
-                if (error.response?.statusCode == 401 && !_isRefreshing && !isFakeToken) {
+                final isAuthPath = error.requestOptions.path.contains(ApiRoutes.authLogin) ||
+                    error.requestOptions.path.contains(ApiRoutes.authRefresh);
+
+                if (error.response?.statusCode == 401 && !isFakeToken && !isAuthPath) {
+                  if (_isRefreshing) {
+                    return handler.next(error);
+                  }
                   _isRefreshing = true;
                   try {
-                    final refreshToken = await TokenStorage.instance
-                        .getRefreshToken();
+                    final refreshToken = await TokenStorage.instance.getRefreshToken();
                     if (refreshToken != null && refreshToken.isNotEmpty) {
                       final refreshResponse =
                           await Dio(BaseOptions(baseUrl: baseUrl)).post(
@@ -95,7 +100,18 @@ class ApiClient {
                         return handler.resolve(
                           await _dioInstance!.fetch(error.requestOptions),
                         );
+                      } else {
+                        throw DioException(
+                          requestOptions: refreshResponse.requestOptions,
+                          response: refreshResponse,
+                          message: 'Token refresh returned non-200 status code: ${refreshResponse.statusCode}',
+                        );
                       }
+                    } else {
+                      throw DioException(
+                        requestOptions: error.requestOptions,
+                        message: 'No refresh token available',
+                      );
                     }
                   } catch (e) {
                     if (kDebugMode) debugPrint('🔴 Token refresh failed: $e');

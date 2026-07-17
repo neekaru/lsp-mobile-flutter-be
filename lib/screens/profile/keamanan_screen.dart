@@ -5,6 +5,8 @@ import '../../widgets/custom_app_bar.dart';
 import '../../main.dart';
 import '../../services/api_service.dart';
 import '../../models/auth_models.dart';
+import '../../services/token_storage.dart';
+import '../../services/auth_repository.dart';
 
 class KeamananScreen extends StatefulWidget {
   const KeamananScreen({super.key});
@@ -119,6 +121,26 @@ class _KeamananScreenState extends State<KeamananScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         if (success) {
+          if (session.active) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Row(
+                  children: [
+                    Icon(Icons.check_circle_rounded, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text('Sesi aktif berhasil dihapus! Mengalihkan...'),
+                  ],
+                ),
+                backgroundColor: const Color(0xFF2E7D32),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            );
+            await TokenStorage.instance.clear();
+            AuthRepository.notifyTokenExpired();
+            return;
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(

@@ -80,11 +80,11 @@ class LoginSession {
   factory LoginSession.fromJson(Map<String, dynamic> json) {
     return LoginSession(
       id: json['id'] as int? ?? 0,
-      platform: json['platform'] as String? ?? '',
-      deviceHint: json['device_hint'] as String? ?? '',
-      createdAt: json['created_at'] as String? ?? '',
-      updatedAt: json['updated_at'] as String?,
-      active: json['active'] as bool? ?? false,
+      platform: json['platform'] as String? ?? json['device_name'] as String? ?? '',
+      deviceHint: json['device_hint'] as String? ?? json['device_name'] as String? ?? '',
+      createdAt: json['created_at'] as String? ?? json['last_active'] as String? ?? '',
+      updatedAt: json['updated_at'] as String? ?? json['last_active'] as String?,
+      active: (json['active'] as bool?) ?? (json['is_current'] as bool?) ?? false,
     );
   }
 }
