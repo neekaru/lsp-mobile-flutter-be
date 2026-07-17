@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../services/auth_repository.dart';
 import '../../services/api_service.dart';
 import '../../services/token_storage.dart';
+import '../../helpers/api_routes.dart';
 import '../../services/notification_service.dart';
 import '../auth/login_screen.dart';
 import 'data_diri_screen.dart';
@@ -49,7 +50,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
       // Fetch assignment count
       int penugasanCount = 0;
       try {
-        final res = await ApiService.dio.get('/api/asesor/jadwal');
+        final res = await ApiService.dio.get(ApiRoutes.asesorJadwal);
         if (res.data != null && res.data['data'] is List) {
           penugasanCount = (res.data['data'] as List).length;
         }

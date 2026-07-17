@@ -128,24 +128,24 @@ class _JadwalScreenState extends State<JadwalScreen>
 
       // Custom parameters per role
       String status1 = isAsesi ? '0' : '3';
-      String path1 = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/active';
+      String path1 = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalActive;
       if (isAsesor) {
         status1 = '0'; // Menunggu
-        path1 = '/api/asesor/jadwal';
+        path1 = ApiRoutes.asesorJadwal;
       }
 
       String status2 = isAsesi ? '3' : '4';
-      String path2 = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
+      String path2 = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalCompleted;
       if (isAsesor) {
         status2 = '2'; // Dibatalkan
-        path2 = '/api/asesor/jadwal';
+        path2 = ApiRoutes.asesorJadwal;
       }
 
       String status3 = '1';
-      String path3 = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
+      String path3 = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalCompleted;
       if (isAsesor) {
         status3 = '1,4'; // Selesai & Pelaporan
-        path3 = '/api/asesor/jadwal';
+        path3 = ApiRoutes.asesorJadwal;
       }
 
       // Fetch data untuk setiap tab secara parallel
@@ -263,12 +263,12 @@ class _JadwalScreenState extends State<JadwalScreen>
 
       String status = isAsesi ? '0' : '0,1,2,3';
       String sortBy = isAsesi ? 'tanggal' : 'days_overdue';
-      String path = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/out-of-date';
+      String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalOutOfDate;
 
       if (isAsesor) {
         status = '0';
         sortBy = 'tanggal';
-        path = '/api/asesor/jadwal';
+        path = ApiRoutes.asesorJadwal;
       }
 
       final newData = await ApiService.getJadwalList(
@@ -307,11 +307,11 @@ class _JadwalScreenState extends State<JadwalScreen>
       final bool isAsesor = currentUser.role == 'asesor';
 
       String status = isAsesi ? '3' : '4';
-      String path = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
+      String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalCompleted;
 
       if (isAsesor) {
         status = '2'; // Dibatalkan
-        path = '/api/asesor/jadwal';
+        path = ApiRoutes.asesorJadwal;
       }
 
       final newData = await ApiService.getJadwalList(
@@ -350,11 +350,11 @@ class _JadwalScreenState extends State<JadwalScreen>
       final bool isAsesor = currentUser.role == 'asesor';
 
       String status = isAsesi ? '1' : '1,4';
-      String path = isAsesi ? '/api/asesi/jadwal' : '/api/jadwal/completed';
+      String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalCompleted;
 
       if (isAsesor) {
         status = '1,4'; // Selesai & Pelaporan
-        path = '/api/asesor/jadwal';
+        path = ApiRoutes.asesorJadwal;
       }
 
       final newData = await ApiService.getJadwalList(

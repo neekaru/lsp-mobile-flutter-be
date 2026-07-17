@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import '../helpers/api_routes.dart';
 import '../models/auth_models.dart';
 import 'token_storage.dart';
 
@@ -24,7 +25,7 @@ class AuthRepository {
     required String password,
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
-      '/api/auth/login',
+      ApiRoutes.authLogin,
       data: {
         'account': account,
         'password': password,
@@ -67,7 +68,7 @@ class AuthRepository {
       return fallbackUser;
     }
 
-    final response = await _dio.get<Map<String, dynamic>>('/api/auth/current');
+    final response = await _dio.get<Map<String, dynamic>>(ApiRoutes.authCurrent);
     final data = response.data?['data'] as Map<String, dynamic>;
     final user = AuthUser.fromJson(data);
     
@@ -79,7 +80,7 @@ class AuthRepository {
   Future<void> logout({String? deviceToken}) async {
     try {
       await _dio.post(
-        '/api/auth/logout',
+        ApiRoutes.authLogout,
         data: deviceToken != null ? {
           'device_token': deviceToken,
         } : {},

@@ -6,6 +6,7 @@ import '../../services/auth_repository.dart';
 import '../../services/asesor_service.dart';
 import '../../services/api_client.dart';
 import '../../services/jadwal_service.dart';
+import '../../helpers/api_routes.dart';
 import '../pengajuan/widgets/animated_success_badge.dart';
 
 class ParticipantItem {
@@ -655,7 +656,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
       _isLoadingSchedules = true;
     });
     try {
-      final response = await ApiClient.dio.get('/api/asesor/jadwal?status_jadwal=1,4');
+      final response = await ApiClient.dio.get('${ApiRoutes.asesorJadwal}?status_jadwal=1,4');
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data'] ?? [];
         _schedulesList = list.map((item) => item as Map<String, dynamic>).toList();

@@ -12,21 +12,16 @@ class DetailTiketScreen extends StatefulWidget {
 }
 
 class _DetailTiketScreenState extends State<DetailTiketScreen> {
-  final _replyController = TextEditingController();
   late List<Map<String, dynamic>> _messages;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _messages = List<Map<String, dynamic>>.from(widget.ticket['messages'] ?? []);
+    _messages = List<Map<String, dynamic>>.from(
+      widget.ticket['messages'] ?? [],
+    );
     _fetchTicketDetail();
-  }
-
-  @override
-  void dispose() {
-    _replyController.dispose();
-    super.dispose();
   }
 
   Future<void> _fetchTicketDetail() async {
@@ -34,7 +29,7 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
       _isLoading = true;
     });
     try {
-      final res = await AsesorService.getTiketDetail(widget.ticket['id'].toString());
+      final res = await AsesorService.getTiketDetail(widget.ticket['id']);
       if (res != null && mounted) {
         setState(() {
           _messages = List<Map<String, dynamic>>.from(res['messages'] ?? []);
@@ -56,42 +51,6 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
     }
   }
 
-  void _sendReply() async {
-    final text = _replyController.text.trim();
-    if (text.isEmpty) return;
-
-    final ticketId = widget.ticket['id'].toString();
-
-    // Optimistically add message
-    setState(() {
-      _messages.add({
-        'sender': 'Asesor',
-        'time': 'Baru saja',
-        'text': text,
-      });
-      _replyController.clear();
-    });
-
-    try {
-      final res = await AsesorService.replyTiket(ticketId, text);
-      if (res != null) {
-        _fetchTicketDetail();
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Gagal mengirim tanggapan.')),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
@@ -108,7 +67,7 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
               color: Color(0xFF3B82F6),
               backgroundColor: Color(0xFFEFF6FF),
             ),
-          
+
           // Ticket Metadata Info Card
           Container(
             width: double.infinity,
@@ -141,17 +100,28 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFEDD5),
+                        color: ticket['status'] == 'Selesai'
+                            ? const Color(0xFFDCFCE7)
+                            : ticket['status'] == 'Batal'
+                            ? const Color(0xFFFEE2E2)
+                            : const Color(0xFFFFEDD5),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         ticket['status'] ?? 'Proses',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFD97706),
+                          color: ticket['status'] == 'Selesai'
+                              ? const Color(0xFF15803D)
+                              : ticket['status'] == 'Batal'
+                              ? const Color(0xFFB91C1C)
+                              : const Color(0xFFD97706),
                         ),
                       ),
                     ),
@@ -182,10 +152,10 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               children: [
-                Icon(Icons.forum_outlined, size: 16, color: Color(0xFF64748B)),
+                Icon(Icons.history_rounded, size: 16, color: Color(0xFF64748B)),
                 SizedBox(width: 6),
                 Text(
-                  'Pesan Kendala & Tanggapan',
+                  'Riwayat Aktivitas & Tanggapan',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -197,116 +167,213 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
           ),
           const SizedBox(height: 8),
 
-          // Messages / Chat Box
+          // Messages / Ticket Updates List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              itemCount: _messages.length,
-              itemBuilder: (context, idx) {
-                final msg = _messages[idx];
-                final isAsesor = msg['sender'] == 'Asesor';
-                return Align(
-                  alignment: isAsesor ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isAsesor ? const Color(0xFFEFF6FF) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(12),
-                        topRight: const Radius.circular(12),
-                        bottomLeft: isAsesor ? const Radius.circular(12) : const Radius.circular(0),
-                        bottomRight: isAsesor ? const Radius.circular(0) : const Radius.circular(12),
-                      ),
-                    ),
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.75,
-                    ),
+            child: _messages.isEmpty
+                ? Center(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              msg['sender'] ?? '',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: isAsesor ? const Color(0xFF2563EB) : const Color(0xFF475569),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              msg['time'] ?? '',
-                              style: const TextStyle(
-                                fontSize: 9,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                          ],
+                        Icon(
+                          Icons.forum_outlined,
+                          size: 48,
+                          color: const Color(0xFF64748B).withAlpha(100),
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          msg['text'] ?? '',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF1E293B),
-                            height: 1.4,
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Belum ada tanggapan atau aktivitas.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF94A3B8),
                           ),
                         ),
                       ],
                     ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, idx) {
+                      final msg = _messages[idx];
+                      final isAsesor = msg['sender'] == 'Asesor';
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isAsesor
+                                ? const Color(0xFFE2E8F0)
+                                : const Color(0xFFCBD5E1),
+                            width: isAsesor ? 1.0 : 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Top header strip in card
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14.0,
+                                vertical: 10.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isAsesor
+                                    ? const Color(0xFFF8FAFC)
+                                    : const Color(0xFFF0FDF4),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(11),
+                                  topRight: Radius.circular(11),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 28,
+                                    height: 28,
+                                    decoration: BoxDecoration(
+                                      color: isAsesor
+                                          ? const Color(0xFFEFF6FF)
+                                          : const Color(0xFFDCFCE7),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      isAsesor
+                                          ? Icons.person_outline_rounded
+                                          : Icons.support_agent_rounded,
+                                      size: 15,
+                                      color: isAsesor
+                                          ? const Color(0xFF3B82F6)
+                                          : const Color(0xFF16A34A),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          msg['sender'] ?? '',
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF0F172A),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        // Role Badge
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: isAsesor
+                                                ? const Color(0xFFEFF6FF)
+                                                : const Color(0xFFDCFCE7),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                            border: Border.all(
+                                              color: isAsesor
+                                                  ? const Color(0xFFDBEAFE)
+                                                  : const Color(0xFFBBF7D0),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            isAsesor ? 'Asesor' : 'Admin LSP',
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: isAsesor
+                                                  ? const Color(0xFF2563EB)
+                                                  : const Color(0xFF15803D),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    msg['time'] ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Color(0xFF94A3B8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Message Content
+                            Padding(
+                              padding: const EdgeInsets.all(14.0),
+                              child: Text(
+                                msg['text'] ?? '',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF334155),
+                                  height: 1.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
 
-          // Bottom Reply Action Box
+          // Info/Banner Section (Read-only Ticket)
           Container(
+            width: double.infinity,
             color: Colors.white,
             padding: EdgeInsets.only(
               left: 16.0,
               right: 16.0,
-              top: 10.0,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16.0,
+              top: 12.0,
+              bottom: MediaQuery.of(context).padding.bottom + 16.0,
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _replyController,
-                    decoration: InputDecoration(
-                      hintText: 'Tulis tanggapan...',
-                      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      fillColor: const Color(0xFFF8FAFC),
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 10.0,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: Color(0xFF3B82F6),
+                    size: 18,
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Tiket bersifat satu arah. Silakan tunggu tanggapan dari Admin LSP.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: _sendReply,
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF54A0EB),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.send_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

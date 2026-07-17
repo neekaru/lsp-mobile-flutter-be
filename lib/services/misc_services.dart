@@ -74,7 +74,7 @@ class BeritaService {
   /// Fetch News Detail
   static Future<BeritaDetail?> getBeritaDetail(int id) async {
     try {
-      final response = await _dio.get('${ApiRoutes.berita}/$id');
+      final response = await _dio.get(ApiRoutes.beritaDetail(id));
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data['data'];
         if (data != null) {

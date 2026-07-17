@@ -54,7 +54,7 @@ class DashboardService {
   /// Fetch Asesi Dashboard Summary
   static Future<AsesiDashboardSummary> getAsesiSummary() async {
     try {
-      final response = await _dio.get('/api/asesi/dashboard');
+      final response = await _dio.get(ApiRoutes.asesiDashboard);
 
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data['data'];
@@ -74,8 +74,8 @@ class DashboardService {
   static Future<AsesorDashboardData> getAsesorDashboard({String? tanggal}) async {
     try {
       final url = tanggal != null
-          ? '/api/asesor/dashboard?tanggal=$tanggal'
-          : '/api/asesor/dashboard';
+          ? '${ApiRoutes.asesorDashboard}?tanggal=$tanggal'
+          : ApiRoutes.asesorDashboard;
 
       final response = await _dio.get(url);
 

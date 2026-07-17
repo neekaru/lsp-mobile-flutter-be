@@ -40,11 +40,17 @@ class ApiRoutes {
 
   static const String jadwalOutOfDate = '/api/jadwal/out-of-date';
   static const String jadwalBaru = '/api/jadwal/baru';
+  static const String jadwalActive = '/api/jadwal/active';
+  static const String jadwalCompleted = '/api/jadwal/completed';
   static const String jadwalUpdateStatus = '/api/jadwal/update-status';
+  static const String jadwalUpdateStatusApply = '/api/jadwal/update-status/apply';
   static const String jadwalNotificationsCount =
       '/api/jadwal/notifications/count';
   static const String jadwalWaiting = '/api/jadwal/waiting';
   static const String jadwalDraft = '/api/jadwal/draft';
+  static String jadwalAsesi(int jadwalId) => '/api/jadwal/$jadwalId/asesi';
+  static String jadwalAsesorDetail(int jadwalId) =>
+      '/api/jadwal/$jadwalId/asesor-detail';
 
   // ============================================================================
   // Sertifikat Routes
@@ -57,6 +63,84 @@ class ApiRoutes {
   static const String sertifikatSkema = '/api/sertifikat/skema';
   static const String sertifikatSkemaBidang = '/api/sertifikat/skema/bidang';
   static String sertifikatSkemaDetail(int id) => '/api/sertifikat/skema/$id';
+  static String sertifikatSkemaAsesor(int skemaId) =>
+      '/api/sertifikat/skema/$skemaId/asesor';
+
+  // ============================================================================
+  // Pra-Asesmen Routes
+  // ============================================================================
+
+  static String praAsesmenSkemaInfo(int skemaId) =>
+      '/api/pra-asesmen/skema/$skemaId/info';
+  static String praAsesmenSkemaKompetensi(int skemaId) =>
+      '/api/pra-asesmen/skema/$skemaId/kompetensi';
+  static String praAsesmenSkemaSubmit(int skemaId) =>
+      '/api/pra-asesmen/skema/$skemaId/submit';
+
+  // ============================================================================
+  // Sertifikasi Routes
+  // ============================================================================
+
+  static const String sertifikasiDaftar = '/api/sertifikasi/daftar';
+  static const String sertifikasiStatus = '/api/sertifikasi/status';
+  static String sertifikasiPortofolio(int sertifikasiId) =>
+      '/api/sertifikasi/$sertifikasiId/portofolio';
+  static String sertifikasiPortofolioUpload(int sertifikasiId) =>
+      '/api/sertifikasi/$sertifikasiId/portofolio/upload';
+
+  // ============================================================================
+  // Auth Routes
+  // ============================================================================
+
+  static const String authLogin = '/api/auth/login';
+  static const String authCurrent = '/api/auth/current';
+  static const String authLogout = '/api/auth/logout';
+  static const String authRefresh = '/api/auth/refresh';
+
+  // ============================================================================
+  // Notifications Routes
+  // ============================================================================
+
+  static const String notificationsRegister = '/api/notifications/register';
+
+  // ============================================================================
+  // Asesi Routes
+  // ============================================================================
+
+  static const String asesiDashboard = '/api/asesi/dashboard';
+  static const String asesiInstansi = '/api/asesi/instansi';
+  static const String asesiSertifikat = '/api/asesi/sertifikat';
+  static const String asesiJadwal = '/api/asesi/jadwal';
+  static String asesiSertifikatDetail(int id) => '/api/asesi/sertifikat/$id';
+  static String asesiSertifikatUploadTtd(int id) =>
+      '/api/asesi/sertifikat/$id/upload-ttd';
+  static String asesiSertifikatDownload(int id) =>
+      '/api/asesi/sertifikat/$id/download';
+
+  // ============================================================================
+  // Asesor Routes
+  // ============================================================================
+
+  static const String asesorDashboard = '/api/asesor/dashboard';
+  static const String asesorJadwal = '/api/asesor/jadwal';
+  static const String asesorLaporan = '/api/asesor/laporan';
+  static const String asesorLaporanUploadLampiran =
+      '/api/asesor/laporan/upload-lampiran';
+  static const String asesorSkemaTuk = '/api/asesor/skema-tuk';
+  static const String asesorProfile = '/api/asesor/profile';
+  static const String asesorHonor = '/api/asesor/honor';
+  static const String asesorTiket = '/api/asesor/tiket';
+  static String asesorLaporanDetail(int id) => '/api/asesor/laporan/$id';
+  static String asesorJadwalPeserta(int jadwalId) =>
+      '/api/asesor/jadwal/$jadwalId/peserta';
+  static String asesorJadwalPesertaDetail(int jadwalId, int pesertaId) =>
+      '/api/asesor/jadwal/$jadwalId/peserta/$pesertaId';
+  static String asesorJadwalDetail(int jadwalId) =>
+      '/api/asesor/jadwal/$jadwalId/detail';
+  static String asesorJadwalSuratTugas(int jadwalId) =>
+      '/api/asesor/jadwal/$jadwalId/surat-tugas';
+  static String asesorTiketDetail(int id) => '/api/asesor/tiket/$id';
+  static String asesorTiketReply(int id) => '/api/asesor/tiket/$id/reply';
 
   // ============================================================================
   // Session Routes
@@ -69,6 +153,7 @@ class ApiRoutes {
   // ============================================================================
 
   static const String berita = '/api/berita';
+  static String beritaDetail(int id) => '/api/berita/$id';
 
   // ============================================================================
   // Health Routes

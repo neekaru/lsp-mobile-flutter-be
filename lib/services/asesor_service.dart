@@ -48,7 +48,10 @@ class AsesorService {
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
         return data
-            .map((item) => SebaranSkemaAsesorItem.fromJson(item as Map<String, dynamic>))
+            .map(
+              (item) =>
+                  SebaranSkemaAsesorItem.fromJson(item as Map<String, dynamic>),
+            )
             .toList();
       }
       return [];
@@ -61,7 +64,10 @@ class AsesorService {
   static Future<List<TopProvinsi>> getTopProvinces() async {
     try {
       final response = await _dio.get(
-        ApiRoutes.withLimit(ApiRoutes.dashboardAsesorDistribution, DataLimit.five.value),
+        ApiRoutes.withLimit(
+          ApiRoutes.dashboardAsesorDistribution,
+          DataLimit.five.value,
+        ),
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -94,7 +100,10 @@ class AsesorService {
   static Future<List<TopMitra>> getTopMitras() async {
     try {
       final response = await _dio.get(
-        ApiRoutes.withLimit(ApiRoutes.dashboardPenyebaranMitra, DataLimit.five.value),
+        ApiRoutes.withLimit(
+          ApiRoutes.dashboardPenyebaranMitra,
+          DataLimit.five.value,
+        ),
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -106,7 +115,9 @@ class AsesorService {
           int count = item['jumlah'] ?? 0;
           double percent = totalMitra > 0 ? (count / totalMitra * 100) : 0.0;
           final List<dynamic> mitras = item['mitra'] ?? [];
-          String partnerName = mitras.isNotEmpty ? mitras[0] : item['kota'] ?? '';
+          String partnerName = mitras.isNotEmpty
+              ? mitras[0]
+              : item['kota'] ?? '';
           list.add(
             TopMitra(
               name: partnerName,
@@ -129,7 +140,10 @@ class AsesorService {
   static Future<SkemaStats> getSkemaStats() async {
     try {
       final response = await _dio.get(
-        ApiRoutes.withLimit(ApiRoutes.dashboardSertifikatPerSkema, DataLimit.thousand.value),
+        ApiRoutes.withLimit(
+          ApiRoutes.dashboardSertifikatPerSkema,
+          DataLimit.thousand.value,
+        ),
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -154,7 +168,11 @@ class AsesorService {
 
   static List<TopProvinsi> _getFallbackProvinces() {
     return const [
-      TopProvinsi(name: 'Sampit, Kalimantan Tengah', value: 214, percentage: '17,2%'),
+      TopProvinsi(
+        name: 'Sampit, Kalimantan Tengah',
+        value: 214,
+        percentage: '17,2%',
+      ),
       TopProvinsi(name: 'Yogyakarta', value: 100, percentage: '15,9%'),
       TopProvinsi(name: 'Sumatra Utara', value: 62, percentage: '12,3%'),
       TopProvinsi(name: 'Semarang', value: 200, percentage: '11,4%'),
@@ -164,7 +182,11 @@ class AsesorService {
 
   static List<TopMitra> _getFallbackMitras() {
     return const [
-      TopMitra(name: 'LKP Gen Komputer Sampit', value: 214, percentage: '17,2%'),
+      TopMitra(
+        name: 'LKP Gen Komputer Sampit',
+        value: 214,
+        percentage: '17,2%',
+      ),
       TopMitra(name: 'LPP Enter Pangkalanbun', value: 100, percentage: '15,9%'),
       TopMitra(name: 'TUK Tanascom Lempuing', value: 62, percentage: '12,3%'),
       TopMitra(name: 'SMKN 2 Jakarta', value: 200, percentage: '11,4%'),
@@ -175,7 +197,7 @@ class AsesorService {
   /// 6. Daftar Laporan Tugas Asesor
   static Future<List<Map<String, dynamic>>> getLaporanList() async {
     try {
-      final response = await _dio.get('/api/asesor/laporan');
+      final response = await _dio.get(ApiRoutes.asesorLaporan);
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data'] ?? [];
         return list.map((item) => item as Map<String, dynamic>).toList();
@@ -189,7 +211,7 @@ class AsesorService {
   /// 7. Detail Laporan Tugas Asesor
   static Future<Map<String, dynamic>?> getLaporanDetail(int id) async {
     try {
-      final response = await _dio.get('/api/asesor/laporan/$id');
+      final response = await _dio.get(ApiRoutes.asesorLaporanDetail(id));
       if (response.statusCode == 200 && response.data != null) {
         return response.data['data'] as Map<String, dynamic>?;
       }
@@ -202,7 +224,7 @@ class AsesorService {
   /// 8. Daftar Skema & TUK (Dropdown)
   static Future<List<Map<String, dynamic>>> getSkemaTukDropdown() async {
     try {
-      final response = await _dio.get('/api/asesor/skema-tuk');
+      final response = await _dio.get(ApiRoutes.asesorSkemaTuk);
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data'] ?? [];
         return list.map((item) => item as Map<String, dynamic>).toList();
@@ -220,7 +242,7 @@ class AsesorService {
         'file': await MultipartFile.fromFile(filePath),
       });
       final response = await _dio.post(
-        '/api/asesor/laporan/upload-lampiran',
+        ApiRoutes.asesorLaporanUploadLampiran,
         data: formData,
       );
       if (response.statusCode == 200 && response.data != null) {
@@ -246,7 +268,7 @@ class AsesorService {
   }) async {
     try {
       final response = await _dio.post(
-        '/api/asesor/laporan',
+        ApiRoutes.asesorLaporan,
         data: {
           'jadwal_id': jadwalId,
           'nama_asesor': namaAsesor,
@@ -259,7 +281,8 @@ class AsesorService {
           'lampiran_pendukung': lampiranPendukung,
         },
       );
-      if ((response.statusCode == 200 || response.statusCode == 201) && response.data != null) {
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data != null) {
         return response.data['data'] as Map<String, dynamic>?;
       }
       return null;
@@ -271,7 +294,7 @@ class AsesorService {
   /// 11. Profil Asesor (Data Diri)
   static Future<Map<String, dynamic>?> getProfile() async {
     try {
-      final response = await _dio.get('/api/asesor/profile');
+      final response = await _dio.get(ApiRoutes.asesorProfile);
       if (response.statusCode == 200 && response.data != null) {
         return response.data['data'] as Map<String, dynamic>?;
       }
@@ -295,10 +318,7 @@ class AsesorService {
       if (instansi != null) payload['instansi'] = instansi;
       if (fotoProfilUrl != null) payload['foto_profil_url'] = fotoProfilUrl;
 
-      final response = await _dio.put(
-        '/api/asesor/profile',
-        data: payload,
-      );
+      final response = await _dio.put(ApiRoutes.asesorProfile, data: payload);
       if (response.statusCode == 200 && response.data != null) {
         return response.data['data'] as Map<String, dynamic>?;
       }
@@ -317,7 +337,7 @@ class AsesorService {
         queryParams['periode'] = periode;
       }
       final response = await _dio.get(
-        '/api/asesor/honor',
+        ApiRoutes.asesorHonor,
         queryParameters: queryParams,
       );
       if (response.statusCode == 200 && response.data != null) {
@@ -332,7 +352,7 @@ class AsesorService {
   /// 14. Daftar Tiket Bantuan Asesor
   static Future<List<Map<String, dynamic>>> getTiketList() async {
     try {
-      final response = await _dio.get('/api/asesor/tiket');
+      final response = await _dio.get(ApiRoutes.asesorTiket);
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data'] ?? [];
         return list.map((item) => item as Map<String, dynamic>).toList();
@@ -345,9 +365,9 @@ class AsesorService {
   }
 
   /// 15. Detail Tiket Bantuan Asesor
-  static Future<Map<String, dynamic>?> getTiketDetail(String id) async {
+  static Future<Map<String, dynamic>?> getTiketDetail(int id) async {
     try {
-      final response = await _dio.get('/api/asesor/tiket/$id');
+      final response = await _dio.get(ApiRoutes.asesorTiketDetail(id));
       if (response.statusCode == 200 && response.data != null) {
         return response.data['data'] as Map<String, dynamic>?;
       }
@@ -367,15 +387,16 @@ class AsesorService {
   }) async {
     try {
       final response = await _dio.post(
-        '/api/asesor/tiket',
+        ApiRoutes.asesorTiket,
         data: {
           'judul': judul,
           'pesan': pesan,
-          'nama_lengkap':? namaLengkap,
+          'nama_lengkap': ?namaLengkap,
           'dokumentasi_url': dokumentasiUrl ?? '',
         },
       );
-      if ((response.statusCode == 200 || response.statusCode == 201) && response.data != null) {
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data != null) {
         return response.data['data'] as Map<String, dynamic>?;
       }
       return null;
@@ -386,13 +407,11 @@ class AsesorService {
   }
 
   /// 17. Kirim Tanggapan / Reply Chat Tiket Bantuan
-  static Future<Map<String, dynamic>?> replyTiket(String id, String text) async {
+  static Future<Map<String, dynamic>?> replyTiket(int id, String text) async {
     try {
       final response = await _dio.post(
-        '/api/asesor/tiket/$id/reply',
-        data: {
-          'text': text,
-        },
+        ApiRoutes.asesorTiketReply(id),
+        data: {'text': text},
       );
       if (response.statusCode == 200 && response.data != null) {
         return response.data['data'] as Map<String, dynamic>?;

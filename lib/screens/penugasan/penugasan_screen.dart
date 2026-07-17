@@ -5,6 +5,7 @@ import '../../widgets/penugasan/penugasan_list_item.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/auth_repository.dart';
 import '../../services/api_service.dart';
+import '../../helpers/api_routes.dart';
 import 'penugasan_detail_screen.dart';
 
 class PenugasanScreen extends StatefulWidget {
@@ -78,17 +79,17 @@ class _PenugasanScreenState extends State<PenugasanScreen>
         ApiService.getJadwalList(
           limit: 100,
           statusJadwal: '0', // Menunggu
-          customRoutePath: '/api/asesor/jadwal',
+          customRoutePath: ApiRoutes.asesorJadwal,
         ),
         ApiService.getJadwalList(
           limit: 100,
           statusJadwal: '1,4', // Selesai / Pelaporan
-          customRoutePath: '/api/asesor/jadwal',
+          customRoutePath: ApiRoutes.asesorJadwal,
         ),
         ApiService.getJadwalList(
           limit: 100,
           statusJadwal: '2', // Dibatalkan
-          customRoutePath: '/api/asesor/jadwal',
+          customRoutePath: ApiRoutes.asesorJadwal,
         ),
       ]);
 

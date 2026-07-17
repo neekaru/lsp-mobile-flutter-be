@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:januscaler_flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'api_service.dart';
 import 'auth_repository.dart';
+import '../helpers/api_routes.dart';
 import '../main.dart';
 import '../widgets/top_notification_banner.dart';
 import 'app_notification_storage.dart';
@@ -104,7 +105,7 @@ class NotificationService {
     try {
       final platform = Platform.isAndroid ? 'android' : 'ios';
       final response = await ApiService.dio.post(
-        '/api/notifications/register',
+        ApiRoutes.notificationsRegister,
         data: {
           'device_token': fcmToken,
           'platform': platform,

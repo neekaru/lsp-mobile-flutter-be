@@ -85,9 +85,9 @@ class JadwalService {
       String routePath = customRoutePath ?? ApiRoutes.jadwalOutOfDate;
       if (customRoutePath == null && statusJadwal != null) {
         if (statusJadwal == '3') {
-          routePath = '/api/jadwal/active';
+          routePath = ApiRoutes.jadwalActive;
         } else if (statusJadwal.contains('1') || statusJadwal.contains('4')) {
-          routePath = '/api/jadwal/completed';
+          routePath = ApiRoutes.jadwalCompleted;
         }
       }
 
@@ -132,7 +132,7 @@ class JadwalService {
   }) async {
     try {
       final response = await _dio.post(
-        '${ApiRoutes.jadwalUpdateStatus}/apply',
+        ApiRoutes.jadwalUpdateStatusApply,
         data: {
           'jadwal_ids': [jadwalId],
           'rules': [rule],
@@ -161,7 +161,7 @@ class JadwalService {
   static Future<AsesiListResponse> getAsesiList(int jadwalId) async {
     try {
       final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
-      final path = isAsesor ? '/api/asesor/jadwal/$jadwalId/peserta' : '/api/jadwal/$jadwalId/asesi';
+      final path = isAsesor ? ApiRoutes.asesorJadwalPeserta(jadwalId) : ApiRoutes.jadwalAsesi(jadwalId);
       final response = await _dio.get(path);
 
       if (response.statusCode == 200 && response.data != null) {
@@ -234,7 +234,7 @@ class JadwalService {
     }
 
     try {
-      final response = await _dio.get('/api/asesor/jadwal/$jadwalId/peserta/$pesertaId');
+      final response = await _dio.get(ApiRoutes.asesorJadwalPesertaDetail(jadwalId, pesertaId));
       if (response.statusCode == 200 && response.data != null) {
         return ParticipantDetailResponse.fromJson(response.data);
       }
@@ -287,7 +287,7 @@ class JadwalService {
 
     try {
       final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
-      final path = isAsesor ? '/api/asesor/jadwal/$jadwalId/detail' : '/api/jadwal/$jadwalId/asesor-detail';
+      final path = isAsesor ? ApiRoutes.asesorJadwalDetail(jadwalId) : ApiRoutes.jadwalAsesorDetail(jadwalId);
       final response = await _dio.get(path);
 
       if (response.statusCode == 200 && response.data != null) {
@@ -303,7 +303,7 @@ class JadwalService {
   /// Fetch Surat Tugas PDF URL for Asesor
   static Future<String?> getSuratTugas(int jadwalId) async {
     try {
-      final response = await _dio.get('/api/asesor/jadwal/$jadwalId/surat-tugas');
+      final response = await _dio.get(ApiRoutes.asesorJadwalSuratTugas(jadwalId));
       if (response.statusCode == 200 && response.data != null) {
         if (response.data['status'] == 'success') {
           return response.data['data']?['file_url'] as String?;

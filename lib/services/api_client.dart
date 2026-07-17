@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import '../helpers/api_routes.dart';
 import 'token_storage.dart';
 import 'auth_repository.dart';
 
@@ -70,7 +71,7 @@ class ApiClient {
                     if (refreshToken != null && refreshToken.isNotEmpty) {
                       final refreshResponse =
                           await Dio(BaseOptions(baseUrl: baseUrl)).post(
-                            '/api/auth/refresh',
+                            ApiRoutes.authRefresh,
                             data: {'refresh_token': refreshToken},
                           );
 

@@ -186,7 +186,7 @@ class SertifikatService {
     try {
       final token = await TokenStorage.instance.getAccessToken();
       final response = await _dio.get(
-        '/api/sertifikat/skema/$skemaId/asesor',
+        ApiRoutes.sertifikatSkemaAsesor(skemaId),
         options: Options(
           headers: {
             if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
@@ -210,7 +210,7 @@ class SertifikatService {
     try {
       final token = await TokenStorage.instance.getAccessToken();
       final response = await _dio.get(
-        '/api/pra-asesmen/skema/$skemaId/info',
+        ApiRoutes.praAsesmenSkemaInfo(skemaId),
         options: Options(
           headers: {
             if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
@@ -233,7 +233,7 @@ class SertifikatService {
     try {
       final token = await TokenStorage.instance.getAccessToken();
       final response = await _dio.get(
-        '/api/pra-asesmen/skema/$skemaId/kompetensi',
+        ApiRoutes.praAsesmenSkemaKompetensi(skemaId),
         options: Options(
           headers: {
             if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
@@ -256,7 +256,7 @@ class SertifikatService {
     try {
       final token = await TokenStorage.instance.getAccessToken();
       final response = await _dio.post(
-        '/api/pra-asesmen/skema/$skemaId/submit',
+        ApiRoutes.praAsesmenSkemaSubmit(skemaId),
         data: body,
         options: Options(
           headers: {

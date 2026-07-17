@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import '../helpers/api_routes.dart';
 import 'api_client.dart';
 
 class AsesiService {
@@ -8,7 +9,7 @@ class AsesiService {
   /// 1. Get Instansi Profile (GET /api/asesi/instansi)
   static Future<Map<String, dynamic>?> getInstansi() async {
     try {
-      final response = await _dio.get('/api/asesi/instansi');
+      final response = await _dio.get(ApiRoutes.asesiInstansi);
       if (response.statusCode == 200 && response.data != null) {
         return response.data['data'] as Map<String, dynamic>?;
       }
@@ -23,7 +24,7 @@ class AsesiService {
   static Future<bool> updateInstansi(String tipeInstansi, Map<String, String> dataInstansi) async {
     try {
       final response = await _dio.put(
-        '/api/asesi/instansi',
+        ApiRoutes.asesiInstansi,
         data: {
           'tipe_instansi': tipeInstansi,
           'data_instansi': dataInstansi,
@@ -39,7 +40,7 @@ class AsesiService {
   /// 3. List Sertifikat (GET /api/asesi/sertifikat)
   static Future<List<Map<String, dynamic>>> getSertifikatList() async {
     try {
-      final response = await _dio.get('/api/asesi/sertifikat');
+      final response = await _dio.get(ApiRoutes.asesiSertifikat);
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data'] ?? [];
         return list.map((e) => e as Map<String, dynamic>).toList();
@@ -54,7 +55,7 @@ class AsesiService {
   /// 4. Detail Sertifikat (GET /api/asesi/sertifikat/:id)
   static Future<Map<String, dynamic>?> getSertifikatDetail(int id) async {
     try {
-      final response = await _dio.get('/api/asesi/sertifikat/$id');
+      final response = await _dio.get(ApiRoutes.asesiSertifikatDetail(id));
       if (response.statusCode == 200 && response.data != null) {
         return response.data['data'] as Map<String, dynamic>?;
       }
@@ -86,7 +87,7 @@ class AsesiService {
       }
 
       final response = await _dio.post(
-        '/api/asesi/sertifikat/$id/upload-ttd',
+        ApiRoutes.asesiSertifikatUploadTtd(id),
         data: formData,
       );
       if (response.statusCode == 200 && response.data != null) {
@@ -102,7 +103,7 @@ class AsesiService {
   /// 6. Download Sertifikat PDF URL (GET /api/asesi/sertifikat/:id/download)
   static Future<String?> downloadSertifikat(int id) async {
     try {
-      final response = await _dio.get('/api/asesi/sertifikat/$id/download');
+      final response = await _dio.get(ApiRoutes.asesiSertifikatDownload(id));
       if (response.statusCode == 200 && response.data != null) {
         return response.data['data']?['download_url'] as String?;
       }
@@ -128,7 +129,7 @@ class AsesiService {
         payload['tanggal_rencana'] = tanggalRencana;
       }
       final response = await _dio.post(
-        '/api/sertifikasi/daftar',
+        ApiRoutes.sertifikasiDaftar,
         data: payload,
       );
       if ((response.statusCode == 200 || response.statusCode == 201) && response.data != null) {
@@ -145,7 +146,7 @@ class AsesiService {
   static Future<Map<String, dynamic>?> getSertifikasiStatus(int skemaId) async {
     try {
       final response = await _dio.get(
-        '/api/sertifikasi/status',
+        ApiRoutes.sertifikasiStatus,
         queryParameters: {'skema_id': skemaId},
       );
       if (response.statusCode == 200 && response.data != null) {
@@ -162,7 +163,7 @@ class AsesiService {
   static Future<bool> submitPraAsesmen(int skemaId, List<Map<String, dynamic>> evaluasi) async {
     try {
       final response = await _dio.post(
-        '/api/pra-asesmen/skema/$skemaId/submit',
+        ApiRoutes.praAsesmenSkemaSubmit(skemaId),
         data: {
           'evaluasi': evaluasi,
         },
@@ -177,7 +178,7 @@ class AsesiService {
   /// 10. List Portofolio (GET /api/sertifikasi/:id/portofolio)
   static Future<List<Map<String, dynamic>>> getPortofolioList(int sertifikasiId) async {
     try {
-      final response = await _dio.get('/api/sertifikasi/$sertifikasiId/portofolio');
+      final response = await _dio.get(ApiRoutes.sertifikasiPortofolio(sertifikasiId));
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data']?['documents'] ?? [];
         return list.map((e) => e as Map<String, dynamic>).toList();
@@ -197,7 +198,7 @@ class AsesiService {
         'file': await MultipartFile.fromFile(filePath),
       });
       final response = await _dio.post(
-        '/api/sertifikasi/$sertifikasiId/portofolio/upload',
+        ApiRoutes.sertifikasiPortofolioUpload(sertifikasiId),
         data: formData,
       );
       if (response.statusCode == 200 && response.data != null) {
