@@ -35,8 +35,14 @@ class AuthSessionService {
         ApiRoutes.sessions,
         data: {'id': id},
       );
-      if (response.statusCode == 200 && response.data != null) {
-        return response.data['data'] == true;
+      if (response.statusCode == 200) {
+        if (response.data != null && response.data is Map) {
+          final data = response.data as Map;
+          return data['status'] == 'success' ||
+              data['data'] == true ||
+              data['success'] == true;
+        }
+        return true;
       }
       return false;
     } catch (e) {

@@ -275,6 +275,9 @@ class MainNavigatorState extends State<MainNavigator> {
 
   void _handleTokenExpired() {
     if (!mounted) return;
+    if (AuthRepository.currentUserInstance == null) return;
+
+    AuthRepository.currentUserInstance = null;
 
     showDialog(
       context: context,
