@@ -12,7 +12,6 @@ import 'keamanan_screen.dart';
 import '../../widgets/profile/ringkasan_widget.dart';
 import '../../widgets/profile/menu_profil_widget.dart';
 import 'public_profile_screen.dart';
-import '../sertifikat/asesi_sertifikat_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -603,14 +602,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const KeamananScreen(),
-                        ),
-                      );
-                    },
-                    onSertifikasiTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AsesiSertifikatScreen(),
                         ),
                       );
                     },

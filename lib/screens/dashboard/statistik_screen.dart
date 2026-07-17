@@ -5,7 +5,8 @@ import '../../models/jadwal_models.dart';
 import '../../helpers/number_format_helper.dart';
 import '../../widgets/statistik/indonesia_map.dart';
 import '../../widgets/statistik/statistik_app_bar.dart';
-import 'sertifikat_statistik_screen.dart';
+import '../../widgets/statistik/admin_statistik_baru.dart';
+// import 'sertifikat_statistik_screen.dart'; // Unused now
 
 class StatistikScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -17,10 +18,12 @@ class StatistikScreen extends StatefulWidget {
 }
 
 class _StatistikScreenState extends State<StatistikScreen> {
-  String _currentView = 'distribusi'; // 'distribusi' atau 'sertifikat'
+  // String _currentView = 'distribusi'; // Commented out unused field to fix warning
 
   @override
   Widget build(BuildContext context) {
+    // Commented out legacy statistic views to use the new dashboard widget
+    /*
     if (_currentView == 'sertifikat') {
       return SertifikatStatistikScreen(
         onBackToHome: widget.onBackToHome,
@@ -43,6 +46,11 @@ class _StatistikScreenState extends State<StatistikScreen> {
           });
         }
       },
+    );
+    */
+
+    return AdminStatistikBaru(
+      onBackToHome: widget.onBackToHome,
     );
   }
 }

@@ -647,160 +647,314 @@ Seluruh endpoint wajib mengembalikan format respons error JSON terstandar jika t
 
 ---
 
-## 5. Kebutuhan API Role Admin & Audit Mock Data
+### 5. API Dashboard & Statistik Admin (Terintegrasi)
 
-Dokumen ini memuat dua hal:
-1. **Endpoint baru yang dibutuhkan untuk role Admin** (belum diimplementasikan di backend).
-2. **Daftar fitur yang masih menggunakan data statis/mock** dan perlu diganti dengan data real dari API.
+Seluruh endpoint dashboard admin di bawah ini bersifat **public (tanpa auth)** mengikuti pola existing `/api/dashboard/*` untuk kemudahan rendering halaman dashboard & statistik.
 
 ---
 
-### A. Endpoint Admin yang Dibutuhkan
+### Status Endpoint Dashboard & Statistik Admin
 
-#### 5.1. Daftar Pengumuman (Baru!)
-
-Widget `AdminBantuanPengumuman` di `dashboard_screen.dart` menampilkan satu kartu "Pengumuman Baru" yang saat ini **hardcoded** dengan teks statis:
-- Judul: `"Pemeliharaan Sistem"`
-- Tanggal: `"23 Jul 2026"`
-- Isi: `"Sistem akan melakukan pemeliharaan pada 25 Juli pukul 13:00 - 15:00 WIB"`
-
-Widget ini ditampilkan untuk **semua role yang sudah login** (Admin, Asesi, Asesor).
-
-**Endpoint yang dibutuhkan:**
-
-| No | Metode | Endpoint | Deskripsi | Role |
-|----|--------|----------|-----------|------|
-| 1  | `GET`  | `/api/pengumuman` | Mengambil daftar pengumuman aktif (terbaru, non-expired). | Semua (Admin, Asesi, Asesor) |
-| 2  | `POST` | `/api/admin/pengumuman` | Membuat pengumuman baru. | Admin only |
-| 3  | `PUT`  | `/api/admin/pengumuman/:id` | Memperbarui pengumuman. | Admin only |
-| 4  | `DELETE` | `/api/admin/pengumuman/:id` | Menghapus/menonaktifkan pengumuman. | Admin only |
-
-**Response `GET /api/pengumuman` (200 OK):**
-```json
-{
-  "status": "success",
-  "data": [
-    {
-      "id": 1,
-      "judul": "Pemeliharaan Sistem",
-      "isi": "Sistem akan melakukan pemeliharaan pada 25 Juli pukul 13:00 - 15:00 WIB",
-      "tanggal": "2026-07-23",
-      "tanggal_kadaluarsa": "2026-07-26",
-      "is_aktif": true
-    }
-  ]
-}
-```
-
-**Request Body `POST /api/admin/pengumuman`:**
-```json
-{
-  "judul": "Pemeliharaan Sistem",
-  "isi": "Sistem akan melakukan pemeliharaan pada 25 Juli pukul 13:00 - 15:00 WIB",
-  "tanggal": "2026-07-23",
-  "tanggal_kadaluarsa": "2026-07-26"
-}
-```
+| # | Metode | Endpoint | Status | Catatan |
+|---|--------|----------|--------|---------|
+| A1 | GET | `/api/dashboard/summary` | ✅ Updated | + field counter antrean (`pendaftaran_asesi_baru`, `honor_asesor_belum_dibayar`) |
+| A2 | GET | `/api/dashboard/assesmen-graph` | ✅ Updated | + `kompeten`, `belum_kompeten`, `total` (alias `jumlah_asesmen`) |
+| A3 | GET | `/api/dashboard/asesor-distribution` | ✅ Live | Tidak diubah |
+| A4 | GET | `/api/dashboard/penyebaran-mitra` | ✅ Live | Tidak diubah |
+| A5 | GET | `/api/dashboard/statistik-overview` | ✅ Live | Tidak diubah |
+| A6 | GET | `/api/dashboard/asesor-stats` | ✅ Updated | + `trend_total_asesor` flat field di level root `data` |
+| A7 | GET | `/api/dashboard/sertifikat-per-skema` | ✅ Live | Tidak diubah |
+| A8 | GET | `/api/dashboard/asesor-homebase` | 🆕 BARU | List asesor + homebase + assessments |
 
 ---
 
-#### 5.2. Tiket Bantuan (Role Admin)
-
-Widget `TiketBantuanScreen` & `DetailTiketScreen` sudah diimplementasikan untuk sisi **Asesor** (sebagai pengirim tiket). Namun admin perlu bisa melihat dan membalas tiket tersebut.
-
-Alur tiket bersifat **satu arah dari User ke Admin**:
-- **User (Asesor/Asesi)**: Membuat tiket → Melihat riwayat tiket (read-only, tidak bisa balas).
-- **Admin**: Melihat semua tiket masuk → Membalas tiket.
-
-**Endpoint yang dibutuhkan untuk Admin:**
-
-| No | Metode | Endpoint | Deskripsi |
-|----|--------|----------|-----------|
-| 5  | `GET`  | `/api/admin/tiket` | Daftar semua tiket bantuan dari semua user. |
-| 6  | `GET`  | `/api/admin/tiket/:id` | Detail tiket termasuk riwayat pesan. |
-| 7  | `POST` | `/api/admin/tiket/:id/reply` | Admin membalas tiket (satu arah, hanya admin yang bisa reply). |
-| 8  | `PUT`  | `/api/admin/tiket/:id/status` | Mengubah status tiket (`Proses` → `Selesai` / `Batal`). |
-
-**Response `GET /api/admin/tiket` (200 OK):**
-```json
-{
-  "status": "success",
-  "data": [
-    {
-      "id": 12,
-      "judul": "Tidak bisa login",
-      "kategori": "Akses Sistem",
-      "pengirim": "Muhammad Hanafi",
-      "role_pengirim": "asesor",
-      "status": "Proses",
-      "tanggal": "2026-07-17"
-    }
-  ]
-}
-```
-
-**Response `GET /api/admin/tiket/:id` (200 OK):**
+### A1. Dashboard Summary & Counters `[REUSED - UPDATED]`
+* **Method**: `GET`
+* **Endpoint**: `/api/dashboard/summary`
+* **Deskripsi**: Mengambil metrik kuantitatif utama dan jumlah antrean persetujuan (Approve Jadwal, Laporan, Pendaftaran baru, Honor) untuk dashboard Admin.
+* **Headers**: None (Public Endpoint).
+* **Parameter Request**: None.
+* **Audit Kolom / Field Response**:
+  - **Field yang Sudah Ada (Existing)**:
+    - `total_asesmen` (int): Total asesmen keseluruhan.
+    - `total_pemegang_sertifikat` (int): Total pemegang sertifikat.
+    - `total_asesor` (int): Total asesor terdaftar.
+    - `total_tuk` (int): Jumlah TUK terdaftar.
+    - `total_asesi` (int): Jumlah asesi terdaftar.
+    - `jadwal_belum_terkonfirmasi` (int): Jumlah antrean konfirmasi jadwal.
+    - `surat_tugas_menunggu_pengiriman` (int): Jumlah antrean laporan surat tugas.
+    - `trends` (Object): Objek persentase pertumbuhan dibanding bulan sebelumnya (asesmen, pemegang_sertifikat, asesor, tuk).
+  - **Field Baru yang Ditambahkan (Updated)**:
+    - `pendaftaran_asesi_baru` (int): Antrean pendaftaran $\rightarrow$ dihitung dari tabel `lsp275_asesi` dengan kriteria `COALESCE(jadwal_id, 0) = 0`.
+    - `honor_asesor_belum_dibayar` (int): Antrean honor $\rightarrow$ dihitung dari tabel `lsp275_mapping_asesor` di mana `status_pembayaran_honor = '0'`, `is_complete = '1'`, dan kolom `honor` terisi (bukan null/empty/`0`).
+* **Mapping Model Flutter (`DashboardSummary`)**:
+  - `total_asesmen` $\rightarrow$ `DashboardSummary.totalAsesmen`
+  - `total_pemegang_sertifikat` $\rightarrow$ `DashboardSummary.totalPemegangSertifikat`
+  - `total_asesor` $\rightarrow$ `DashboardSummary.totalAsesor`
+  - `total_tuk` $\rightarrow$ `DashboardSummary.totalTuk`
+  - `total_asesi` $\rightarrow$ `DashboardSummary.totalAsesi`
+  - `jadwal_belum_terkonfirmasi` $\rightarrow$ `DashboardSummary.jadwalBelumTerkonfirmasi` (Konter "Approve Jadwal")
+  - `surat_tugas_menunggu_pengiriman` $\rightarrow$ `DashboardSummary.suratTugasMenungguPengiriman` (Konter "Laporan")
+  - `pendaftaran_asesi_baru` $\rightarrow$ `DashboardSummary.pendaftaranAsesiBaru` (Konter "Pendaftaran")
+  - `honor_asesor_belum_dibayar` $\rightarrow$ `DashboardSummary.honorAsesorBelumDibayar` (Konter "Honor")
+* **Response (200 OK)**:
 ```json
 {
   "status": "success",
   "data": {
-    "id": 12,
-    "title": "Tidak bisa login",
-    "category": "Akses Sistem",
-    "status": "Proses",
-    "date": "2026-07-17",
-    "messages": [
-      {
-        "sender": "Muhammad Hanafi",
-        "role": "asesor",
-        "time": "2026-07-17T08:00:00Z",
-        "text": "Saya tidak bisa login sejak kemarin."
+    "total_asesmen": 45,
+    "total_pemegang_sertifikat": 128,
+    "total_asesor": 23,
+    "total_tuk": 8,
+    "total_asesi": 342,
+    "jadwal_belum_terkonfirmasi": 10,
+    "surat_tugas_menunggu_pengiriman": 4,
+    "pendaftaran_asesi_baru": 12,
+    "honor_asesor_belum_dibayar": 4,
+    "trends": {
+      "asesmen": {
+        "formatted": "+12,5%"
       },
-      {
-        "sender": "Admin",
-        "role": "admin",
-        "time": "2026-07-17T09:30:00Z",
-        "text": "Baik, sedang kami cek. Mohon tunggu."
+      "pemegang_sertifikat": {
+        "formatted": "+8,3%"
+      },
+      "asesor": {
+        "formatted": "+4,2%"
+      },
+      "tuk": {
+        "formatted": "+0,0%"
       }
-    ]
+    },
+    "meta": {
+      "is_current_month": true,
+      "note": "Perubahan dihitung dibanding bulan lalu"
+    }
   }
 }
 ```
 
-> **Catatan Penting (Flutter):** Di sisi Flutter, field `sender` pada tiap pesan digunakan untuk menentukan tampilan badge peran:
-> - Jika `sender == "Asesor"` → Badge biru **"Asesor"**, avatar `person_outline`.
-> - Selain itu (misal Admin) → Badge hijau **"Admin LSP"**, avatar `support_agent`.
+---
+
+### A2. Tren Asesmen Bulanan (Grafik) `[REUSED - UPDATED]`
+* **Method**: `GET`
+* **Endpoint**: `/api/dashboard/assesmen-graph`
+* **Deskripsi**: Mengambil data historis jumlah asesmen bulanan untuk merender grafik tren.
+* **Headers**: None (Public Endpoint).
+* **Parameter Request**: None.
+* **Audit Kolom / Field Response**:
+  - **Field yang Sudah Ada & Diperbarui**:
+    - `label` (String): Label nama bulan (misal "Jan 2026", "Jun 2026").
+    - `jumlah_asesmen` (int): Jumlah asesmen bulanan dari snapshot `dashboard_jadwal_bulanan`.
+    - `total` (int): Alias dari `jumlah_asesmen` (untuk kecocokan FE).
+    - `kompeten` (int): Jumlah asesi berstatus kompeten, diperoleh dari live join `lsp275_jadual_asesmen` + asesi (`terbitkan_sertifikat`).
+    - `belum_kompeten` (int): Jumlah asesi belum kompeten, diperoleh dari live join `lsp275_jadual_asesmen` + asesi (`terbitkan_sertifikat`).
+    - `is_current_month` (bool): Flag penanda bulan berjalan saat ini.
+* **Mapping Model Flutter (`MonthlyAssessment`)**:
+  - `label` $\rightarrow$ `MonthlyAssessment.label` (Label X-Axis chart)
+  - `total` / `jumlah_asesmen` $\rightarrow$ `MonthlyAssessment.total` (Tinggi bar chart)
+  - `kompeten` $\rightarrow$ `MonthlyAssessment.kompeten`
+  - `belum_kompeten` $\rightarrow$ `MonthlyAssessment.belumKompeten`
+  - `is_current_month` $\rightarrow$ `MonthlyAssessment.isCurrentMonth`
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "label": "Jan 2026",
+      "jumlah_asesmen": 12,
+      "total": 12,
+      "kompeten": 10,
+      "belum_kompeten": 2,
+      "is_current_month": false
+    },
+    {
+      "label": "Jun 2026",
+      "jumlah_asesmen": 45,
+      "total": 45,
+      "kompeten": 40,
+      "belum_kompeten": 5,
+      "is_current_month": true
+    }
+  ]
+}
+```
 
 ---
 
-### B. Audit Mock Data — Fitur yang Masih Statis
-
-Berikut adalah daftar lengkap fitur yang saat ini menggunakan data statis (hardcoded) dan **perlu dikoneksikan ke API real**:
-
-| No | Lokasi di Flutter | Data yang Masih Mock | Endpoint yang Dibutuhkan | Prioritas |
-|----|-------------------|----------------------|--------------------------|-----------|
-| 1 | `admin_bantuan_pengumuman.dart` | Seluruh kartu "Pengumuman Baru": judul, tanggal, isi semuanya hardcoded | `GET /api/pengumuman` | 🔴 Tinggi |
-| 2 | `admin_bantuan_pengumuman.dart` | Tombol "Lihat semua" hanya menampilkan SnackBar, tidak navigasi ke halaman list pengumuman | `GET /api/pengumuman` + screen baru | 🔴 Tinggi |
-| 3 | `tentang_sistem_screen.dart` | Konten "Tentang Sistem" hardcoded — dibiarkan dari aplikasi | *(tidak perlu API)* | 🟢 Diabaikan |
-| 4 | `ketentuan_privasi_screen.dart` | Isi kebijakan privasi hardcoded — dibiarkan dari aplikasi | *(tidak perlu API)* | 🟢 Diabaikan |
-| 5 | `syarat_ketentuan_screen.dart` | Isi syarat & ketentuan hardcoded — dibiarkan dari aplikasi | *(tidak perlu API)* | 🟢 Diabaikan |
-| 6 | `faq_screen.dart` | FAQ hardcoded — dibiarkan dari aplikasi | *(tidak perlu API)* | 🟢 Diabaikan |
-| 7 | `panduan_sertifikasi_screen.dart` | Panduan hardcoded — dibiarkan dari aplikasi | *(tidak perlu API)* | 🟢 Diabaikan |
-| 8 | `asesor_service.dart` — `_getFallbackProvinces()` | Data fallback provinsi masih pakai data Kalimantan Tengah palsu | Sudah ada `GET /api/dashboard/asesor-distribution`, perbaiki response handling | 🟡 Sedang |
-| 9 | `asesor_service.dart` — `_getFallbackMitras()` | Data fallback mitra masih pakai data LKP palsu | Sudah ada `GET /api/dashboard/penyebaran-mitra`, perbaiki response handling | 🟡 Sedang |
-| 10 | `tiket_bantuan_screen.dart` & `detail_tiket_screen.dart` | Endpoint tiket untuk Asesor sudah real (`/api/asesor/tiket`), tetapi belum ada endpoint untuk **Admin membalas tiket** | `POST /api/admin/tiket/:id/reply` | 🔴 Tinggi |
+### A3. Sebaran Wilayah Asesor `[REUSED - LIVE]`
+* **Method**: `GET`
+* **Endpoint**: `/api/dashboard/asesor-distribution`
+* **Headers**: None (Public Endpoint).
+* **Parameter Request (Query)**:
+  - `limit` (int, opsional, default: `5`): Membatasi jumlah data provinsi teratas yang ditarik.
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "total_asesor": 23,
+  "data": [
+    {
+      "provinsi": "Kalimantan Tengah",
+      "total_asesor": 10
+    },
+    {
+      "provinsi": "DKI Jakarta",
+      "total_asesor": 5
+    }
+  ]
+}
+```
 
 ---
 
-### C. Ringkasan Endpoint Baru yang Perlu Dibuat Backend
+### A4. Penyebaran TUK / Mitra `[REUSED - LIVE]`
+* **Method**: `GET`
+* **Endpoint**: `/api/dashboard/penyebaran-mitra`
+* **Headers**: None (Public Endpoint).
+* **Parameter Request (Query)**:
+  - `limit` (int, opsional, default: `5`): Membatasi jumlah kota/mitra teratas.
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "meta": {
+    "total_mitra": 8
+  },
+  "data": [
+    {
+      "kota": "Sampit",
+      "jumlah": 4,
+      "mitra": ["LKP Sampit IT", "TUK Palapa"]
+    }
+  ]
+}
+```
 
-| No | Metode | Endpoint | Kebutuhan |
-|----|--------|----------|-----------|
-| 1  | `GET`  | `/api/pengumuman` | List pengumuman aktif (semua role) |
-| 2  | `POST` | `/api/admin/pengumuman` | Buat pengumuman baru (admin) |
-| 3  | `PUT`  | `/api/admin/pengumuman/:id` | Edit pengumuman (admin) |
-| 4  | `DELETE` | `/api/admin/pengumuman/:id` | Hapus pengumuman (admin) |
-| 5  | `GET`  | `/api/admin/tiket` | List semua tiket masuk (admin) |
-| 6  | `GET`  | `/api/admin/tiket/:id` | Detail tiket + riwayat pesan (admin) |
-| 7  | `POST` | `/api/admin/tiket/:id/reply` | Admin balas tiket (admin only) |
-| 8  | `PUT`  | `/api/admin/tiket/:id/status` | Ubah status tiket (admin) |
+---
+
+### A5. Total Overview Statistik `[REUSED - LIVE]`
+* **Method**: `GET`
+* **Endpoint**: `/api/dashboard/statistik-overview`
+* **Headers**: None (Public Endpoint).
+* **Parameter Request**: None.
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "data": {
+    "total_asesi": 9540,
+    "sertifikat_terbit": 7890,
+    "lsp_terdaftar": 12,
+    "tingkat_kelulusan": 82.7,
+    "trends": {
+      "total_asesi": "+12,4%",
+      "sertifikat_terbit": "+8,7%",
+      "lsp_terdaftar": "+0,0%",
+      "tingkat_kelulusan": "+1,2%"
+    }
+  }
+}
+```
+
+---
+
+### A6. Distribusi Asesor Stats `[REUSED - UPDATED]`
+* **Method**: `GET`
+* **Endpoint**: `/api/dashboard/asesor-stats`
+* **Deskripsi**: Mengambil statistik status asesor (aktif, internal, external, online vs offline asesmen, wilayah tercover) untuk tab "Distribusi Asesor".
+* **Headers**: None (Public Endpoint).
+* **Parameter Request**: None.
+* **Audit Kolom / Field Response**:
+  - **Field yang Sudah Ada & Diperbarui**:
+    - `total_asesor` (int), `asesor_aktif` (int), `asesor_internal` (int), `asesor_external` (int), `total_tuk` (int), `online_asesmen` (int), `offline_asesmen` (int), `wilayah_tercover` (int).
+    - `trend_total_asesor` (String): Ditambahkan di root level `data` (misal `"+15,7%"`).
+    - `trends.total_asesor` (String): Tetap dipertahankan untuk backward compatibility.
+* **Mapping Model Flutter (`AsesorStats`)**:
+  - `trend_total_asesor` $\rightarrow$ `AsesorStats.trendTotalAsesor` (dengan fallback ke `trends.total_asesor`)
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "data": {
+    "total_asesor": 1317,
+    "asesor_aktif": 1200,
+    "asesor_internal": 1095,
+    "asesor_external": 222,
+    "total_tuk": 45,
+    "online_asesmen": 1684,
+    "offline_asesmen": 5894,
+    "wilayah_tercover": 34,
+    "trend_total_asesor": "+15,7%",
+    "trends": {
+      "total_asesor": "+15,7%"
+    }
+  }
+}
+```
+
+---
+
+### A7. Distribusi Sertifikat per Skema `[REUSED - LIVE]`
+* **Method**: `GET`
+* **Endpoint**: `/api/dashboard/sertifikat-per-skema`
+* **Headers**: None (Public Endpoint).
+* **Parameter Request (Query)**:
+  - `limit` (int, opsional, default: `50`): Jumlah skema teratas.
+* **Response (200 OK)**:
+```json
+{
+  "status": "success",
+  "meta": {
+    "total_pemegang_sertifikat": 643
+  },
+  "data": [
+    {
+      "id_skema": 1,
+      "kode_skema": "SKM-DM-002",
+      "skema": "Digital Marketing Madya",
+      "kategori": "Digital Marketing",
+      "total_pemegang": 200
+    }
+  ]
+}
+```
+
+---
+
+### A8. Asesor Berdasarkan Homebase `[NEW - PERLU DIBUAT]`
+* **Method**: `GET`
+* **Endpoint**: `/api/dashboard/asesor-homebase`
+* **Deskripsi**: Mengambil daftar lengkap Asesor beserta domisili homebase dan total asesmen yang telah dijalankan untuk layar **Asessor Berdasarkan Homebase**.
+* **Headers**: None (Public Endpoint).
+* **Backend Source / Query Notes**:
+  - **Sumber Data**: `lsp275_users` (hanya grup asesor yang berstatus aktif: `status_asesor = '1'`).
+  - **Kolom `scheme`**: Diambil dari skema pertama yang ter-mapping pada `t_teknis_asesor` $\rightarrow$ `lsp275_skema` (jika kosong/belum terpetakan, kembalikan string kosong `""`).
+  - **Kolom `homebase`**: Diambil dari `master_provinsi.name` melalui `provinsi_id` (jika null, kembalikan string kosong `""`).
+  - **Kolom `assessments`**: Total jumlah jadwal yang selesai/tahap pelaporan (dihitung dari record `lsp275_mapping_asesor` dengan kriteria `status_jadwal IN ('1', '4')`).
+  - **Pengurutan (Ordering)**: Diurutkan berdasarkan `assessments DESC` (jumlah penugasan terbanyak), kemudian secara alfabetis `name ASC`.
+  - **Bentuk Response**: Mengikuti standar dashboard (`{ "data": [...] }` tanpa wrapper `status` di top-level).
+* **Response (200 OK)**:
+```json
+{
+  "data": [
+    {
+      "name": "ARI WIBOWO",
+      "scheme": "Pemasaran Digital",
+      "homebase": "DI YOGYAKARTA",
+      "assessments": 241
+    },
+    {
+      "name": "Ajj Oprator Komputer Muda",
+      "scheme": "LPP Talenta Digital Marketing",
+      "homebase": "JAKARTA",
+      "assessments": 8
+    }
+  ]
+}
+```
+
+
+
+
+

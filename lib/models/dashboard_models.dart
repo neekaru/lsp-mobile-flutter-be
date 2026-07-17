@@ -26,6 +26,8 @@ class DashboardSummary {
   final int totalAsesi;
   final int jadwalBelumTerkonfirmasi;
   final int suratTugasMenungguPengiriman;
+  final int pendaftaranAsesiBaru;
+  final int honorAsesorBelumDibayar;
 
   const DashboardSummary({
     required this.totalAsesmen,
@@ -35,6 +37,8 @@ class DashboardSummary {
     this.totalAsesi = 0,
     this.jadwalBelumTerkonfirmasi = 0,
     this.suratTugasMenungguPengiriman = 0,
+    this.pendaftaranAsesiBaru = 0,
+    this.honorAsesorBelumDibayar = 0,
     this.trendAsesmen = '+15,7%',
     this.trendPemegangSertifikat = '+12,3%',
     this.trendAsesor = '+8,1%',
@@ -56,6 +60,8 @@ class DashboardSummary {
       totalAsesi: 15005,
       jadwalBelumTerkonfirmasi: 15,
       suratTugasMenungguPengiriman: 3,
+      pendaftaranAsesiBaru: 12,
+      honorAsesorBelumDibayar: 4,
       trendAsesmen: '+15,7%',
       trendPemegangSertifikat: '+12,3%',
       trendAsesor: '+8,1%',
@@ -728,3 +734,27 @@ class AsesorDashboardData {
     );
   }
 }
+
+class AsesorHomebase {
+  final String name;
+  final String scheme;
+  final String homebase;
+  final int assessments;
+
+  const AsesorHomebase({
+    required this.name,
+    required this.scheme,
+    required this.homebase,
+    required this.assessments,
+  });
+
+  factory AsesorHomebase.fromJson(Map<String, dynamic> json) {
+    return AsesorHomebase(
+      name: json['name'] ?? '',
+      scheme: json['scheme'] ?? '',
+      homebase: json['homebase'] ?? '',
+      assessments: (json['assessments'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+

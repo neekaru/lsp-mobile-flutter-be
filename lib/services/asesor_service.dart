@@ -30,7 +30,9 @@ class AsesorService {
           onlineAsesmen: data['online_asesmen'] ?? 0,
           offlineAsesmen: data['offline_asesmen'] ?? 0,
           wilayahTercover: data['wilayah_tercover'] ?? 0,
-          trendTotalAsesor: trends['total_asesor'] ?? '+0,0%',
+          trendTotalAsesor: data['trend_total_asesor'] ??
+                            trends?['total_asesor'] ??
+                            '+0,0%',
         );
       }
 
@@ -420,6 +422,25 @@ class AsesorService {
     } catch (e) {
       debugPrint('🔴 Error replying to tiket: $e');
       return null;
+    }
+  }
+
+  /// Fetch Asesor Berdasarkan Homebase
+  static Future<List<AsesorHomebase>> getAsesorHomebase() async {
+    try {
+      final response = await _dio.get(ApiRoutes.dashboardAsesorHomebase);
+
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data
+            .map((item) => AsesorHomebase.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error fetching asesor homebase: $e');
+      return [];
     }
   }
 }

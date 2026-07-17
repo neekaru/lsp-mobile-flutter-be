@@ -31,7 +31,9 @@ class DashboardService {
           totalAsesi: data['total_asesi'] ?? 0,
           jadwalBelumTerkonfirmasi: data['jadwal_belum_terkonfirmasi'] ?? 0,
           suratTugasMenungguPengiriman: data['surat_tugas_menunggu_pengiriman'] ?? 0,
-          trendAsesmen: trends?['asesmen']?['formatted'] ?? trends?['asesmen']?['formatted'] ?? '+0,0%',
+          pendaftaranAsesiBaru: data['pendaftaran_asesi_baru'] ?? 0,
+          honorAsesorBelumDibayar: data['honor_asesor_belum_dibayar'] ?? 0,
+          trendAsesmen: trends?['asesmen']?['formatted'] ?? '+0,0%',
           trendPemegangSertifikat:
               trends?['pemegang_sertifikat']?['formatted'] ?? '+0,0%',
           trendAsesor: trends?['asesor']?['formatted'] ?? '+0,0%',
@@ -108,12 +110,14 @@ class DashboardService {
         int maxTotal = 1;
 
         for (var item in data) {
-          int total = (item['total'] as num).toInt();
+          int total = (item['total'] as num?)?.toInt() ??
+                      (item['jumlah_asesmen'] as num?)?.toInt() ?? 0;
           if (total > maxTotal) maxTotal = total;
         }
 
         for (var item in data) {
-          int total = (item['total'] as num).toInt();
+          int total = (item['total'] as num?)?.toInt() ??
+                      (item['jumlah_asesmen'] as num?)?.toInt() ?? 0;
           list.add(
             MonthlyAssessment(
               label: item['label'] ?? '',

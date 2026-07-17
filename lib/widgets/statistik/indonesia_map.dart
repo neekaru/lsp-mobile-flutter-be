@@ -9,12 +9,14 @@ class IndonesiaMap extends StatefulWidget {
   final ValueChanged<String> onIslandSelected;
   final ValueChanged<ProvinceModel>? onProvinceSelected;
   final Map<String, int>? provinceData;
+  final bool isAdminDashboard;
 
   const IndonesiaMap({
     super.key,
     required this.onIslandSelected,
     this.onProvinceSelected,
     this.provinceData,
+    this.isAdminDashboard = false,
   });
 
   @override
@@ -158,48 +160,64 @@ class _IndonesiaMapState extends State<IndonesiaMap>
   Widget build(BuildContext context) {
     super.build(context); // Required by AutomaticKeepAliveClientMixin
 
+    final double horizontalPadding = widget.isAdminDashboard ? 0.0 : 16.0;
+    final double cardPadding = widget.isAdminDashboard ? 16.0 : 12.0;
+
     return RepaintBoundary(
       child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x05000000),
-              blurRadius: 6,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Map header
-            const Text(
-              'Penyebaran Asesor di Indonesia',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF5F6E7D),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 8.0),
+        child: Container(
+          width: double.infinity,
+          decoration: widget.isAdminDashboard
+              ? BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x03000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                )
+              : BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x05000000),
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+          padding: EdgeInsets.all(cardPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Map header
+              const Text(
+                'Penyebaran Asesor di Indonesia',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF5F6E7D),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Content: Loading, Error, atau Map
-            if (_isLoading)
-              _buildLoadingState()
-            else if (_errorMessage != null)
-              _buildErrorState()
-            else
-              _buildMapContent(),
-          ],
+              // Content: Loading, Error, atau Map
+              if (_isLoading)
+                _buildLoadingState()
+              else if (_errorMessage != null)
+                _buildErrorState()
+              else
+                _buildMapContent(),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 

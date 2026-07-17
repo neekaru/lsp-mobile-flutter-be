@@ -16,6 +16,7 @@ import '../auth/login_screen.dart';
 import '../../widgets/public_sertifikat_card.dart';
 import '../../widgets/tentang_kami_section.dart';
 import '../../widgets/admin_bantuan_pengumuman.dart';
+import 'ringkasan_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -95,13 +96,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _isLoading = false;
         });
       } else {
-        // Panggil API yang dibutuhkan admin/guest secara parallel (termasuk berita, chart graf, dan jadwal baru)
-        final results = await Future.wait([
+        final user = AuthRepository.currentUserInstance;
+        final bool isAdmin = user?.role == 'admin';
+
+        final List<Future<dynamic>> futures = [
           ApiService.getSummary(),
           ApiService.getBerita(page: 1, size: 5),
           ApiService.getAssessmentGraph(),
           ApiService.getJadwalBaru(),
-        ]);
+        ];
+        if (isAdmin) {
+          futures.add(ApiService.getAsesorDashboard());
+        }
+
+        final results = await Future.wait(futures);
 
         if (_isDisposed || !mounted) return;
         setState(() {
@@ -109,6 +117,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _beritaData = results[1] as List<BeritaItem>;
           _chartData = results[2] as List<MonthlyAssessment>;
           _jadwalData = results[3] as List<JadwalBaru>;
+          if (isAdmin && results.length > 4) {
+            _asesorDashboardData = results[4] as AsesorDashboardData;
+          }
           _isLoading = false;
         });
       }
@@ -528,6 +539,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
 
+            // Ringkasan Section (like Asesor) - Only for Admin
+            if (user?.role == 'admin')
+              _buildAdminRingkasanSection(),
+
             // 2. Tren Asesmen Bulanan Section (Imported chart card widget) - Tampil di semua role kecuali asesor
             if (!isAsesor)
               Padding(
@@ -551,11 +566,158 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0),
                 child: AdminBantuanPengumuman(
-                  showBantuan: AuthRepository.currentUserInstance?.role == 'admin',
+                  showBantuan: user.role != 'admin',
                 ),
               )
             else
               const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminRingkasanSection() {
+    final approveJadwalCount = _summaryData?.jadwalBelumTerkonfirmasi ?? 10;
+    final laporanCount = _summaryData?.suratTugasMenungguPengiriman ?? 4;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Ringkasan',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AdminRingkasanScreen(
+                        summaryData: _summaryData,
+                        onNavigateToJadwal: widget.onNavigateToJadwal,
+                      ),
+                    ),
+                  );
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: Text(
+                    'Lihat semua',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF3B82F6),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildRingkasanItem(
+            icon: Icons.calendar_today_rounded,
+            title: 'Approve Jadwal',
+            subtitle: '$approveJadwalCount Jadwal menunggu...',
+            onTap: () {
+              if (widget.onNavigateToJadwal != null) {
+                widget.onNavigateToJadwal!();
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildRingkasanItem(
+            icon: Icons.assignment_rounded,
+            title: 'Laporan',
+            subtitle: '$laporanCount Laporan menunggu...',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdminRingkasanScreen(
+                    summaryData: _summaryData,
+                    onNavigateToJadwal: widget.onNavigateToJadwal,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRingkasanItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFE2E8F0),
+            width: 1.0,
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE5F1FC),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFF3B82F6),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Color(0xFF3B82F6),
+              size: 24,
+            ),
           ],
         ),
       ),

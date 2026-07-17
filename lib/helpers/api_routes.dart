@@ -33,6 +33,8 @@ class ApiRoutes {
       '/api/dashboard/penyebaran-mitra';
   static const String dashboardSebaranSkemaAsesor =
       '/api/dashboard/sebaran-skema-asesor';
+  static const String dashboardAsesorHomebase =
+      '/api/dashboard/asesor-homebase';
 
   // ============================================================================
   // Jadwal Routes
