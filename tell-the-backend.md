@@ -629,3 +629,163 @@ Seluruh endpoint wajib mengembalikan format respons error JSON terstandar jika t
 * **403 Forbidden**: Otorisasi gagal karena role bukan `asesi` atau mencoba mengakses data milik pengguna lain.
 * **404 Not Found**: Data skema, pendaftaran, portofolio, atau sertifikat tidak ditemukan.
 * **500 Internal Server Error**: Terjadi gangguan teknis pada server basis data atau sistem backend.
+
+---
+
+## 5. Kebutuhan API Role Admin & Audit Mock Data
+
+Dokumen ini memuat dua hal:
+1. **Endpoint baru yang dibutuhkan untuk role Admin** (belum diimplementasikan di backend).
+2. **Daftar fitur yang masih menggunakan data statis/mock** dan perlu diganti dengan data real dari API.
+
+---
+
+### A. Endpoint Admin yang Dibutuhkan
+
+#### 5.1. Daftar Pengumuman (Baru!)
+
+Widget `AdminBantuanPengumuman` di `dashboard_screen.dart` menampilkan satu kartu "Pengumuman Baru" yang saat ini **hardcoded** dengan teks statis:
+- Judul: `"Pemeliharaan Sistem"`
+- Tanggal: `"23 Jul 2026"`
+- Isi: `"Sistem akan melakukan pemeliharaan pada 25 Juli pukul 13:00 - 15:00 WIB"`
+
+Widget ini ditampilkan untuk **semua role yang sudah login** (Admin, Asesi, Asesor).
+
+**Endpoint yang dibutuhkan:**
+
+| No | Metode | Endpoint | Deskripsi | Role |
+|----|--------|----------|-----------|------|
+| 1  | `GET`  | `/api/pengumuman` | Mengambil daftar pengumuman aktif (terbaru, non-expired). | Semua (Admin, Asesi, Asesor) |
+| 2  | `POST` | `/api/admin/pengumuman` | Membuat pengumuman baru. | Admin only |
+| 3  | `PUT`  | `/api/admin/pengumuman/:id` | Memperbarui pengumuman. | Admin only |
+| 4  | `DELETE` | `/api/admin/pengumuman/:id` | Menghapus/menonaktifkan pengumuman. | Admin only |
+
+**Response `GET /api/pengumuman` (200 OK):**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "judul": "Pemeliharaan Sistem",
+      "isi": "Sistem akan melakukan pemeliharaan pada 25 Juli pukul 13:00 - 15:00 WIB",
+      "tanggal": "2026-07-23",
+      "tanggal_kadaluarsa": "2026-07-26",
+      "is_aktif": true
+    }
+  ]
+}
+```
+
+**Request Body `POST /api/admin/pengumuman`:**
+```json
+{
+  "judul": "Pemeliharaan Sistem",
+  "isi": "Sistem akan melakukan pemeliharaan pada 25 Juli pukul 13:00 - 15:00 WIB",
+  "tanggal": "2026-07-23",
+  "tanggal_kadaluarsa": "2026-07-26"
+}
+```
+
+---
+
+#### 5.2. Tiket Bantuan (Role Admin)
+
+Widget `TiketBantuanScreen` & `DetailTiketScreen` sudah diimplementasikan untuk sisi **Asesor** (sebagai pengirim tiket). Namun admin perlu bisa melihat dan membalas tiket tersebut.
+
+Alur tiket bersifat **satu arah dari User ke Admin**:
+- **User (Asesor/Asesi)**: Membuat tiket → Melihat riwayat tiket (read-only, tidak bisa balas).
+- **Admin**: Melihat semua tiket masuk → Membalas tiket.
+
+**Endpoint yang dibutuhkan untuk Admin:**
+
+| No | Metode | Endpoint | Deskripsi |
+|----|--------|----------|-----------|
+| 5  | `GET`  | `/api/admin/tiket` | Daftar semua tiket bantuan dari semua user. |
+| 6  | `GET`  | `/api/admin/tiket/:id` | Detail tiket termasuk riwayat pesan. |
+| 7  | `POST` | `/api/admin/tiket/:id/reply` | Admin membalas tiket (satu arah, hanya admin yang bisa reply). |
+| 8  | `PUT`  | `/api/admin/tiket/:id/status` | Mengubah status tiket (`Proses` → `Selesai` / `Batal`). |
+
+**Response `GET /api/admin/tiket` (200 OK):**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 12,
+      "judul": "Tidak bisa login",
+      "kategori": "Akses Sistem",
+      "pengirim": "Muhammad Hanafi",
+      "role_pengirim": "asesor",
+      "status": "Proses",
+      "tanggal": "2026-07-17"
+    }
+  ]
+}
+```
+
+**Response `GET /api/admin/tiket/:id` (200 OK):**
+```json
+{
+  "status": "success",
+  "data": {
+    "id": 12,
+    "title": "Tidak bisa login",
+    "category": "Akses Sistem",
+    "status": "Proses",
+    "date": "2026-07-17",
+    "messages": [
+      {
+        "sender": "Muhammad Hanafi",
+        "role": "asesor",
+        "time": "2026-07-17T08:00:00Z",
+        "text": "Saya tidak bisa login sejak kemarin."
+      },
+      {
+        "sender": "Admin",
+        "role": "admin",
+        "time": "2026-07-17T09:30:00Z",
+        "text": "Baik, sedang kami cek. Mohon tunggu."
+      }
+    ]
+  }
+}
+```
+
+> **Catatan Penting (Flutter):** Di sisi Flutter, field `sender` pada tiap pesan digunakan untuk menentukan tampilan badge peran:
+> - Jika `sender == "Asesor"` → Badge biru **"Asesor"**, avatar `person_outline`.
+> - Selain itu (misal Admin) → Badge hijau **"Admin LSP"**, avatar `support_agent`.
+
+---
+
+### B. Audit Mock Data — Fitur yang Masih Statis
+
+Berikut adalah daftar lengkap fitur yang saat ini menggunakan data statis (hardcoded) dan **perlu dikoneksikan ke API real**:
+
+| No | Lokasi di Flutter | Data yang Masih Mock | Endpoint yang Dibutuhkan | Prioritas |
+|----|-------------------|----------------------|--------------------------|-----------|
+| 1 | `admin_bantuan_pengumuman.dart` | Seluruh kartu "Pengumuman Baru": judul, tanggal, isi semuanya hardcoded | `GET /api/pengumuman` | 🔴 Tinggi |
+| 2 | `admin_bantuan_pengumuman.dart` | Tombol "Lihat semua" hanya menampilkan SnackBar, tidak navigasi ke halaman list pengumuman | `GET /api/pengumuman` + screen baru | 🔴 Tinggi |
+| 3 | `tentang_sistem_screen.dart` | Konten "Tentang Sistem" hardcoded — dibiarkan dari aplikasi | *(tidak perlu API)* | 🟢 Diabaikan |
+| 4 | `ketentuan_privasi_screen.dart` | Isi kebijakan privasi hardcoded — dibiarkan dari aplikasi | *(tidak perlu API)* | 🟢 Diabaikan |
+| 5 | `syarat_ketentuan_screen.dart` | Isi syarat & ketentuan hardcoded — dibiarkan dari aplikasi | *(tidak perlu API)* | 🟢 Diabaikan |
+| 6 | `faq_screen.dart` | FAQ hardcoded — dibiarkan dari aplikasi | *(tidak perlu API)* | 🟢 Diabaikan |
+| 7 | `panduan_sertifikasi_screen.dart` | Panduan hardcoded — dibiarkan dari aplikasi | *(tidak perlu API)* | 🟢 Diabaikan |
+| 8 | `asesor_service.dart` — `_getFallbackProvinces()` | Data fallback provinsi masih pakai data Kalimantan Tengah palsu | Sudah ada `GET /api/dashboard/asesor-distribution`, perbaiki response handling | 🟡 Sedang |
+| 9 | `asesor_service.dart` — `_getFallbackMitras()` | Data fallback mitra masih pakai data LKP palsu | Sudah ada `GET /api/dashboard/penyebaran-mitra`, perbaiki response handling | 🟡 Sedang |
+| 10 | `tiket_bantuan_screen.dart` & `detail_tiket_screen.dart` | Endpoint tiket untuk Asesor sudah real (`/api/asesor/tiket`), tetapi belum ada endpoint untuk **Admin membalas tiket** | `POST /api/admin/tiket/:id/reply` | 🔴 Tinggi |
+
+---
+
+### C. Ringkasan Endpoint Baru yang Perlu Dibuat Backend
+
+| No | Metode | Endpoint | Kebutuhan |
+|----|--------|----------|-----------|
+| 1  | `GET`  | `/api/pengumuman` | List pengumuman aktif (semua role) |
+| 2  | `POST` | `/api/admin/pengumuman` | Buat pengumuman baru (admin) |
+| 3  | `PUT`  | `/api/admin/pengumuman/:id` | Edit pengumuman (admin) |
+| 4  | `DELETE` | `/api/admin/pengumuman/:id` | Hapus pengumuman (admin) |
+| 5  | `GET`  | `/api/admin/tiket` | List semua tiket masuk (admin) |
+| 6  | `GET`  | `/api/admin/tiket/:id` | Detail tiket + riwayat pesan (admin) |
+| 7  | `POST` | `/api/admin/tiket/:id/reply` | Admin balas tiket (admin only) |
+| 8  | `PUT`  | `/api/admin/tiket/:id/status` | Ubah status tiket (admin) |
