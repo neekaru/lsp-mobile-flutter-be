@@ -42,6 +42,14 @@ class _SertifikatScreenState extends State<SertifikatScreen> {
       });
       return;
     }
+    if (query.length < 2) {
+      setState(() {
+        _errorMessage = 'Minimal 2 karakter untuk mencari (nama asesi / no sertifikat).';
+        _searchResults = [];
+        _hasSearched = false;
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;

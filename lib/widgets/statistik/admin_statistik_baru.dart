@@ -23,6 +23,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   StatistikOverview? _overview;
   AsesorStats? _asesorStats;
   List<TopProvinsi> _topProvinces = [];
+  List<AsesorHomebase> _homebaseList = [];
 
   @override
   void initState() {
@@ -41,13 +42,17 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
         ApiService.getStatistikOverview(),
         ApiService.getAsesorStats(),
         ApiService.getTopProvinces(),
+        ApiService.getAsesorHomebase(),
       ]);
 
       if (mounted) {
+        final homebase = results[3] as List<AsesorHomebase>;
         setState(() {
           _overview = results[0] as StatistikOverview;
           _asesorStats = results[1] as AsesorStats;
           _topProvinces = results[2] as List<TopProvinsi>;
+          // Preview only — full list lives on AsesorHomebaseScreen
+          _homebaseList = homebase.length > 4 ? homebase.sublist(0, 4) : homebase;
           _isLoading = false;
         });
       }
@@ -253,7 +258,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   }
 
   Widget _buildTotalAsesorCard(AsesorStats stats) {
-    final String valStr = stats.totalAsesor > 0 ? NumberFormatHelper.formatWithDots(stats.totalAsesor) : '1.300';
+    final String valStr = NumberFormatHelper.formatWithDots(stats.totalAsesor);
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -405,7 +410,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   }
 
   Widget _buildJumlahAsesiCard(StatistikOverview overview) {
-    final String valStr = overview.totalAsesi > 0 ? NumberFormatHelper.formatWithDots(overview.totalAsesi) : '500';
+    final String valStr = NumberFormatHelper.formatWithDots(overview.totalAsesi);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
@@ -482,7 +487,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   }
 
   Widget _buildTotalTukCard(AsesorStats stats) {
-    final String valStr = stats.totalTuk > 0 ? NumberFormatHelper.formatWithDots(stats.totalTuk) : '873';
+    final String valStr = NumberFormatHelper.formatWithDots(stats.totalTuk);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
@@ -659,32 +664,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   }
 
   Widget _buildAsesorHomebaseCard() {
-    final List<Map<String, dynamic>> mockAssessors = [
-      {
-        'name': 'Ahmad FaujiM, M.Kom',
-        'scheme': 'Digital Marketing',
-        'homebase': 'Jakarta',
-        'assessments': 8,
-      },
-      {
-        'name': 'Ahmad FaujiM, M.Kom',
-        'scheme': 'Digital Marketing',
-        'homebase': 'Jakarta',
-        'assessments': 8,
-      },
-      {
-        'name': 'Ahmad FaujiM, M.Kom',
-        'scheme': 'Digital Marketing',
-        'homebase': 'Jakarta',
-        'assessments': 8,
-      },
-      {
-        'name': 'Ahmad FaujiM, M.Kom',
-        'scheme': 'Digital Marketing',
-        'homebase': 'Jakarta',
-        'assessments': 8,
-      },
-    ];
+    final preview = _homebaseList.take(4).toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -712,72 +692,83 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
             ),
           ),
           const SizedBox(height: 12),
-          ...mockAssessors.map((item) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item['name'] as String,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              item['scheme'] as String,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(Icons.location_on_outlined, size: 12, color: Colors.redAccent),
-                                const SizedBox(width: 4),
-                                Text(
-                                  item['homebase'] as String,
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey,
-                                  ),
+          if (preview.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'Tidak ada data asesor homebase.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ),
+            )
+          else
+            ...preview.map((item) {
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.name,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${item['assessments']} Asesmen',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF3B82F6),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item.scheme.isNotEmpty ? item.scheme : '-',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on_outlined, size: 12, color: Colors.redAccent),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    item.homebase.isNotEmpty ? item.homebase : '-',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${item.assessments} Asesmen',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF3B82F6),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
-              ],
-            );
-          }),
+                  Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
+                ],
+              );
+            }),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,

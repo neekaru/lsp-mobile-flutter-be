@@ -63,13 +63,13 @@ class SertifikatListItem extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
 
-                // Title and Code
+                // Title = Nama Asesi; subtitle = skema + no sertifikat
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item.skema,
+                        item.pemegang.isNotEmpty ? item.pemegang : '-',
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,

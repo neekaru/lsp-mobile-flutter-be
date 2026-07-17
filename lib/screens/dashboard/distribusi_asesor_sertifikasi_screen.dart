@@ -32,15 +32,6 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
   List<JadwalItem> _runningJadwals = [];
   List<SertifikatDistribusi> _sertifikatPerSkema = [];
 
-  // Default Mock data matching the UI mockup in case API returns empty
-  final List<Map<String, dynamic>> _mockSkemas = [
-    {'skema': 'Digital Marketing', 'totalPemegang': 200},
-    {'skema': 'Grafik Desain', 'totalPemegang': 179},
-    {'skema': 'Network Administrator', 'totalPemegang': 179},
-    {'skema': 'Junior Web Developer', 'totalPemegang': 168},
-    {'skema': 'Junior Big Data', 'totalPemegang': 146},
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -278,9 +269,9 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                               color: const Color(0xFFDCFCE7),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              '+15,7%',
-                              style: TextStyle(
+                            child: Text(
+                              stats.trendTotalAsesor,
+                              style: const TextStyle(
                                 fontSize: 8,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF16A34A),
@@ -291,9 +282,7 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        stats.totalAsesor > 0 
-                            ? NumberFormatHelper.formatWithDots(stats.totalAsesor) 
-                            : '1.300',
+                        NumberFormatHelper.formatWithDots(stats.totalAsesor),
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
@@ -324,9 +313,7 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                stats.asesorInternal > 0 
-                                    ? NumberFormatHelper.formatWithDots(stats.asesorInternal) 
-                                    : '975',
+                                NumberFormatHelper.formatWithDots(stats.asesorInternal),
                                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
                               ),
                             ],
@@ -350,9 +337,7 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                stats.asesorExternal > 0 
-                                    ? NumberFormatHelper.formatWithDots(stats.asesorExternal) 
-                                    : '325',
+                                NumberFormatHelper.formatWithDots(stats.asesorExternal),
                                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
                               ),
                             ],
@@ -428,9 +413,7 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        stats.totalTuk > 0 
-                            ? NumberFormatHelper.formatWithDots(stats.totalTuk) 
-                            : '873',
+                        NumberFormatHelper.formatWithDots(stats.totalTuk),
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
@@ -512,10 +495,10 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'Online',
                               style: TextStyle(
                                 fontSize: 10,
@@ -523,10 +506,10 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
-                              '45',
-                              style: TextStyle(
+                              NumberFormatHelper.formatWithDots(stats.onlineAsesmen),
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF10B981),
@@ -562,10 +545,10 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'Offline',
                               style: TextStyle(
                                 fontSize: 10,
@@ -573,10 +556,10 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
-                              '45',
-                              style: TextStyle(
+                              NumberFormatHelper.formatWithDots(stats.offlineAsesmen),
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF3B82F6),
@@ -598,11 +581,11 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                   child: Row(
                     children: [
                       Expanded(
-                        flex: 45,
+                        flex: stats.onlineAsesmen > 0 ? stats.onlineAsesmen : 1,
                         child: Container(color: const Color(0xFF10B981)),
                       ),
                       Expanded(
-                        flex: 45,
+                        flex: stats.offlineAsesmen > 0 ? stats.offlineAsesmen : 1,
                         child: Container(color: const Color(0xFF3B82F6)),
                       ),
                     ],
@@ -661,7 +644,7 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '${lateSchedules.isNotEmpty ? lateSchedules.length : 9} Jadwal',
+                      '${lateSchedules.length} Jadwal',
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -674,7 +657,15 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
               const SizedBox(height: 12),
               
               lateSchedules.isEmpty
-                  ? _buildMockLateSchedules()
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Center(
+                        child: Text(
+                          'Tidak ada jadwal running yang terlambat.',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                        ),
+                      ),
+                    )
                   : ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -693,26 +684,6 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                     ),
             ],
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMockLateSchedules() {
-    return Column(
-      children: [
-        _buildLateScheduleItem(
-          title: 'Sertifikasi Junior Web Developer - SMK 2',
-          daysLate: 3,
-          tuk: 'TUK Sewaktu LSP Digital',
-          endDate: '14 Jul 2026',
-        ),
-        const SizedBox(height: 10),
-        _buildLateScheduleItem(
-          title: 'Sertifikasi Digital Marketing - Politeknik',
-          daysLate: 5,
-          tuk: 'TUK Mandiri Digimark',
-          endDate: '12 Jul 2026',
         ),
       ],
     );
@@ -815,24 +786,10 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
   // TAB 2: Sebaran Skema
   // ============================================================================
   Widget _buildSebaranSkemaTab(AsesorStats stats) {
-    // Dynamic lists derived from API or fallbacks
-    final List<Map<String, dynamic>> displaySkemas = [];
-    if (_sertifikatPerSkema.isNotEmpty) {
-      for (var item in _sertifikatPerSkema) {
-        displaySkemas.add({
-          'skema': item.skema,
-          'totalPemegang': item.totalPemegang,
-        });
-      }
-    } else {
-      displaySkemas.addAll(_mockSkemas);
-    }
-
-    // Determine the maximum value for progress bar normalization
+    final displaySkemas = _sertifikatPerSkema;
     int maxVal = 1;
-    for (var item in displaySkemas) {
-      int val = item['totalPemegang'] as int;
-      if (val > maxVal) maxVal = val;
+    for (final item in displaySkemas) {
+      if (item.totalPemegang > maxVal) maxVal = item.totalPemegang;
     }
 
     return Column(
@@ -903,9 +860,7 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              stats.totalAsesor > 0 
-                                  ? NumberFormatHelper.formatWithDots(stats.totalAsesor) 
-                                  : '1.300',
+                              NumberFormatHelper.formatWithDots(stats.totalAsesor),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w900,
@@ -969,7 +924,7 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '10 Asesmen',
+                              '${_runningJadwals.length} Asesmen',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w900,
@@ -1015,61 +970,70 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
             ],
           ),
           padding: const EdgeInsets.all(16),
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.zero,
-            itemCount: displaySkemas.length > 8 ? 8 : displaySkemas.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final item = displaySkemas[index];
-              final String name = item['skema'] ?? '';
-              final int count = item['totalPemegang'] ?? 0;
-              final double ratio = maxVal > 0 ? (count / maxVal) : 0.0;
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '$count Asesi',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2563EB),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: ratio,
-                      minHeight: 8,
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2563EB)),
+          child: displaySkemas.isEmpty
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Center(
+                    child: Text(
+                      'Tidak ada data sertifikasi per skema.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                     ),
                   ),
-                ],
-              );
-            },
-          ),
+                )
+              : ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: displaySkemas.length > 8 ? 8 : displaySkemas.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final item = displaySkemas[index];
+                    final count = item.totalPemegang;
+                    final ratio = maxVal > 0 ? (count / maxVal) : 0.0;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.skema,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '$count Asesi',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: ratio,
+                            minHeight: 8,
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2563EB)),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
         ),
       ],
     );

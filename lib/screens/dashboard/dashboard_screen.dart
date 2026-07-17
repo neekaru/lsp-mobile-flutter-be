@@ -578,8 +578,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildAdminRingkasanSection() {
-    final approveJadwalCount = _summaryData?.jadwalBelumTerkonfirmasi ?? 10;
-    final laporanCount = _summaryData?.suratTugasMenungguPengiriman ?? 4;
+    final approveJadwalCount = _summaryData?.jadwalBelumTerkonfirmasi ?? 0;
+    final laporanCount = _summaryData?.suratTugasMenungguPengiriman ?? 0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
