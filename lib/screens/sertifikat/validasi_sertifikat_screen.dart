@@ -213,20 +213,22 @@ class _ValidasiSertifikatScreenState extends State<ValidasiSertifikatScreen> {
                     color: Color(0xFF9CA3AF),
                     size: 20,
                   ),
-                  suffixIcon: _documentController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(
-                            Icons.clear_rounded,
-                            color: Color(0xFF9CA3AF),
-                            size: 18,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _documentController.clear();
-                            });
-                          },
-                        )
-                      : null,
+                  suffixIcon: ListenableBuilder(
+                    listenable: _documentController,
+                    builder: (context, _) {
+                      if (_documentController.text.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return IconButton(
+                        icon: const Icon(
+                          Icons.clear_rounded,
+                          color: Color(0xFF9CA3AF),
+                          size: 18,
+                        ),
+                        onPressed: () => _documentController.clear(),
+                      );
+                    },
+                  ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -234,9 +236,6 @@ class _ValidasiSertifikatScreenState extends State<ValidasiSertifikatScreen> {
                   ),
                 ),
                 style: const TextStyle(fontSize: 14),
-                onChanged: (text) {
-                  setState(() {});
-                },
               ),
             ),
             const SizedBox(height: 16),

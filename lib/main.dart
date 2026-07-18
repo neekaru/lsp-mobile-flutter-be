@@ -19,6 +19,7 @@ import 'screens/dashboard/statistik_screen.dart';
 import 'screens/jadwal/jadwal_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/profile/profile_asesor_screen.dart';
+import 'screens/profile/profile_admin_screen.dart';
 import 'screens/sertifikat/sertifikat_screen.dart';
 import 'screens/sertifikat/asesi_sertifikat_screen.dart';
 import 'screens/sertifikat/skema_sertifikasi_screen.dart';
@@ -260,7 +261,7 @@ class MainNavigatorState extends State<MainNavigator> {
           StatistikScreen(onBackToHome: () => setTab(0)),
           JadwalScreen(onBackToHome: () => setTab(0)),
           SertifikatScreen(onBackToHome: () => setTab(0)),
-          ProfileScreen(onBackToHome: () => setTab(0)),
+          ProfileAdminScreen(onBackToHome: () => setTab(0)),
         ];
       }
     }

@@ -11,35 +11,15 @@ class AsesorHomebaseScreen extends StatefulWidget {
 }
 
 class _AsesorHomebaseScreenState extends State<AsesorHomebaseScreen> {
-  static const int _pageSize = 40;
-
-  List<AsesorHomebase> _allItems = const [];
-  List<AsesorHomebase> _visibleItems = const [];
+  List<_HomebaseGroup> _groups = const [];
+  int _totalAsesor = 0;
   bool _isLoading = true;
   bool _hasError = false;
-  bool _isLoadingMore = false;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     _loadData();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_isLoadingMore || _visibleItems.length >= _allItems.length) return;
-    final position = _scrollController.position;
-    if (position.pixels >= position.maxScrollExtent - 240) {
-      _loadMore();
-    }
   }
 
   Future<void> _loadData() async {
@@ -51,9 +31,41 @@ class _AsesorHomebaseScreenState extends State<AsesorHomebaseScreen> {
     try {
       final list = await ApiService.getAsesorHomebase();
       if (!mounted) return;
+
+      // Group on a local map first (cheap for typical sizes)
+      final Map<String, List<AsesorHomebase>> grouped = {};
+      for (final item in list) {
+        final key =
+            item.homebase.trim().isEmpty ? 'Tidak diketahui' : item.homebase.trim();
+        (grouped[key] ??= <AsesorHomebase>[]).add(item);
+      }
+
+      final groups = <_HomebaseGroup>[];
+      for (final entry in grouped.entries) {
+        final items = entry.value
+          ..sort((a, b) => b.assessments.compareTo(a.assessments));
+        var totalAssessments = 0;
+        for (final i in items) {
+          totalAssessments += i.assessments;
+        }
+        groups.add(
+          _HomebaseGroup(
+            homebase: entry.key,
+            items: items,
+            totalAssessments: totalAssessments,
+          ),
+        );
+      }
+
+      groups.sort((a, b) {
+        final byCount = b.items.length.compareTo(a.items.length);
+        if (byCount != 0) return byCount;
+        return a.homebase.toLowerCase().compareTo(b.homebase.toLowerCase());
+      });
+
       setState(() {
-        _allItems = list;
-        _visibleItems = list.take(_pageSize).toList(growable: false);
+        _groups = groups;
+        _totalAsesor = list.length;
         _isLoading = false;
       });
     } catch (_) {
@@ -63,19 +75,6 @@ class _AsesorHomebaseScreenState extends State<AsesorHomebaseScreen> {
         _isLoading = false;
       });
     }
-  }
-
-  void _loadMore() {
-    if (_isLoadingMore || _visibleItems.length >= _allItems.length) return;
-    setState(() => _isLoadingMore = true);
-
-    final nextEnd = (_visibleItems.length + _pageSize).clamp(0, _allItems.length);
-    final next = _allItems.sublist(0, nextEnd);
-
-    setState(() {
-      _visibleItems = next;
-      _isLoadingMore = false;
-    });
   }
 
   @override
@@ -91,12 +90,6 @@ class _AsesorHomebaseScreenState extends State<AsesorHomebaseScreen> {
           CustomAppBar(
             title: 'Asessor Berdasarkan Homebase',
             onBack: () => Navigator.of(context).pop(),
-            rightWidget: IconButton(
-              icon: const Icon(Icons.more_horiz, color: Colors.black87),
-              onPressed: () {},
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
           ),
           Expanded(child: _buildBody()),
         ],
@@ -130,7 +123,7 @@ class _AsesorHomebaseScreenState extends State<AsesorHomebaseScreen> {
       );
     }
 
-    if (_allItems.isEmpty) {
+    if (_groups.isEmpty) {
       return RefreshIndicator(
         onRefresh: _loadData,
         child: ListView(
@@ -148,53 +141,28 @@ class _AsesorHomebaseScreenState extends State<AsesorHomebaseScreen> {
       );
     }
 
-    final showFooter = _visibleItems.length < _allItems.length || _isLoadingMore;
-
     return RefreshIndicator(
       onRefresh: _loadData,
       child: ListView.builder(
-        controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        // ignore: deprecated_member_use
-        cacheExtent: 800,
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        itemCount: _groups.length + 1,
         addAutomaticKeepAlives: false,
         addRepaintBoundaries: true,
-        padding: const EdgeInsets.all(16),
-        itemCount: _visibleItems.length + 1 + (showFooter ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == 0) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Daftar Asessor Berdasarkan Homebase (${_allItems.length})',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
+            return _Header(
+              daerahCount: _groups.length,
+              totalAsesor: _totalAsesor,
             );
           }
 
-          final itemIndex = index - 1;
-          if (itemIndex >= _visibleItems.length) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            );
-          }
-
-          final item = _visibleItems[itemIndex];
+          final group = _groups[index - 1];
           return RepaintBoundary(
-            child: _AsesorHomebaseTile(
-              key: ValueKey('homebase_${item.name}_$itemIndex'),
-              item: item,
+            key: ValueKey(group.homebase),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _HomebaseGroupCard(group: group),
             ),
           );
         },
@@ -203,27 +171,199 @@ class _AsesorHomebaseScreenState extends State<AsesorHomebaseScreen> {
   }
 }
 
-class _AsesorHomebaseTile extends StatelessWidget {
-  final AsesorHomebase item;
+class _Header extends StatelessWidget {
+  final int daerahCount;
+  final int totalAsesor;
 
-  const _AsesorHomebaseTile({
-    super.key,
-    required this.item,
+  const _Header({
+    required this.daerahCount,
+    required this.totalAsesor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scheme = item.scheme.isNotEmpty ? item.scheme : '-';
-    final homebase = item.homebase.isNotEmpty ? item.homebase : '-';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Dikelompokkan per Daerah ($daerahCount daerah)',
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Total $totalAsesor asesor',
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF64748B),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomebaseGroup {
+  final String homebase;
+  final List<AsesorHomebase> items;
+  final int totalAssessments;
+
+  const _HomebaseGroup({
+    required this.homebase,
+    required this.items,
+    required this.totalAssessments,
+  });
+}
+
+/// Own state → toggle only rebuilds this card, not the whole list.
+class _HomebaseGroupCard extends StatefulWidget {
+  final _HomebaseGroup group;
+
+  const _HomebaseGroupCard({required this.group});
+
+  @override
+  State<_HomebaseGroupCard> createState() => _HomebaseGroupCardState();
+}
+
+class _HomebaseGroupCardState extends State<_HomebaseGroupCard> {
+  static const int _previewLimit = 15;
+
+  bool _expanded = false;
+  bool _showAll = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final group = widget.group;
+    final visibleCount = !_expanded
+        ? 0
+        : (_showAll
+            ? group.items.length
+            : group.items.length.clamp(0, _previewLimit));
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: () => setState(() {
+              _expanded = !_expanded;
+              if (!_expanded) _showAll = false;
+            }),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.location_on_rounded,
+                      color: Color(0xFF3B82F6),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          group.homebase,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${group.items.length} asesor · ${group.totalAssessments} asesmen',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${group.items.length}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1D4ED8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(
+                    _expanded
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    color: const Color(0xFF94A3B8),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_expanded) ...[
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            for (var i = 0; i < visibleCount; i++)
+              _AsesorHomebaseTile(item: group.items[i]),
+            if (!_showAll && group.items.length > _previewLimit)
+              TextButton(
+                onPressed: () => setState(() => _showAll = true),
+                child: Text(
+                  'Tampilkan semua (${group.items.length})',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF3B82F6),
+                  ),
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _AsesorHomebaseTile extends StatelessWidget {
+  final AsesorHomebase item;
+
+  const _AsesorHomebaseTile({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = item.scheme.isNotEmpty ? item.scheme : '-';
+    final name = item.name.isNotEmpty ? item.name : '-';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
           Expanded(
@@ -231,11 +371,11 @@ class _AsesorHomebaseTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.name.isNotEmpty ? item.name : '-',
+                  name,
                   style: const TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0F172A),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -246,30 +386,9 @@ class _AsesorHomebaseTile extends StatelessWidget {
                     Expanded(
                       child: Text(
                         scheme,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey,
-                        ),
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      size: 12,
-                      color: Colors.redAccent,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      homebase,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
                       ),
                     ),
                   ],

@@ -96,20 +96,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _isLoading = false;
         });
       } else {
-        final user = AuthRepository.currentUserInstance;
-        final bool isAdmin = user?.role == 'admin';
-
-        final List<Future<dynamic>> futures = [
+        // Admin / other roles: admin summary APIs only.
+        // Do NOT call /api/asesor/dashboard (role=asesor → 403 for admin).
+        final results = await Future.wait([
           ApiService.getSummary(),
           ApiService.getBerita(page: 1, size: 5),
           ApiService.getAssessmentGraph(),
           ApiService.getJadwalBaru(),
-        ];
-        if (isAdmin) {
-          futures.add(ApiService.getAsesorDashboard());
-        }
-
-        final results = await Future.wait(futures);
+        ]);
 
         if (_isDisposed || !mounted) return;
         setState(() {
@@ -117,9 +111,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _beritaData = results[1] as List<BeritaItem>;
           _chartData = results[2] as List<MonthlyAssessment>;
           _jadwalData = results[3] as List<JadwalBaru>;
-          if (isAdmin && results.length > 4) {
-            _asesorDashboardData = results[4] as AsesorDashboardData;
-          }
           _isLoading = false;
         });
       }
