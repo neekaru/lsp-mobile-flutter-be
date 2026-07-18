@@ -91,15 +91,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     bool serverHealthy = await ApiService.healthCheck();
     if (!serverHealthy) {
-      debugPrint('⚠️ Server health check failed, will use cached data');
+      debugPrint('⚠️ Server health check failed');
+      await _showNoConnectionDialog();
+      return;
     }
 
     // Stage 1.6: Readiness check (verify DB connection)
-    if (serverHealthy) {
-      bool serverReady = await ApiService.readyCheck();
-      if (!serverReady) {
-        debugPrint('⚠️ Server not ready (DB issue), will use cached data');
-      }
+    bool serverReady = await ApiService.readyCheck();
+    if (!serverReady) {
+      debugPrint('⚠️ Server not ready (DB issue)');
+      await _showNoConnectionDialog();
+      return;
     }
 
     // Stage 2: Initialize assets / session check
@@ -208,6 +210,51 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         ),
       );
     }
+  }
+
+  Future<void> _showNoConnectionDialog() async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.wifi_off, color: Colors.red),
+            SizedBox(width: 10),
+            Text(
+              'Koneksi Terputus',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Tidak dapat terhubung ke server. Silakan periksa koneksi internet Anda.',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              if (mounted) {
+                setState(() {
+                  _loadingProgress = 0.1;
+                  _loadingStatus = "Menghubungkan kembali...";
+                });
+                _startInitialization();
+              }
+            },
+            child: const Text(
+              'Coba Lagi',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
