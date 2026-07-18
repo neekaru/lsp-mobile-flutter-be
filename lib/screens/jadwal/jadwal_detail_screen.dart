@@ -38,7 +38,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('ACC Jadwal'),
-        content: Text('Apakah Anda yakin ingin menyetujui (ACC) jadwal "${widget.jadwal.skema}" dan menjalankannya?'),
+        content: Text(
+          'Apakah Anda yakin ingin menyetujui (ACC) jadwal "${widget.jadwal.skema}" dan menjalankannya?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -49,7 +51,10 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF4CAF50),
             ),
-            child: const Text('ACC & Running', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'ACC & Running',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -121,8 +126,18 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
       final day = int.parse(parts[2]).toString();
 
       final months = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
       ];
       final monthName = months[monthIndex - 1];
       return '$day $monthName $year';
@@ -143,9 +158,15 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
   }
 
   String _getStatusLabel(String status) {
+    // Prefer label dari BE bila tersedia
+    if (widget.jadwal.statusLabel.trim().isNotEmpty &&
+        status == widget.jadwal.status) {
+      return widget.jadwal.displayStatusLabel;
+    }
     switch (status) {
+      case 'draft':
       case 'waiting':
-        return 'Waiting';
+        return 'Draft';
       case 'completed':
         return 'Completed';
       case 'canceled':
@@ -166,6 +187,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     String label = _getStatusLabel(status);
 
     switch (status) {
+      case 'draft':
       case 'waiting':
         bgColor = const Color(0xFFFFEAD2);
         textColor = const Color(0xFFE67E22);
@@ -290,11 +312,30 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     try {
       final start = DateTime.tryParse(widget.jadwal.tanggalMulai);
       final end = DateTime.tryParse(widget.jadwal.tanggalSelesai);
-      if (start == null || end == null) return '${widget.jadwal.tanggalMulai} - ${widget.jadwal.tanggalSelesai}';
-      final days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+      if (start == null || end == null)
+        return '${widget.jadwal.tanggalMulai} - ${widget.jadwal.tanggalSelesai}';
+      final days = [
+        'Senin',
+        'Selasa',
+        'Rabu',
+        'Kamis',
+        'Jumat',
+        'Sabtu',
+        'Minggu',
+      ];
       final months = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
       ];
       final startDay = days[start.weekday - 1];
       final monthName = months[start.month - 1];
@@ -351,13 +392,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
         children: [
           Icon(icon, size: 14, color: iconColor),
           const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
@@ -383,10 +418,11 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     String label;
 
     switch (status) {
+      case 'draft':
       case 'waiting':
         bgColor = const Color(0xFFFEF3C7);
         textColor = const Color(0xFFD97706);
-        label = 'Waiting';
+        label = 'Draft';
         break;
       case 'completed':
         bgColor = const Color(0xFFD1FAE5);
@@ -506,11 +542,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                     color: const Color(0xFFE5F1FC),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    icon,
-                    color: const Color(0xFF2C6C9C),
-                    size: 20,
-                  ),
+                  child: Icon(icon, color: const Color(0xFF2C6C9C), size: 20),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -537,11 +569,13 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
   }
 
   Widget _buildAsesorDetailView(BuildContext context) {
-    final String leadAsesor = (_detailData != null && _detailData!.asesor.isNotEmpty)
+    final String leadAsesor =
+        (_detailData != null && _detailData!.asesor.isNotEmpty)
         ? _detailData!.asesor.first.namaAsesor
-        : (_detailData?.leadAsesor != null && _detailData!.leadAsesor!.isNotEmpty)
-            ? _detailData!.leadAsesor!
-            : _getDisplayAsesor();
+        : (_detailData?.leadAsesor != null &&
+              _detailData!.leadAsesor!.isNotEmpty)
+        ? _detailData!.leadAsesor!
+        : _getDisplayAsesor();
 
     final String totalPeserta = (_detailData?.jumlahPeserta != null)
         ? '${_detailData!.jumlahPeserta} Peserta'
@@ -628,14 +662,17 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                 _buildAsesorDetailRow(
                   icon: Icons.access_time_rounded,
                   label: 'Waktu Asesmen',
-                  value: (_detailData?.waktuAsesmen != null && _detailData!.waktuAsesmen!.isNotEmpty)
+                  value:
+                      (_detailData?.waktuAsesmen != null &&
+                          _detailData!.waktuAsesmen!.isNotEmpty)
                       ? _detailData!.waktuAsesmen!
                       : '09:00 - 11:00 WIB',
                 ),
                 _buildAsesorDetailRow(
                   icon: Icons.location_on_rounded,
                   label: 'Lokasi Asesmen',
-                  value: _detailData != null && _detailData!.alamatTuk.isNotEmpty
+                  value:
+                      _detailData != null && _detailData!.alamatTuk.isNotEmpty
                       ? _detailData!.alamatTuk
                       : 'Yogyakarta',
                   iconColor: Colors.orange,
@@ -663,13 +700,15 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                builder: (context) =>
+                    const Center(child: CircularProgressIndicator()),
               );
               try {
-                final fileUrl = await ApiService.getSuratTugas(widget.jadwal.id);
-                if (context.mounted) Navigator.pop(context); // Dismiss loading dialog
+                final fileUrl = await ApiService.getSuratTugas(
+                  widget.jadwal.id,
+                );
+                if (context.mounted)
+                  Navigator.pop(context); // Dismiss loading dialog
                 if (fileUrl != null && fileUrl.isNotEmpty) {
                   final uri = Uri.parse(fileUrl);
                   if (await canLaunchUrl(uri)) {
@@ -678,7 +717,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Tidak dapat membuka file PDF Surat Tugas.'),
+                          content: Text(
+                            'Tidak dapat membuka file PDF Surat Tugas.',
+                          ),
                           backgroundColor: Colors.red,
                           behavior: SnackBarBehavior.floating,
                         ),
@@ -689,7 +730,8 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                   throw Exception('Surat tugas belum tersedia');
                 }
               } catch (e) {
-                if (context.mounted) Navigator.pop(context); // Dismiss loading dialog
+                if (context.mounted)
+                  Navigator.pop(context); // Dismiss loading dialog
                 final errorMsg = e.toString().replaceAll('Exception: ', '');
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -748,11 +790,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                     color: Color(0xFF4CAF50),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 14,
-                  ),
+                  child: const Icon(Icons.check, color: Colors.white, size: 14),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -860,7 +898,8 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                 _buildAsesiInfoRow(
                   icon: Icons.location_on_rounded,
                   label: 'Lokasi Asesmen',
-                  value: _detailData != null && _detailData!.alamatTuk.isNotEmpty
+                  value:
+                      _detailData != null && _detailData!.alamatTuk.isNotEmpty
                       ? _detailData!.alamatTuk
                       : 'Yogyakarta',
                   iconColor: Colors.orange,
@@ -881,94 +920,99 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                 ),
                 const SizedBox(height: 8),
                 if (_detailData != null && _detailData!.asesor.isNotEmpty)
-                  ..._detailData!.asesor.map((asesorItem) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFF5F5F5),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.person_outline_rounded,
-                                    color: Colors.grey,
-                                    size: 20,
-                                  ),
+                  ..._detailData!.asesor.map(
+                    (asesorItem) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFF5F5F5),
+                                  shape: BoxShape.circle,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        asesorItem.namaAsesor,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'No Reg: ${asesorItem.noReg}',
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                child: const Icon(
+                                  Icons.person_outline_rounded,
+                                  color: Colors.grey,
+                                  size: 20,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFD2E3F4),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFF6C8BB4), width: 1),
                               ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ProfilAsesorScreen(
-                                          name: asesorItem.namaAsesor,
-                                          skema: widget.jadwal.skema,
-                                          lokasi: asesorItem.kabupatenKota,
-                                          asesorDetail: asesorItem,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 8),
-                                    child: Text(
-                                      'Lihat Profil Asesor',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      asesorItem.namaAsesor,
+                                      style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2C6C9C),
+                                        color: Colors.black87,
                                       ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'No Reg: ${asesorItem.noReg}',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD2E3F4),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: const Color(0xFF6C8BB4),
+                                width: 1,
+                              ),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ProfilAsesorScreen(
+                                        name: asesorItem.namaAsesor,
+                                        skema: widget.jadwal.skema,
+                                        lokasi: asesorItem.kabupatenKota,
+                                        asesorDetail: asesorItem,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: Text(
+                                    'Lihat Profil Asesor',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2C6C9C),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ))
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                 else ...[
                   Row(
                     children: [
@@ -1017,7 +1061,10 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFFD2E3F4),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFF6C8BB4), width: 1),
+                      border: Border.all(
+                        color: const Color(0xFF6C8BB4),
+                        width: 1,
+                      ),
                     ),
                     child: Material(
                       color: Colors.transparent,
@@ -1080,7 +1127,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          
+
           // Header with consistent style (Statistics Header)
           CustomAppBar(
             title: 'Detail Jadwal',
@@ -1105,8 +1152,8 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
             child: isAsesi
                 ? _buildAsesiDetailView(context)
                 : isAsesor
-                    ? _buildAsesorDetailView(context)
-                    : SingleChildScrollView(
+                ? _buildAsesorDetailView(context)
+                : SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1200,15 +1247,18 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                       alignment: Alignment.centerRight,
                                       child: GestureDetector(
                                         onTap: () async {
-                                          final result = await Navigator.push<bool>(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => JadwalEditScreen(
-                                                jadwal: widget.jadwal,
-                                                userRole: widget.userRole,
-                                              ),
-                                            ),
-                                          );
+                                          final result =
+                                              await Navigator.push<bool>(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      JadwalEditScreen(
+                                                        jadwal: widget.jadwal,
+                                                        userRole:
+                                                            widget.userRole,
+                                                      ),
+                                                ),
+                                              );
                                           if (!context.mounted) return;
                                           if (result == true) {
                                             Navigator.pop(context, true);
@@ -1229,208 +1279,250 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
-                                const SizedBox(height: 8),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              const Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: Color(0xFFEEEEEE),
+                              ),
+                              const SizedBox(height: 8),
 
-                                // Rows
-                                _buildInfoRow(
-                                  icon: LucideIcons.map_pin,
-                                  iconColor: const Color(0xFFEF5350),
-                                  iconBgColor: const Color(0xFFFFEBEE),
-                                  label: 'Tempat Uji Kompetensi',
-                                  value: _detailData != null && _detailData!.alamatTuk.isNotEmpty
-                                      ? '${_detailData!.tuk}\n(${_detailData!.alamatTuk})'
-                                      : widget.jadwal.tuk,
-                                ),
-                                _buildInfoRow(
-                                  icon: LucideIcons.calendar,
-                                  iconColor: const Color(0xFF2F80ED),
-                                  iconBgColor: const Color(0xFFE5F1FC),
-                                  label: 'Periode Asesmen',
-                                  value: '${_formatIndonesianDate(widget.jadwal.tanggalMulai)} - ${_formatIndonesianDate(widget.jadwal.tanggalSelesai)}',
-                                ),
-                                _buildInfoRow(
-                                  icon: LucideIcons.clock,
-                                  iconColor: const Color(0xFF2F80ED),
-                                  iconBgColor: const Color(0xFFE5F1FC),
-                                  label: 'Durasi Pelaksanaan',
-                                  value: _getDurationString(),
-                                ),
-                                _buildInfoRow(
-                                  icon: LucideIcons.user,
-                                  iconColor: const Color(0xFF2F80ED),
-                                  iconBgColor: const Color(0xFFE5F1FC),
-                                  label: 'Asesor',
-                                  value: _detailData != null && _detailData!.asesor.isNotEmpty
-                                      ? _detailData!.asesor.map((e) => e.namaAsesor).join(', ')
-                                      : (widget.jadwal.asesor.isEmpty
+                              // Rows
+                              _buildInfoRow(
+                                icon: LucideIcons.map_pin,
+                                iconColor: const Color(0xFFEF5350),
+                                iconBgColor: const Color(0xFFFFEBEE),
+                                label: 'Tempat Uji Kompetensi',
+                                value:
+                                    _detailData != null &&
+                                        _detailData!.alamatTuk.isNotEmpty
+                                    ? '${_detailData!.tuk}\n(${_detailData!.alamatTuk})'
+                                    : widget.jadwal.tuk,
+                              ),
+                              _buildInfoRow(
+                                icon: LucideIcons.calendar,
+                                iconColor: const Color(0xFF2F80ED),
+                                iconBgColor: const Color(0xFFE5F1FC),
+                                label: 'Periode Asesmen',
+                                value:
+                                    '${_formatIndonesianDate(widget.jadwal.tanggalMulai)} - ${_formatIndonesianDate(widget.jadwal.tanggalSelesai)}',
+                              ),
+                              _buildInfoRow(
+                                icon: LucideIcons.clock,
+                                iconColor: const Color(0xFF2F80ED),
+                                iconBgColor: const Color(0xFFE5F1FC),
+                                label: 'Durasi Pelaksanaan',
+                                value: _getDurationString(),
+                              ),
+                              _buildInfoRow(
+                                icon: LucideIcons.user,
+                                iconColor: const Color(0xFF2F80ED),
+                                iconBgColor: const Color(0xFFE5F1FC),
+                                label: 'Asesor',
+                                value:
+                                    _detailData != null &&
+                                        _detailData!.asesor.isNotEmpty
+                                    ? _detailData!.asesor
+                                          .map((e) => e.namaAsesor)
+                                          .join(', ')
+                                    : (widget.jadwal.asesor.isEmpty
                                           ? 'Belum ditentukan'
                                           : widget.jadwal.asesor.join(', ')),
-                                ),
-                                _buildInfoRow(
-                                  icon: LucideIcons.users,
-                                  iconColor: const Color(0xFF2F80ED),
-                                  iconBgColor: const Color(0xFFE5F1FC),
-                                  label: 'Jumlah asesi',
-                                  value: '${widget.jadwal.jumlahAsesi} Asesi',
-                                ),
+                              ),
+                              _buildInfoRow(
+                                icon: LucideIcons.users,
+                                iconColor: const Color(0xFF2F80ED),
+                                iconBgColor: const Color(0xFFE5F1FC),
+                                label: 'Jumlah asesi',
+                                value: '${widget.jadwal.jumlahAsesi} Asesi',
+                              ),
 
-                                const SizedBox(height: 12),
-                                const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
-                                const SizedBox(height: 16),
+                              const SizedBox(height: 12),
+                              const Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: Color(0xFFEEEEEE),
+                              ),
+                              const SizedBox(height: 16),
 
-                                // Warning/Info Banner inside card
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFFDE7), // Light yellow
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: const Color(0xFFFFF59D), width: 1),
+                              // Warning/Info Banner inside card
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFFFFFDE7,
+                                  ), // Light yellow
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(0xFFFFF59D),
+                                    width: 1,
                                   ),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Icon(
-                                        Icons.warning_rounded,
-                                        color: Color(0xFFFBC02D),
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          'Pelaksanaan uji kompetensi untuk skema ${widget.jadwal.skema} sudah sesuai dengan standar yang berlaku.',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.black87,
-                                            height: 1.4,
-                                          ),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.warning_rounded,
+                                      color: Color(0xFFFBC02D),
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Pelaksanaan uji kompetensi untuk skema ${widget.jadwal.skema} sudah sesuai dengan standar yang berlaku.',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.black87,
+                                          height: 1.4,
                                         ),
                                       ),
-                                    ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Card 3: Daftar Asesor Tugas (Only shown when detailData has assessors)
+                        if (_detailData != null &&
+                            _detailData!.asesor.isNotEmpty) ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x0A000000),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Daftar Asesor Tugas',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                const Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                  color: Color(0xFFEEEEEE),
+                                ),
+                                const SizedBox(height: 12),
+                                ..._detailData!.asesor.map(
+                                  (asesorItem) => Padding(
+                                    padding: const EdgeInsets.only(
+                                      bottom: 12.0,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xFFF5F5F5),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.person_outline_rounded,
+                                            color: Colors.grey,
+                                            size: 22,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                asesorItem.namaAsesor,
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'Reg: ${asesorItem.noReg}',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(
+                                              0xFFE5F1FC,
+                                            ),
+                                            foregroundColor: const Color(
+                                              0xFF2C6C9C,
+                                            ),
+                                            elevation: 0,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 8,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ProfilAsesorScreen(
+                                                      name:
+                                                          asesorItem.namaAsesor,
+                                                      skema:
+                                                          widget.jadwal.skema,
+                                                      lokasi: asesorItem
+                                                          .kabupatenKota,
+                                                      asesorDetail: asesorItem,
+                                                    ),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text(
+                                            'Profil',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          
-                          const SizedBox(height: 16),
-
-                          // Card 3: Daftar Asesor Tugas (Only shown when detailData has assessors)
-                          if (_detailData != null && _detailData!.asesor.isNotEmpty) ...[
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x0A000000),
-                                    blurRadius: 10,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Daftar Asesor Tugas',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
-                                  const SizedBox(height: 12),
-                                  ..._detailData!.asesor.map((asesorItem) => Padding(
-                                        padding: const EdgeInsets.only(bottom: 12.0),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              width: 40,
-                                              height: 40,
-                                              decoration: const BoxDecoration(
-                                                color: Color(0xFFF5F5F5),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(
-                                                Icons.person_outline_rounded,
-                                                color: Colors.grey,
-                                                size: 22,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    asesorItem.namaAsesor,
-                                                    style: const TextStyle(
-                                                      fontSize: 13,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: Colors.black87,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 2),
-                                                  Text(
-                                                    'Reg: ${asesorItem.noReg}',
-                                                    style: const TextStyle(
-                                                      fontSize: 11,
-                                                      color: Colors.grey,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: const Color(0xFFE5F1FC),
-                                                foregroundColor: const Color(0xFF2C6C9C),
-                                                elevation: 0,
-                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                              ),
-                                              onPressed: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) => ProfilAsesorScreen(
-                                                      name: asesorItem.namaAsesor,
-                                                      skema: widget.jadwal.skema,
-                                                      lokasi: asesorItem.kabupatenKota,
-                                                      asesorDetail: asesorItem,
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                              child: const Text(
-                                                'Profil',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )),
-                                ],
-                              ),
-                            ),
-                          ],
                         ],
-                      ),
+                      ],
                     ),
-            ),
+                  ),
+          ),
         ],
       ),
       bottomNavigationBar: (!isAsesi && !isAsesor && widget.jadwal.needsAcc)

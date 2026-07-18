@@ -7,11 +7,7 @@ class JadwalListItem extends StatelessWidget {
   final JadwalItem item;
   final VoidCallback onTap;
 
-  const JadwalListItem({
-    super.key,
-    required this.item,
-    required this.onTap,
-  });
+  const JadwalListItem({super.key, required this.item, required this.onTap});
 
   String _formatIndonesianDate(String yyyymmdd) {
     try {
@@ -22,8 +18,18 @@ class JadwalListItem extends StatelessWidget {
       final day = int.parse(parts[2]).toString();
 
       final months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
       ];
       final monthName = months[monthIndex - 1];
       return '$day $monthName $year';
@@ -34,6 +40,7 @@ class JadwalListItem extends StatelessWidget {
 
   Color _getStatusColor() {
     switch (item.status) {
+      case 'draft':
       case 'waiting':
         return const Color(0xFFFBC02D); // Yellow
       case 'completed':
@@ -51,12 +58,13 @@ class JadwalListItem extends StatelessWidget {
 
   String _getStatusText() {
     switch (item.status) {
+      case 'draft':
       case 'waiting':
-        return 'Waiting';
+        return item.displayStatusLabel;
       case 'completed':
         return ''; // Hidden - no bottom status text for completed
       case 'canceled':
-        return 'Canceled';
+        return item.displayStatusLabel;
       case 'running':
         // Jika ada days_late (terlambat), tampilkan badge terlambat
         if (item.daysLate != null && item.daysLate! > 0) {
@@ -64,9 +72,9 @@ class JadwalListItem extends StatelessWidget {
         }
         return 'Sisa ${item.sisaHari} hari';
       case 'pelaporan':
-        return 'Pelaporan';
+        return item.displayStatusLabel;
       default:
-        return item.status;
+        return item.displayStatusLabel;
     }
   }
 
@@ -105,10 +113,28 @@ class JadwalListItem extends StatelessWidget {
     try {
       final dt = DateTime.tryParse(yyyymmdd);
       if (dt == null) return yyyymmdd;
-      final days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+      final days = [
+        'Senin',
+        'Selasa',
+        'Rabu',
+        'Kamis',
+        'Jumat',
+        'Sabtu',
+        'Minggu',
+      ];
       final months = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
       ];
       final dayName = days[dt.weekday - 1];
       final monthName = months[dt.month - 1];
@@ -123,7 +149,7 @@ class JadwalListItem extends StatelessWidget {
     Color badgeBg;
     Color badgeTextColor;
 
-    if (item.status == 'running' || item.status == 'waiting') {
+    if (item.isRunning || item.isDraft) {
       badgeText = 'Terjadwal';
       badgeBg = const Color(0xFFD2E3F4);
       badgeTextColor = const Color(0xFF2C6C9C);
@@ -228,7 +254,10 @@ class JadwalListItem extends StatelessWidget {
 
                   // Status Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: badgeBg,
                       borderRadius: BorderRadius.circular(6),
@@ -258,7 +287,11 @@ class JadwalListItem extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.access_time_rounded, size: 12, color: Colors.grey),
+                            const Icon(
+                              Icons.access_time_rounded,
+                              size: 12,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Jadwal Asesmen',
@@ -282,14 +315,23 @@ class JadwalListItem extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(width: 1, height: 44, color: const Color(0xFFECEFF1), margin: const EdgeInsets.symmetric(horizontal: 4)),
+                  Container(
+                    width: 1,
+                    height: 44,
+                    color: const Color(0xFFECEFF1),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.person_outline_rounded, size: 12, color: Colors.grey),
+                            const Icon(
+                              Icons.person_outline_rounded,
+                              size: 12,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Asesor',
@@ -315,14 +357,23 @@ class JadwalListItem extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(width: 1, height: 44, color: const Color(0xFFECEFF1), margin: const EdgeInsets.symmetric(horizontal: 4)),
+                  Container(
+                    width: 1,
+                    height: 44,
+                    color: const Color(0xFFECEFF1),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.access_time_rounded, size: 12, color: Colors.grey),
+                            const Icon(
+                              Icons.access_time_rounded,
+                              size: 12,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Jadwal Selesai',
@@ -390,11 +441,11 @@ class JadwalListItem extends StatelessWidget {
     Color badgeBg;
     Color badgeTextColor;
 
-    if (item.status == 'waiting') {
-      badgeText = 'Menunggu';
+    if (item.isDraft) {
+      badgeText = 'Draft';
       badgeBg = const Color(0xFFFEF3C7);
       badgeTextColor = const Color(0xFFD97706);
-    } else if (item.status == 'running') {
+    } else if (item.isRunning) {
       badgeText = 'Berjalan';
       badgeBg = const Color(0xFFDBEAFE);
       badgeTextColor = const Color(0xFF2563EB);
@@ -507,7 +558,10 @@ class JadwalListItem extends StatelessWidget {
 
                   // Status Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: badgeBg,
                       borderRadius: BorderRadius.circular(6),
@@ -537,7 +591,11 @@ class JadwalListItem extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.access_time_rounded, size: 12, color: Colors.grey),
+                            const Icon(
+                              Icons.access_time_rounded,
+                              size: 12,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Jadwal Asesmen',
@@ -561,14 +619,23 @@ class JadwalListItem extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(width: 1, height: 44, color: const Color(0xFFECEFF1), margin: const EdgeInsets.symmetric(horizontal: 4)),
+                  Container(
+                    width: 1,
+                    height: 44,
+                    color: const Color(0xFFECEFF1),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.person_outline_rounded, size: 12, color: Colors.grey),
+                            const Icon(
+                              Icons.person_outline_rounded,
+                              size: 12,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Asesor',
@@ -594,14 +661,23 @@ class JadwalListItem extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(width: 1, height: 44, color: const Color(0xFFECEFF1), margin: const EdgeInsets.symmetric(horizontal: 4)),
+                  Container(
+                    width: 1,
+                    height: 44,
+                    color: const Color(0xFFECEFF1),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.access_time_rounded, size: 12, color: Colors.grey),
+                            const Icon(
+                              Icons.access_time_rounded,
+                              size: 12,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Jadwal Selesai',
@@ -774,7 +850,10 @@ class JadwalListItem extends StatelessWidget {
                           children: [
                             // Jumlah Asesi
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF5F5F5),
                                 borderRadius: BorderRadius.circular(6),
@@ -825,7 +904,10 @@ class JadwalListItem extends StatelessWidget {
                       if (_shouldShowWarning())
                         Container(
                           margin: const EdgeInsets.only(bottom: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFEBEE),
                             borderRadius: BorderRadius.circular(6),
@@ -857,22 +939,24 @@ class JadwalListItem extends StatelessWidget {
                           ),
                         ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: item.needsAcc ? const Color(0xFFFFEBEE) : _getStatusColor().withValues(alpha: 0.1),
+                          color: item.needsAcc
+                              ? const Color(0xFFFFEBEE)
+                              : _getStatusColor().withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          item.needsAcc ? 'Butuh ACC' : (
-                          item.status == 'waiting' ? 'Waiting' : 
-                          item.status == 'completed' ? 'Completed' :
-                          item.status == 'canceled' ? 'Canceled' :
-                          item.status == 'running' ? 'Running' :
-                          item.status == 'pelaporan' ? 'Pelaporan' : item.status),
+                          item.needsAcc ? 'Butuh ACC' : item.displayStatusLabel,
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: item.needsAcc ? const Color(0xFFE53935) : _getStatusColor(),
+                            color: item.needsAcc
+                                ? const Color(0xFFE53935)
+                                : _getStatusColor(),
                           ),
                         ),
                       ),
@@ -894,7 +978,9 @@ class JadwalListItem extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: _shouldShowWarning() ? const Color(0xFFFF6B6B) : _getStatusColor(),
+                              color: _shouldShowWarning()
+                                  ? const Color(0xFFFF6B6B)
+                                  : _getStatusColor(),
                             ),
                           ),
                         ],
@@ -946,7 +1032,9 @@ class JadwalListItem extends StatelessWidget {
                   ),
                 ),
               )
-            else if (item.status != 'completed' && item.status != 'canceled' && item.status != 'pelaporan')
+            else if (item.status != 'completed' &&
+                item.status != 'canceled' &&
+                item.status != 'pelaporan')
               Container(
                 decoration: const BoxDecoration(
                   border: Border(
@@ -990,6 +1078,5 @@ class JadwalListItem extends StatelessWidget {
         ),
       ),
     );
-
   }
 }

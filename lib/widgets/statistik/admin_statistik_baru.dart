@@ -16,6 +16,139 @@ class AdminStatistikBaru extends StatefulWidget {
   State<AdminStatistikBaru> createState() => _AdminStatistikBaruState();
 }
 
+class _StatisticsMenuAccordion extends StatefulWidget {
+  final ValueChanged<String> onSelected;
+
+  const _StatisticsMenuAccordion({required this.onSelected});
+
+  @override
+  State<_StatisticsMenuAccordion> createState() =>
+      _StatisticsMenuAccordionState();
+}
+
+class _StatisticsMenuAccordionState extends State<_StatisticsMenuAccordion> {
+  int? _expandedGroup;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildGroup(
+          group: 1,
+          title: 'GROUP 1',
+          children: [
+            _buildMenuItem(
+              value: 'sertifikat',
+              label: 'Skema Pemegang Sertifikat',
+              icon: Icons.assignment_turned_in_rounded,
+            ),
+            _buildMenuItem(value: 'menu_2', label: 'Menu 2'),
+            _buildMenuItem(value: 'menu_3', label: 'Menu 3'),
+          ],
+        ),
+        const Divider(height: 1, color: Color(0xFFF1F5F9)),
+        _buildGroup(
+          group: 2,
+          title: 'GROUP 2',
+          children: [
+            _buildMenuItem(
+              value: 'distribusi',
+              label: 'Distribusi Asesor & Skema',
+              icon: Icons.map_rounded,
+            ),
+            _buildMenuItem(value: 'menu_5', label: 'Menu 5'),
+            _buildMenuItem(value: 'menu_6', label: 'Menu 6'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGroup({
+    required int group,
+    required String title,
+    required List<Widget> children,
+  }) {
+    final isExpanded = _expandedGroup == group;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InkWell(
+          onTap: () => setState(() {
+            _expandedGroup = isExpanded ? null : group;
+          }),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                AnimatedRotation(
+                  turns: isExpanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 180),
+                  child: const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 180),
+          child: isExpanded
+              ? Column(mainAxisSize: MainAxisSize.min, children: children)
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem({
+    required String value,
+    required String label,
+    IconData? icon,
+  }) {
+    return InkWell(
+      onTap: () {
+        Navigator.of(context).pop();
+        widget.onSelected(value);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Icon(
+              icon ?? Icons.chevron_right_rounded,
+              size: 18,
+              color: const Color(0xFF64748B),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   bool _isLoading = true;
 
@@ -52,7 +185,9 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
           _asesorStats = results[1] as AsesorStats;
           _topProvinces = results[2] as List<TopProvinsi>;
           // Preview only — full list lives on AsesorHomebaseScreen
-          _homebaseList = homebase.length > 4 ? homebase.sublist(0, 4) : homebase;
+          _homebaseList = homebase.length > 4
+              ? homebase.sublist(0, 4)
+              : homebase;
           _isLoading = false;
         });
       }
@@ -83,14 +218,17 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: statusBarHeight + 8),
-              
+
               // 1. App Bar
               CustomAppBar(
                 title: 'Dashboard Statistik',
-                onBack: widget.onBackToHome ?? () => Navigator.of(context).pop(),
+                onBack:
+                    widget.onBackToHome ?? () => Navigator.of(context).pop(),
                 rightWidget: Theme(
                   data: Theme.of(context).copyWith(
-                    dividerTheme: const DividerThemeData(color: Color(0xFFF1F5F9)),
+                    dividerTheme: const DividerThemeData(
+                      color: Color(0xFFF1F5F9),
+                    ),
                   ),
                   child: PopupMenuButton<String>(
                     icon: const Icon(
@@ -106,61 +244,16 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                     ),
                     color: Colors.white,
                     elevation: 3,
-                    onSelected: (String value) {
-                      if (value == 'sertifikat') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const DistribusiAsesorSertifikasiScreen(
-                              initialShowSebaranSkema: true,
-                            ),
+                    onSelected: _handleStatisticsMenuSelection,
+                    itemBuilder: (context) => <PopupMenuEntry<String>>[
+                      PopupMenuItem<String>(
+                        enabled: false,
+                        padding: EdgeInsets.zero,
+                        child: SizedBox(
+                          width: 280,
+                          child: _StatisticsMenuAccordion(
+                            onSelected: _handleStatisticsMenuSelection,
                           ),
-                        );
-                      } else if (value == 'distribusi') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const DistribusiAsesorSertifikasiScreen(
-                              initialShowSebaranSkema: false,
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(
-                        value: 'sertifikat',
-                        child: Row(
-                          children: [
-                            Icon(Icons.assignment_turned_in_rounded, size: 18, color: Color(0xFF2C6C9C)),
-                            SizedBox(width: 8),
-                            Text(
-                              'Skema Pemegang Sertifikat',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuDivider(),
-                      const PopupMenuItem<String>(
-                        value: 'distribusi',
-                        child: Row(
-                          children: [
-                            Icon(Icons.map_rounded, size: 18, color: Color(0xFF64748B)),
-                            SizedBox(width: 8),
-                            Text(
-                              'Distribusi Asesor & Skema',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
                         ),
                       ),
                     ],
@@ -171,7 +264,10 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
               _isLoading
                   ? _buildLoadingState()
                   : Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -192,7 +288,11 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                             isAdminDashboard: true,
                             onIslandSelected: (islandId) {},
                             onProvinceSelected: (province) {
-                              _showTUKDistributionBottomSheet(context, province.id, province.name);
+                              _showTUKDistributionBottomSheet(
+                                context,
+                                province.id,
+                                province.name,
+                              );
                             },
                           ),
                           const SizedBox(height: 16),
@@ -213,6 +313,28 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
         ),
       ),
     );
+  }
+
+  void _handleStatisticsMenuSelection(String value) {
+    if (value == 'sertifikat') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DistribusiAsesorSertifikasiScreen(
+            initialShowSebaranSkema: true,
+          ),
+        ),
+      );
+    } else if (value == 'distribusi') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DistribusiAsesorSertifikasiScreen(
+            initialShowSebaranSkema: false,
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildLoadingState() {
@@ -294,7 +416,11 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                     color: const Color(0xFFE0F2FE),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.person, color: Color(0xFF0284C7), size: 20),
+                  child: const Icon(
+                    Icons.person,
+                    color: Color(0xFF0284C7),
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 const Expanded(
@@ -392,11 +518,15 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                 child: Row(
                   children: [
                     Expanded(
-                      flex: stats.asesorInternal > 0 ? stats.asesorInternal : 75,
+                      flex: stats.asesorInternal > 0
+                          ? stats.asesorInternal
+                          : 75,
                       child: Container(color: const Color(0xFF3B82F6)),
                     ),
                     Expanded(
-                      flex: stats.asesorExternal > 0 ? stats.asesorExternal : 25,
+                      flex: stats.asesorExternal > 0
+                          ? stats.asesorExternal
+                          : 25,
                       child: Container(color: const Color(0xFF10B981)),
                     ),
                   ],
@@ -410,7 +540,9 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   }
 
   Widget _buildJumlahAsesiCard(StatistikOverview overview) {
-    final String valStr = NumberFormatHelper.formatWithDots(overview.totalAsesi);
+    final String valStr = NumberFormatHelper.formatWithDots(
+      overview.totalAsesi,
+    );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
@@ -437,7 +569,11 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                   color: const Color(0xFFFFEAD2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.people, color: Color(0xFFEA580C), size: 20),
+                child: const Icon(
+                  Icons.people,
+                  color: Color(0xFFEA580C),
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 8),
               const Expanded(
@@ -514,7 +650,11 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                   color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.domain, color: Color(0xFF2E7D32), size: 20),
+                child: const Icon(
+                  Icons.domain,
+                  color: Color(0xFF2E7D32),
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 8),
               const Expanded(
@@ -564,13 +704,15 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   }
 
   Widget _buildSkemaWilayahCard() {
-    final items = _topProvinces.isNotEmpty ? _topProvinces : const [
-      TopProvinsi(name: 'ACEH', value: 2, percentage: '2,7%'),
-      TopProvinsi(name: 'SUMATRA UTARA', value: 1, percentage: '1,4%'),
-      TopProvinsi(name: 'RIAU', value: 1, percentage: '1,4%'),
-      TopProvinsi(name: 'SUMATRA SELATAN', value: 2, percentage: '1,4%'),
-      TopProvinsi(name: 'DKI JAKARTA', value: 11, percentage: '15,1%'),
-    ];
+    final items = _topProvinces.isNotEmpty
+        ? _topProvinces
+        : const [
+            TopProvinsi(name: 'ACEH', value: 2, percentage: '2,7%'),
+            TopProvinsi(name: 'SUMATRA UTARA', value: 1, percentage: '1,4%'),
+            TopProvinsi(name: 'RIAU', value: 1, percentage: '1,4%'),
+            TopProvinsi(name: 'SUMATRA SELATAN', value: 2, percentage: '1,4%'),
+            TopProvinsi(name: 'DKI JAKARTA', value: 11, percentage: '15,1%'),
+          ];
 
     return Container(
       decoration: BoxDecoration(
@@ -733,10 +875,16 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.location_on_outlined, size: 12, color: Colors.redAccent),
+                                  const Icon(
+                                    Icons.location_on_outlined,
+                                    size: 12,
+                                    color: Colors.redAccent,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    item.homebase.isNotEmpty ? item.homebase : '-',
+                                    item.homebase.isNotEmpty
+                                        ? item.homebase
+                                        : '-',
                                     style: const TextStyle(
                                       fontSize: 10,
                                       color: Colors.grey,
@@ -748,7 +896,10 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(8),
@@ -802,7 +953,11 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
     );
   }
 
-  void _showTUKDistributionBottomSheet(BuildContext context, String provinceId, String provinceName) {
+  void _showTUKDistributionBottomSheet(
+    BuildContext context,
+    String provinceId,
+    String provinceName,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -836,7 +991,10 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Color(0xFF64748B),
+                    ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -861,7 +1019,10 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                       return const Center(
                         child: Text(
                           'Tidak ada data penyebaran TUK di provinsi ini.',
-                          style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                          style: TextStyle(
+                            color: Color(0xFF64748B),
+                            fontSize: 13,
+                          ),
                         ),
                       );
                     }
@@ -869,7 +1030,8 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                     return ListView.separated(
                       itemCount: data.length,
                       physics: const BouncingScrollPhysics(),
-                      separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
                       itemBuilder: (context, index) {
                         final item = data[index];
                         return _buildTukKabListItem(item);
@@ -952,7 +1114,11 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF64748B)),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: Color(0xFF64748B),
+            ),
           ],
         ),
         children: item.detail
@@ -964,7 +1130,11 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                   children: [
                     const Padding(
                       padding: EdgeInsets.only(top: 2.0),
-                      child: Icon(Icons.circle, size: 6, color: Color(0xFF2563EB)),
+                      child: Icon(
+                        Icons.circle,
+                        size: 6,
+                        color: Color(0xFF2563EB),
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(

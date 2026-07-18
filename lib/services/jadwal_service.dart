@@ -58,6 +58,30 @@ class JadwalService {
     }
   }
 
+  /// Invalidate running list cache (call after ACC / status change)
+  static void clearRunningJadwalCache() {
+    _runningJadwalCache = null;
+    _runningJadwalCacheTime = null;
+  }
+
+  /// Fetch ringkasan hitungan jadwal admin
+  static Future<JadwalStatistik> getJadwalStatistics() async {
+    try {
+      final response = await _dio.get(ApiRoutes.jadwalStatistics);
+      if (response.statusCode == 200 && response.data != null) {
+        return JadwalStatistik.fromJson(
+          response.data is Map<String, dynamic>
+              ? response.data as Map<String, dynamic>
+              : <String, dynamic>{},
+        );
+      }
+      return JadwalStatistik.fallback();
+    } catch (e) {
+      debugPrint('🔴 Error fetching jadwal statistics: $e');
+      return JadwalStatistik.fallback();
+    }
+  }
+
   /// Fetch Jadwal List with filters (Used for JadwalScreen tabs)
   // Cache for running jadwal — avoids redundant network calls
   static List<JadwalItem>? _runningJadwalCache;
@@ -75,7 +99,9 @@ class JadwalService {
     bool useCache = false,
   }) async {
     // Return cached running jadwal if fresh (< 2 minutes old)
-    if (useCache && statusJadwal == '3' && _runningJadwalCache != null &&
+    if (useCache &&
+        statusJadwal == '3' &&
+        _runningJadwalCache != null &&
         _runningJadwalCacheTime != null &&
         DateTime.now().difference(_runningJadwalCacheTime!).inMinutes < 2) {
       return _runningJadwalCache!;
@@ -131,6 +157,7 @@ class JadwalService {
     String? catatan,
   }) async {
     try {
+      clearRunningJadwalCache();
       final response = await _dio.post(
         ApiRoutes.jadwalUpdateStatusApply,
         data: {
@@ -161,7 +188,9 @@ class JadwalService {
   static Future<AsesiListResponse> getAsesiList(int jadwalId) async {
     try {
       final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
-      final path = isAsesor ? ApiRoutes.asesorJadwalPeserta(jadwalId) : ApiRoutes.jadwalAsesi(jadwalId);
+      final path = isAsesor
+          ? ApiRoutes.asesorJadwalPeserta(jadwalId)
+          : ApiRoutes.jadwalAsesi(jadwalId);
       final response = await _dio.get(path);
 
       if (response.statusCode == 200 && response.data != null) {
@@ -194,12 +223,23 @@ class JadwalService {
   }
 
   /// Fetch Participant Detail for a specific schedule and participant ID
-  static Future<ParticipantDetailResponse?> getParticipantDetail(int jadwalId, int pesertaId) async {
+  static Future<ParticipantDetailResponse?> getParticipantDetail(
+    int jadwalId,
+    int pesertaId,
+  ) async {
     // Intercept dummy / mock calls
-    if (jadwalId == 101 || jadwalId == 102 || jadwalId == 103 || jadwalId == 11152 || pesertaId == 101 || pesertaId == 102 || pesertaId == 103) {
-      final name = pesertaId == 101 ? 'Andi Pratama' : (pesertaId == 102 ? 'Budi Santoso' : 'Citra Lestari');
+    if (jadwalId == 101 ||
+        jadwalId == 102 ||
+        jadwalId == 103 ||
+        jadwalId == 11152 ||
+        pesertaId == 101 ||
+        pesertaId == 102 ||
+        pesertaId == 103) {
+      final name = pesertaId == 101
+          ? 'Andi Pratama'
+          : (pesertaId == 102 ? 'Budi Santoso' : 'Citra Lestari');
       final rec = pesertaId == 101 ? 'K' : (pesertaId == 102 ? 'BK' : null);
-      
+
       String tugasStatus = 'Belum Dinilai';
       if (rec == 'K') tugasStatus = 'Kompeten';
       if (rec == 'BK') tugasStatus = 'Belum Kompeten';
@@ -234,7 +274,9 @@ class JadwalService {
     }
 
     try {
-      final response = await _dio.get(ApiRoutes.asesorJadwalPesertaDetail(jadwalId, pesertaId));
+      final response = await _dio.get(
+        ApiRoutes.asesorJadwalPesertaDetail(jadwalId, pesertaId),
+      );
       if (response.statusCode == 200 && response.data != null) {
         return ParticipantDetailResponse.fromJson(response.data);
       }
@@ -246,7 +288,9 @@ class JadwalService {
   }
 
   /// Fetch Assessor Detail for a specific schedule
-  static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(int jadwalId) async {
+  static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(
+    int jadwalId,
+  ) async {
     // Intercept dummy IDs for PenugasanScreen flow
     if (jadwalId == 101 || jadwalId == 102 || jadwalId == 103) {
       final is101 = jadwalId == 101;
@@ -258,7 +302,9 @@ class JadwalService {
           jadwal: is101 ? 'UI/UX Design' : 'Digital Marketing',
           tanggal: '2026-07-20',
           tanggalAkhir: '2026-07-20',
-          statusJadwal: is101 ? '0' : (is102 ? '1' : '2'), // 0: waiting, 1: completed, 2: canceled
+          statusJadwal: is101
+              ? '0'
+              : (is102 ? '1' : '2'), // 0: waiting, 1: completed, 2: canceled
           statusLabel: is101 ? 'Waiting' : (is102 ? 'Completed' : 'Canceled'),
           idTuk: 1,
           tuk: is101 ? 'LPP Cahaya Borneo' : 'LPP Jogja',
@@ -279,7 +325,7 @@ class JadwalService {
               provinsiId: '34',
               kabupatenId: '3471',
               totalAsesmen: 15,
-            )
+            ),
           ],
         ),
       );
@@ -287,7 +333,9 @@ class JadwalService {
 
     try {
       final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
-      final path = isAsesor ? ApiRoutes.asesorJadwalDetail(jadwalId) : ApiRoutes.jadwalAsesorDetail(jadwalId);
+      final path = isAsesor
+          ? ApiRoutes.asesorJadwalDetail(jadwalId)
+          : ApiRoutes.jadwalAsesorDetail(jadwalId);
       final response = await _dio.get(path);
 
       if (response.statusCode == 200 && response.data != null) {
@@ -303,7 +351,9 @@ class JadwalService {
   /// Fetch Surat Tugas PDF URL for Asesor
   static Future<String?> getSuratTugas(int jadwalId) async {
     try {
-      final response = await _dio.get(ApiRoutes.asesorJadwalSuratTugas(jadwalId));
+      final response = await _dio.get(
+        ApiRoutes.asesorJadwalSuratTugas(jadwalId),
+      );
       if (response.statusCode == 200 && response.data != null) {
         if (response.data['status'] == 'success') {
           return response.data['data']?['file_url'] as String?;
@@ -311,7 +361,8 @@ class JadwalService {
       }
       return null;
     } on DioException catch (e) {
-      final message = e.response?.data?['message'] ?? 'Surat tugas belum tersedia';
+      final message =
+          e.response?.data?['message'] ?? 'Surat tugas belum tersedia';
       throw Exception(message);
     } catch (e) {
       throw Exception('Gagal memuat Surat Tugas');
@@ -359,13 +410,23 @@ class JadwalService {
 
       return const WaitingScheduleResponse(
         data: [],
-        meta: NotificationMeta(totalWaiting: 0, limit: 20, sortBy: 'tanggal', sortOrder: 'desc'),
+        meta: NotificationMeta(
+          totalWaiting: 0,
+          limit: 20,
+          sortBy: 'tanggal',
+          sortOrder: 'desc',
+        ),
       );
     } catch (e) {
       debugPrint('🔴 Error fetching waiting schedules: $e');
       return const WaitingScheduleResponse(
         data: [],
-        meta: NotificationMeta(totalWaiting: 0, limit: 20, sortBy: 'tanggal', sortOrder: 'desc'),
+        meta: NotificationMeta(
+          totalWaiting: 0,
+          limit: 20,
+          sortBy: 'tanggal',
+          sortOrder: 'desc',
+        ),
       );
     }
   }
@@ -376,17 +437,59 @@ class JadwalService {
 
   static List<JadwalOverdue> _getFallbackJadwal() {
     return const [
-      JadwalOverdue(id: 1, jadwal: 'Sertifikasi Kompetensi TIK Bidang Programmer', tanggal: '2025-05-23', tuk: 'TUK Campus Digital', daysOverdue: 3, statusLabel: 'Terjadwal'),
-      JadwalOverdue(id: 2, jadwal: 'Asesmen Ulang Klaster Cloud Computing', tanggal: '2025-05-24', tuk: 'TUK Sewaktu LSP', daysOverdue: 2, statusLabel: 'Sedang Berlangsung'),
-      JadwalOverdue(id: 3, jadwal: 'Uji Kompetensi Jabatan Fungsional Sandiman', tanggal: '2025-05-25', tuk: 'TUK Mandiri Cyber', daysOverdue: 1, statusLabel: 'Terjadwal'),
+      JadwalOverdue(
+        id: 1,
+        jadwal: 'Sertifikasi Kompetensi TIK Bidang Programmer',
+        tanggal: '2025-05-23',
+        tuk: 'TUK Campus Digital',
+        daysOverdue: 3,
+        statusLabel: 'Terjadwal',
+      ),
+      JadwalOverdue(
+        id: 2,
+        jadwal: 'Asesmen Ulang Klaster Cloud Computing',
+        tanggal: '2025-05-24',
+        tuk: 'TUK Sewaktu LSP',
+        daysOverdue: 2,
+        statusLabel: 'Sedang Berlangsung',
+      ),
+      JadwalOverdue(
+        id: 3,
+        jadwal: 'Uji Kompetensi Jabatan Fungsional Sandiman',
+        tanggal: '2025-05-25',
+        tuk: 'TUK Mandiri Cyber',
+        daysOverdue: 1,
+        statusLabel: 'Terjadwal',
+      ),
     ];
   }
 
   static List<JadwalBaru> _getFallbackJadwalBaru() {
     return const [
-      JadwalBaru(id: 9048, jadwal: 'Sertifikasi Borneo Engineer - Digital Marketing Batch 2', tanggal: '2025-04-30', kuota: 54, statusJadwal: '0', tuk: 'Borneo Engineer'),
-      JadwalBaru(id: 9049, jadwal: 'Sertifikasi Campus Digital - Content Creator Batch 1', tanggal: '2025-05-15', kuota: 30, statusJadwal: '0', tuk: 'Campus Digital'),
-      JadwalBaru(id: 9050, jadwal: 'Asesmen Mandiri Cyber - Ethical Hacker', tanggal: '2025-05-20', kuota: 25, statusJadwal: '0', tuk: 'Mandiri Cyber'),
+      JadwalBaru(
+        id: 9048,
+        jadwal: 'Sertifikasi Borneo Engineer - Digital Marketing Batch 2',
+        tanggal: '2025-04-30',
+        kuota: 54,
+        statusJadwal: '0',
+        tuk: 'Borneo Engineer',
+      ),
+      JadwalBaru(
+        id: 9049,
+        jadwal: 'Sertifikasi Campus Digital - Content Creator Batch 1',
+        tanggal: '2025-05-15',
+        kuota: 30,
+        statusJadwal: '0',
+        tuk: 'Campus Digital',
+      ),
+      JadwalBaru(
+        id: 9050,
+        jadwal: 'Asesmen Mandiri Cyber - Ethical Hacker',
+        tanggal: '2025-05-20',
+        kuota: 25,
+        statusJadwal: '0',
+        tuk: 'Mandiri Cyber',
+      ),
     ];
   }
 }

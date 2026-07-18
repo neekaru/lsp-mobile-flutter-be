@@ -44,6 +44,7 @@ class ApiRoutes {
   static const String jadwalBaru = '/api/jadwal/baru';
   static const String jadwalActive = '/api/jadwal/active';
   static const String jadwalCompleted = '/api/jadwal/completed';
+  static const String jadwalStatistics = '/api/jadwal/statistics';
   static const String jadwalUpdateStatus = '/api/jadwal/update-status';
   static const String jadwalUpdateStatusApply = '/api/jadwal/update-status/apply';
   static const String jadwalNotificationsCount =

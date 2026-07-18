@@ -28,11 +28,21 @@ class JadwalItem {
   final String tuk;
   final String tanggalMulai;
   final String tanggalSelesai;
-  final String status; // 'akan_berakhir', 'sedang_berjalan', 'selesai'
+
+  /// Canonical internal status:
+  /// draft(0) | completed(1) | canceled(2) | running(3) | pelaporan(4)
+  final String status;
+
+  /// Raw DB code: 0/1/2/3/4
+  final String statusJadwal;
+
+  /// Label dari BE (`status_label`), mis. Draft / Running
+  final String statusLabel;
   final int jumlahAsesi;
   final List<String> asesor;
-  final int sisaHari; // untuk status akan_berakhir
-  final int? daysLate; // untuk status sedang_berjalan (status_jadwal = "2")
+  final int sisaHari;
+  final int?
+  daysLate; // days_late — relevan untuk running (status_jadwal = "3")
   final String? catatan;
   final int totalAsesi;
   final int jumlahKompeten;
@@ -46,6 +56,8 @@ class JadwalItem {
     required this.tanggalMulai,
     required this.tanggalSelesai,
     required this.status,
+    this.statusJadwal = '0',
+    this.statusLabel = '',
     required this.jumlahAsesi,
     required this.asesor,
     this.sisaHari = 0,
@@ -57,49 +69,86 @@ class JadwalItem {
     this.needsAcc = false,
   });
 
-  factory JadwalItem.fromJson(Map<String, dynamic> json) {
-    // Map status_jadwal dari API ke status internal
-    String mapStatus(String statusJadwal, int daysOverdue) {
-      switch (statusJadwal) {
-        case '0': // Waiting / Draft
-          return 'waiting';
-        case '1': // Completed
-          return 'completed';
-        case '2': // Canceled
-          return 'canceled';
-        case '3': // Running
-          return 'running';
-        case '4': // Pelaporan
-          return 'pelaporan';
-        default:
-          return 'waiting';
-      }
-    }
+  bool get isDraft =>
+      status == 'draft' || status == 'waiting' || statusJadwal == '0';
+  bool get isRunning => status == 'running' || statusJadwal == '3';
 
-    final statusJadwal = json['status_jadwal']?.toString() ?? '1';
+  /// Label tampilan: prioritaskan status_label BE
+  String get displayStatusLabel {
+    if (statusLabel.trim().isNotEmpty) return statusLabel.trim();
+    switch (status) {
+      case 'draft':
+      case 'waiting':
+        return 'Draft';
+      case 'completed':
+        return 'Completed';
+      case 'canceled':
+        return 'Canceled';
+      case 'running':
+        return 'Running';
+      case 'pelaporan':
+        return 'Pelaporan';
+      default:
+        return status;
+    }
+  }
+
+  /// Canonical map: 0=Draft, 1=Completed, 2=Canceled, 3=Running, 4=Pelaporan
+  static String mapStatusCode(String statusJadwal) {
+    switch (statusJadwal) {
+      case '0':
+        return 'draft';
+      case '1':
+        return 'completed';
+      case '2':
+        return 'canceled';
+      case '3':
+        return 'running';
+      case '4':
+        return 'pelaporan';
+      default:
+        return 'draft';
+    }
+  }
+
+  factory JadwalItem.fromJson(Map<String, dynamic> json) {
+    final statusJadwal = json['status_jadwal']?.toString() ?? '0';
     final daysOverdue = json['days_overdue'] ?? 0;
-    final daysLate = json['days_late']; // Nullable, hanya untuk status "2"
+    final daysLate = json['days_late'];
+    final statusLabel = (json['status_label'] ?? '').toString();
 
     final totalAsesi = json['total_asesi'] ?? json['jumlah_asesi'] ?? 0;
     final jumlahKompeten = json['jumlah_kompeten'] ?? 0;
     final jumlahBelumKompeten = json['jumlah_belum_kompeten'] ?? 0;
-    final needsAcc = json['needs_acc'] ?? false;
+    final needsAcc = json['needs_acc'] == true || json['needs_acc'] == 1;
 
     return JadwalItem(
       id: json['id'] ?? 0,
-      skema: json['jadwal'] ?? json['nama_jadwal'] ?? '', // API uses 'jadwal' field
+      skema: json['jadwal'] ?? json['nama_jadwal'] ?? '',
       tuk: json['tuk'] ?? '',
       tanggalMulai: json['tanggal'] ?? json['tanggal_mulai'] ?? '',
       tanggalSelesai: json['tanggal_akhir'] ?? json['tanggal_selesai'] ?? '',
-      status: mapStatus(statusJadwal, daysOverdue),
+      status: mapStatusCode(statusJadwal),
+      statusJadwal: statusJadwal,
+      statusLabel: statusLabel,
       jumlahAsesi: totalAsesi,
       asesor: _parseAsesor(json['asesor']),
-      sisaHari: daysOverdue, // days_overdue from API
-      daysLate: daysLate, // days_late from API (only for status "2")
+      sisaHari: daysOverdue is int
+          ? daysOverdue
+          : int.tryParse('$daysOverdue') ?? 0,
+      daysLate: daysLate == null
+          ? null
+          : (daysLate is int ? daysLate : int.tryParse('$daysLate')),
       catatan: json['catatan'],
-      totalAsesi: totalAsesi,
-      jumlahKompeten: jumlahKompeten,
-      jumlahBelumKompeten: jumlahBelumKompeten,
+      totalAsesi: totalAsesi is int
+          ? totalAsesi
+          : int.tryParse('$totalAsesi') ?? 0,
+      jumlahKompeten: jumlahKompeten is int
+          ? jumlahKompeten
+          : int.tryParse('$jumlahKompeten') ?? 0,
+      jumlahBelumKompeten: jumlahBelumKompeten is int
+          ? jumlahBelumKompeten
+          : int.tryParse('$jumlahBelumKompeten') ?? 0,
       needsAcc: needsAcc,
     );
   }
@@ -107,26 +156,60 @@ class JadwalItem {
 
 class JadwalStatistik {
   final int totalJadwal;
+  final int draft;
   final int akanBerakhir;
   final int sedangBerjalan;
   final int selesai;
+  final int terlambat;
   final String trendPercentage;
 
   const JadwalStatistik({
     required this.totalJadwal,
+    this.draft = 0,
     required this.akanBerakhir,
     required this.sedangBerjalan,
     required this.selesai,
-    this.trendPercentage = '+5,2%',
+    this.terlambat = 0,
+    this.trendPercentage = '+0%',
   });
+
+  factory JadwalStatistik.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] is Map<String, dynamic>
+        ? json['data'] as Map<String, dynamic>
+        : json;
+    final meta = json['meta'] is Map<String, dynamic>
+        ? json['meta'] as Map<String, dynamic>
+        : <String, dynamic>{};
+
+    int readInt(dynamic v) {
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      return int.tryParse('$v') ?? 0;
+    }
+
+    return JadwalStatistik(
+      totalJadwal: readInt(data['total_jadwal']),
+      draft: readInt(data['draft']),
+      akanBerakhir: readInt(data['akan_berakhir']),
+      sedangBerjalan: readInt(data['sedang_berjalan']),
+      selesai: readInt(data['selesai']),
+      terlambat: readInt(data['terlambat']),
+      trendPercentage:
+          meta['trend_percentage']?.toString() ??
+          data['trend_percentage']?.toString() ??
+          '+0%',
+    );
+  }
 
   factory JadwalStatistik.fallback() {
     return const JadwalStatistik(
-      totalJadwal: 8645,
-      akanBerakhir: 12,
-      sedangBerjalan: 45,
-      selesai: 8588,
-      trendPercentage: '+5,2%',
+      totalJadwal: 0,
+      draft: 0,
+      akanBerakhir: 0,
+      sedangBerjalan: 0,
+      selesai: 0,
+      terlambat: 0,
+      trendPercentage: '+0%',
     );
   }
 }
@@ -516,8 +599,12 @@ class ParticipantDetailData {
       institusi: json['institusi'] ?? '',
       email: json['email'] ?? '',
       noTelepon: json['no_telepon'] ?? '',
-      statusKelengkapan: StatusKelengkapan.fromJson(json['status_kelengkapan'] ?? {}),
-      statusAssessment: StatusAssessment.fromJson(json['status_assessment'] ?? {}),
+      statusKelengkapan: StatusKelengkapan.fromJson(
+        json['status_kelengkapan'] ?? {},
+      ),
+      statusAssessment: StatusAssessment.fromJson(
+        json['status_assessment'] ?? {},
+      ),
     );
   }
 }

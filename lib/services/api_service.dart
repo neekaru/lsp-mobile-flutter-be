@@ -67,6 +67,8 @@ class ApiService {
   // ── Jadwal ──────────────────────────────────────────────────────────────────
   static Future<List<JadwalBaru>> getJadwalBaru() => JadwalService.getJadwalBaru();
   static Future<List<JadwalOverdue>> getJadwalOutOfDate() => JadwalService.getJadwalOutOfDate();
+  static Future<JadwalStatistik> getJadwalStatistics() =>
+      JadwalService.getJadwalStatistics();
   static Future<List<JadwalItem>> getJadwalList({
     int limit = 20,
     int offset = 0,

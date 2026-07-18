@@ -41,7 +41,7 @@ class PenugasanListItem extends StatelessWidget {
     Color badgeBg;
     Color badgeTextColor;
 
-    if (item.status == 'waiting') {
+    if (item.status == 'draft' || item.status == 'waiting') {
       badgeText = 'Menunggu';
       badgeBg = const Color(0xFFFEF3C7);
       badgeTextColor = const Color(0xFFD97706);

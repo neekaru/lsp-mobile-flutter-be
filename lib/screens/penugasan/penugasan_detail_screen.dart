@@ -97,7 +97,7 @@ class _PenugasanDetailScreenState extends State<PenugasanDetailScreen> {
     String badgeText;
     
     final status = widget.jadwal.status.toLowerCase();
-    if (status == 'waiting') {
+    if (status == 'draft' || status == 'waiting') {
       badgeText = 'Waiting';
       badgeBg = const Color(0xFFCBE0F5);
       badgeTextColor = const Color(0xFF2C6C9C);

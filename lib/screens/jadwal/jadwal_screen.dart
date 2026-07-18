@@ -48,8 +48,14 @@ class _JadwalScreenState extends State<JadwalScreen>
   List<JadwalItem> selesaiList = [];
 
   // Statistics from API
+  JadwalStatistik? _statistik;
   int totalAsesmen = 0;
   String trendPercentage = '+0%';
+
+  int get _draftBadgeCount => _statistik?.draft ?? draftList.length;
+  int get _runningBadgeCount =>
+      _statistik?.sedangBerjalan ?? runningList.length;
+  int get _selesaiBadgeCount => _statistik?.selesai ?? selesaiList.length;
 
   // Scroll controllers for pagination
   final ScrollController _scrollControllerDraft = ScrollController();
@@ -63,7 +69,10 @@ class _JadwalScreenState extends State<JadwalScreen>
     final bool isAsesi = currentUser.role == 'asesi';
     final bool isAsesor = currentUser.role == 'asesor';
     final bool isAdmin = currentUser.role == 'admin' || (!isAsesi && !isAsesor);
-    _tabController = TabController(length: isAsesi ? 2 : (isAdmin ? 4 : 3), vsync: this);
+    _tabController = TabController(
+      length: isAsesi ? 2 : (isAdmin ? 4 : 3),
+      vsync: this,
+    );
     _loadJadwalData();
 
     // Setup scroll listeners for pagination
@@ -124,7 +133,8 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final bool isAsesi = currentUser.role == 'asesi';
       final bool isAsesor = currentUser.role == 'asesor';
-      final bool isAdmin = currentUser.role == 'admin' || (!isAsesi && !isAsesor);
+      final bool isAdmin =
+          currentUser.role == 'admin' || (!isAsesi && !isAsesor);
 
       // Custom parameters per role
       String status1 = isAsesi ? '0' : '3';
@@ -135,31 +145,36 @@ class _JadwalScreenState extends State<JadwalScreen>
       }
 
       String status2 = isAsesi ? '3' : '4';
-      String path2 = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalCompleted;
+      String path2 = isAsesi
+          ? ApiRoutes.asesiJadwal
+          : ApiRoutes.jadwalCompleted;
       if (isAsesor) {
         status2 = '2'; // Dibatalkan
         path2 = ApiRoutes.asesorJadwal;
       }
 
       String status3 = '1';
-      String path3 = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalCompleted;
+      String path3 = isAsesi
+          ? ApiRoutes.asesiJadwal
+          : ApiRoutes.jadwalCompleted;
       if (isAsesor) {
         status3 = '1,4'; // Selesai & Pelaporan
         path3 = ApiRoutes.asesorJadwal;
       }
 
-      // Fetch data untuk setiap tab secara parallel
-      final futures = <Future<List<JadwalItem>>>[
+      // Fetch data untuk setiap tab secara parallel + statistics (badge)
+      final listFutures = <Future<List<JadwalItem>>>[
         if (isAdmin)
           ApiService.getJadwalList(
             limit: _pageSize,
-            statusJadwal: '0',
+            statusJadwal: '0', // Draft only
             sortBy: 'tanggal',
             sortOrder: 'desc',
             customRoutePath: ApiRoutes.jadwalDraft,
           ),
         ApiService.getJadwalList(
           limit: _pageSize,
+          // Admin/default: status 3 Running via /api/jadwal/active
           statusJadwal: status1,
           sortBy: 'tanggal',
           sortOrder: 'desc',
@@ -181,31 +196,51 @@ class _JadwalScreenState extends State<JadwalScreen>
         ),
       ];
 
-      final results = await Future.wait(futures);
+      final results = await Future.wait([
+        Future.wait(listFutures),
+        if (isAdmin) ApiService.getJadwalStatistics(),
+      ]);
+
+      final lists = results[0] as List<List<JadwalItem>>;
+      final stats = isAdmin ? results[1] as JadwalStatistik : null;
 
       setState(() {
         int resultIndex = 0;
         if (isAdmin) {
-          draftList = _sortJadwalList(results[resultIndex]);
-          _hasMoreDraft = results[resultIndex].length >= _pageSize;
+          // Draft tab: hanya status 0 / draft
+          final rawDraft = lists[resultIndex];
+          draftList = _sortJadwalList(
+            rawDraft.where((item) => item.isDraft).toList(),
+          );
+          _hasMoreDraft = rawDraft.length >= _pageSize;
           resultIndex++;
         }
 
-        // Sort di frontend untuk memastikan urutan konsisten
-        runningList = _sortJadwalList(results[resultIndex]);
-        _hasMoreRunning = results[resultIndex].length >= _pageSize;
+        // Running tab: hanya status 3 / running (jangan campur draft)
+        final rawRunning = lists[resultIndex];
+        runningList = _sortJadwalList(
+          (isAdmin || (!isAsesi && !isAsesor))
+              ? rawRunning.where((item) => item.isRunning).toList()
+              : rawRunning,
+        );
+        _hasMoreRunning = rawRunning.length >= _pageSize;
         resultIndex++;
 
-        pelaporanList = _sortJadwalList(results[resultIndex]);
-        _hasMorePelaporan = results[resultIndex].length >= _pageSize;
+        pelaporanList = _sortJadwalList(lists[resultIndex]);
+        _hasMorePelaporan = lists[resultIndex].length >= _pageSize;
         resultIndex++;
 
-        selesaiList = _sortJadwalList(results[resultIndex]);
-        _hasMoreSelesai = results[resultIndex].length >= _pageSize;
+        selesaiList = _sortJadwalList(lists[resultIndex]);
+        _hasMoreSelesai = lists[resultIndex].length >= _pageSize;
 
-        // Calculate total from all tabs
+        _statistik = stats;
         totalAsesmen =
-            runningList.length + pelaporanList.length + selesaiList.length + draftList.length;
+            stats?.totalJadwal ??
+            (runningList.length +
+                pelaporanList.length +
+                selesaiList.length +
+                draftList.length);
+        trendPercentage = stats?.trendPercentage ?? trendPercentage;
 
         _isLoading = false;
       });
@@ -239,7 +274,9 @@ class _JadwalScreenState extends State<JadwalScreen>
         if (newData.length < _pageSize) {
           _hasMoreDraft = false;
         }
-        draftList.addAll(_sortJadwalList(newData));
+        draftList.addAll(
+          _sortJadwalList(newData.where((item) => item.isDraft).toList()),
+        );
         _isLoadingMore = false;
       });
     } catch (e) {
@@ -260,14 +297,16 @@ class _JadwalScreenState extends State<JadwalScreen>
     try {
       final bool isAsesi = currentUser.role == 'asesi';
       final bool isAsesor = currentUser.role == 'asesor';
+      final bool isAdmin =
+          currentUser.role == 'admin' || (!isAsesi && !isAsesor);
 
-      String status = isAsesi ? '0' : '0,1,2,3';
-      String sortBy = isAsesi ? 'tanggal' : 'days_overdue';
-      String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalOutOfDate;
+      // Samakan dengan load awal: admin/running = status 3 + /api/jadwal/active
+      String status = isAsesi ? '0' : '3';
+      String sortBy = 'tanggal';
+      String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalActive;
 
       if (isAsesor) {
         status = '0';
-        sortBy = 'tanggal';
         path = ApiRoutes.asesorJadwal;
       }
 
@@ -280,11 +319,15 @@ class _JadwalScreenState extends State<JadwalScreen>
         customRoutePath: path,
       );
 
+      final filtered = isAdmin
+          ? newData.where((item) => item.isRunning).toList()
+          : newData;
+
       setState(() {
         if (newData.length < _pageSize) {
           _hasMoreRunning = false;
         }
-        runningList.addAll(_sortJadwalList(newData));
+        runningList.addAll(_sortJadwalList(filtered));
         _isLoadingMore = false;
       });
     } catch (e) {
@@ -433,10 +476,10 @@ class _JadwalScreenState extends State<JadwalScreen>
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: JadwalTabBar(
                 controller: _tabController,
-                draftCount: draftList.length,
-                runningCount: runningList.length,
+                draftCount: _draftBadgeCount,
+                runningCount: _runningBadgeCount,
                 pelaporanCount: pelaporanList.length,
-                selesaiCount: selesaiList.length,
+                selesaiCount: _selesaiBadgeCount,
               ),
             ),
 
@@ -445,13 +488,15 @@ class _JadwalScreenState extends State<JadwalScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  // Tab Draft (Only for Admin)
-                  if (currentUser.role == 'admin' || (currentUser.role != 'asesi' && currentUser.role != 'asesor'))
+                  // Tab Draft (Only for Admin) — status_jadwal=0
+                  if (currentUser.role == 'admin' ||
+                      (currentUser.role != 'asesi' &&
+                          currentUser.role != 'asesor'))
                     _JadwalTabContent(
                       key: const PageStorageKey('draft_tab'),
                       child: _buildJadwalList(
                         draftList,
-                        'waiting',
+                        'draft',
                         _scrollControllerDraft,
                         _hasMoreDraft,
                       ),

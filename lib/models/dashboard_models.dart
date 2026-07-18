@@ -416,30 +416,14 @@ class JadwalBaru {
   }
 
   JadwalItem toJadwalItem() {
-    String mapStatus(String statusVal) {
-      switch (statusVal) {
-        case '0':
-          return 'waiting';
-        case '1':
-          return 'completed';
-        case '2':
-          return 'canceled';
-        case '3':
-          return 'running';
-        case '4':
-          return 'pelaporan';
-        default:
-          return 'waiting';
-      }
-    }
-
     return JadwalItem(
       id: id,
       skema: jadwal,
       tuk: tuk,
       tanggalMulai: tanggal,
       tanggalSelesai: tanggal,
-      status: mapStatus(statusJadwal),
+      status: JadwalItem.mapStatusCode(statusJadwal),
+      statusJadwal: statusJadwal,
       jumlahAsesi: kuota,
       asesor: const [],
       sisaHari: 0,
@@ -596,30 +580,14 @@ class AsesorDashboardJadwal {
   }
 
   JadwalItem toJadwalItem() {
-    String mapStatus(String statusVal) {
-      switch (statusVal) {
-        case '0':
-          return 'waiting';
-        case '1':
-          return 'completed';
-        case '2':
-          return 'canceled';
-        case '3':
-          return 'running';
-        case '4':
-          return 'pelaporan';
-        default:
-          return 'waiting';
-      }
-    }
-
     return JadwalItem(
       id: idJadwal,
       skema: skema,
       tuk: tuk,
       tanggalMulai: tanggal,
       tanggalSelesai: tanggal,
-      status: mapStatus(status),
+      status: JadwalItem.mapStatusCode(status),
+      statusJadwal: status,
       jumlahAsesi: 0,
       asesor: const [],
       sisaHari: 0,

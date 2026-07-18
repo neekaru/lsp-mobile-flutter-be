@@ -144,7 +144,7 @@ class _PenugasanScreenState extends State<PenugasanScreen>
     switch (_tabController.index) {
       case 1: // Menunggu
         filteredByTab = _allAssignments
-            .where((item) => item.status == 'waiting')
+            .where((item) => item.status == 'draft' || item.status == 'waiting')
             .toList();
         break;
       case 2: // Selesai

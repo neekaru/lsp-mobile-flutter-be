@@ -404,9 +404,10 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
     Color statusColor = const Color(0xFFEA580C);
     Color statusBgColor = const Color(0xFFFFEDD5);
 
+    // Canonical: 0=Draft, 1=Completed, 2=Canceled, 3=Running, 4=Pelaporan
     switch (item.status) {
       case '0':
-        statusLabel = 'waiting';
+        statusLabel = 'draft';
         statusColor = const Color(0xFFEA580C);
         statusBgColor = const Color(0xFFFFEDD5);
         break;

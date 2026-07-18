@@ -36,8 +36,18 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
       final day = int.parse(parts[2]).toString();
 
       final months = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember',
       ];
       final monthName = months[monthIndex - 1];
       return '$day $monthName $year';
@@ -48,6 +58,7 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
 
   Color _getStatusColor(String status) {
     switch (status) {
+      case 'draft':
       case 'waiting':
         return const Color(0xFFFBC02D);
       case 'completed':
@@ -65,8 +76,9 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
 
   String _getStatusLabel(String status) {
     switch (status) {
+      case 'draft':
       case 'waiting':
-        return 'Waiting';
+        return 'Draft';
       case 'completed':
         return 'Completed';
       case 'canceled':
@@ -83,21 +95,33 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
   String _getStatusRule(String currentStatus, String newStatus) {
     String toCode(String s) {
       switch (s) {
-        case 'waiting':   return '0';
-        case 'completed': return '1';
-        case 'canceled':  return '2';
-        case 'running':   return '3';
-        case 'pelaporan': return '4';
-        default:          return '0';
+        case 'draft':
+        case 'waiting':
+          return '0';
+        case 'completed':
+          return '1';
+        case 'canceled':
+          return '2';
+        case 'running':
+          return '3';
+        case 'pelaporan':
+          return '4';
+        default:
+          return '0';
       }
     }
 
     final from = toCode(currentStatus);
-    final to   = toCode(newStatus);
+    final to = toCode(newStatus);
 
     if (from == '0' && to == '1') return 'draft_to_completed';
     if (from == '0' && to == '2') return 'draft_to_canceled';
-    if (from == '0' && to == '3') return 'draft_to_running';
+    // ACC admin draft → running
+    if (from == '0' && to == '3') {
+      return widget.jadwal.needsAcc
+          ? 'draft_acc_to_running'
+          : 'draft_to_running';
+    }
     if (from == '1' && to == '2') return 'completed_to_canceled';
     if (from == '1' && to == '3') return 'completed_to_running';
     if (from == '2' && to == '3') return 'canceled_to_running';
@@ -136,7 +160,7 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
 
     try {
       String rule = _getStatusRule(widget.jadwal.status, selectedStatus);
-      
+
       final result = await ApiService.updateJadwalStatus(
         jadwalId: widget.jadwal.id,
         rule: rule,
@@ -157,7 +181,7 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
       setState(() {
         _isLoading = false;
       });
-      
+
       if (mounted) {
         _showErrorDialog('Terjadi kesalahan: ${e.toString()}');
       }
@@ -506,7 +530,9 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
           color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? const Color(0xFF4FA8E8) : const Color(0xFFE0E0E0),
+            color: isSelected
+                ? const Color(0xFF4FA8E8)
+                : const Color(0xFFE0E0E0),
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -785,7 +811,10 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
                                 ),
                                 const SizedBox(height: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFE5F1FC),
                                     borderRadius: BorderRadius.circular(6),
@@ -874,7 +903,7 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
                         ),
                         const SizedBox(height: 8),
 
-                        _buildRadioOption('waiting', 'Waiting'),
+                        _buildRadioOption('draft', 'Draft'),
                         const SizedBox(height: 8),
                         _buildRadioOption('completed', 'Completed'),
                         const SizedBox(height: 8),
