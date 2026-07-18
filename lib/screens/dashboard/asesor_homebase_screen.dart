@@ -155,6 +155,7 @@ class _AsesorHomebaseScreenState extends State<AsesorHomebaseScreen> {
       child: ListView.builder(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
+        // ignore: deprecated_member_use
         cacheExtent: 800,
         addAutomaticKeepAlives: false,
         addRepaintBoundaries: true,

@@ -218,41 +218,120 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
         ),
-        title: const Row(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(Icons.wifi_off, color: Colors.red),
-            SizedBox(width: 10),
-            Text(
-              'Koneksi Terputus',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            // Custom Icon Stack matching the image style exactly
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                // Decorative background dots (orange/amber style like the reference image)
+                ...[
+                  const Offset(-55, -20),
+                  const Offset(-42, -45),
+                  const Offset(-60, 10),
+                  const Offset(-48, 35),
+                  const Offset(55, -25),
+                  const Offset(45, -5),
+                  const Offset(58, 22),
+                  const Offset(42, 45),
+                  const Offset(-10, -55),
+                  const Offset(15, 52),
+                ].asMap().entries.map((entry) {
+                  final offset = entry.value;
+                  final index = entry.key;
+                  final size = (index % 3 == 0) ? 6.0 : (index % 3 == 1 ? 9.0 : 5.0);
+                  return Transform.translate(
+                    offset: offset,
+                    child: Container(
+                      width: size,
+                      height: size,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFFFCC80).withValues(alpha: 0.7),
+                      ),
+                    ),
+                  );
+                }),
+                // Main circular icon container with larger styling
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFFFFEAD2), // Orange/amber accent matching reference
+                  ),
+                  child: const Icon(
+                    Icons.wifi_off_rounded,
+                    size: 46, // Larger icon size
+                    color: Color(0xFFEF6C00), // Warm amber/orange
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+            // Message styled like the reference (bold title and clean font)
+            const Text(
+              'Koneksi Internet Terputus',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF1E1E1E),
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Silakan periksa koneksi internet Anda.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: 28),
+            // Standard rounded blue action button OK/Coba Lagi
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  if (mounted) {
+                    setState(() {
+                      _loadingProgress = 0.1;
+                      _loadingStatus = "Menghubungkan kembali...";
+                    });
+                    _startInitialization();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF559AD4), // Clean sky blue
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Coba Lagi',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
-        content: const Text(
-          'Tidak dapat terhubung ke server. Silakan periksa koneksi internet Anda.',
-          style: TextStyle(fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              if (mounted) {
-                setState(() {
-                  _loadingProgress = 0.1;
-                  _loadingStatus = "Menghubungkan kembali...";
-                });
-                _startInitialization();
-              }
-            },
-            child: const Text(
-              'Coba Lagi',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
       ),
     );
   }
