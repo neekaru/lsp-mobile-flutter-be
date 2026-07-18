@@ -37,15 +37,18 @@ class SertifikatItem {
 
   factory SertifikatItem.fromJson(Map<String, dynamic> json) {
     final skemaMap = json['skema'] is Map<String, dynamic> ? json['skema'] : {};
-    final asesorMap = json['asesor'] is Map<String, dynamic> ? json['asesor'] : {};
-    
+    final asesorMap = json['asesor'] is Map<String, dynamic>
+        ? json['asesor']
+        : {};
+
     return SertifikatItem(
       id: json['id'] ?? 0,
       skema: skemaMap['nama_skema'] ?? json['skema'] ?? '',
       pemegang: json['pemegang'] ?? '',
       nomorSertifikat: json['no_sertifikat'] ?? json['nomor_sertifikat'] ?? '',
       tanggalTerbit: json['tanggal_terbit'] ?? '',
-      tanggalBerlaku: json['tanggal_kadaluarsa'] ?? json['tanggal_berlaku'] ?? '',
+      tanggalBerlaku:
+          json['tanggal_kadaluarsa'] ?? json['tanggal_berlaku'] ?? '',
       status: json['status_sertifikat'] ?? json['status'] ?? 'aktif',
       kategori: skemaMap['kategori'] ?? json['kategori'] ?? '',
       institusi: json['institusi'],
@@ -53,7 +56,10 @@ class SertifikatItem {
       nomorBlanko: json['nomor_blanko'] ?? 'BLANKO-998877',
       nomorSeri: json['nomor_seri'] ?? 'SERI-001A',
       tempatUji: json['tempat_uji'] ?? 'TUK LSP Digital',
-      namaAsesor: asesorMap['nama'] ?? json['nama_asesor'] ?? 'Dr. Ir. Asesor Utama, M.Kom',
+      namaAsesor:
+          asesorMap['nama'] ??
+          json['nama_asesor'] ??
+          'Dr. Ir. Asesor Utama, M.Kom',
     );
   }
 }
@@ -106,7 +112,11 @@ class SertifikatDistribusi {
     required this.color,
   });
 
-  factory SertifikatDistribusi.fromJson(Map<String, dynamic> json, {double? persentase, String? color}) {
+  factory SertifikatDistribusi.fromJson(
+    Map<String, dynamic> json, {
+    double? persentase,
+    String? color,
+  }) {
     return SertifikatDistribusi(
       idSkema: json['id_skema'] ?? 0,
       kodeSkema: json['kode_skema'] ?? '',
@@ -123,15 +133,12 @@ class SertifikatApiResponse {
   final List<SertifikatDistribusi> data;
   final SertifikatMeta meta;
 
-  const SertifikatApiResponse({
-    required this.data,
-    required this.meta,
-  });
+  const SertifikatApiResponse({required this.data, required this.meta});
 
   factory SertifikatApiResponse.fromJson(Map<String, dynamic> json) {
     final List<dynamic> dataList = json['data'] ?? [];
     final meta = SertifikatMeta.fromJson(json['meta'] ?? {});
-    
+
     final colors = [
       '0D47A1', // Dark Blue
       '1976D2', // Bright Blue
@@ -141,33 +148,34 @@ class SertifikatApiResponse {
       'BBDEFB', // Extra Light Blue
       '5B9FD8', // Default Blue
     ];
-    
+
     // Calculate total from current data list (not from meta)
     // This ensures percentages add up to 100% for the displayed items
     int totalFromData = 0;
     for (var item in dataList) {
       totalFromData += (item['total_pemegang'] ?? 0) as int;
     }
-    
+
     final List<SertifikatDistribusi> distribusiList = [];
     for (int i = 0; i < dataList.length; i++) {
       final item = dataList[i];
       final totalPemegang = item['total_pemegang'] ?? 0;
       // Calculate percentage based on displayed data total
-      final persentase = totalFromData > 0 ? (totalPemegang / totalFromData * 100) : 0.0;
+      final persentase = totalFromData > 0
+          ? (totalPemegang / totalFromData * 100)
+          : 0.0;
       final color = colors[i % colors.length];
-      
-      distribusiList.add(SertifikatDistribusi.fromJson(
-        item,
-        persentase: persentase,
-        color: color,
-      ));
+
+      distribusiList.add(
+        SertifikatDistribusi.fromJson(
+          item,
+          persentase: persentase,
+          color: color,
+        ),
+      );
     }
-    
-    return SertifikatApiResponse(
-      data: distribusiList,
-      meta: meta,
-    );
+
+    return SertifikatApiResponse(data: distribusiList, meta: meta);
   }
 }
 
@@ -226,25 +234,29 @@ class SertifikatSummary {
   factory SertifikatSummary.fromJson(Map<String, dynamic> json) {
     final data = json['data'];
     final meta = json['meta'];
-    
+
     // Check if top_skema has meaningful data
     final topSkemaData = data['top_skema'];
-    final hasTopSkema = topSkemaData != null && 
-                        topSkemaData is Map && 
-                        topSkemaData.isNotEmpty &&
-                        (topSkemaData['id_skema'] != null || topSkemaData['skema'] != null);
-    
+    final hasTopSkema =
+        topSkemaData != null &&
+        topSkemaData is Map &&
+        topSkemaData.isNotEmpty &&
+        (topSkemaData['id_skema'] != null || topSkemaData['skema'] != null);
+
     // Check if trends has meaningful data
     final trendsData = data['trends'];
-    final hasTrends = trendsData != null && 
-                      trendsData is Map && 
-                      trendsData.isNotEmpty;
-    
+    final hasTrends =
+        trendsData != null && trendsData is Map && trendsData.isNotEmpty;
+
     return SertifikatSummary(
       totalPemegangSertifikat: data['total_pemegang_sertifikat'] ?? 0,
       totalSkema: data['total_skema'] ?? 0,
-      topSkema: hasTopSkema ? TopSkema.fromJson(Map<String, dynamic>.from(topSkemaData)) : null,
-      trends: hasTrends ? SertifikatTrends.fromJson(Map<String, dynamic>.from(trendsData)) : null,
+      topSkema: hasTopSkema
+          ? TopSkema.fromJson(Map<String, dynamic>.from(topSkemaData))
+          : null,
+      trends: hasTrends
+          ? SertifikatTrends.fromJson(Map<String, dynamic>.from(trendsData))
+          : null,
       periode: meta['periode'] ?? '',
       comparisonPeriod: meta['comparison_period'] ?? '',
       tanggalUpdate: meta['tanggal_update'] ?? '',
@@ -284,11 +296,7 @@ class TopSkema {
   }
 
   factory TopSkema.fallback() {
-    return const TopSkema(
-      idSkema: 0,
-      skema: 'N/A',
-      totalPemegang: 0,
-    );
+    return const TopSkema(idSkema: 0, skema: 'N/A', totalPemegang: 0);
   }
 }
 
@@ -452,10 +460,7 @@ class SkemaSertifikatListResponse {
   final List<SkemaSertifikatListItem> data;
   final SkemaSertifikatMeta meta;
 
-  const SkemaSertifikatListResponse({
-    required this.data,
-    required this.meta,
-  });
+  const SkemaSertifikatListResponse({required this.data, required this.meta});
 
   factory SkemaSertifikatListResponse.fromJson(Map<String, dynamic> json) {
     final list = (json['data'] as List<dynamic>? ?? [])
@@ -463,7 +468,9 @@ class SkemaSertifikatListResponse {
         .toList();
     return SkemaSertifikatListResponse(
       data: list,
-      meta: SkemaSertifikatMeta.fromJson(json['meta'] as Map<String, dynamic>? ?? {}),
+      meta: SkemaSertifikatMeta.fromJson(
+        json['meta'] as Map<String, dynamic>? ?? {},
+      ),
     );
   }
 }
@@ -562,6 +569,7 @@ class SertifikatValidationResult {
   final String? nama;
   final String? noSertifikat;
   final String? noRegistrasi;
+  final String? noSeri;
   final String? tanggalTerbit;
   final String? status;
   final String? skema;
@@ -573,6 +581,7 @@ class SertifikatValidationResult {
     this.nama,
     this.noSertifikat,
     this.noRegistrasi,
+    this.noSeri,
     this.tanggalTerbit,
     this.status,
     this.skema,
@@ -586,6 +595,7 @@ class SertifikatValidationResult {
       nama: json['nama'],
       noSertifikat: json['no_sertifikat'],
       noRegistrasi: json['no_registrasi'],
+      noSeri: json['no_seri'],
       tanggalTerbit: json['tanggal_terbit'],
       status: json['status'],
       skema: json['skema'],
@@ -655,7 +665,9 @@ class PraAsesmenKompetensi {
     return PraAsesmenKompetensi(
       skemaId: json['skema_id'] ?? 0,
       namaSkema: json['nama_skema'] ?? '',
-      unitKompetensi: list.map((item) => UnitKompetensi.fromJson(item as Map<String, dynamic>)).toList(),
+      unitKompetensi: list
+          .map((item) => UnitKompetensi.fromJson(item as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -684,7 +696,11 @@ class UnitKompetensi {
     return UnitKompetensi(
       kodeUnit: json['kode_unit'] ?? '',
       judulUnit: json['judul_unit'] ?? '',
-      elemen: list.map((item) => ElemenKompetensi.fromJson(item as Map<String, dynamic>)).toList(),
+      elemen: list
+          .map(
+            (item) => ElemenKompetensi.fromJson(item as Map<String, dynamic>),
+          )
+          .toList(),
     );
   }
 }
@@ -693,10 +709,7 @@ class ElemenKompetensi {
   final int idElemen;
   final String pertanyaanKuk;
 
-  const ElemenKompetensi({
-    required this.idElemen,
-    required this.pertanyaanKuk,
-  });
+  const ElemenKompetensi({required this.idElemen, required this.pertanyaanKuk});
 
   factory ElemenKompetensi.fromJson(Map<String, dynamic> json) {
     return ElemenKompetensi(
@@ -705,4 +718,3 @@ class ElemenKompetensi {
     );
   }
 }
-

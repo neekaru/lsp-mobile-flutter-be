@@ -534,8 +534,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (user?.role == 'admin')
               _buildAdminRingkasanSection(),
 
-            // 2. Tren Asesmen Bulanan Section (Imported chart card widget) - Tampil di semua role kecuali asesor
-            if (!isAsesor)
+            // 2. Tren Asesmen Bulanan Section — tampil untuk role login (bukan guest/publik, bukan asesor)
+            if (!isAsesor && !isGuest)
               Padding(
                 padding: const EdgeInsets.only(
                   left: 16.0,

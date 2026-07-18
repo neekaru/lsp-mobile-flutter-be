@@ -14,8 +14,10 @@ import 'token_storage.dart';
 class SertifikatService {
   static Dio get _dio => ApiClient.dio;
 
-  /// Validate Certificate by No. Sertifikat or No. Registrasi
-  static Future<SertifikatValidationResult> validateSertifikat(String noDokumen) async {
+  /// Validate Certificate by certificate, registration, or serial number.
+  static Future<SertifikatValidationResult> validateSertifikat(
+    String noDokumen,
+  ) async {
     try {
       final response = await _dio.post(
         ApiRoutes.sertifikatValidate,
@@ -25,19 +27,30 @@ class SertifikatService {
       if (response.data != null) {
         return SertifikatValidationResult.fromJson(response.data);
       }
-      return const SertifikatValidationResult(valid: false, message: 'Format response tidak valid.');
+      return const SertifikatValidationResult(
+        valid: false,
+        message: 'Format response tidak valid.',
+      );
     } on DioException catch (e) {
       debugPrint('🔴 Error validating certificate: $e');
-      if (e.response != null && e.response!.data != null && e.response!.data is Map) {
+      if (e.response != null &&
+          e.response!.data != null &&
+          e.response!.data is Map) {
         return SertifikatValidationResult.fromJson(e.response!.data);
       }
       return SertifikatValidationResult(
         valid: false,
-        message: e.response?.data?['message'] ?? e.message ?? 'Terjadi kesalahan pada server.',
+        message:
+            e.response?.data?['message'] ??
+            e.message ??
+            'Terjadi kesalahan pada server.',
       );
     } catch (e) {
       debugPrint('🔴 Error validating certificate: $e');
-      return SertifikatValidationResult(valid: false, message: 'Terjadi kesalahan: ${e.toString()}');
+      return SertifikatValidationResult(
+        valid: false,
+        message: 'Terjadi kesalahan: ${e.toString()}',
+      );
     }
   }
 
@@ -64,7 +77,10 @@ class SertifikatService {
     String sort = 'desc',
   }) async {
     try {
-      String url = ApiRoutes.withLimit(ApiRoutes.dashboardSertifikatPerSkema, limit);
+      String url = ApiRoutes.withLimit(
+        ApiRoutes.dashboardSertifikatPerSkema,
+        limit,
+      );
       if (tahun != null) url += '&tahun=$tahun';
       if (sort != 'desc') url += '&sort=$sort';
 
@@ -94,7 +110,8 @@ class SertifikatService {
       final params = <String>[];
       params.add('q=$query');
       if (skema != null && skema.isNotEmpty) params.add('skema=$skema');
-      if (kategori != null && kategori.isNotEmpty) params.add('kategori=$kategori');
+      if (kategori != null && kategori.isNotEmpty)
+        params.add('kategori=$kategori');
       if (status != null && status.isNotEmpty) params.add('status=$status');
       params.add('limit=$limit');
       params.add('offset=$offset');
@@ -131,7 +148,8 @@ class SertifikatService {
     try {
       final params = <String>[];
       if (search != null && search.isNotEmpty) params.add('search=$search');
-      if (kategori != null && kategori.isNotEmpty) params.add('kategori=$kategori');
+      if (kategori != null && kategori.isNotEmpty)
+        params.add('kategori=$kategori');
       if (jenjang != null && jenjang.isNotEmpty) params.add('jenjang=$jenjang');
       if (bidang != null && bidang.isNotEmpty) params.add('bidang=$bidang');
       if (sort != null && sort.isNotEmpty) params.add('sort=$sort');
@@ -142,9 +160,14 @@ class SertifikatService {
       final response = await _dio.get(url);
 
       if (response.statusCode == 200 && response.data != null) {
-        return SkemaSertifikatListResponse.fromJson(response.data as Map<String, dynamic>);
+        return SkemaSertifikatListResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
       }
-      return const SkemaSertifikatListResponse(data: [], meta: SkemaSertifikatMeta(total: 0, page: 1, lastPage: 1, perPage: 6));
+      return const SkemaSertifikatListResponse(
+        data: [],
+        meta: SkemaSertifikatMeta(total: 0, page: 1, lastPage: 1, perPage: 6),
+      );
     } on DioException catch (e) {
       debugPrint('🔴 Error fetching skema list: ${e.message}');
       rethrow;
@@ -157,7 +180,9 @@ class SertifikatService {
     try {
       final response = await _dio.get(ApiRoutes.sertifikatSkemaBidang);
       if (response.statusCode == 200 && response.data != null) {
-        return SkemaBidangListResponse.fromJson(response.data as Map<String, dynamic>).data;
+        return SkemaBidangListResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        ).data;
       }
       return const <SkemaBidangItem>[];
     } on DioException catch (e) {
@@ -172,9 +197,13 @@ class SertifikatService {
       final response = await _dio.get(ApiRoutes.sertifikatSkemaDetail(id));
 
       if (response.statusCode == 200 && response.data != null) {
-        return SkemaSertifikatDetailResponse.fromJson(response.data as Map<String, dynamic>);
+        return SkemaSertifikatDetailResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
       }
-      throw Exception('Failed to load skema detail (status ${response.statusCode})');
+      throw Exception(
+        'Failed to load skema detail (status ${response.statusCode})',
+      );
     } on DioException catch (e) {
       debugPrint('🔴 Error fetching skema detail: ${e.message}');
       rethrow;
@@ -189,14 +218,19 @@ class SertifikatService {
         ApiRoutes.sertifikatSkemaAsesor(skemaId),
         options: Options(
           headers: {
-            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+            if (token != null && token.isNotEmpty)
+              'Authorization': 'Bearer $token',
             'Accept': 'application/json',
           },
         ),
       );
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data'] ?? [];
-        return list.map((item) => AsesorDetailItem.fromJson(item as Map<String, dynamic>)).toList();
+        return list
+            .map(
+              (item) => AsesorDetailItem.fromJson(item as Map<String, dynamic>),
+            )
+            .toList();
       }
       return _getFallbackAsesorList();
     } catch (e) {
@@ -206,20 +240,29 @@ class SertifikatService {
   }
 
   /// Fetch Pra-Asesmen Info for a specific skema.
-  static Future<PraAsesmenInfo> getPraAsesmenInfo(int skemaId, String fallbackTitle, String fallbackKode) async {
+  static Future<PraAsesmenInfo> getPraAsesmenInfo(
+    int skemaId,
+    String fallbackTitle,
+    String fallbackKode,
+  ) async {
     try {
       final token = await TokenStorage.instance.getAccessToken();
       final response = await _dio.get(
         ApiRoutes.praAsesmenSkemaInfo(skemaId),
         options: Options(
           headers: {
-            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+            if (token != null && token.isNotEmpty)
+              'Authorization': 'Bearer $token',
             'Accept': 'application/json',
           },
         ),
       );
-      if (response.statusCode == 200 && response.data != null && response.data['data'] != null) {
-        return PraAsesmenInfo.fromJson(response.data['data'] as Map<String, dynamic>);
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data['data'] != null) {
+        return PraAsesmenInfo.fromJson(
+          response.data['data'] as Map<String, dynamic>,
+        );
       }
       return PraAsesmenInfo.fallback(skemaId, fallbackTitle, fallbackKode);
     } catch (e) {
@@ -229,30 +272,43 @@ class SertifikatService {
   }
 
   /// Fetch Pra-Asesmen Kompetensi for a specific skema.
-  static Future<PraAsesmenKompetensi> getPraAsesmenKompetensi(int skemaId, String fallbackTitle) async {
+  static Future<PraAsesmenKompetensi> getPraAsesmenKompetensi(
+    int skemaId,
+    String fallbackTitle,
+  ) async {
     try {
       final token = await TokenStorage.instance.getAccessToken();
       final response = await _dio.get(
         ApiRoutes.praAsesmenSkemaKompetensi(skemaId),
         options: Options(
           headers: {
-            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+            if (token != null && token.isNotEmpty)
+              'Authorization': 'Bearer $token',
             'Accept': 'application/json',
           },
         ),
       );
-      if (response.statusCode == 200 && response.data != null && response.data['data'] != null) {
-        return PraAsesmenKompetensi.fromJson(response.data['data'] as Map<String, dynamic>);
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data['data'] != null) {
+        return PraAsesmenKompetensi.fromJson(
+          response.data['data'] as Map<String, dynamic>,
+        );
       }
       return PraAsesmenKompetensi.fallback(skemaId, fallbackTitle);
     } catch (e) {
-      debugPrint('🔴 Error fetching pra-asesmen kompetensi (using fallback): $e');
+      debugPrint(
+        '🔴 Error fetching pra-asesmen kompetensi (using fallback): $e',
+      );
       return PraAsesmenKompetensi.fallback(skemaId, fallbackTitle);
     }
   }
 
   /// Submit Pra-Asesmen responses
-  static Future<bool> submitPraAsesmen(int skemaId, Map<String, dynamic> body) async {
+  static Future<bool> submitPraAsesmen(
+    int skemaId,
+    Map<String, dynamic> body,
+  ) async {
     try {
       final token = await TokenStorage.instance.getAccessToken();
       final response = await _dio.post(
@@ -260,7 +316,8 @@ class SertifikatService {
         data: body,
         options: Options(
           headers: {
-            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+            if (token != null && token.isNotEmpty)
+              'Authorization': 'Bearer $token',
             'Accept': 'application/json',
           },
         ),
@@ -359,7 +416,11 @@ class SertifikatService {
   static SertifikatApiResponse _getFallbackSertifikatResponse() {
     return const SertifikatApiResponse(
       data: [],
-      meta: SertifikatMeta(totalSkema: 0, totalPemegangSertifikat: 0, limit: 10),
+      meta: SertifikatMeta(
+        totalSkema: 0,
+        totalPemegangSertifikat: 0,
+        limit: 10,
+      ),
     );
   }
 }

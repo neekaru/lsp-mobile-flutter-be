@@ -203,7 +203,7 @@ class _ValidasiSertifikatScreenState extends State<ValidasiSertifikatScreen> {
                 textInputAction: TextInputAction.search,
                 onSubmitted: (_) => _handleValidate(),
                 decoration: InputDecoration(
-                  hintText: 'NO Seri/No Sertifikat/NO Register',
+                  hintText: 'Nomor sertifikat, registrasi, atau nomor seri',
                   hintStyle: const TextStyle(
                     color: Color(0xFF9CA3AF),
                     fontSize: 13,
@@ -236,6 +236,15 @@ class _ValidasiSertifikatScreenState extends State<ValidasiSertifikatScreen> {
                   ),
                 ),
                 style: const TextStyle(fontSize: 14),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Contoh: 61200 3513 3 0176900 2026 · TIK 1565 61589 2026 · 15281759',
+              style: TextStyle(
+                color: Color(0xFF6B7280),
+                fontSize: 11,
+                height: 1.35,
               ),
             ),
             const SizedBox(height: 16),
@@ -475,6 +484,14 @@ class _ValidasiSertifikatScreenState extends State<ValidasiSertifikatScreen> {
                   label: 'No. Registrasi',
                   value: res.noRegistrasi ?? '-',
                 ),
+                if (res.noSeri?.isNotEmpty ?? false) ...[
+                  const Divider(height: 24, color: Color(0xFFF3F4F6)),
+                  _buildInfoRow(
+                    icon: Icons.confirmation_number_rounded,
+                    label: 'Nomor Seri',
+                    value: res.noSeri!,
+                  ),
+                ],
                 const Divider(height: 24, color: Color(0xFFF3F4F6)),
                 _buildInfoRow(
                   icon: Icons.calendar_today_rounded,
