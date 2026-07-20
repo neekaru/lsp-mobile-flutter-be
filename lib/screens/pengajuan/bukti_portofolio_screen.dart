@@ -74,29 +74,81 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
     }
   }
 
-  List<PortfolioSection> _buildSections() {
-    if (widget.documents.isEmpty) {
-      return [
-        PortfolioSection(
-          title: 'Dokumen Persyaratan',
-          items: const [],
-        ),
-      ];
-    }
+  /// a = identitas/admin · b = pendidikan/kerja · c = karya/kompetensi
+  /// Optional doc['section'] = 'a'|'b'|'c' | 'administratif'|'dasar' overrides keyword.
+  String _sectionCode(Map<String, dynamic> d, String key, String label) {
+    final raw = d['section']?.toString().toLowerCase().trim() ?? '';
+    if (raw == 'a' || raw == 'administratif' || raw == 'admin') return 'a';
+    if (raw == 'b' || raw == 'pendidikan' || raw == 'pekerjaan') return 'b';
+    if (raw == 'c' || raw == 'karya' || raw == 'kompetensi') return 'c';
 
-    final items = widget.documents.map((d) {
+    final t = '${key.toLowerCase()} ${label.toLowerCase()}';
+    bool has(List<String> xs) => xs.any(t.contains);
+
+    if (has([
+      'ktp',
+      'identitas',
+      'pasfoto',
+      'pas-foto',
+      'pas foto',
+      'kartu pelajar',
+      'kartu-pelajar',
+      'foto 4x6',
+      '4x6',
+    ])) {
+      return 'a';
+    }
+    if (has([
+      'github',
+      'link',
+      'url',
+      'tautan',
+      'portofolio',
+      'karya',
+      'sertifikat',
+      'pelatihan',
+      'kompetensi teknis',
+    ])) {
+      return 'c';
+    }
+    if (has([
+      'ijazah',
+      'ijasah',
+      'transkip',
+      'transkrip',
+      'pendidikan',
+      'kerja',
+      'pekerjaan',
+      'pengalaman',
+      'sk ',
+      'surat keterangan',
+    ])) {
+      return 'b';
+    }
+    // persyaratan dasar skema tanpa keyword jelas → b (dokumen pendukung)
+    if (raw == 'dasar') return 'b';
+    return 'b';
+  }
+
+  List<PortfolioSection> _buildSections() {
+    final a = <PortfolioItem>[];
+    final b = <PortfolioItem>[];
+    final c = <PortfolioItem>[];
+
+    for (final d in widget.documents) {
       final key = d['key']?.toString() ?? '';
       final label = d['label']?.toString() ?? key;
+      if (key.isEmpty && label.isEmpty) continue;
       final status = d['status']?.toString();
       final comment = d['comment']?.toString();
       final isReq = d['is_required'] == true || d['is_required'] == 1;
-      final lower = label.toLowerCase();
+      final lower = '$key $label'.toLowerCase();
       final isLink = lower.contains('github') ||
           lower.contains('link') ||
           lower.contains('url') ||
           lower.contains('tautan');
-      return PortfolioItem(
-        key: key,
+      final item = PortfolioItem(
+        key: key.isEmpty ? label : key,
         label: label,
         isRequired: isReq,
         status: status,
@@ -106,12 +158,28 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
             ? 'Tautan portofolio / GitHub'
             : 'Format PDF/PNG/JPG, maks. 2MB',
       );
-    }).toList();
+      final code = _sectionCode(d, key, label);
+      if (code == 'a') {
+        a.add(item);
+      } else if (code == 'c') {
+        c.add(item);
+      } else {
+        b.add(item);
+      }
+    }
 
     return [
       PortfolioSection(
-        title: 'Dokumen Portofolio',
-        items: items,
+        title: 'a. Dokumen Identitas & Administrasi',
+        items: a,
+      ),
+      PortfolioSection(
+        title: 'b. Dokumen Pendidikan/Pekerjaan',
+        items: b,
+      ),
+      PortfolioSection(
+        title: 'c. Bukti Kompetensi Teknis (Hasil Karya)',
+        items: c,
       ),
     ];
   }
@@ -458,7 +526,9 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
                     ),
                   )
                 else
-                  ..._sections.expand((section) {
+                  ..._sections
+                      .where((section) => section.items.isNotEmpty)
+                      .expand((section) {
                     return [
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10, top: 4),

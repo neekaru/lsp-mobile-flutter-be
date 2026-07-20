@@ -678,12 +678,18 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   List<Map<String, dynamic>> _buildPortofolioDocuments() {
     final seen = <String>{};
     final docs = <Map<String, dynamic>>[];
-    void add(String key, String label, {bool required = true}) {
+    void add(
+      String key,
+      String label, {
+      bool required = true,
+      String section = 'b',
+    }) {
       if (key.isEmpty || seen.contains(key)) return;
       seen.add(key);
       docs.add({
         'key': key,
         'label': label,
+        'section': section,
         'is_required': required,
         'status': _uploadedDocs[key] == true
             ? 'Menunggu Verifikasi'
@@ -693,14 +699,14 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     }
 
     for (final p in _persyaratanAdministratif) {
-      add(p['key'] ?? '', p['label'] ?? '');
+      add(p['key'] ?? '', p['label'] ?? '', section: 'a');
     }
     for (final p in _persyaratanDasar) {
-      add(p['key'] ?? '', p['label'] ?? '', required: false);
+      add(p['key'] ?? '', p['label'] ?? '', required: false, section: 'b');
     }
     for (final entry in _uploadedDocs.entries) {
       if (entry.value == true && !seen.contains(entry.key)) {
-        add(entry.key, entry.key, required: false);
+        add(entry.key, entry.key, required: false, section: 'c');
       }
     }
     return docs;
