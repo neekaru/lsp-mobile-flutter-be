@@ -73,3 +73,71 @@ class MasterJadwal {
 
   String get displayName => '$jadwal ($tuk)';
 }
+
+class MasterSumberAnggaran {
+  final int id;
+  final String jenisAnggaran;
+  final List<int> pemberiIds;
+
+  const MasterSumberAnggaran({
+    required this.id,
+    required this.jenisAnggaran,
+    this.pemberiIds = const [],
+  });
+
+  factory MasterSumberAnggaran.fromJson(Map<String, dynamic> json) {
+    final rawIds = json['pemberi_ids'];
+    final List<int> ids = [];
+    if (rawIds is List) {
+      for (final e in rawIds) {
+        if (e is int) {
+          ids.add(e);
+        } else {
+          final n = int.tryParse(e?.toString() ?? '');
+          if (n != null) ids.add(n);
+        }
+      }
+    }
+    return MasterSumberAnggaran(
+      id: json['id'] is int ? json['id'] : int.parse(json['id']?.toString() ?? '0'),
+      jenisAnggaran: json['jenis_anggaran']?.toString() ?? '',
+      pemberiIds: ids,
+    );
+  }
+
+  String get displayName => jenisAnggaran;
+}
+
+class MasterPemberiAnggaran {
+  final int id;
+  final String instansiPemberiAnggaran;
+  final List<int> sumberIds;
+
+  const MasterPemberiAnggaran({
+    required this.id,
+    required this.instansiPemberiAnggaran,
+    this.sumberIds = const [],
+  });
+
+  factory MasterPemberiAnggaran.fromJson(Map<String, dynamic> json) {
+    final rawIds = json['sumber_ids'];
+    final List<int> ids = [];
+    if (rawIds is List) {
+      for (final e in rawIds) {
+        if (e is int) {
+          ids.add(e);
+        } else {
+          final n = int.tryParse(e?.toString() ?? '');
+          if (n != null) ids.add(n);
+        }
+      }
+    }
+    return MasterPemberiAnggaran(
+      id: json['id'] is int ? json['id'] : int.parse(json['id']?.toString() ?? '0'),
+      instansiPemberiAnggaran: json['instansi_pemberi_anggaran']?.toString() ?? '',
+      sumberIds: ids,
+    );
+  }
+
+  String get displayName => instansiPemberiAnggaran;
+}

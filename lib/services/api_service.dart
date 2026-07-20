@@ -161,6 +161,12 @@ class ApiService {
   static Future<List<MasterSkema>> getMasterSkemaList() => MasterService.getMasterSkemaList();
   static Future<List<MasterJadwal>> getMasterJadwalList(int idSkema) =>
       MasterService.getMasterJadwalList(idSkema);
+  static Future<List<MasterSumberAnggaran>> getMasterSumberAnggaranList() =>
+      MasterService.getMasterSumberAnggaranList();
+  static Future<List<MasterPemberiAnggaran>> getMasterPemberiAnggaranList({
+    int? idSumberAnggaran,
+  }) =>
+      MasterService.getMasterPemberiAnggaranList(idSumberAnggaran: idSumberAnggaran);
 
   // ── Sessions ─────────────────────────────────────────────────────────────────
   static Future<List<LoginSession>> getActiveSessions() => AuthSessionService.getActiveSessions();

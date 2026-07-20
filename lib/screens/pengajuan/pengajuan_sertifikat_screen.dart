@@ -112,6 +112,9 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
     // Fetch master data for Skema dropdown
     _fetchMasterSkema();
+
+    // Fetch master sumber anggaran (pemberi di-load cascade saat sumber dipilih)
+    _fetchMasterSumberAnggaran();
   }
 
   Future<void> _fetchProvinsi() async {
@@ -228,6 +231,53 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     }
   }
 
+  Future<void> _fetchMasterSumberAnggaran() async {
+    setState(() {
+      _isLoadingSumberAnggaran = true;
+    });
+    try {
+      final list = await ApiService.getMasterSumberAnggaranList();
+      if (mounted) {
+        setState(() {
+          _masterSumberAnggaranList = list;
+          _isLoadingSumberAnggaran = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching master sumber anggaran: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingSumberAnggaran = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchMasterPemberiAnggaran(int idSumberAnggaran) async {
+    setState(() {
+      _isLoadingPemberiAnggaran = true;
+      _masterPemberiAnggaranList = [];
+    });
+    try {
+      final list = await ApiService.getMasterPemberiAnggaranList(
+        idSumberAnggaran: idSumberAnggaran,
+      );
+      if (mounted) {
+        setState(() {
+          _masterPemberiAnggaranList = list;
+          _isLoadingPemberiAnggaran = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching master pemberi anggaran: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingPemberiAnggaran = false;
+        });
+      }
+    }
+  }
+
   // Current active step
   int _currentStep = 0;
   bool _isSubmitting = false;
@@ -235,15 +285,21 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   // Step 1: Data Pengajuan State
   int? _selectedSkemaId;
   int? _selectedJadwalId;
+  int? _selectedSumberAnggaranId;
+  int? _selectedPemberiAnggaranId;
   String? _selectedSkema;
   String? _selectedJadwal;
-  final TextEditingController _sumberAnggaranController = TextEditingController();
-  final TextEditingController _pemberiAnggaranController = TextEditingController();
+  String? _selectedSumberAnggaran;
+  String? _selectedPemberiAnggaran;
 
   List<MasterSkema> _masterSkemaList = [];
   List<MasterJadwal> _masterJadwalList = [];
+  List<MasterSumberAnggaran> _masterSumberAnggaranList = [];
+  List<MasterPemberiAnggaran> _masterPemberiAnggaranList = [];
   bool _isLoadingSkema = false;
   bool _isLoadingJadwal = false;
+  bool _isLoadingSumberAnggaran = false;
+  bool _isLoadingPemberiAnggaran = false;
 
   // Step 2: Profil Peserta - Data Pribadi State
   final TextEditingController _nikController = TextEditingController();
@@ -399,8 +455,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
   @override
   void dispose() {
-    _sumberAnggaranController.dispose();
-    _pemberiAnggaranController.dispose();
     _nikController.dispose();
     _namaLengkapController.dispose();
     _tempatLahirController.dispose();
@@ -713,12 +767,16 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         return DataPengajuanForm(
           selectedSkema: _selectedSkemaId,
           selectedJadwal: _selectedJadwalId,
-          sumberAnggaranController: _sumberAnggaranController,
-          pemberiAnggaranController: _pemberiAnggaranController,
+          selectedSumberAnggaran: _selectedSumberAnggaranId,
+          selectedPemberiAnggaran: _selectedPemberiAnggaranId,
           listSkema: _masterSkemaList,
           listJadwal: _masterJadwalList,
+          listSumberAnggaran: _masterSumberAnggaranList,
+          listPemberiAnggaran: _masterPemberiAnggaranList,
           isLoadingSkema: _isLoadingSkema,
           isLoadingJadwal: _isLoadingJadwal,
+          isLoadingSumberAnggaran: _isLoadingSumberAnggaran,
+          isLoadingPemberiAnggaran: _isLoadingPemberiAnggaran,
           onSkemaChanged: (val) {
             setState(() {
               _selectedSkemaId = val;
@@ -753,6 +811,43 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                 }
               } else {
                 _selectedJadwal = null;
+              }
+            });
+          },
+          onSumberAnggaranChanged: (val) {
+            setState(() {
+              _selectedSumberAnggaranId = val;
+              _selectedPemberiAnggaranId = null;
+              _selectedPemberiAnggaran = null;
+              _masterPemberiAnggaranList = [];
+              if (val != null) {
+                try {
+                  final selected = _masterSumberAnggaranList.firstWhere((item) => item.id == val);
+                  _selectedSumberAnggaran = selected.jenisAnggaran;
+                } catch (_) {
+                  _selectedSumberAnggaran = null;
+                }
+              } else {
+                _selectedSumberAnggaran = null;
+              }
+            });
+            if (val != null) {
+              _fetchMasterPemberiAnggaran(val);
+            }
+          },
+          onPemberiAnggaranChanged: (val) {
+            setState(() {
+              _selectedPemberiAnggaranId = val;
+              if (val != null) {
+                try {
+                  final selected =
+                      _masterPemberiAnggaranList.firstWhere((item) => item.id == val);
+                  _selectedPemberiAnggaran = selected.instansiPemberiAnggaran;
+                } catch (_) {
+                  _selectedPemberiAnggaran = null;
+                }
+              } else {
+                _selectedPemberiAnggaran = null;
               }
             });
           },

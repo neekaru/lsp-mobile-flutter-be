@@ -15,6 +15,8 @@ class MasterService {
   // In-memory cache — avoids redundant network round-trips
   static List<MasterSkema>? _skemaCache;
   static final Map<int, List<MasterJadwal>> _jadwalCache = {};
+  static List<MasterSumberAnggaran>? _sumberAnggaranCache;
+  static final Map<String, List<MasterPemberiAnggaran>> _pemberiAnggaranCache = {};
 
   /// Fetch list of Provinsi
   static Future<List<MasterItem>> getProvinsiList() async {
@@ -119,9 +121,62 @@ class MasterService {
     }
   }
 
+  /// Fetch list of Sumber Anggaran (with cross-id pemberi_ids)
+  static Future<List<MasterSumberAnggaran>> getMasterSumberAnggaranList() async {
+    if (_sumberAnggaranCache != null) return _sumberAnggaranCache!;
+    try {
+      final response = await _dio.get(ApiRoutes.masterSumberAnggaran);
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        _sumberAnggaranCache = List<MasterSumberAnggaran>.generate(
+          data.length,
+          (i) => MasterSumberAnggaran.fromJson(data[i] as Map<String, dynamic>),
+        );
+        return _sumberAnggaranCache!;
+      }
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error fetching master sumber anggaran: $e');
+      return [];
+    }
+  }
+
+  /// Fetch list of Pemberi Anggaran.
+  /// Pass [idSumberAnggaran] to filter by cross-id (pairs used with that sumber).
+  static Future<List<MasterPemberiAnggaran>> getMasterPemberiAnggaranList({
+    int? idSumberAnggaran,
+  }) async {
+    final cacheKey = idSumberAnggaran?.toString() ?? 'all';
+    if (_pemberiAnggaranCache.containsKey(cacheKey)) {
+      return _pemberiAnggaranCache[cacheKey]!;
+    }
+    try {
+      final response = await _dio.get(
+        ApiRoutes.masterPemberiAnggaran,
+        queryParameters: idSumberAnggaran != null
+            ? {'id_sumber_anggaran': idSumberAnggaran}
+            : null,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        _pemberiAnggaranCache[cacheKey] = List<MasterPemberiAnggaran>.generate(
+          data.length,
+          (i) => MasterPemberiAnggaran.fromJson(data[i] as Map<String, dynamic>),
+        );
+        return _pemberiAnggaranCache[cacheKey]!;
+      }
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error fetching master pemberi anggaran: $e');
+      return [];
+    }
+  }
+
   /// Clear all cached master data (call on logout or pull-to-refresh)
   static void clearCache() {
     _skemaCache = null;
     _jadwalCache.clear();
+    _sumberAnggaranCache = null;
+    _pemberiAnggaranCache.clear();
   }
 }

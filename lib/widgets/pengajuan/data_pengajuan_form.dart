@@ -5,28 +5,40 @@ import '../../models/master_models.dart';
 class DataPengajuanForm extends StatelessWidget {
   final int? selectedSkema;
   final int? selectedJadwal;
-  final TextEditingController sumberAnggaranController;
-  final TextEditingController pemberiAnggaranController;
+  final int? selectedSumberAnggaran;
+  final int? selectedPemberiAnggaran;
   final ValueChanged<int?> onSkemaChanged;
   final ValueChanged<int?> onJadwalChanged;
+  final ValueChanged<int?> onSumberAnggaranChanged;
+  final ValueChanged<int?> onPemberiAnggaranChanged;
 
   final List<MasterSkema> listSkema;
   final List<MasterJadwal> listJadwal;
+  final List<MasterSumberAnggaran> listSumberAnggaran;
+  final List<MasterPemberiAnggaran> listPemberiAnggaran;
   final bool isLoadingSkema;
   final bool isLoadingJadwal;
+  final bool isLoadingSumberAnggaran;
+  final bool isLoadingPemberiAnggaran;
 
   const DataPengajuanForm({
     super.key,
     required this.selectedSkema,
     required this.selectedJadwal,
-    required this.sumberAnggaranController,
-    required this.pemberiAnggaranController,
+    required this.selectedSumberAnggaran,
+    required this.selectedPemberiAnggaran,
     required this.onSkemaChanged,
     required this.onJadwalChanged,
+    required this.onSumberAnggaranChanged,
+    required this.onPemberiAnggaranChanged,
     required this.listSkema,
     required this.listJadwal,
+    required this.listSumberAnggaran,
+    required this.listPemberiAnggaran,
     required this.isLoadingSkema,
     required this.isLoadingJadwal,
+    required this.isLoadingSumberAnggaran,
+    required this.isLoadingPemberiAnggaran,
   });
 
   @override
@@ -75,13 +87,15 @@ class DataPengajuanForm extends StatelessWidget {
         const CustomFieldLabel(label: 'Jadwal Uji Kompetensi'),
         SearchableModalSelectorGeneric<int>(
           title: 'Jadwal Uji Kompetensi',
-          hint: 'Jadwal uji kompetensi',
+          hint: selectedSkema == null
+              ? 'Pilih skema terlebih dahulu'
+              : 'Pilih jadwal',
           value: selectedJadwal,
           items: List<DropdownItemData<int>>.generate(
             listJadwal.length,
             (i) => DropdownItemData<int>(
               value: listJadwal[i].id,
-              label: '${listJadwal[i].jadwal} (${listJadwal[i].tuk})',
+              label: listJadwal[i].displayName,
             ),
           ),
           isLoading: isLoadingJadwal,
@@ -98,19 +112,41 @@ class DataPengajuanForm extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        // Sumber Anggaran
+        // Dropdown Sumber Anggaran
         const CustomFieldLabel(label: 'Sumber Anggaran'),
-        CustomTextInput(
-          controller: sumberAnggaranController,
-          hint: 'Masukan sumber anggaran',
+        SearchableModalSelectorGeneric<int>(
+          title: 'Sumber Anggaran',
+          hint: 'Pilih sumber anggaran',
+          value: selectedSumberAnggaran,
+          items: List<DropdownItemData<int>>.generate(
+            listSumberAnggaran.length,
+            (i) => DropdownItemData<int>(
+              value: listSumberAnggaran[i].id,
+              label: listSumberAnggaran[i].displayName,
+            ),
+          ),
+          isLoading: isLoadingSumberAnggaran,
+          onChanged: onSumberAnggaranChanged,
         ),
         const SizedBox(height: 20),
 
-        // Pemberi Anggaran
+        // Dropdown Pemberi Anggaran (filtered by sumber via cross-id)
         const CustomFieldLabel(label: 'Pemberi Anggaran'),
-        CustomTextInput(
-          controller: pemberiAnggaranController,
-          hint: 'Masukan pemberi anggaran',
+        SearchableModalSelectorGeneric<int>(
+          title: 'Pemberi Anggaran',
+          hint: selectedSumberAnggaran == null
+              ? 'Pilih sumber anggaran terlebih dahulu'
+              : 'Pilih pemberi anggaran',
+          value: selectedPemberiAnggaran,
+          items: List<DropdownItemData<int>>.generate(
+            listPemberiAnggaran.length,
+            (i) => DropdownItemData<int>(
+              value: listPemberiAnggaran[i].id,
+              label: listPemberiAnggaran[i].displayName,
+            ),
+          ),
+          isLoading: isLoadingPemberiAnggaran,
+          onChanged: onPemberiAnggaranChanged,
         ),
       ],
     );
