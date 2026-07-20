@@ -194,6 +194,8 @@ class ApiRoutes {
   static const String masterJadwal = '/api/master/jadwal';
   static const String masterSumberAnggaran = '/api/master/sumber-anggaran';
   static const String masterPemberiAnggaran = '/api/master/pemberi-anggaran';
+  static const String masterPendidikan = '/api/master/pendidikan';
+  static const String asesiProfile = '/api/asesi/profile';
 
   // ============================================================================
   // Helper Methods untuk build URL dengan query parameters

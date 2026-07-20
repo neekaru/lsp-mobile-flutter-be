@@ -74,6 +74,27 @@ class MasterJadwal {
   String get displayName => '$jadwal ($tuk)';
 }
 
+class MasterPendidikan {
+  final int id;
+  final String namaPendidikan;
+
+  const MasterPendidikan({
+    required this.id,
+    required this.namaPendidikan,
+  });
+
+  factory MasterPendidikan.fromJson(Map<String, dynamic> json) {
+    return MasterPendidikan(
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      namaPendidikan: json['nama_pendidikan']?.toString() ?? '',
+    );
+  }
+
+  String get displayName => namaPendidikan;
+}
+
 class MasterSumberAnggaran {
   final int id;
   final String jenisAnggaran;

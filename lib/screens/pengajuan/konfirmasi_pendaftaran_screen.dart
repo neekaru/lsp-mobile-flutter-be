@@ -102,7 +102,8 @@ class _KonfirmasiPendaftaranScreenState extends State<KonfirmasiPendaftaranScree
           currentEmail: _email,
           currentPendidikan: _pendidikan,
           currentAddress: _address,
-          onSave: (name, nik, phone, email, pendidikan, address) {
+          onSave: (name, nik, phone, email, pendidikan, address,
+              {int? pendidikanId}) {
             setState(() {
               _name = name;
               _nik = nik;

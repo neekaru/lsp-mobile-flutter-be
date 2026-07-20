@@ -16,22 +16,24 @@ class DataPribadiForm extends StatelessWidget {
   final String? selectedKecamatan;
   final TextEditingController noTelpController;
   final TextEditingController emailController;
-  final String? selectedPendidikan;
+  final int? selectedPendidikanId;
   final TextEditingController namaSekolahController;
   final TextEditingController jurusanController;
 
   final List<MasterItem> listProvinsi;
   final List<MasterItem> listKabupaten;
   final List<MasterItem> listKecamatan;
+  final List<MasterPendidikan> listPendidikan;
   final bool isLoadingProvinsi;
   final bool isLoadingKabupaten;
   final bool isLoadingKecamatan;
+  final bool isLoadingPendidikan;
 
   final ValueChanged<String?> onJenisKelaminChanged;
   final ValueChanged<String?> onProvinsiChanged;
   final ValueChanged<String?> onKotaChanged;
   final ValueChanged<String?> onKecamatanChanged;
-  final ValueChanged<String?> onPendidikanChanged;
+  final ValueChanged<int?> onPendidikanChanged;
   final VoidCallback onTanggalLahirTap;
 
   const DataPribadiForm({
@@ -47,15 +49,17 @@ class DataPribadiForm extends StatelessWidget {
     required this.selectedKecamatan,
     required this.noTelpController,
     required this.emailController,
-    required this.selectedPendidikan,
+    required this.selectedPendidikanId,
     required this.namaSekolahController,
     required this.jurusanController,
     required this.listProvinsi,
     required this.listKabupaten,
     required this.listKecamatan,
+    required this.listPendidikan,
     required this.isLoadingProvinsi,
     required this.isLoadingKabupaten,
     required this.isLoadingKecamatan,
+    required this.isLoadingPendidikan,
     required this.onJenisKelaminChanged,
     required this.onProvinsiChanged,
     required this.onKotaChanged,
@@ -96,8 +100,6 @@ class DataPribadiForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
-        // Section badge header
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -115,8 +117,6 @@ class DataPribadiForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
-        // NIK
         const CustomFieldLabel(label: 'NIK'),
         CustomTextInput(
           controller: nikController,
@@ -128,12 +128,11 @@ class DataPribadiForm extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-
-        // Nama Lengkap
         const CustomFieldLabel(label: 'Nama Lengkap'),
         CustomTextInput(
           controller: namaLengkapController,
           hint: 'Masukan nama lengkap',
+          inputFormatters: [LengthLimitingTextInputFormatter(50)],
         ),
         const SizedBox(height: 4),
         const Text(
@@ -145,8 +144,6 @@ class DataPribadiForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-
-        // Jenis Kelamin Radio Buttons
         const CustomFieldLabel(label: 'Jenis Kelamin'),
         Row(
           children: [
@@ -158,7 +155,8 @@ class DataPribadiForm extends StatelessWidget {
                   activeColor: const Color(0xFF0F4C81),
                   onChanged: onJenisKelaminChanged,
                 ),
-                const Text('Laki-Laki', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500)),
+                const Text('Laki-Laki',
+                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500)),
               ],
             ),
             const SizedBox(width: 32),
@@ -170,30 +168,31 @@ class DataPribadiForm extends StatelessWidget {
                   activeColor: const Color(0xFF0F4C81),
                   onChanged: onJenisKelaminChanged,
                 ),
-                const Text('Perempuan', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500)),
+                const Text('Perempuan',
+                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500)),
               ],
             ),
           ],
         ),
         const SizedBox(height: 20),
-
-        // Tempat & Tanggal Lahir
         const CustomFieldLabel(label: 'Tempat & Tanggal Lahir'),
         CustomTextInput(
           controller: tempatLahirController,
           hint: 'Masukan tempat lahir',
+          inputFormatters: [LengthLimitingTextInputFormatter(25)],
         ),
         const SizedBox(height: 10),
         CustomTextInput(
           controller: tanggalLahirController,
-          hint: 'hh/bb/tttt',
-          suffixIcon: const Icon(Icons.calendar_today_rounded, color: Color(0xFF0F4C81), size: 20),
+          hint: 'YYYY-MM-DD',
+          suffixIcon: const Icon(Icons.calendar_today_rounded,
+              color: Color(0xFF0F4C81), size: 20),
           readOnly: true,
           onTap: onTanggalLahirTap,
         ),
         const SizedBox(height: 4),
         const Text(
-          'Format Tanggal-Bulan-Tahun',
+          'Format Tahun-Bulan-Tanggal (YYYY-MM-DD)',
           style: TextStyle(
             color: Color(0xFF27AE60),
             fontSize: 11,
@@ -201,17 +200,14 @@ class DataPribadiForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-
-        // Alamat Domisili
         const CustomFieldLabel(label: 'Alamat Domisili / Sesuai KTP'),
         CustomTextInput(
           controller: alamatDomisiliController,
           hint: 'Alamat lengkap sesuai domisili atau KTP',
           maxLines: 3,
+          inputFormatters: [LengthLimitingTextInputFormatter(100)],
         ),
         const SizedBox(height: 20),
-
-        // Provinsi/Kota/Kecamatan
         const CustomFieldLabel(label: 'Provinsi/Kota/Kecamatan'),
         CustomKeyValueDropdownSelector(
           hint: '--Pilih Provinsi--',
@@ -237,45 +233,49 @@ class DataPribadiForm extends StatelessWidget {
           onChanged: onKecamatanChanged,
         ),
         const SizedBox(height: 20),
-
-        // No. Telp
         const CustomFieldLabel(label: 'No.Telp/Email/ No Whatsapp Aktif'),
         CustomTextInput(
           controller: noTelpController,
           hint: 'Masukan No.Whatsapp',
           keyboardType: TextInputType.phone,
+          inputFormatters: [LengthLimitingTextInputFormatter(20)],
         ),
         const SizedBox(height: 10),
         CustomTextInput(
           controller: emailController,
           hint: 'Masukan email',
           keyboardType: TextInputType.emailAddress,
+          inputFormatters: [LengthLimitingTextInputFormatter(80)],
         ),
         const SizedBox(height: 20),
-
-        // Pendidikan Terakhir
         const CustomFieldLabel(label: 'Pendidikan Terakhir'),
-        CustomDropdownSelector(
-          hint: 'Pilih',
-          value: selectedPendidikan,
-          items: const ['SMA/SMK', 'Diploma (D3)', 'Sarjana (S1)', 'Magister (S2)', 'Doktor (S3)'],
+        SearchableModalSelectorGeneric<int>(
+          title: 'Pendidikan Terakhir',
+          hint: 'Pilih pendidikan',
+          value: selectedPendidikanId,
+          items: List<DropdownItemData<int>>.generate(
+            listPendidikan.length,
+            (i) => DropdownItemData<int>(
+              value: listPendidikan[i].id,
+              label: listPendidikan[i].displayName,
+            ),
+          ),
+          isLoading: isLoadingPendidikan,
           onChanged: onPendidikanChanged,
         ),
         const SizedBox(height: 20),
-
-        // Nama Sekolah / PT
         const CustomFieldLabel(label: 'Nama Sekolah/Perguruan Tinggi'),
         CustomTextInput(
           controller: namaSekolahController,
           hint: 'Nama sekolah dan perguruan tinggi',
+          inputFormatters: [LengthLimitingTextInputFormatter(255)],
         ),
         const SizedBox(height: 20),
-
-        // Jurusan / Program Studi
         const CustomFieldLabel(label: 'Jurusan / Program Studi'),
         CustomTextInput(
           controller: jurusanController,
           hint: 'Nama jurusan atau program studi',
+          inputFormatters: [LengthLimitingTextInputFormatter(25)],
         ),
       ],
     );

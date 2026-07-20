@@ -115,6 +115,122 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
     // Fetch master sumber anggaran (pemberi di-load cascade saat sumber dipilih)
     _fetchMasterSumberAnggaran();
+
+    // FR.APL.01: master pendidikan + prefill profile
+    _fetchMasterPendidikan();
+    _loadAsesiProfile();
+  }
+
+  Future<void> _fetchMasterPendidikan() async {
+    setState(() => _isLoadingPendidikan = true);
+    try {
+      final list = await ApiService.getMasterPendidikanList();
+      if (mounted) {
+        setState(() {
+          _listPendidikan = list;
+          _isLoadingPendidikan = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching master pendidikan: $e');
+      if (mounted) setState(() => _isLoadingPendidikan = false);
+    }
+  }
+
+  Future<void> _loadAsesiProfile() async {
+    try {
+      final profile = await AsesiService.getProfile();
+      if (profile == null || !mounted) return;
+      setState(() {
+        if ((profile['nik']?.toString() ?? '').isNotEmpty) {
+          _nikController.text = profile['nik'].toString();
+        }
+        if ((profile['nama_lengkap']?.toString() ?? '').isNotEmpty) {
+          _namaLengkapController.text = profile['nama_lengkap'].toString();
+        }
+        final jk = profile['jenis_kelamin']?.toString() ?? '';
+        if (jk == '1' || jk.toLowerCase().contains('laki')) {
+          _jenisKelamin = 'Laki-Laki';
+        } else if (jk == '2' || jk.toLowerCase().contains('perempuan')) {
+          _jenisKelamin = 'Perempuan';
+        }
+        if ((profile['tempat_lahir']?.toString() ?? '').isNotEmpty) {
+          _tempatLahirController.text = profile['tempat_lahir'].toString();
+        }
+        if ((profile['tgl_lahir']?.toString() ?? '').isNotEmpty) {
+          _tanggalLahirController.text =
+              AsesiService.normalizeTglLahir(profile['tgl_lahir'].toString());
+        }
+        if ((profile['alamat']?.toString() ?? '').isNotEmpty) {
+          _alamatDomisiliController.text = profile['alamat'].toString();
+        }
+        if (profile['id_provinsi'] != null) {
+          _selectedProvinsi = profile['id_provinsi'].toString();
+        }
+        if (profile['id_kabupaten'] != null) {
+          _selectedKota = profile['id_kabupaten'].toString();
+        }
+        if ((profile['id_kecamatan']?.toString() ?? '').isNotEmpty) {
+          _selectedKecamatan = profile['id_kecamatan'].toString();
+        }
+        if ((profile['telp']?.toString() ?? '').isNotEmpty) {
+          _noTelpController.text = profile['telp'].toString();
+        }
+        if ((profile['email']?.toString() ?? '').isNotEmpty) {
+          _emailController.text = profile['email'].toString();
+        }
+        if (profile['id_pendidikan'] != null) {
+          _selectedPendidikanId =
+              int.tryParse(profile['id_pendidikan'].toString());
+        }
+        if ((profile['nama_sekolah']?.toString() ?? '').isNotEmpty) {
+          _namaSekolahController.text = profile['nama_sekolah'].toString();
+        }
+        if ((profile['jurusan']?.toString() ?? '').isNotEmpty) {
+          _jurusanController.text = profile['jurusan'].toString();
+        }
+      });
+      if (_selectedProvinsi != null) {
+        await _fetchKabupaten(_selectedProvinsi!);
+        if (_selectedKota != null) {
+          await _fetchKecamatan(_selectedKota!);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading asesi profile: $e');
+    }
+  }
+
+  Map<String, dynamic> _buildDataPribadiPayload() {
+    final payload = <String, dynamic>{
+      'nik': _nikController.text.trim(),
+      'nama_lengkap': _namaLengkapController.text.trim(),
+      'jenis_kelamin': AsesiService.mapJenisKelamin(_jenisKelamin),
+      'tempat_lahir': _tempatLahirController.text.trim(),
+      'tgl_lahir': AsesiService.normalizeTglLahir(_tanggalLahirController.text),
+      'alamat': _alamatDomisiliController.text.trim(),
+      'telp': _noTelpController.text.trim(),
+      'email': _emailController.text.trim(),
+      'nama_sekolah': _namaSekolahController.text.trim(),
+      'jurusan': _jurusanController.text.trim(),
+    };
+    final idProv = int.tryParse(_selectedProvinsi ?? '');
+    if (idProv != null) payload['id_provinsi'] = idProv;
+    final idKab = int.tryParse(_selectedKota ?? '');
+    if (idKab != null) payload['id_kabupaten'] = idKab;
+    if ((_selectedKecamatan ?? '').isNotEmpty) {
+      payload['id_kecamatan'] = _selectedKecamatan;
+    }
+    if (_selectedPendidikanId != null) {
+      payload['id_pendidikan'] = _selectedPendidikanId;
+    }
+    if (_selectedSumberAnggaranId != null) {
+      payload['id_sumber_anggaran'] = _selectedSumberAnggaranId;
+    }
+    if (_selectedPemberiAnggaranId != null) {
+      payload['id_instansi_anggaran'] = _selectedPemberiAnggaranId;
+    }
+    return payload;
   }
 
   Future<void> _fetchProvinsi() async {
@@ -321,7 +437,9 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   bool _isLoadingKecamatan = false;
   final TextEditingController _noTelpController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  String? _selectedPendidikan;
+  int? _selectedPendidikanId;
+  List<MasterPendidikan> _listPendidikan = [];
+  bool _isLoadingPendidikan = false;
   final TextEditingController _namaSekolahController = TextEditingController();
   final TextEditingController _jurusanController = TextEditingController();
 
@@ -523,12 +641,13 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
       try {
         final skemaId = _selectedSkemaId ?? 1;
-        final jadwalId = _selectedJadwalId ?? 1;
+        final jadwalId = _selectedJadwalId;
 
-        // 1. Register certification
+        // 1. Register certification (FR.APL.01 data pribadi + anggaran)
         final regRes = await AsesiService.daftarSertifikasi(
           skemaId: skemaId,
-          tukId: jadwalId,
+          jadwalId: jadwalId,
+          dataPribadi: _buildDataPribadiPayload(),
         );
 
         if (regRes == null) {
@@ -865,15 +984,17 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           selectedKecamatan: _selectedKecamatan,
           noTelpController: _noTelpController,
           emailController: _emailController,
-          selectedPendidikan: _selectedPendidikan,
+          selectedPendidikanId: _selectedPendidikanId,
           namaSekolahController: _namaSekolahController,
           jurusanController: _jurusanController,
           listProvinsi: _listProvinsi,
           listKabupaten: _listKabupaten,
           listKecamatan: _listKecamatan,
+          listPendidikan: _listPendidikan,
           isLoadingProvinsi: _isLoadingProvinsi,
           isLoadingKabupaten: _isLoadingKabupaten,
           isLoadingKecamatan: _isLoadingKecamatan,
+          isLoadingPendidikan: _isLoadingPendidikan,
           onJenisKelaminChanged: (val) {
             setState(() {
               _jenisKelamin = val!;
@@ -908,7 +1029,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           },
           onPendidikanChanged: (val) {
             setState(() {
-              _selectedPendidikan = val;
+              _selectedPendidikanId = val;
             });
           },
           onTanggalLahirTap: () async {
@@ -921,7 +1042,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             if (pickedDate != null) {
               setState(() {
                 _tanggalLahirController.text =
-                    "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+                    "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
               });
             }
           },

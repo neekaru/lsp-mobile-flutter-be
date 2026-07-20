@@ -115,18 +115,29 @@ class AsesiService {
   }
 
   /// 7. Daftar Sertifikasi (POST /api/sertifikasi/daftar)
+  /// Prefer [jadwalId]; [tukId] kept for legacy. Optional FR.APL.01 fields via [dataPribadi].
   static Future<Map<String, dynamic>?> daftarSertifikasi({
     required int skemaId,
-    required int tukId,
+    int? tukId,
+    int? jadwalId,
     String? tanggalRencana,
+    Map<String, dynamic>? dataPribadi,
   }) async {
     try {
       final Map<String, dynamic> payload = {
         'skema_id': skemaId,
-        'tuk_id': tukId,
       };
+      if (jadwalId != null && jadwalId > 0) {
+        payload['jadwal_id'] = jadwalId;
+      }
+      if (tukId != null && tukId > 0) {
+        payload['tuk_id'] = tukId;
+      }
       if (tanggalRencana != null) {
         payload['tanggal_rencana'] = tanggalRencana;
+      }
+      if (dataPribadi != null) {
+        payload.addAll(dataPribadi);
       }
       final response = await _dio.post(
         ApiRoutes.sertifikasiDaftar,
@@ -140,6 +151,54 @@ class AsesiService {
       debugPrint('Error registering certification: $e');
       return null;
     }
+  }
+
+  /// GET /api/asesi/profile — FR.APL.01 data pribadi
+  static Future<Map<String, dynamic>?> getProfile() async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesiProfile);
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting asesi profile: $e');
+      return null;
+    }
+  }
+
+  /// PUT /api/asesi/profile — update FR.APL.01 data pribadi
+  static Future<bool> updateProfile(Map<String, dynamic> body) async {
+    try {
+      final response = await _dio.put(ApiRoutes.asesiProfile, data: body);
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error updating asesi profile: $e');
+      return false;
+    }
+  }
+
+  /// Map FE jenis kelamin label → DB enum "1"/"2"
+  static String mapJenisKelamin(String label) {
+    final v = label.toLowerCase();
+    if (v == '1' || v.contains('laki')) return '1';
+    if (v == '2' || v.contains('perempuan')) return '2';
+    return label;
+  }
+
+  /// Normalize date to YYYY-MM-DD (accepts dd/mm/yyyy, dd-mm-yyyy, yyyy-mm-dd)
+  static String normalizeTglLahir(String raw) {
+    final v = raw.trim();
+    if (v.isEmpty) return v;
+    if (v.length == 10 && v[4] == '-') return v;
+    final sep = v.contains('/') ? '/' : '-';
+    final parts = v.split(sep);
+    if (parts.length == 3 && parts[2].length == 4) {
+      final d = parts[0].padLeft(2, '0');
+      final m = parts[1].padLeft(2, '0');
+      return '${parts[2]}-$m-$d';
+    }
+    return v;
   }
 
   /// 8. Status Pendaftaran (GET /api/sertifikasi/status)
