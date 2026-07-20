@@ -1283,6 +1283,8 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       case 4:
         return DokumenPortofolioForm(
           selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+          unitKompetensi: _asesmenUnits,
+          isLoading: _isLoadingKompetensi,
           onBuktiTap: _navigateToBuktiPortofolio,
           onUnitTap: () async {
             final completed = await Navigator.push<bool>(
