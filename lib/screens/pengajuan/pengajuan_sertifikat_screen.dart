@@ -517,11 +517,15 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   final Map<String, String?> _uploadedFilePaths = {};
 
   int? _activeUnitDetailIndex;
+  /// key = id_elemen as String → K/KB
   final Map<String, bool?> _kukAssessments = {};
   final Map<String, String?> _kukEvidence = {};
 
-  // Unit kompetensi from GET /api/master/skema/:id/unit-persyaratan
+  // Unit list for dokumen persyaratan (FR.APL.01) — no elemen/KUK
   List<Map<String, dynamic>> _cachedUnitKompetensi = [];
+  // FR.APL.02 — unit + elemen/KUK from GET /api/pra-asesmen/skema/:id/kompetensi
+  List<Map<String, dynamic>> _asesmenUnits = [];
+  bool _isLoadingKompetensi = false;
 
   // FR.APL.01 bagian 2 — unit + persyaratan from API (by id_skema)
   List<Map<String, String>> _persyaratanDasar = [];
@@ -533,6 +537,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     },
   ];
   bool _isLoadingUnitPersyaratan = false;
+  int? _sertifikasiId;
 
   Future<void> _fetchSkemaUnitPersyaratan(int idSkema) async {
     setState(() {
@@ -582,10 +587,54 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         });
       }
     }
+    // FR.APL.02 kompetensi (unit → elemen/KUK)
+    _fetchPraAsesmenKompetensi(idSkema);
+  }
+
+  Future<void> _fetchPraAsesmenKompetensi(int idSkema) async {
+    setState(() {
+      _isLoadingKompetensi = true;
+      _asesmenUnits = [];
+      _kukAssessments.clear();
+      _kukEvidence.clear();
+    });
+    try {
+      final komp = await SertifikatService.getPraAsesmenKompetensi(
+        idSkema,
+        _selectedSkema ?? '',
+      );
+      if (!mounted) return;
+      final units = komp.unitKompetensi.map((u) {
+        final elemen = u.elemen
+            .map((e) => {
+                  'id_elemen': e.idElemen,
+                  'text': e.pertanyaanKuk,
+                })
+            .toList();
+        return {
+          'kode': u.kodeUnit,
+          'judul': u.judulUnit,
+          'kuk_count': '${elemen.length} item',
+          'elemen': elemen,
+        };
+      }).toList();
+      setState(() {
+        _asesmenUnits = units;
+        _isLoadingKompetensi = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching pra-asesmen kompetensi: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingKompetensi = false;
+        });
+      }
+    }
   }
 
   void _clearUnitPersyaratan() {
     _cachedUnitKompetensi = [];
+    _asesmenUnits = [];
     _persyaratanDasar = [];
     _persyaratanAdministratif = const [
       {'key': 'pasfoto', 'label': 'Pasfoto*'},
@@ -597,6 +646,8 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     _uploadedDocs.clear();
     _uploadedFileNames.clear();
     _uploadedFilePaths.clear();
+    _kukAssessments.clear();
+    _kukEvidence.clear();
   }
 
   void _onPersyaratanUpload(
@@ -611,6 +662,37 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       _uploadedFileNames[key] = fileName;
       _uploadedFilePaths[key] = filePath;
     });
+  }
+
+  List<Map<String, dynamic>> _buildPortofolioDocuments() {
+    final seen = <String>{};
+    final docs = <Map<String, dynamic>>[];
+    void add(String key, String label, {bool required = true}) {
+      if (key.isEmpty || seen.contains(key)) return;
+      seen.add(key);
+      docs.add({
+        'key': key,
+        'label': label,
+        'is_required': required,
+        'status': _uploadedDocs[key] == true
+            ? 'Menunggu Verifikasi'
+            : 'Belum Diunggah',
+        'file_name': _uploadedFileNames[key],
+      });
+    }
+
+    for (final p in _persyaratanAdministratif) {
+      add(p['key'] ?? '', p['label'] ?? '');
+    }
+    for (final p in _persyaratanDasar) {
+      add(p['key'] ?? '', p['label'] ?? '', required: false);
+    }
+    for (final entry in _uploadedDocs.entries) {
+      if (entry.value == true && !seen.contains(entry.key)) {
+        add(entry.key, entry.key, required: false);
+      }
+    }
+    return docs;
   }
 
   @override
@@ -651,23 +733,51 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     }
   }
 
-  void _navigateToBuktiPortofolio() {
-    Navigator.push(
+  Future<void> _navigateToBuktiPortofolio() async {
+    var documents = _buildPortofolioDocuments();
+    if (_sertifikasiId != null) {
+      try {
+        final remote = await AsesiService.getPortofolioList(_sertifikasiId!);
+        if (remote.isNotEmpty) {
+          documents = remote;
+          for (final d in remote) {
+            final key = d['key']?.toString() ?? '';
+            if (key.isEmpty) continue;
+            final fn = d['file_name']?.toString();
+            final st = d['status']?.toString() ?? '';
+            if (fn != null && fn.isNotEmpty) {
+              _uploadedFileNames[key] = fn;
+              _uploadedDocs[key] = st != 'Belum Diunggah';
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Error load portofolio list: $e');
+      }
+    }
+    if (!mounted) return;
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => BuktiPortofolioScreen(
           selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
           uploadedDocs: _uploadedDocs,
           uploadedFileNames: _uploadedFileNames,
-          onUploadChanged: (docName, isUploaded, fileName) {
+          uploadedFilePaths: _uploadedFilePaths,
+          documents: documents,
+          onUploadChanged: (key, isUploaded, fileName, filePath) {
             setState(() {
-              _uploadedDocs[docName] = isUploaded;
-              _uploadedFileNames[docName] = fileName;
+              _uploadedDocs[key] = isUploaded;
+              _uploadedFileNames[key] = fileName;
+              if (filePath != null) {
+                _uploadedFilePaths[key] = filePath;
+              }
             });
           },
         ),
       ),
     );
+    if (mounted) setState(() {});
   }
 
   // Progress to next step with validation (bypassed for testing)
@@ -700,6 +810,10 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         if (sertifikasiId == null) {
           throw Exception('ID Sertifikasi tidak valid.');
         }
+        final sertId = sertifikasiId is int
+            ? sertifikasiId
+            : int.parse(sertifikasiId.toString());
+        _sertifikasiId = sertId;
 
         // 2. Upload persyaratan (key = slug from API, path = local file)
         for (final entry in _uploadedFilePaths.entries) {
@@ -708,31 +822,25 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           if (filePath != null &&
               filePath.isNotEmpty &&
               !filePath.startsWith('http')) {
-            await AsesiService.uploadPortofolio(
-              sertifikasiId is int
-                  ? sertifikasiId
-                  : int.parse(sertifikasiId.toString()),
-              docKey,
-              filePath,
-            );
+            await AsesiService.uploadPortofolio(sertId, docKey, filePath);
           }
         }
 
-        // 3. Submit Pra-Asesmen
+        // 3. Submit Pra-Asesmen (id_elemen real dari API kompetensi)
         final List<Map<String, dynamic>> evaluasi = [];
         _kukAssessments.forEach((key, isKompeten) {
+          if (isKompeten == null) return;
+          final id = int.tryParse(key);
+          if (id == null || id <= 0) return;
           evaluasi.add({
-            'id_elemen': key.hashCode.abs() % 10000,
+            'id_elemen': id,
             'nilai': isKompeten == true ? 'K' : 'KB',
           });
         });
 
-        // Fallback if empty evaluation
-        if (evaluasi.isEmpty) {
-          evaluasi.add({'id_elemen': 1, 'nilai': 'K'});
-        }
-
-        final submitRes = await AsesiService.submitPraAsesmen(skemaId, evaluasi);
+        final submitRes = evaluasi.isEmpty
+            ? true
+            : await AsesiService.submitPraAsesmen(skemaId, evaluasi);
         if (!submitRes) {
           throw Exception('Gagal submit evaluasi pra-asesmen.');
         }
@@ -1137,18 +1245,18 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               MaterialPageRoute(
                 builder: (context) => AsesmenMandiriUjiScreen(
                   selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
-                  unitKompetensi: _cachedUnitKompetensi,
+                  unitKompetensi: _asesmenUnits,
                   uploadedFileNames: _uploadedFileNames,
                   kukAssessments: _kukAssessments,
                   kukEvidence: _kukEvidence,
-                  onAssessmentChanged: (kuk, isK) {
+                  onAssessmentChanged: (elemenKey, isK) {
                     setState(() {
-                      _kukAssessments[kuk] = isK;
+                      _kukAssessments[elemenKey] = isK;
                     });
                   },
-                  onEvidenceChanged: (kuk, fileName) {
+                  onEvidenceChanged: (elemenKey, fileName) {
                     setState(() {
-                      _kukEvidence[kuk] = fileName;
+                      _kukEvidence[elemenKey] = fileName;
                     });
                   },
                 ),
@@ -1162,36 +1270,38 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           },
         );
       case 5:
-        if (_activeUnitDetailIndex != null) {
-          final unit = _cachedUnitKompetensi[_activeUnitDetailIndex!];
+        if (_activeUnitDetailIndex != null &&
+            _activeUnitDetailIndex! < _asesmenUnits.length) {
+          final unit = _asesmenUnits[_activeUnitDetailIndex!];
           final String kode = unit['kode'] as String? ?? '';
           final String judul = unit['judul'] as String? ?? '';
-          String kukCount = '11 KUK';
-          if (kode.contains('001')) {
-            kukCount = '8 KUK';
-          } else if (kode.contains('002')) {
-            kukCount = '10 KUK';
-          } else if (kode.contains('003')) {
-            kukCount = '12 KUK';
-          } else if (kode.contains('007')) {
-            kukCount = '13 KUK';
-          }
+          final elemenRaw = unit['elemen'];
+          final elemenItems = elemenRaw is List
+              ? elemenRaw
+                  .map((e) => e is Map<String, dynamic>
+                      ? e
+                      : Map<String, dynamic>.from(e as Map))
+                  .toList()
+              : <Map<String, dynamic>>[];
+          final kukCount =
+              unit['kuk_count'] as String? ?? '${elemenItems.length} item';
 
           return UnitKompetensiDetail(
             unitKode: kode,
             unitJudul: judul,
             kukCount: kukCount,
+            elemenItems: elemenItems,
             uploadedFileNames: _uploadedFileNames,
             kukAssessments: _kukAssessments,
             kukEvidence: _kukEvidence,
-            onAssessmentChanged: (kuk, isK) {
+            onAssessmentChanged: (elemenKey, isK) {
               setState(() {
-                _kukAssessments[kuk] = isK;
+                _kukAssessments[elemenKey] = isK;
               });
             },
-            onEvidenceChanged: (kuk, fileName) {
+            onEvidenceChanged: (elemenKey, fileName) {
               setState(() {
-                _kukEvidence[kuk] = fileName;
+                _kukEvidence[elemenKey] = fileName;
               });
             },
             onKembali: () {
@@ -1209,7 +1319,8 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
         return AsesmenMandiriForm(
           selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
-          unitKompetensi: _cachedUnitKompetensi,
+          unitKompetensi: _asesmenUnits,
+          isLoading: _isLoadingKompetensi,
           onUnitTap: (index) {
             setState(() {
               _activeUnitDetailIndex = index;
