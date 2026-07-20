@@ -211,7 +211,7 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
             final kode = unit['kode'] as String? ?? '';
             final judul = unit['judul'] as String? ?? '';
             final kukLabel = unit['kuk_count'] as String? ??
-                '${_elemenOf(unit).length} item';
+                '${_allItemsOf(unit).length} item';
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),

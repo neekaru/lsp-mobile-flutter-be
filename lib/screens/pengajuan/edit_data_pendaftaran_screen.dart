@@ -228,9 +228,9 @@ class _EditDataPendaftaranScreenState extends State<EditDataPendaftaranScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
+          SizedBox(height: statusBarHeight + 8),
           CustomAppBar(
             title: 'Edit Data Diri',
-            statusBarHeight: statusBarHeight,
             onBack: () => Navigator.pop(context),
           ),
           Expanded(
