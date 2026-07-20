@@ -605,17 +605,28 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       );
       if (!mounted) return;
       final units = komp.unitKompetensi.map((u) {
-        final elemen = u.elemen
-            .map((e) => {
-                  'id_elemen': e.idElemen,
-                  'text': e.pertanyaanKuk,
-                })
-            .toList();
+        // Nested: elemen groups → each has kuk[] (or self if empty)
+        final elemenGroups = u.elemen.map((e) {
+          final items = e.assessableItems;
+          return {
+            'id_elemen': e.idElemen,
+            'title': e.elemenKompetensi.isNotEmpty
+                ? e.elemenKompetensi
+                : e.pertanyaanKuk,
+            'kuk_count': '${items.length} item',
+            'items': items,
+          };
+        }).toList();
+        var total = 0;
+        for (final g in elemenGroups) {
+          final items = g['items'];
+          if (items is List) total += items.length;
+        }
         return {
           'kode': u.kodeUnit,
           'judul': u.judulUnit,
-          'kuk_count': '${elemen.length} item',
-          'elemen': elemen,
+          'kuk_count': '$total item',
+          'elemen': elemenGroups,
         };
       }).toList();
       setState(() {
@@ -826,16 +837,44 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           }
         }
 
-        // 3. Submit Pra-Asesmen (id_elemen real dari API kompetensi)
+        // 3. Submit Pra-Asesmen (key: k:{id_kuk} | e:{id_elemen})
         final List<Map<String, dynamic>> evaluasi = [];
         _kukAssessments.forEach((key, isKompeten) {
           if (isKompeten == null) return;
-          final id = int.tryParse(key);
-          if (id == null || id <= 0) return;
-          evaluasi.add({
-            'id_elemen': id,
+          int idElemen = 0;
+          int idKuk = 0;
+          if (key.startsWith('k:')) {
+            idKuk = int.tryParse(key.substring(2)) ?? 0;
+          } else if (key.startsWith('e:')) {
+            idElemen = int.tryParse(key.substring(2)) ?? 0;
+          } else {
+            idElemen = int.tryParse(key) ?? 0;
+          }
+          if (idElemen <= 0 && idKuk <= 0) return;
+          // resolve id_elemen from nested units if only id_kuk
+          if (idElemen <= 0 && idKuk > 0) {
+            for (final u in _asesmenUnits) {
+              final groups = u['elemen'];
+              if (groups is! List) continue;
+              for (final g in groups) {
+                final items = g is Map ? g['items'] : null;
+                if (items is! List) continue;
+                for (final it in items) {
+                  if (it is Map && it['id_kuk'] == idKuk) {
+                    idElemen = it['id_elemen'] as int? ?? 0;
+                  }
+                }
+              }
+            }
+          }
+          final item = <String, dynamic>{
+            'id_elemen': idElemen,
             'nilai': isKompeten == true ? 'K' : 'KB',
-          });
+          };
+          if (idKuk > 0) item['id_kuk'] = idKuk;
+          final bukti = _kukEvidence[key];
+          if (bukti != null && bukti.isNotEmpty) item['bukti'] = bukti;
+          evaluasi.add(item);
         });
 
         final submitRes = evaluasi.isEmpty
@@ -1276,7 +1315,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           final String kode = unit['kode'] as String? ?? '';
           final String judul = unit['judul'] as String? ?? '';
           final elemenRaw = unit['elemen'];
-          final elemenItems = elemenRaw is List
+          final elemenGroups = elemenRaw is List
               ? elemenRaw
                   .map((e) => e is Map<String, dynamic>
                       ? e
@@ -1284,13 +1323,13 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                   .toList()
               : <Map<String, dynamic>>[];
           final kukCount =
-              unit['kuk_count'] as String? ?? '${elemenItems.length} item';
+              unit['kuk_count'] as String? ?? '${elemenGroups.length} elemen';
 
           return UnitKompetensiDetail(
             unitKode: kode,
             unitJudul: judul,
             kukCount: kukCount,
-            elemenItems: elemenItems,
+            elemenGroups: elemenGroups,
             uploadedFileNames: _uploadedFileNames,
             kukAssessments: _kukAssessments,
             kukEvidence: _kukEvidence,

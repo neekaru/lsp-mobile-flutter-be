@@ -110,7 +110,7 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
     );
   }
 
-  List<Map<String, dynamic>> _elemenOf(Map<String, dynamic> unit) {
+  List<Map<String, dynamic>> _groupsOf(Map<String, dynamic> unit) {
     final el = unit['elemen'];
     if (el is List) {
       return el.map((e) {
@@ -120,6 +120,26 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
       }).toList();
     }
     return const [];
+  }
+
+  List<Map<String, dynamic>> _itemsOfGroup(Map<String, dynamic> group) {
+    final raw = group['items'];
+    if (raw is List) {
+      return raw.map((e) {
+        if (e is Map<String, dynamic>) return e;
+        if (e is Map) return Map<String, dynamic>.from(e);
+        return <String, dynamic>{};
+      }).toList();
+    }
+    return const [];
+  }
+
+  List<Map<String, dynamic>> _allItemsOf(Map<String, dynamic> unit) {
+    final out = <Map<String, dynamic>>[];
+    for (final g in _groupsOf(unit)) {
+      out.addAll(_itemsOfGroup(g));
+    }
+    return out;
   }
 
   @override
@@ -268,9 +288,10 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
     final unit = widget.unitKompetensi[_activeUnitIndex!];
     final String kode = unit['kode'] as String? ?? '';
     final String judul = unit['judul'] as String? ?? '';
-    final items = _elemenOf(unit);
+    final groups = _groupsOf(unit);
+    final allItems = _allItemsOf(unit);
     final kukLabel =
-        unit['kuk_count'] as String? ?? '${items.length} item';
+        unit['kuk_count'] as String? ?? '${allItems.length} item';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,180 +343,213 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Kriteria Unjuk Kerja',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                    ),
-                    const Text('K',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B))),
-                    const SizedBox(width: 28),
-                    const Text('KB',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B))),
-                    const SizedBox(width: 6),
-                  ],
-                ),
-              ),
-              const Divider(color: Color(0xFFE2E8F0), height: 1),
-              if (items.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(
-                    'Belum ada elemen/KUK untuk unit ini.',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                  ),
-                )
-              else
-                ...items.map((item) {
-                  final id = item['id_elemen'];
-                  final elemenKey = id?.toString() ?? '';
-                  final text = item['text'] as String? ?? '';
-                  final bool? isK = widget.kukAssessments[elemenKey];
-                  final linkedEvidence = widget.kukEvidence[elemenKey];
+        if (groups.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Belum ada elemen/KUK untuk unit ini.',
+              style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+            ),
+          )
+        else
+          ...groups.asMap().entries.map((entry) {
+            final gIdx = entry.key;
+            final group = entry.value;
+            final title = group['title'] as String? ?? 'Elemen';
+            final items = _itemsOfGroup(group);
+            final countLabel =
+                group['kuk_count'] as String? ?? '${items.length} item';
 
-                  return RepaintBoundary(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        border: Border(
-                            bottom: BorderSide(color: Color(0xFFF1F5F9))),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    child: Row(
+                      children: [
+                        Text(
+                          '${String.fromCharCode(65 + gIdx)}.',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  text,
-                                  style: const TextStyle(
-                                    fontSize: 12.5,
-                                    color: Color(0xFF475569),
-                                    height: 1.45,
-                                  ),
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              Row(
-                                children: [
-                                  GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () {
-                                      widget.onAssessmentChanged(
-                                          elemenKey, true);
-                                      setState(() {});
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(11),
-                                      child: Icon(
-                                        isK == true
-                                            ? Icons.radio_button_checked_rounded
-                                            : Icons.radio_button_off_rounded,
-                                        color: const Color(0xFF378CE7),
-                                        size: 22,
-                                      ),
+                              const SizedBox(height: 2),
+                              Text(
+                                countLabel,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Text('K',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B))),
+                        const SizedBox(width: 28),
+                        const Text('KB',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B))),
+                        const SizedBox(width: 6),
+                      ],
+                    ),
+                  ),
+                  const Divider(color: Color(0xFFE2E8F0), height: 1),
+                  ...items.map((item) {
+                    final itemKey = item['key']?.toString() ?? '';
+                    final text = item['text'] as String? ?? '';
+                    final bool? isK = widget.kukAssessments[itemKey];
+                    final linkedEvidence = widget.kukEvidence[itemKey];
+
+                    return RepaintBoundary(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                              bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    text,
+                                    style: const TextStyle(
+                                      fontSize: 12.5,
+                                      color: Color(0xFF475569),
+                                      height: 1.45,
                                     ),
                                   ),
-                                  GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () {
-                                      widget.onAssessmentChanged(
-                                          elemenKey, false);
-                                      setState(() {});
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(11),
-                                      child: Icon(
-                                        isK == false
-                                            ? Icons.radio_button_checked_rounded
-                                            : Icons.radio_button_off_rounded,
-                                        color: const Color(0xFF378CE7),
-                                        size: 22,
+                                ),
+                                const SizedBox(width: 16),
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () {
+                                        widget.onAssessmentChanged(
+                                            itemKey, true);
+                                        setState(() {});
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(11),
+                                        child: Icon(
+                                          isK == true
+                                              ? Icons
+                                                  .radio_button_checked_rounded
+                                              : Icons.radio_button_off_rounded,
+                                          color: const Color(0xFF378CE7),
+                                          size: 22,
+                                        ),
                                       ),
+                                    ),
+                                    GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () {
+                                        widget.onAssessmentChanged(
+                                            itemKey, false);
+                                        setState(() {});
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(11),
+                                        child: Icon(
+                                          isK == false
+                                              ? Icons
+                                                  .radio_button_checked_rounded
+                                              : Icons.radio_button_off_rounded,
+                                          color: const Color(0xFF378CE7),
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                SizedBox(
+                                  height: 40,
+                                  child: ElevatedButton(
+                                    onPressed: () => _showEvidencePickerSheet(
+                                        context, itemKey),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFF1F5F9),
+                                      foregroundColor: const Color(0xFF475569),
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      linkedEvidence != null
+                                          ? 'Bukti Terpilih'
+                                          : 'Pilih Bukti',
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                if (linkedEvidence != null) ...[
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      linkedEvidence,
+                                      style: const TextStyle(
+                                        fontSize: 11.5,
+                                        color: Color(0xFF2E7D32),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              SizedBox(
-                                height: 40,
-                                child: ElevatedButton(
-                                  onPressed: () => _showEvidencePickerSheet(
-                                      context, elemenKey),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFF1F5F9),
-                                    foregroundColor: const Color(0xFF475569),
-                                    elevation: 0,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    linkedEvidence != null
-                                        ? 'Bukti Terpilih'
-                                        : 'Pilih Bukti',
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                              if (linkedEvidence != null) ...[
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    linkedEvidence,
-                                    style: const TextStyle(
-                                      fontSize: 11.5,
-                                      color: Color(0xFF2E7D32),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
                               ],
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }),
-            ],
-          ),
-        ),
+                    );
+                  }),
+                ],
+              ),
+            );
+          }),
       ],
     );
   }
@@ -544,9 +598,9 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       final items =
-                          _elemenOf(widget.unitKompetensi[_activeUnitIndex!]);
+                          _allItemsOf(widget.unitKompetensi[_activeUnitIndex!]);
                       final allK = items.every((item) {
-                        final key = item['id_elemen']?.toString() ?? '';
+                        final key = item['key']?.toString() ?? '';
                         return widget.kukAssessments[key] == true;
                       });
                       if (!allK) {

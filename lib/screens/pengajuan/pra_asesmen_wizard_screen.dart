@@ -7,6 +7,7 @@ import 'widgets/step_evaluasi_kompetensi.dart';
 import 'widgets/step_pengalaman_kerja.dart';
 import 'widgets/step_persetujuan_asesi.dart';
 import '../../services/sertifikat_service.dart';
+import '../../services/asesi_service.dart';
 import '../../models/sertifikat_models.dart';
 
 class PraAsesmenWizardScreen extends StatefulWidget {
@@ -126,41 +127,29 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
         _isSubmitting = true;
       });
 
-      final List<Map<String, dynamic>> jawabanEvaluasi = [];
+      // BE expects { evaluasi: [{ id_elemen, id_kuk?, nilai: K|KB }] }
+      final List<Map<String, dynamic>> evaluasi = [];
       if (_kompetensiData != null) {
-        for (var unit in _kompetensiData!.unitKompetensi) {
-          bool anyTidak = false;
-          for (var el in unit.elemen) {
-            if (_answers[el.idElemen] == 'tidak') {
-              anyTidak = true;
-              break;
+        for (final unit in _kompetensiData!.unitKompetensi) {
+          for (final el in unit.elemen) {
+            for (final item in el.assessableItems) {
+              final idElemen = item['id_elemen'] as int? ?? el.idElemen;
+              final idKuk = item['id_kuk'] as int? ?? 0;
+              // wizard UI still keys by id_elemen (ya/tidak)
+              final ans = _answers[el.idElemen] ?? 'ya';
+              final row = <String, dynamic>{
+                'id_elemen': idElemen,
+                'nilai': ans == 'tidak' ? 'KB' : 'K',
+              };
+              if (idKuk > 0) row['id_kuk'] = idKuk;
+              evaluasi.add(row);
             }
           }
-          jawabanEvaluasi.add({
-            'kode_unit': unit.kodeUnit,
-            'judul_unit': unit.judulUnit,
-            'jawaban': anyTidak ? 'tidak' : 'ya',
-          });
         }
       }
 
-      final body = {
-        'jawaban_evaluasi': jawabanEvaluasi,
-        'pengalaman_kerja': {
-          'has_experience': _hasWorkExperience == 'ya',
-          'perusahaan': _companyController.text,
-          'posisi': _positionController.text,
-          'durasi': _durationController.text,
-        },
-        'persetujuan': {
-          'agreement_1': _agreement1,
-          'agreement_2': _agreement2,
-          'agreement_3': _agreement3,
-          'agree_terms': _agreeTerms,
-        }
-      };
-
-      final bool success = await SertifikatService.submitPraAsesmen(widget.skemaId, body);
+      final bool success =
+          await AsesiService.submitPraAsesmen(widget.skemaId, evaluasi);
       
       setState(() {
         _isSubmitting = false;

@@ -705,16 +705,70 @@ class UnitKompetensi {
   }
 }
 
-class ElemenKompetensi {
+class KukItem {
+  final int idKuk;
   final int idElemen;
   final String pertanyaanKuk;
 
-  const ElemenKompetensi({required this.idElemen, required this.pertanyaanKuk});
+  const KukItem({
+    required this.idKuk,
+    required this.idElemen,
+    required this.pertanyaanKuk,
+  });
 
-  factory ElemenKompetensi.fromJson(Map<String, dynamic> json) {
-    return ElemenKompetensi(
+  factory KukItem.fromJson(Map<String, dynamic> json) {
+    return KukItem(
+      idKuk: json['id_kuk'] ?? 0,
       idElemen: json['id_elemen'] ?? 0,
       pertanyaanKuk: json['pertanyaan_kuk'] ?? '',
     );
+  }
+}
+
+class ElemenKompetensi {
+  final int idElemen;
+  final String elemenKompetensi;
+  final String pertanyaanKuk;
+  final List<KukItem> kuk;
+
+  const ElemenKompetensi({
+    required this.idElemen,
+    this.elemenKompetensi = '',
+    required this.pertanyaanKuk,
+    this.kuk = const [],
+  });
+
+  factory ElemenKompetensi.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> kukList = json['kuk'] ?? [];
+    return ElemenKompetensi(
+      idElemen: json['id_elemen'] ?? 0,
+      elemenKompetensi: json['elemen_kompetensi'] ?? '',
+      pertanyaanKuk: json['pertanyaan_kuk'] ?? '',
+      kuk: kukList
+          .map((item) => KukItem.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  /// Flat assessable rows: each KUK, or elemen itself if no KUK.
+  List<Map<String, dynamic>> get assessableItems {
+    if (kuk.isNotEmpty) {
+      return kuk
+          .map((k) => {
+                'key': 'k:${k.idKuk}',
+                'id_elemen': idElemen,
+                'id_kuk': k.idKuk,
+                'text': k.pertanyaanKuk,
+              })
+          .toList();
+    }
+    return [
+      {
+        'key': 'e:$idElemen',
+        'id_elemen': idElemen,
+        'id_kuk': 0,
+        'text': pertanyaanKuk.isNotEmpty ? pertanyaanKuk : elemenKompetensi,
+      },
+    ];
   }
 }

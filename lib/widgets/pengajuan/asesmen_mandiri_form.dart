@@ -28,10 +28,30 @@ class AsesmenMandiriForm extends StatelessWidget {
     return n;
   }
 
+  int get _totalKuk {
+    var n = 0;
+    for (final u in unitKompetensi) {
+      final groups = u['elemen'];
+      if (groups is! List) continue;
+      for (final g in groups) {
+        if (g is Map) {
+          final items = g['items'];
+          if (items is List) {
+            n += items.length;
+          } else {
+            n += 1;
+          }
+        }
+      }
+    }
+    return n;
+  }
+
   @override
   Widget build(BuildContext context) {
     final unitCount = unitKompetensi.length;
     final elemenCount = _totalElemen;
+    final kukCount = _totalKuk;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,7 +62,7 @@ class AsesmenMandiriForm extends StatelessWidget {
           selectedSkema: selectedSkema,
           unitCount: unitCount,
           elemenCount: elemenCount,
-          kukCount: elemenCount,
+          kukCount: kukCount,
         ),
         const SizedBox(height: 24),
         if (isLoading)
@@ -180,7 +200,7 @@ class AsesmenMandiriForm extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '$unitCount Unit · $elemenCount item',
+                          '$unitCount Unit · $elemenCount elemen · $kukCount KUK',
                           style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFF94A3B8),
