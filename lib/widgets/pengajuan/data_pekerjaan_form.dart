@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'form_fields.dart';
+import '../../models/master_models.dart';
 
 class DataPekerjaanForm extends StatelessWidget {
-  final String? selectedPekerjaan;
+  final int? selectedPekerjaanId;
+  final List<MasterPekerjaan> listPekerjaan;
+  final bool isLoadingPekerjaan;
   final TextEditingController namaPerusahaanController;
   final TextEditingController jabatanController;
   final TextEditingController alamatPerusahaanController;
   final TextEditingController kodeposPerusahaanController;
   final TextEditingController telpPerusahaanController;
   final TextEditingController emailPerusahaanController;
-  final ValueChanged<String?> onPekerjaanChanged;
+  final ValueChanged<int?> onPekerjaanChanged;
 
   const DataPekerjaanForm({
     super.key,
-    required this.selectedPekerjaan,
+    required this.selectedPekerjaanId,
+    required this.listPekerjaan,
+    required this.isLoadingPekerjaan,
     required this.namaPerusahaanController,
     required this.jabatanController,
     required this.alamatPerusahaanController,
@@ -55,8 +61,6 @@ class DataPekerjaanForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
-        // Section badge header
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -74,60 +78,68 @@ class DataPekerjaanForm extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
-        // Pekerjaan Dropdown
         const CustomFieldLabel(label: 'Pekerjaan'),
-        CustomDropdownSelector(
+        SearchableModalSelectorGeneric<int>(
+          title: 'Pekerjaan',
           hint: 'Pilih',
-          value: selectedPekerjaan,
-          items: const ['Mahasiswa/Pelajar', 'Karyawan Swasta', 'PNS / ASN', 'Wiraswasta / Freelance', 'Belum/Tidak Bekerja'],
+          value: selectedPekerjaanId,
+          items: List<DropdownItemData<int>>.generate(
+            listPekerjaan.length,
+            (i) => DropdownItemData<int>(
+              value: listPekerjaan[i].id,
+              label: listPekerjaan[i].displayName,
+            ),
+          ),
+          isLoading: isLoadingPekerjaan,
           onChanged: onPekerjaanChanged,
         ),
         const SizedBox(height: 20),
-
-        // Nama Perusahaan
         const CustomFieldLabel(label: 'Nama Perusahaan'),
         CustomTextInput(
           controller: namaPerusahaanController,
-          hint: 'Organisasi/ Tempat bekerja/ Institusi Terkait/ Freelance/-(bila tidak ada)',
+          hint:
+              'Organisasi/ Tempat bekerja/ Institusi Terkait/ Freelance/-(bila tidak ada)',
+          inputFormatters: [LengthLimitingTextInputFormatter(50)],
         ),
         const SizedBox(height: 20),
-
-        // Jabatan
         const CustomFieldLabel(label: 'Jabatan'),
         CustomTextInput(
           controller: jabatanController,
           hint: 'Jabatan diperusahaan',
+          inputFormatters: [LengthLimitingTextInputFormatter(25)],
         ),
         const SizedBox(height: 20),
-
-        // Alamat Lembaga / Perusahaan
         const CustomFieldLabel(label: 'Alamat Lembaga / Perusahaan'),
         CustomTextInput(
           controller: alamatPerusahaanController,
           hint: 'Alamat lengkap instansi/perusahaan',
           maxLines: 2,
+          inputFormatters: [LengthLimitingTextInputFormatter(255)],
         ),
         const SizedBox(height: 10),
         CustomTextInput(
           controller: kodeposPerusahaanController,
           hint: 'Masukan kode pos perusahaan',
           keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10),
+          ],
         ),
         const SizedBox(height: 20),
-
-        // No. Telp/Email Perusahaan
         const CustomFieldLabel(label: 'No. Telp/Email Perusahaan'),
         CustomTextInput(
           controller: telpPerusahaanController,
           hint: 'Masukan no telpon perusahaan',
           keyboardType: TextInputType.phone,
+          inputFormatters: [LengthLimitingTextInputFormatter(15)],
         ),
         const SizedBox(height: 10),
         CustomTextInput(
           controller: emailPerusahaanController,
           hint: 'Masukan email perusahaan',
           keyboardType: TextInputType.emailAddress,
+          inputFormatters: [LengthLimitingTextInputFormatter(19)],
         ),
       ],
     );

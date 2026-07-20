@@ -95,6 +95,27 @@ class MasterPendidikan {
   String get displayName => namaPendidikan;
 }
 
+class MasterPekerjaan {
+  final int id;
+  final String namaPekerjaan;
+
+  const MasterPekerjaan({
+    required this.id,
+    required this.namaPekerjaan,
+  });
+
+  factory MasterPekerjaan.fromJson(Map<String, dynamic> json) {
+    return MasterPekerjaan(
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      namaPekerjaan: json['nama_pekerjaan']?.toString() ?? '',
+    );
+  }
+
+  String get displayName => namaPekerjaan;
+}
+
 class MasterSumberAnggaran {
   final int id;
   final String jenisAnggaran;

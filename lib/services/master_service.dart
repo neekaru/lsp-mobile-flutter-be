@@ -18,6 +18,7 @@ class MasterService {
   static List<MasterSumberAnggaran>? _sumberAnggaranCache;
   static final Map<String, List<MasterPemberiAnggaran>> _pemberiAnggaranCache = {};
   static List<MasterPendidikan>? _pendidikanCache;
+  static List<MasterPekerjaan>? _pekerjaanCache;
 
   /// Fetch list of Provinsi
   static Future<List<MasterItem>> getProvinsiList() async {
@@ -193,6 +194,26 @@ class MasterService {
     }
   }
 
+  /// Fetch master pekerjaan (cached)
+  static Future<List<MasterPekerjaan>> getMasterPekerjaanList() async {
+    if (_pekerjaanCache != null) return _pekerjaanCache!;
+    try {
+      final response = await _dio.get(ApiRoutes.masterPekerjaan);
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        _pekerjaanCache = List<MasterPekerjaan>.generate(
+          data.length,
+          (i) => MasterPekerjaan.fromJson(data[i] as Map<String, dynamic>),
+        );
+        return _pekerjaanCache!;
+      }
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error fetching master pekerjaan: $e');
+      return [];
+    }
+  }
+
   /// Clear all cached master data (call on logout or pull-to-refresh)
   static void clearCache() {
     _skemaCache = null;
@@ -200,5 +221,6 @@ class MasterService {
     _sumberAnggaranCache = null;
     _pemberiAnggaranCache.clear();
     _pendidikanCache = null;
+    _pekerjaanCache = null;
   }
 }

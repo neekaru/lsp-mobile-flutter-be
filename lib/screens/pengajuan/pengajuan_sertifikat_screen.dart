@@ -116,9 +116,26 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     // Fetch master sumber anggaran (pemberi di-load cascade saat sumber dipilih)
     _fetchMasterSumberAnggaran();
 
-    // FR.APL.01: master pendidikan + prefill profile
+    // FR.APL.01: master pendidikan/pekerjaan + prefill profile
     _fetchMasterPendidikan();
+    _fetchMasterPekerjaan();
     _loadAsesiProfile();
+  }
+
+  Future<void> _fetchMasterPekerjaan() async {
+    setState(() => _isLoadingPekerjaan = true);
+    try {
+      final list = await ApiService.getMasterPekerjaanList();
+      if (mounted) {
+        setState(() {
+          _listPekerjaan = list;
+          _isLoadingPekerjaan = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching master pekerjaan: $e');
+      if (mounted) setState(() => _isLoadingPekerjaan = false);
+    }
   }
 
   Future<void> _fetchMasterPendidikan() async {
@@ -189,6 +206,31 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         if ((profile['jurusan']?.toString() ?? '').isNotEmpty) {
           _jurusanController.text = profile['jurusan'].toString();
         }
+        if (profile['id_pekerjaan'] != null) {
+          _selectedPekerjaanId =
+              int.tryParse(profile['id_pekerjaan'].toString());
+        }
+        if ((profile['organisasi']?.toString() ?? '').isNotEmpty) {
+          _namaPerusahaanController.text = profile['organisasi'].toString();
+        }
+        if ((profile['jabatan']?.toString() ?? '').isNotEmpty) {
+          _jabatanController.text = profile['jabatan'].toString();
+        }
+        if ((profile['alamat_company']?.toString() ?? '').isNotEmpty) {
+          _alamatPerusahaanController.text =
+              profile['alamat_company'].toString();
+        }
+        if ((profile['kode_pos_company']?.toString() ?? '').isNotEmpty) {
+          _kodeposPerusahaanController.text =
+              profile['kode_pos_company'].toString();
+        }
+        if ((profile['telp_company']?.toString() ?? '').isNotEmpty) {
+          _telpPerusahaanController.text = profile['telp_company'].toString();
+        }
+        if ((profile['email_company']?.toString() ?? '').isNotEmpty) {
+          _emailPerusahaanController.text =
+              profile['email_company'].toString();
+        }
       });
       if (_selectedProvinsi != null) {
         await _fetchKabupaten(_selectedProvinsi!);
@@ -230,6 +272,21 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     if (_selectedPemberiAnggaranId != null) {
       payload['id_instansi_anggaran'] = _selectedPemberiAnggaranId;
     }
+    if (_selectedPekerjaanId != null) {
+      payload['id_pekerjaan'] = _selectedPekerjaanId;
+    }
+    final organisasi = _namaPerusahaanController.text.trim();
+    if (organisasi.isNotEmpty) payload['organisasi'] = organisasi;
+    final jabatan = _jabatanController.text.trim();
+    if (jabatan.isNotEmpty) payload['jabatan'] = jabatan;
+    final alamatCompany = _alamatPerusahaanController.text.trim();
+    if (alamatCompany.isNotEmpty) payload['alamat_company'] = alamatCompany;
+    final kodePos = _kodeposPerusahaanController.text.trim();
+    if (kodePos.isNotEmpty) payload['kode_pos_company'] = kodePos;
+    final telpCompany = _telpPerusahaanController.text.trim();
+    if (telpCompany.isNotEmpty) payload['telp_company'] = telpCompany;
+    final emailCompany = _emailPerusahaanController.text.trim();
+    if (emailCompany.isNotEmpty) payload['email_company'] = emailCompany;
     return payload;
   }
 
@@ -444,7 +501,9 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   final TextEditingController _jurusanController = TextEditingController();
 
   // Step 3: Profil Peserta - Data Pekerjaan State
-  String? _selectedPekerjaan;
+  int? _selectedPekerjaanId;
+  List<MasterPekerjaan> _listPekerjaan = [];
+  bool _isLoadingPekerjaan = false;
   final TextEditingController _namaPerusahaanController = TextEditingController();
   final TextEditingController _jabatanController = TextEditingController();
   final TextEditingController _alamatPerusahaanController = TextEditingController();
@@ -1049,7 +1108,9 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         );
       case 2:
         return DataPekerjaanForm(
-          selectedPekerjaan: _selectedPekerjaan,
+          selectedPekerjaanId: _selectedPekerjaanId,
+          listPekerjaan: _listPekerjaan,
+          isLoadingPekerjaan: _isLoadingPekerjaan,
           namaPerusahaanController: _namaPerusahaanController,
           jabatanController: _jabatanController,
           alamatPerusahaanController: _alamatPerusahaanController,
@@ -1058,7 +1119,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           emailPerusahaanController: _emailPerusahaanController,
           onPekerjaanChanged: (val) {
             setState(() {
-              _selectedPekerjaan = val;
+              _selectedPekerjaanId = val;
             });
           },
         );
