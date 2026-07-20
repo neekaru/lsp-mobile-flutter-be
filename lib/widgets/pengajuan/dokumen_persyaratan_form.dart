@@ -6,14 +6,27 @@ import 'persyaratan_administratif_table.dart';
 class DokumenPersyaratanForm extends StatelessWidget {
   final String selectedSkema;
   final List<Map<String, dynamic>> unitKompetensi;
+  final List<Map<String, String>> persyaratanDasar;
+  final List<Map<String, String>> persyaratanAdministratif;
+  final bool isLoading;
   final Map<String, bool> uploadedDocs;
   final Map<String, String?> uploadedFileNames;
-  final Function(String docName, bool isUploaded, String? fileName) onUploadChanged;
+  final void Function(String key, String label, bool isUploaded, String? fileName, String? filePath)
+      onUploadChanged;
 
   const DokumenPersyaratanForm({
     super.key,
     required this.selectedSkema,
     required this.unitKompetensi,
+    this.persyaratanDasar = const [],
+    this.persyaratanAdministratif = const [
+      {'key': 'pasfoto', 'label': 'Pasfoto*'},
+      {
+        'key': 'identitas-pribadi-ktp-kartu-pelajar',
+        'label': 'Identitas pribadi (KTP/Kartu Pelajar)*'
+      },
+    ],
+    this.isLoading = false,
     required this.uploadedDocs,
     required this.uploadedFileNames,
     required this.onUploadChanged,
@@ -52,48 +65,49 @@ class DokumenPersyaratanForm extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-
-          // Section badge header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFD4E6F1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Text(
-              'c. Unit Kompetensi yang Diikuti',
-              style: TextStyle(
-                color: Color(0xFF1B4F72),
-                fontSize: 12.5,
-                fontWeight: FontWeight.bold,
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD4E6F1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                'c. Unit Kompetensi yang Diikuti',
+                style: TextStyle(
+                  color: Color(0xFF1B4F72),
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-
-          // Unit Kompetensi Table
-          UnitKompetensiTable(
-            selectedSkema: selectedSkema,
-            unitKompetensi: unitKompetensi,
-          ),
-          const SizedBox(height: 28),
-
-          // Persyaratan Dasar Table
-          PersyaratanDasarTable(
-            uploadedDocs: uploadedDocs,
-            uploadedFileNames: uploadedFileNames,
-            onUploadChanged: onUploadChanged,
-          ),
-          const SizedBox(height: 28),
-
-          // Persyaratan Administratif Table
-          PersyaratanAdministratifTable(
-            uploadedDocs: uploadedDocs,
-            uploadedFileNames: uploadedFileNames,
-            onUploadChanged: onUploadChanged,
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
+            UnitKompetensiTable(
+              selectedSkema: selectedSkema,
+              unitKompetensi: unitKompetensi,
+            ),
+            const SizedBox(height: 28),
+            PersyaratanDasarTable(
+              items: persyaratanDasar,
+              uploadedDocs: uploadedDocs,
+              uploadedFileNames: uploadedFileNames,
+              onUploadChanged: onUploadChanged,
+            ),
+            const SizedBox(height: 28),
+            PersyaratanAdministratifTable(
+              items: persyaratanAdministratif,
+              uploadedDocs: uploadedDocs,
+              uploadedFileNames: uploadedFileNames,
+              onUploadChanged: onUploadChanged,
+            ),
+            const SizedBox(height: 20),
+          ],
         ],
       ),
     );

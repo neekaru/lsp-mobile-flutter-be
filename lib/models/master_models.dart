@@ -183,3 +183,135 @@ class MasterPemberiAnggaran {
 
   String get displayName => instansiPemberiAnggaran;
 }
+
+class SkemaUnitItem {
+  final int no;
+  final String kode;
+  final String judul;
+
+  const SkemaUnitItem({
+    required this.no,
+    required this.kode,
+    required this.judul,
+  });
+
+  factory SkemaUnitItem.fromJson(Map<String, dynamic> json) {
+    return SkemaUnitItem(
+      no: json['no'] is int
+          ? json['no'] as int
+          : int.tryParse(json['no']?.toString() ?? '0') ?? 0,
+      kode: json['kode']?.toString() ?? '',
+      judul: json['judul']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toUnitMap() => {
+        'kode': kode,
+        'judul': judul,
+        'kompeten': true,
+      };
+}
+
+class SkemaPersyaratanItem {
+  final int id;
+  final String key;
+  final String jenisBukti;
+  final String label;
+  final String namaPersyaratan;
+  final bool mandatory;
+  final int urutan;
+
+  const SkemaPersyaratanItem({
+    required this.id,
+    required this.key,
+    required this.jenisBukti,
+    required this.label,
+    required this.namaPersyaratan,
+    required this.mandatory,
+    required this.urutan,
+  });
+
+  factory SkemaPersyaratanItem.fromJson(Map<String, dynamic> json) {
+    return SkemaPersyaratanItem(
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      key: json['key']?.toString() ?? '',
+      jenisBukti: json['jenis_bukti']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      namaPersyaratan: json['nama_persyaratan']?.toString() ?? '',
+      mandatory: json['mandatory'] == true || json['mandatory']?.toString() == '1',
+      urutan: json['urutan'] is int
+          ? json['urutan'] as int
+          : int.tryParse(json['urutan']?.toString() ?? '0') ?? 0,
+    );
+  }
+}
+
+class SkemaPersyaratanAdminItem {
+  final int id;
+  final String key;
+  final String label;
+  final bool mandatory;
+  final String source;
+
+  const SkemaPersyaratanAdminItem({
+    required this.id,
+    required this.key,
+    required this.label,
+    required this.mandatory,
+    required this.source,
+  });
+
+  factory SkemaPersyaratanAdminItem.fromJson(Map<String, dynamic> json) {
+    return SkemaPersyaratanAdminItem(
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      key: json['key']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      mandatory: json['mandatory'] == true || json['mandatory']?.toString() == '1',
+      source: json['source']?.toString() ?? 'default',
+    );
+  }
+}
+
+class SkemaUnitPersyaratan {
+  final int idSkema;
+  final String kodeSkema;
+  final String namaSkema;
+  final List<SkemaUnitItem> unitKompetensi;
+  final List<SkemaPersyaratanItem> persyaratanDasar;
+  final List<SkemaPersyaratanAdminItem> persyaratanAdministratif;
+
+  const SkemaUnitPersyaratan({
+    required this.idSkema,
+    required this.kodeSkema,
+    required this.namaSkema,
+    required this.unitKompetensi,
+    required this.persyaratanDasar,
+    required this.persyaratanAdministratif,
+  });
+
+  factory SkemaUnitPersyaratan.fromJson(Map<String, dynamic> json) {
+    final units = (json['unit_kompetensi'] as List<dynamic>? ?? [])
+        .map((e) => SkemaUnitItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final dasar = (json['persyaratan_dasar'] as List<dynamic>? ?? [])
+        .map((e) => SkemaPersyaratanItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final admin = (json['persyaratan_administratif'] as List<dynamic>? ?? [])
+        .map((e) => SkemaPersyaratanAdminItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return SkemaUnitPersyaratan(
+      idSkema: json['id_skema'] is int
+          ? json['id_skema'] as int
+          : int.tryParse(json['id_skema']?.toString() ?? '0') ?? 0,
+      kodeSkema: json['kode_skema']?.toString() ?? '',
+      namaSkema: json['nama_skema']?.toString() ?? '',
+      unitKompetensi: units,
+      persyaratanDasar: dasar,
+      persyaratanAdministratif: admin,
+    );
+  }
+}

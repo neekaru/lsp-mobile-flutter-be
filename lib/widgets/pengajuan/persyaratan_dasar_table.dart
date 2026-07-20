@@ -1,12 +1,17 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 class PersyaratanDasarTable extends StatefulWidget {
+  /// Each item: `key` (portofolio API slug), `label` (display).
+  final List<Map<String, String>> items;
   final Map<String, bool> uploadedDocs;
   final Map<String, String?> uploadedFileNames;
-  final Function(String docName, bool isUploaded, String? fileName) onUploadChanged;
+  final void Function(String key, String label, bool isUploaded, String? fileName, String? filePath)
+      onUploadChanged;
 
   const PersyaratanDasarTable({
     super.key,
+    this.items = const [],
     required this.uploadedDocs,
     required this.uploadedFileNames,
     required this.onUploadChanged,
@@ -17,13 +22,56 @@ class PersyaratanDasarTable extends StatefulWidget {
 }
 
 class _PersyaratanDasarTableState extends State<PersyaratanDasarTable> {
-  final List<String> _items = [
-    'Foto Copy Ijazah SMA/Sederajat;',
-    'Foto copy sertifikat pelatiha berbasis kompetensi di bidang digital marketing',
-    'Surat keterangan pengalaman kerja minimal 1 tahun secara berkelanjutan dibidang marketing',
-  ];
+  Future<void> _pickAndUpload(String key, String label) async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
+        allowMultiple: false,
+        withData: false,
+      );
+      if (result == null || result.files.isEmpty) return;
+      final file = result.files.first;
+      final path = file.path;
+      if (path == null || path.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Path file tidak tersedia. Coba pilih ulang.'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ukuran berkas melebihi batas 2MB'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+      widget.onUploadChanged(key, label, true, file.name, path);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal pilih file: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
 
-  void _showUploadBottomSheet(BuildContext context, String docName) {
+  void _showUploadBottomSheet(BuildContext context, String key, String label) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -43,7 +91,7 @@ class _PersyaratanDasarTableState extends State<PersyaratanDasarTable> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Unggah $docName',
+                        'Unggah $label',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -61,115 +109,45 @@ class _PersyaratanDasarTableState extends State<PersyaratanDasarTable> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Pilih sumber dokumen Anda:',
+                  'Pilih berkas PDF/PNG/JPG (maks. 2MB):',
                   style: TextStyle(
                     fontSize: 13,
                     color: Color(0xFF64748B),
                   ),
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                          _simulateUpload(docName);
-                        },
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt_rounded,
-                                color: Color(0xFF3B82F6),
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Kamera',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF334155),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickAndUpload(key, label);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAF5FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE9D5FF)),
                     ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                          _simulateUpload(docName);
-                        },
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF0FDF4),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.photo_library_rounded,
-                                color: Color(0xFF22C55E),
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Galeri Foto',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF334155),
-                              ),
-                            ),
-                          ],
+                    child: const Column(
+                      children: [
+                        Icon(
+                          Icons.folder_open_rounded,
+                          color: Color(0xFFA855F7),
+                          size: 28,
                         ),
-                      ),
-                    ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                          _simulateUpload(docName);
-                        },
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFAF5FF),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.folder_open_rounded,
-                                color: Color(0xFFA855F7),
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Pilih Dokumen',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF334155),
-                              ),
-                            ),
-                          ],
+                        SizedBox(height: 8),
+                        Text(
+                          'Pilih Dokumen',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF334155),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 8),
               ],
@@ -178,38 +156,6 @@ class _PersyaratanDasarTableState extends State<PersyaratanDasarTable> {
         );
       },
     );
-  }
-
-  void _simulateUpload(String docName) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF378CE7)),
-          ),
-        );
-      },
-    );
-
-    Future.delayed(const Duration(seconds: 1), () {
-      if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
-
-      final cleanName = docName
-          .replaceAll('*', '')
-          .replaceAll(';', '')
-          .replaceAll('(', '_')
-          .replaceAll(')', '_')
-          .replaceAll('/', '_')
-          .replaceAll(' ', '_')
-          .toLowerCase();
-      final extension = docName.contains('Pasfoto') ? 'png' : 'jpg';
-      final fileName = '${cleanName}_uploaded.$extension';
-
-      widget.onUploadChanged(docName, true, fileName);
-    });
   }
 
   @override
@@ -226,85 +172,39 @@ class _PersyaratanDasarTableState extends State<PersyaratanDasarTable> {
           ),
         ),
         const SizedBox(height: 12),
-        Table(
-          columnWidths: const {
-            0: FixedColumnWidth(36), // No
-            1: FlexColumnWidth(), // Persyaratan
-            2: FixedColumnWidth(150), // Upload Dokumen
-          },
-          border: TableBorder.all(
-            color: const Color(0xFFE2E8F0),
-            width: 1.0,
-          ),
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          children: [
-            // Table Header
-            const TableRow(
-              decoration: BoxDecoration(
-                color: Color(0xFFFAFAFA),
-              ),
-              children: [
-                TableCell(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
-                    child: Text(
-                      'No',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF64748B),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                TableCell(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
-                    child: Text(
-                      'Persyaratan',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF64748B),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                TableCell(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
-                    child: Text(
-                      'Upload Dokumen',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF64748B),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
+        if (widget.items.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              'Belum ada persyaratan dasar untuk skema ini.',
+              style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
             ),
-
-            // Table Rows
-            ...List.generate(_items.length, (index) {
-              final docName = _items[index];
-              final isUploaded = widget.uploadedDocs[docName] ?? false;
-              final fileName = widget.uploadedFileNames[docName];
-
-              return TableRow(
+          )
+        else
+          Table(
+            columnWidths: const {
+              0: FixedColumnWidth(36),
+              1: FlexColumnWidth(),
+              2: FixedColumnWidth(150),
+            },
+            border: TableBorder.all(
+              color: const Color(0xFFE2E8F0),
+              width: 1.0,
+            ),
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            children: [
+              const TableRow(
+                decoration: BoxDecoration(color: Color(0xFFFAFAFA)),
                 children: [
                   TableCell(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
+                      padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
                       child: Text(
-                        '${index + 1}.',
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          color: Color(0xFF334155),
+                        'No',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF64748B),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -312,145 +212,133 @@ class _PersyaratanDasarTableState extends State<PersyaratanDasarTable> {
                   ),
                   TableCell(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                      child: RichText(
-                        text: TextSpan(
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            color: Color(0xFF334155),
-                            height: 1.35,
-                            fontFamily: 'Inter',
-                          ),
-                          children: [
-                            TextSpan(
-                              text: docName.endsWith('*')
-                                  ? docName.substring(0, docName.length - 1)
-                                  : docName,
-                            ),
-                            if (docName.endsWith('*'))
-                              const TextSpan(
-                                text: '*',
-                                style: TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                          ],
+                      padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+                      child: Text(
+                        'Persyaratan',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF64748B),
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),
                   TableCell(
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          isUploaded
-                              ? Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE2E8F0),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: () {
-                                        widget.onUploadChanged(docName, false, null);
-                                      },
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: const [
-                                            Text(
-                                              'Hapus',
-                                              style: TextStyle(
-                                                color: Colors.red,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            SizedBox(width: 4),
-                                            Icon(
-                                              Icons.delete_forever_rounded,
-                                              color: Colors.red,
-                                              size: 14,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE2E8F0),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: () => _showUploadBottomSheet(context, docName),
-                                      borderRadius: BorderRadius.circular(6),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: const [
-                                            Text(
-                                              'Upload',
-                                              style: TextStyle(
-                                                color: Color(0xFF3B82F6),
-                                                fontSize: 11.5,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            SizedBox(width: 6),
-                                            Icon(
-                                              Icons.cloud_upload_rounded,
-                                              color: Color(0xFF3B82F6),
-                                              size: 15,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                          const SizedBox(height: 6),
-                          Text(
-                            isUploaded ? (fileName ?? 'file_uploaded.jpg') : 'Tidak ada file',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: isUploaded ? const Color(0xFF22C55E) : const Color(0xFF64748B),
-                              fontWeight: isUploaded ? FontWeight.w600 : FontWeight.normal,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                          ),
-                          if (!isUploaded) ...[
-                            const SizedBox(height: 1),
-                            const Text(
-                              '*format JPG/jpeg/png',
-                              style: TextStyle(
-                                  fontSize: 8.5,
-                                  color: Color(0xFF64748B),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ],
+                      padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+                      child: Text(
+                        'Upload',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF64748B),
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),
                 ],
-              );
-            }),
-          ],
-        ),
+              ),
+              ...List.generate(widget.items.length, (index) {
+                final item = widget.items[index];
+                final key = item['key'] ?? '';
+                final label = item['label'] ?? '';
+                final isUploaded = widget.uploadedDocs[key] ?? false;
+                final fileName = widget.uploadedFileNames[key];
+
+                return TableRow(
+                  children: [
+                    TableCell(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
+                        child: Text(
+                          '${index + 1}.',
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: Color(0xFF334155),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    TableCell(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                        child: Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: Color(0xFF334155),
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ),
+                    TableCell(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                        child: Column(
+                          children: [
+                            InkWell(
+                              onTap: () => _showUploadBottomSheet(context, key, label),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: isUploaded
+                                      ? const Color(0xFFECFDF5)
+                                      : const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      isUploaded
+                                          ? Icons.check_circle_rounded
+                                          : Icons.cloud_upload_rounded,
+                                      size: 14,
+                                      color: isUploaded
+                                          ? const Color(0xFF16A34A)
+                                          : const Color(0xFF3B82F6),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      isUploaded ? 'Ganti' : 'Upload',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: isUploaded
+                                            ? const Color(0xFF16A34A)
+                                            : const Color(0xFF3B82F6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              isUploaded ? (fileName ?? 'file') : 'Tidak ada file',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: isUploaded
+                                    ? const Color(0xFF64748B)
+                                    : const Color(0xFF94A3B8),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ],
+          ),
       ],
     );
   }

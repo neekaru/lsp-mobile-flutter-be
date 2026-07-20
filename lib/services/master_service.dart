@@ -19,6 +19,7 @@ class MasterService {
   static final Map<String, List<MasterPemberiAnggaran>> _pemberiAnggaranCache = {};
   static List<MasterPendidikan>? _pendidikanCache;
   static List<MasterPekerjaan>? _pekerjaanCache;
+  static final Map<int, SkemaUnitPersyaratan> _skemaUnitPersyaratanCache = {};
 
   /// Fetch list of Provinsi
   static Future<List<MasterItem>> getProvinsiList() async {
@@ -214,6 +215,26 @@ class MasterService {
     }
   }
 
+  /// Unit kompetensi + persyaratan for skema (FR.APL.01 bagian 2)
+  static Future<SkemaUnitPersyaratan?> getSkemaUnitPersyaratan(int idSkema) async {
+    if (_skemaUnitPersyaratanCache.containsKey(idSkema)) {
+      return _skemaUnitPersyaratanCache[idSkema];
+    }
+    try {
+      final response = await _dio.get(ApiRoutes.masterSkemaUnitPersyaratan(idSkema));
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        final parsed = SkemaUnitPersyaratan.fromJson(data);
+        _skemaUnitPersyaratanCache[idSkema] = parsed;
+        return parsed;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching skema unit-persyaratan: $e');
+      return null;
+    }
+  }
+
   /// Clear all cached master data (call on logout or pull-to-refresh)
   static void clearCache() {
     _skemaCache = null;
@@ -222,5 +243,6 @@ class MasterService {
     _pemberiAnggaranCache.clear();
     _pendidikanCache = null;
     _pekerjaanCache = null;
+    _skemaUnitPersyaratanCache.clear();
   }
 }

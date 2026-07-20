@@ -191,6 +191,8 @@ class ApiRoutes {
   static const String masterKabupaten = '/api/master/kabupaten';
   static const String masterKecamatan = '/api/master/kecamatan';
   static const String masterSkema = '/api/master/skema';
+  static String masterSkemaUnitPersyaratan(int id) =>
+      '/api/master/skema/$id/unit-persyaratan';
   static const String masterJadwal = '/api/master/jadwal';
   static const String masterSumberAnggaran = '/api/master/sumber-anggaran';
   static const String masterPemberiAnggaran = '/api/master/pemberi-anggaran';

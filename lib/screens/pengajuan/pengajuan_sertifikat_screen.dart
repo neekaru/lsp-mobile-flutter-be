@@ -42,7 +42,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   @override
   void initState() {
     super.initState();
-    _cachedUnitKompetensi = _getUnitKompetensi();
+    _cachedUnitKompetensi = [];
     _loadInitialData();
   }
 
@@ -511,123 +511,106 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   final TextEditingController _telpPerusahaanController = TextEditingController();
   final TextEditingController _emailPerusahaanController = TextEditingController();
 
-  // Step 4: Dokumen Portofolio State (Simulated upload status)
-  final Map<String, bool> _uploadedDocs = {
-    'Ijazah Terakhir / SMA / Sederajat': true,
-    'Sertifikat Pelatihan Berbasis Kompetensi': true,
-    'Surat Keterangan Pengalaman Kerja': false,
-    'Pasfoto': true,
-    'Identitas Pribadi (KTP/Kartu Pelajar)': true,
-    'Link Portofolio / GitHub': true,
-  };
-
-  final Map<String, String?> _uploadedFileNames = {
-    'Ijazah Terakhir / SMA / Sederajat': 'Ijasah_S1_Teknik_Informatika.PDF',
-    'Sertifikat Pelatihan Berbasis Kompetensi': 'Sertifikat_digital_marketing.PDF',
-    'Surat Keterangan Pengalaman Kerja': null,
-    'Pasfoto': 'Pas_foto_Hanafi.JPG',
-    'Identitas Pribadi (KTP/Kartu Pelajar)': 'KTP_Hanafi.PDF',
-    'Link Portofolio / GitHub': 'https://github.com/MuhammadHanafi',
-  };
+  // FR.APL.01 persyaratan upload — keyed by portofolio `key` (slug)
+  final Map<String, bool> _uploadedDocs = {};
+  final Map<String, String?> _uploadedFileNames = {};
+  final Map<String, String?> _uploadedFilePaths = {};
 
   int? _activeUnitDetailIndex;
   final Map<String, bool?> _kukAssessments = {};
   final Map<String, String?> _kukEvidence = {};
 
-  // PERF: Cached unit kompetensi list — recomputed only when skema changes,
-  // not on every build() call. Previously _getUnitKompetensi() ran loop +
-  // string normalization + map mutation on every setState (e.g. radio tap).
+  // Unit kompetensi from GET /api/master/skema/:id/unit-persyaratan
   List<Map<String, dynamic>> _cachedUnitKompetensi = [];
 
-  // Step 5: Asesmen Mandiri State (Dynamic unit kompetensi based on selected schema)
-  final Map<String, List<Map<String, dynamic>>> _schemaUnits = {
-    'Pemasaran Digital': [
-      {'kode': 'M.70MKT00.010.2', 'judul': 'Mengolah Data Riset', 'kompeten': true},
-      {'kode': 'M.70MKT00.013.1', 'judul': 'Melaksanakan Kegiatan Analisis di Media Sosial dan Media Bisnis Digital', 'kompeten': true},
-      {'kode': 'G.46RIT00.055.1', 'judul': 'Melakukan Aktivitas Pemasaran Digital untuk Bisnis Ritel', 'kompeten': true},
-      {'kode': 'M.70MKT00.012.1', 'judul': 'Menggunakan Media Sosial dan Aplikasi Daring(Online Tools)', 'kompeten': true},
-      {'kode': 'M.70MKT00.014.1', 'judul': 'Mempersiapkan Konten Digital', 'kompeten': true},
-      {'kode': 'M.70MKT00.009.1', 'judul': 'Merancang Strategi Pemasaran Digital', 'kompeten': true},
-      {'kode': 'M.70MKT00.015.1', 'judul': 'Mengelola Hubungan Pelanggan secara Digital', 'kompeten': true},
-      {'kode': 'M.70MKT00.016.1', 'judul': 'Mengukur Efektivitas Pemasaran Digital', 'kompeten': true},
-    ],
-    'Programmer (Web & Mobile Developer)': [
-      {'kode': 'J.620100.001.01', 'judul': 'Mengimplementasikan Algoritma Pemrograman', 'kompeten': true},
-      {'kode': 'J.620100.002.01', 'judul': 'Menggunakan Struktur Data', 'kompeten': true},
-      {'kode': 'J.620100.003.01', 'judul': 'Menulis Kode dengan Prinsip Pemrograman Berorientasi Objek', 'kompeten': true},
-      {'kode': 'J.620100.004.01', 'judul': 'Melakukan Debugging dan Pengujian Unit', 'kompeten': true},
-    ],
-    'Cloud Computing Administrator': [
-      {'kode': 'C.620200.001.02', 'judul': 'Merancang Infrastruktur Cloud', 'kompeten': true},
-      {'kode': 'C.620200.002.02', 'judul': 'Mengelola VM Instance dan Container', 'kompeten': true},
-      {'kode': 'C.620200.003.02', 'judul': 'Konfigurasi Virtual Private Network (VPC)', 'kompeten': true},
-    ],
-    'Digital Marketing Specialist': [
-      {'kode': 'M.70MKT00.010.2', 'judul': 'Mengolah Data Riset', 'kompeten': true},
-      {'kode': 'M.70MKT00.013.1', 'judul': 'Melaksanakan Kegiatan Analisis di Media Sosial dan Media Bisnis Digital', 'kompeten': true},
-      {'kode': 'G.46RIT00.055.1', 'judul': 'Melakukan Aktivitas Pemasaran Digital untuk Bisnis Ritel', 'kompeten': true},
-      {'kode': 'M.70MKT00.012.1', 'judul': 'Menggunakan Media Sosial dan Aplikasi Daring(Online Tools)', 'kompeten': true},
-      {'kode': 'M.70MKT00.014.1', 'judul': 'Mempersiapkan Konten Digital', 'kompeten': true},
-      {'kode': 'M.70MKT00.009.1', 'judul': 'Merancang Strategi Pemasaran Digital', 'kompeten': true},
-    ],
-    'Network Security Engineer': [
-      {'kode': 'N.620400.001.03', 'judul': 'Mengonfigurasi Firewalls dan IDS/IPS', 'kompeten': true},
-      {'kode': 'N.620400.002.03', 'judul': 'Melakukan Audit Keamanan Jaringan', 'kompeten': true},
-      {'kode': 'N.620400.003.03', 'judul': 'Merespon Insiden Keamanan Siber', 'kompeten': true},
-    ],
-    'Data Analyst Specialist': [
-      {'kode': 'DA.620500.001.01', 'judul': 'Melakukan Pra-pemrosesan Data (Cleaning)', 'kompeten': true},
-      {'kode': 'DA.620500.002.01', 'judul': 'Memvisualisasikan Data Interaktif', 'kompeten': true},
-      {'kode': 'DA.620500.003.01', 'judul': 'Melakukan Analisis Statistik Deskriptif', 'kompeten': true},
-    ],
-  };
+  // FR.APL.01 bagian 2 — unit + persyaratan from API (by id_skema)
+  List<Map<String, String>> _persyaratanDasar = [];
+  List<Map<String, String>> _persyaratanAdministratif = const [
+    {'key': 'pasfoto', 'label': 'Pasfoto*'},
+    {
+      'key': 'identitas-pribadi-ktp-kartu-pelajar',
+      'label': 'Identitas pribadi (KTP/Kartu Pelajar)*'
+    },
+  ];
+  bool _isLoadingUnitPersyaratan = false;
 
-  List<Map<String, dynamic>> _getUnitKompetensi() {
-    final String targetSkema = _selectedSkema ?? 'Pemasaran Digital';
-    
-    // Check exact key first
-    if (_schemaUnits.containsKey(targetSkema)) {
-      return _schemaUnits[targetSkema]!;
-    }
-    
-    // Check normalized/contained keys
-    final normalizedTarget = targetSkema.toLowerCase();
-    for (var key in _schemaUnits.keys) {
-      final normalizedKey = key.toLowerCase();
-      if (normalizedTarget == normalizedKey ||
-          normalizedTarget.contains(normalizedKey) ||
-          normalizedKey.contains(normalizedTarget) ||
-          (normalizedKey.contains('pemasaran') && normalizedTarget.contains('marketing')) ||
-          (normalizedKey.contains('marketing') && normalizedTarget.contains('pemasaran')) ||
-          (normalizedKey.contains('programmer') && normalizedTarget.contains('developer')) ||
-          (normalizedKey.contains('developer') && normalizedTarget.contains('programmer'))) {
-        return _schemaUnits[key]!;
+  Future<void> _fetchSkemaUnitPersyaratan(int idSkema) async {
+    setState(() {
+      _isLoadingUnitPersyaratan = true;
+      _cachedUnitKompetensi = [];
+      _persyaratanDasar = [];
+      _uploadedDocs.clear();
+      _uploadedFileNames.clear();
+      _uploadedFilePaths.clear();
+    });
+    try {
+      final data = await ApiService.getSkemaUnitPersyaratan(idSkema);
+      if (!mounted) return;
+      if (data != null) {
+        setState(() {
+          _cachedUnitKompetensi =
+              data.unitKompetensi.map((u) => u.toUnitMap()).toList();
+          _persyaratanDasar = data.persyaratanDasar
+              .map((p) => {
+                    'key': p.key,
+                    'label': p.label,
+                  })
+              .toList();
+          if (data.persyaratanAdministratif.isNotEmpty) {
+            _persyaratanAdministratif = data.persyaratanAdministratif
+                .map((p) => {
+                      'key': p.key,
+                      'label': p.label,
+                    })
+                .toList();
+          }
+          if (_selectedSkema == null || _selectedSkema!.isEmpty) {
+            _selectedSkema = data.namaSkema;
+          }
+          _isLoadingUnitPersyaratan = false;
+        });
+      } else {
+        setState(() {
+          _isLoadingUnitPersyaratan = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching skema unit-persyaratan: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingUnitPersyaratan = false;
+        });
       }
     }
-
-    // Generate dynamically based on the selected schema name if not predefined
-    final String name = targetSkema;
-    final List<String> words = name.split(' ');
-    final String prefix = words.isNotEmpty ? words.first.substring(0, words.first.length > 2 ? 3 : words.first.length).toUpperCase() : 'SKM';
-
-    final generated = [
-      {'kode': '$prefix.620100.001.01', 'judul': 'Mempersiapkan Lingkungan Kerja untuk $name', 'kompeten': true},
-      {'kode': '$prefix.620100.002.01', 'judul': 'Mengimplementasikan Fitur Utama pada $name', 'kompeten': true},
-      {'kode': '$prefix.620100.003.01', 'judul': 'Melakukan Pengujian dan Dokumentasi Hasil Kerja $name', 'kompeten': true},
-      {'kode': '$prefix.620100.004.01', 'judul': 'Mengelola Keamanan Sistem Informasi untuk $name', 'kompeten': true},
-      {'kode': '$prefix.620100.005.01', 'judul': 'Melakukan Pemeliharaan Rutin pada Sistem $name', 'kompeten': true},
-      {'kode': '$prefix.620100.006.01', 'judul': 'Menganalisis Kebutuhan Operasional Terkait $name', 'kompeten': true},
-      {'kode': '$prefix.620100.007.01', 'judul': 'Mengevaluasi Kinerja dan Integritas Sistem $name', 'kompeten': true},
-      {'kode': '$prefix.620100.008.01', 'judul': 'Menyusun Dokumen Akhir Penerapan $name', 'kompeten': true},
-    ];
-
-    _schemaUnits[name] = generated;
-    return generated;
   }
 
-  /// PERF: Refresh the cached unit list. Call this only when _selectedSkema changes.
-  void _refreshUnitKompetensiCache() {
-    _cachedUnitKompetensi = _getUnitKompetensi();
+  void _clearUnitPersyaratan() {
+    _cachedUnitKompetensi = [];
+    _persyaratanDasar = [];
+    _persyaratanAdministratif = const [
+      {'key': 'pasfoto', 'label': 'Pasfoto*'},
+      {
+        'key': 'identitas-pribadi-ktp-kartu-pelajar',
+        'label': 'Identitas pribadi (KTP/Kartu Pelajar)*'
+      },
+    ];
+    _uploadedDocs.clear();
+    _uploadedFileNames.clear();
+    _uploadedFilePaths.clear();
+  }
+
+  void _onPersyaratanUpload(
+    String key,
+    String label,
+    bool isUploaded,
+    String? fileName,
+    String? filePath,
+  ) {
+    setState(() {
+      _uploadedDocs[key] = isUploaded;
+      _uploadedFileNames[key] = fileName;
+      _uploadedFilePaths[key] = filePath;
+    });
   }
 
   @override
@@ -718,12 +701,20 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           throw Exception('ID Sertifikasi tidak valid.');
         }
 
-        // 2. Upload portfolios
-        for (var entry in _uploadedFileNames.entries) {
+        // 2. Upload persyaratan (key = slug from API, path = local file)
+        for (final entry in _uploadedFilePaths.entries) {
           final docKey = entry.key;
           final filePath = entry.value;
-          if (filePath != null && !filePath.startsWith('http') && (filePath.contains('/') || filePath.contains('\\'))) {
-            await AsesiService.uploadPortofolio(sertifikasiId as int, docKey, filePath);
+          if (filePath != null &&
+              filePath.isNotEmpty &&
+              !filePath.startsWith('http')) {
+            await AsesiService.uploadPortofolio(
+              sertifikasiId is int
+                  ? sertifikasiId
+                  : int.parse(sertifikasiId.toString()),
+              docKey,
+              filePath,
+            );
           }
         }
 
@@ -968,13 +959,15 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                 } catch (_) {
                   _selectedSkema = null;
                 }
+                _clearUnitPersyaratan();
               } else {
                 _selectedSkema = null;
+                _clearUnitPersyaratan();
               }
-              _refreshUnitKompetensiCache();
             });
             if (val != null) {
               _fetchMasterJadwal(val);
+              _fetchSkemaUnitPersyaratan(val);
             }
           },
           onJadwalChanged: (val) {
@@ -1125,16 +1118,14 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         );
       case 3:
         return DokumenPersyaratanForm(
-          selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+          selectedSkema: _selectedSkema ?? 'Pilih skema dulu',
           unitKompetensi: _cachedUnitKompetensi,
+          persyaratanDasar: _persyaratanDasar,
+          persyaratanAdministratif: _persyaratanAdministratif,
+          isLoading: _isLoadingUnitPersyaratan,
           uploadedDocs: _uploadedDocs,
           uploadedFileNames: _uploadedFileNames,
-          onUploadChanged: (docName, isUploaded, fileName) {
-            setState(() {
-              _uploadedDocs[docName] = isUploaded;
-              _uploadedFileNames[docName] = fileName;
-            });
-          },
+          onUploadChanged: _onPersyaratanUpload,
         );
       case 4:
         return DokumenPortofolioForm(
