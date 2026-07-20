@@ -6,6 +6,9 @@ import '../../services/token_storage.dart';
 import '../../services/notification_service.dart';
 import '../auth/login_screen.dart';
 import 'keamanan_screen.dart';
+import 'tentang_lsp_screen.dart';
+import 'struktur_organisasi_screen.dart';
+import 'tugas_tanggung_jawab_screen.dart';
 
 class ProfileAdminScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -282,27 +285,136 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
     );
   }
 
-  Widget _buildMenuItem({
+  Widget _buildCertificateIllustration() {
+    return Container(
+      width: 76,
+      height: 56,
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E88E5), // Dark blue certificate background
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // The paper/inner part
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE3F2FD), // Light blue paper color
+              borderRadius: BorderRadius.circular(4),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Placeholder line 1
+                Container(
+                  width: 32,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF90CAF9),
+                    borderRadius: BorderRadius.circular(1.5),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // Placeholder line 2
+                Container(
+                  width: 20,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF90CAF9),
+                    borderRadius: BorderRadius.circular(1.5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Red Ribbon 1
+          Positioned(
+            bottom: -4,
+            right: 18,
+            child: Transform.rotate(
+              angle: -0.15,
+              child: Container(
+                width: 5,
+                height: 12,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE53935),
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(2)),
+                ),
+              ),
+            ),
+          ),
+          // Red Ribbon 2
+          Positioned(
+            bottom: -4,
+            right: 12,
+            child: Transform.rotate(
+              angle: 0.15,
+              child: Container(
+                width: 5,
+                height: 12,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE53935),
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(2)),
+                ),
+              ),
+            ),
+          ),
+          // Gold Seal
+          Positioned(
+            bottom: 0,
+            right: 11,
+            child: Container(
+              width: 13,
+              height: 13,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFFC107), // Gold/Amber
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 1,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrgCard({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        border: Border.all(
+          color: const Color(0xFFE2E8F0),
+          width: 1.0,
+        ),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Color(0x05000000),
+            blurRadius: 8,
+            offset: Offset(0, 4),
           ),
         ],
-        border: Border.all(
-          color: const Color(0xFFF1F5F9),
-          width: 1,
-        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -310,203 +422,36 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-            child: Row(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon Box
                 Container(
-                  width: 36,
-                  height: 36,
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2FE),
+                    color: const Color(0xFFE5F1FC),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     icon,
-                    color: const Color(0xFF0284C7),
-                    size: 20,
+                    color: const Color(0xFF3B82F6),
+                    size: 24,
                   ),
                 ),
-                const SizedBox(width: 16),
-                // Title
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
-                    ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                    height: 1.3,
                   ),
-                ),
-                // Chevron Right
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFF0284C7),
-                  size: 24,
                 ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showLspDetail() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE0F2FE),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.card_membership_rounded,
-                            color: Color(0xFF0284C7),
-                            size: 32,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'LSP Teknologi Digital',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                              Text(
-                                'Lisensi BNSP: No. KEP.0544/BNSP/V/2020',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 32),
-                    const Text(
-                      'Tentang Kami',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Lembaga Sertifikasi Profesi (LSP) Teknologi Digital didirikan oleh Asosiasi, Pakar, Akademisi, dan Praktisi di Bidang Teknologi Informasi untuk merespon kebutuhan dunia kerja akan sertifikasi profesi di bidang digital.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF334155),
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'LSP Teknologi Digital berkomitmen untuk meningkatkan kompetensi sumber daya manusia di Indonesia melalui standarisasi kompetensi berbasis standar kompetensi kerja nasional Indonesia (SKKNI). Dengan dukungan para asesor berpengalaman, LSP Teknologi Digital memastikan pengakuan keahlian IT profesional berstandar BNSP.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF334155),
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Keunggulan Sertifikasi LSP TD',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildFeatureItem(Icons.check_circle_outline, 'Kurikulum & Materi Berstandar BNSP'),
-                    _buildFeatureItem(Icons.check_circle_outline, 'Asesor Kompetensi Profesional & Tersertifikasi'),
-                    _buildFeatureItem(Icons.check_circle_outline, 'Jaringan Kemitraan Industri yang Luas'),
-                    _buildFeatureItem(Icons.check_circle_outline, 'Proses Uji Kompetensi yang Transparan dan Efisien'),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0284C7),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Tutup',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureItem(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFF0284C7), size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF334155)),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -842,50 +787,40 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _buildMenuItem(
-                    icon: Icons.account_tree_outlined,
-                    title: 'Struktur Organisasi',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AdminOrganisasiDetailScreen(
-                          type: 'struktur',
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildOrgCard(
+                          icon: Icons.hub_outlined,
                           title: 'Struktur Organisasi',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const StrukturOrganisasiScreen(),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.assignment_outlined,
-                    title: 'Tugas & Tanggung Jawab',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AdminOrganisasiDetailScreen(
-                          type: 'tugas',
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildOrgCard(
+                          icon: Icons.assignment_outlined,
                           title: 'Tugas & Tanggung Jawab',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const TugasTanggungJawabScreen(),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  _buildMenuItem(
-                    icon: Icons.people_outline_rounded,
-                    title: 'Unsur Pengurus',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AdminOrganisasiDetailScreen(
-                          type: 'pengurus',
-                          title: 'Unsur Pengurus',
-                        ),
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // Tentang LSP Section
             Padding(
@@ -907,18 +842,18 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 1.0,
+                      ),
+                      boxShadow: const [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
+                          color: Color(0x05000000),
+                          blurRadius: 8,
+                          offset: Offset(0, 4),
                         ),
                       ],
-                      border: Border.all(
-                        color: const Color(0xFFF1F5F9),
-                        width: 1,
-                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -926,18 +861,7 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE0F2FE),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.card_membership_rounded,
-                                color: Color(0xFF0284C7),
-                                size: 28,
-                              ),
-                            ),
+                            _buildCertificateIllustration(),
                             const SizedBox(width: 16),
                             const Expanded(
                               child: Column(
@@ -969,15 +893,26 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
                         SizedBox(
                           width: double.infinity,
                           height: 38,
-                          child: ElevatedButton(
-                            onPressed: _showLspDetail,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFE0F2FE),
-                              foregroundColor: const Color(0xFF0284C7),
-                              elevation: 0,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const TentangLspScreen(),
+                                ),
+                              );
+                            },
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: const Color(0xFFE5F1FC),
+                              foregroundColor: const Color(0xFF3B82F6),
+                              side: const BorderSide(
+                                color: Color(0xFF3B82F6),
+                                width: 1.0,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
+                              elevation: 0,
                             ),
                             child: const Text(
                               'Lihat Detail',

@@ -16,7 +16,6 @@ import '../auth/login_screen.dart';
 import '../../widgets/public_sertifikat_card.dart';
 import '../../widgets/tentang_kami_section.dart';
 import '../../widgets/admin_bantuan_pengumuman.dart';
-import 'ringkasan_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -159,6 +158,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final bool isAsesi = user?.role == 'asesi';
     final bool isAsesor = user?.role == 'asesor';
     final bool isGuest = user == null;
+    final bool isAdmin = user != null && !isAsesi && !isAsesor;
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,
@@ -531,7 +531,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
 
             // Ringkasan Section (like Asesor) - Only for Admin
-            if (user?.role == 'admin')
+            if (isAdmin)
               _buildAdminRingkasanSection(),
 
             // 2. Tren Asesmen Bulanan Section — tampil untuk role login (bukan guest/publik, bukan asesor)
@@ -557,7 +557,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0),
                 child: AdminBantuanPengumuman(
-                  showBantuan: user.role != 'admin',
+                  showBantuan: !isAdmin,
                 ),
               )
             else
@@ -577,42 +577,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Ringkasan',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F172A),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AdminRingkasanScreen(
-                        summaryData: _summaryData,
-                        onNavigateToJadwal: widget.onNavigateToJadwal,
-                      ),
-                    ),
-                  );
-                },
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: Text(
-                    'Lihat semua',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF3B82F6),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          const Text(
+            'Ringkasan',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
           ),
           const SizedBox(height: 12),
           _buildRingkasanItem(
@@ -631,13 +602,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: 'Laporan',
             subtitle: '$laporanCount Laporan menunggu...',
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AdminRingkasanScreen(
-                    summaryData: _summaryData,
-                    onNavigateToJadwal: widget.onNavigateToJadwal,
-                  ),
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Halaman Laporan Admin sedang dikembangkan'),
+                  duration: Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
                 ),
               );
             },
