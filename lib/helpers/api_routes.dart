@@ -97,8 +97,9 @@ class ApiRoutes {
 
   static const String authLogin = '/api/auth/login';
   static const String authCurrent = '/api/auth/current';
-  static const String authLogout = '/api/auth/logout';
   static const String authRefresh = '/api/auth/refresh';
+  /// Public: create asesi (NIM/NIK + default password 123456) if missing, return tokens
+  static const String authEnsureAsesi = '/api/auth/ensure-asesi';
 
   // ============================================================================
   // Notifications Routes

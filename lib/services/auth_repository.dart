@@ -50,6 +50,56 @@ class AuthRepository {
     return result;
   }
 
+  /// Auto-create asesi (default password 123456) if missing, then save session.
+  /// [account] = NIM or NIK (max 18 chars).
+  Future<LoginResult> ensureAsesi({
+    required String account,
+    String password = '123456',
+    String? namaLengkap,
+    String? email,
+    String? hp,
+    String? platform,
+    String? deviceToken,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiRoutes.authEnsureAsesi,
+      data: {
+        'account': account.trim(),
+        'password': password,
+        if (namaLengkap != null && namaLengkap.isNotEmpty)
+          'nama_lengkap': namaLengkap,
+        if (email != null && email.isNotEmpty) 'email': email,
+        if (hp != null && hp.isNotEmpty) 'hp': hp,
+        if (platform != null) 'platform': platform,
+        if (deviceToken != null) 'device_token': deviceToken,
+      },
+    );
+
+    final body = response.data;
+    final data = body?['data'] as Map<String, dynamic>?;
+    if (data == null) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        message: body?['message']?.toString() ?? 'ensure-asesi gagal',
+      );
+    }
+    final result = LoginResult.fromJson(data);
+
+    await _tokenStorage.saveTokens(
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    );
+    await _tokenStorage.saveUserProfile(result.user);
+    currentUserInstance = result.user;
+
+    if (kDebugMode) {
+      debugPrint(
+        '✅ ensure-asesi account=$account created=${body?['created']} role=${result.user.role}',
+      );
+    }
+    return result;
+  }
+
   Future<AuthUser> currentUser() async {
     final token = await _tokenStorage.getAccessToken();
     if (token == 'fake-asesi-token' || token == 'fake-user-token' || token == 'fake-asesor-token') {

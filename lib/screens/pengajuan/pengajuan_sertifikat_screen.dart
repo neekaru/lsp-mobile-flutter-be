@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 
 import '../../services/api_service.dart';
+import '../../services/auth_repository.dart';
+import '../../services/token_storage.dart';
 import '../../widgets/pengajuan/step_indicator.dart';
 import '../../widgets/pengajuan/data_pengajuan_form.dart';
 import '../../widgets/pengajuan/data_pribadi_form.dart';
@@ -288,6 +290,54 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     final emailCompany = _emailPerusahaanController.text.trim();
     if (emailCompany.isNotEmpty) payload['email_company'] = emailCompany;
     return payload;
+  }
+
+  /// Before daftar: ensure JWT asesi exists.
+  /// If guest / fake token / missing auth → create account from NIK (or email) + password 123456 and login.
+  Future<void> _ensureAsesiSession(Map<String, dynamic> dataPribadi) async {
+    final token = await TokenStorage.instance.getAccessToken();
+    final isFake = token == null ||
+        token.isEmpty ||
+        token == 'fake-asesi-token' ||
+        token == 'fake-user-token' ||
+        token == 'fake-asesor-token';
+
+    if (!isFake) {
+      // Already has real JWT — still ok to daftar
+      return;
+    }
+
+    final nik = (dataPribadi['nik']?.toString() ?? '').trim();
+    final email = (dataPribadi['email']?.toString() ?? '').trim();
+    final nama = (dataPribadi['nama_lengkap']?.toString() ?? '').trim();
+    final telp = (dataPribadi['telp']?.toString() ?? '').trim();
+
+    // akun max 18 (t_users.akun) — prefer NIK, fallback email local-part
+    var account = nik;
+    if (account.isEmpty && email.contains('@')) {
+      account = email.split('@').first;
+    }
+    if (account.isEmpty) {
+      throw Exception(
+        'NIK wajib diisi untuk membuat akun login (password default 123456).',
+      );
+    }
+    if (account.length > 18) {
+      account = account.substring(0, 18);
+    }
+
+    final auth = AuthRepository(
+      dio: ApiClient.dio,
+      tokenStorage: TokenStorage.instance,
+    );
+    await auth.ensureAsesi(
+      account: account,
+      password: '123456',
+      namaLengkap: nama,
+      email: email.isNotEmpty ? email : null,
+      hp: telp.isNotEmpty ? telp : null,
+      platform: 'mobile',
+    );
   }
 
   Future<void> _fetchProvinsi() async {
@@ -1002,12 +1052,16 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       try {
         final skemaId = _selectedSkemaId ?? 1;
         final jadwalId = _selectedJadwalId;
+        final dataPribadi = _buildDataPribadiPayload();
+
+        // 0. Pastikan ada sesi asesi: buat akun dari NIK/NIM + password 123456 jika belum login
+        await _ensureAsesiSession(dataPribadi);
 
         // 1. Register certification (FR.APL.01 data pribadi + anggaran)
         final regRes = await AsesiService.daftarSertifikasi(
           skemaId: skemaId,
           jadwalId: jadwalId,
-          dataPribadi: _buildDataPribadiPayload(),
+          dataPribadi: dataPribadi,
         );
 
         if (regRes == null) {
