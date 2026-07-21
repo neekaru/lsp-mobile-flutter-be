@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/api_service.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class JadwalEditScreen extends StatefulWidget {
   final JadwalItem jadwal;
@@ -584,45 +585,8 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
       backgroundColor: const Color(0xFFF5F6F8),
       body: Column(
         children: [
-          // Blue Curved Header
-          Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF5B9FD8), Color(0xFF4FA8E8)],
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
-              ),
-            ),
-            padding: EdgeInsets.fromLTRB(16, statusBarHeight + 16, 16, 24),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Detail Jadwal',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          SizedBox(height: statusBarHeight + 8),
+          const CustomAppBar(title: 'Edit Jadwal'),
 
           // Scrollable Body
           Expanded(
