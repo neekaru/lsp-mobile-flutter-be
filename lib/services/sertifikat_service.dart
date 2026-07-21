@@ -232,10 +232,10 @@ class SertifikatService {
             )
             .toList();
       }
-      return _getFallbackAsesorList();
+      return [];
     } catch (e) {
-      debugPrint('🔴 Error fetching assessors by skema (using fallback): $e');
-      return _getFallbackAsesorList();
+      debugPrint('🔴 Error fetching assessors by skema: $e');
+      return [];
     }
   }
 
