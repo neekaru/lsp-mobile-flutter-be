@@ -70,8 +70,8 @@ class AuthRepository {
           'nama_lengkap': namaLengkap,
         if (email != null && email.isNotEmpty) 'email': email,
         if (hp != null && hp.isNotEmpty) 'hp': hp,
-        if (platform != null) 'platform': platform,
-        if (deviceToken != null) 'device_token': deviceToken,
+        'platform': ?platform,
+        'device_token': ?deviceToken,
       },
     );
 
