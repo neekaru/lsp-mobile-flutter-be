@@ -137,16 +137,23 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
 
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: isAsesor ? Colors.white : const Color(0xFFE5E5E5), // White background for assessor
+      decoration: const BoxDecoration(
+        color: Colors.white,
         border: Border(
           top: BorderSide(
-            color: isAsesor ? const Color(0xFFE2E8F0) : const Color(0x339E9E9E),
+            color: Color(0xFFE2E8F0),
             width: 1.0,
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 8,
+            offset: Offset(0, -2),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       child: SafeArea(
         top: false,
         child: Row(
@@ -164,36 +171,63 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
     bool isAsesor = false,
   }) {
     final bool isActive = widget.selectedIndex == index;
-    final Color activeColor = isAsesor ? const Color(0xFF3B82F6) : Colors.black;
-    final Color inactiveColor = isAsesor ? const Color(0xFF94A3B8) : const Color(0xFF4A4A4A);
+    // Brand blue for active selection (all roles)
+    const Color activeColor = Color(0xFF2563EB);
+    final Color inactiveColor =
+        isAsesor ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
     final Color itemColor = isActive ? activeColor : inactiveColor;
 
-    return InkWell(
-      onTap: () => widget.onTap(index),
-      splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
-      child: SizedBox(
-        width: 70,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: itemColor,
-              size: isActive ? 28 : 26,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                color: itemColor,
+    return Expanded(
+      child: InkWell(
+        onTap: () => widget.onTap(index),
+        borderRadius: BorderRadius.circular(12),
+        splashColor: activeColor.withValues(alpha: 0.12),
+        highlightColor: activeColor.withValues(alpha: 0.06),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          decoration: BoxDecoration(
+            color: isActive
+                ? activeColor.withValues(alpha: 0.12)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Active top indicator bar
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 3,
+                width: isActive ? 20 : 0,
+                margin: const EdgeInsets.only(bottom: 4),
+                decoration: BoxDecoration(
+                  color: isActive ? activeColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              Icon(
+                icon,
+                color: itemColor,
+                size: isActive ? 26 : 24,
+              ),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: itemColor,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
