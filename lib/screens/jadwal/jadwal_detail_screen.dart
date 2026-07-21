@@ -33,67 +33,6 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     _fetchDetailData();
   }
 
-  Future<void> _handleAccJadwal() async {
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('ACC Jadwal'),
-        content: Text(
-          'Apakah Anda yakin ingin menyetujui (ACC) jadwal "${widget.jadwal.skema}" dan menjalankannya?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4CAF50),
-            ),
-            child: const Text(
-              'ACC & Running',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    final result = await ApiService.updateJadwalStatus(
-      jadwalId: widget.jadwal.id,
-      rule: 'draft_acc_to_running',
-    );
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-      if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Jadwal berhasil disetujui (ACC) dan berjalan.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context, true); // Pop back to JadwalScreen and refresh
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Gagal menyetujui jadwal.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
   Future<void> _fetchDetailData() async {
     if (!mounted) return;
     setState(() {
@@ -1525,46 +1464,6 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: (!isAsesi && !isAsesor && widget.jadwal.needsAcc)
-          ? Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4CAF50),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onPressed: _handleAccJadwal,
-                    icon: const Icon(LucideIcons.circle_check, size: 18),
-                    label: const Text(
-                      'ACC & Running Jadwal',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          : null,
     );
   }
 }
