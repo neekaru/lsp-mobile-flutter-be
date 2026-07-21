@@ -2,8 +2,10 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 
+import '../../main.dart' show mainNavigatorKey, MainNavigatorState;
 import '../../services/api_service.dart';
 import '../../services/auth_repository.dart';
+import '../../services/notification_service.dart';
 import '../../services/token_storage.dart';
 import '../../widgets/pengajuan/step_indicator.dart';
 import '../../widgets/pengajuan/data_pengajuan_form.dart';
@@ -13,6 +15,7 @@ import '../../widgets/pengajuan/dokumen_portofolio_form.dart';
 import '../../widgets/pengajuan/asesmen_mandiri_form.dart';
 import '../../widgets/pengajuan/unit_kompetensi_detail.dart';
 import '../../widgets/pengajuan/dokumen_persyaratan_form.dart';
+import '../auth/splash_screen.dart';
 import 'bukti_portofolio_screen.dart';
 import 'asesmen_mandiri_uji_screen.dart';
 import '../../models/master_models.dart';
@@ -292,19 +295,19 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     return payload;
   }
 
-  /// Publik (belum login): POST ensure-asesi → JWT. Sudah login asesi: skip.
-  Future<void> _ensureAsesiSession(Map<String, dynamic> dataPribadi) async {
+  /// Publik (belum login): POST ensure-asesi → JWT.
+  /// Returns true if session was just created/logged-in from public (need splash restart).
+  Future<bool> _ensureAsesiSession(Map<String, dynamic> dataPribadi) async {
     final token = await TokenStorage.instance.getAccessToken();
     final role = AuthRepository.currentUserInstance?.role;
     final fake = token == 'fake-asesi-token' ||
         token == 'fake-user-token' ||
         token == 'fake-asesor-token';
-    final hasRealJwt =
-        token != null && token.isNotEmpty && !fake;
+    final hasRealJwt = token != null && token.isNotEmpty && !fake;
 
     // Sudah login asesi → langsung daftar
     if (hasRealJwt && (role == null || role == 'asesi')) {
-      return;
+      return false;
     }
 
     final nik = (dataPribadi['nik']?.toString() ?? '').trim();
@@ -334,6 +337,75 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       email: email.isNotEmpty ? email : null,
       hp: telp.isNotEmpty ? telp : null,
       platform: 'mobile',
+    );
+    // Register FCM under new asesi session
+    try {
+      NotificationService.instance.registerCurrentToken();
+    } catch (_) {}
+    return true;
+  }
+
+  /// Freeze UI then hard-restart via Splash so MainNavigator rebuilds as asesi.
+  Future<void> _freezeAndRestartSplash({String message = 'Menyiapkan sesi Asesi...'}) async {
+    if (!mounted) return;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.white,
+      useRootNavigator: true,
+      builder: (ctx) {
+        return PopScope(
+          canPop: false,
+          child: Material(
+            color: Colors.white,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: CircularProgressIndicator(strokeWidth: 3),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    message,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Mohon tunggu sebentar…',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    // Brief freeze so user sees clean transition (avoids weird mixed guest/asesi UI)
+    await Future.delayed(const Duration(milliseconds: 700));
+    if (!mounted) return;
+
+    mainNavigatorKey = GlobalKey<MainNavigatorState>();
+    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const SplashScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 450),
+      ),
+      (_) => false,
     );
   }
 
@@ -1052,7 +1124,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         final dataPribadi = _buildDataPribadiPayload();
 
         // 0. Publik: ensure-asesi → token. Sudah login asesi: skip.
-        await _ensureAsesiSession(dataPribadi);
+        final fromPublicLogin = await _ensureAsesiSession(dataPribadi);
 
         // 1. Daftar (auth) — BE tolak jika sudah lulus skema & sertifikat masih berlaku
         final regRes = await AsesiService.daftarSertifikasi(
@@ -1132,9 +1204,17 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           throw Exception('Gagal submit evaluasi pra-asesmen.');
         }
 
-        if (mounted) {
-          _showSuccessDialog();
+        if (!mounted) return;
+
+        // Publik → asesi: freeze + restart Splash (clean shell, no weird guest UI)
+        if (fromPublicLogin) {
+          await _freezeAndRestartSplash(
+            message: 'Pendaftaran berhasil.\nMenyiapkan aplikasi sebagai Asesi…',
+          );
+          return;
         }
+
+        _showSuccessDialog();
       } catch (e) {
         debugPrint('Error during submission flow: $e');
         if (mounted) {
@@ -1246,7 +1326,24 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Dismiss Dialog
-                      Navigator.of(context).pop(); // Return from Screen
+                      // Rebuild shell as current role (asesi) — avoids stale guest tabs
+                      mainNavigatorKey = GlobalKey<MainNavigatorState>();
+                      Navigator.of(context, rootNavigator: true)
+                          .pushAndRemoveUntil(
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) =>
+                              const SplashScreen(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            );
+                          },
+                          transitionDuration: const Duration(milliseconds: 450),
+                        ),
+                        (_) => false,
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF378CE7),
