@@ -5,6 +5,7 @@ import '../../services/auth_repository.dart';
 import '../../services/api_service.dart';
 import '../../services/token_storage.dart';
 import '../../services/notification_service.dart';
+import '../../models/dashboard_models.dart';
 import '../auth/login_screen.dart';
 import 'data_diri_screen.dart';
 import 'edit_instansi_screen.dart';
@@ -25,6 +26,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoggingOut = false;
   bool _isInstansiExpanded = false;
+  bool _isLoadingRingkasan = true;
+  AsesiDashboardSummary _ringkasan = AsesiDashboardSummary.empty();
   String _instansiType = 'Mahasiswa';
   Map<String, String> _instansiData = {
     'Nama Perguruan Tinggi': 'Politeknik Sampit',
@@ -38,6 +41,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _fetchInstansi();
+    _fetchRingkasan();
+  }
+
+  Future<void> _fetchRingkasan() async {
+    setState(() => _isLoadingRingkasan = true);
+    try {
+      final data = await ApiService.getAsesiSummary();
+      if (!mounted) return;
+      setState(() {
+        _ringkasan = data;
+        _isLoadingRingkasan = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching asesi ringkasan: $e');
+      if (mounted) setState(() => _isLoadingRingkasan = false);
+    }
   }
 
   Future<void> _fetchInstansi() async {
@@ -537,12 +556,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
-                  const RingkasanWidget(
-                    sertifikatAktif: 12,
-                    skemaKompetensi: 8,
-                    sertifikatKadaluarsa: 2,
-                    totalUjiKompetensi: 12,
-                  ),
+                  if (_isLoadingRingkasan)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else
+                    RingkasanWidget(
+                      sertifikatAktif: _ringkasan.sertifikatAktif,
+                      skemaKompetensi: _ringkasan.skemaKompetensi,
+                      sertifikatKadaluarsa: _ringkasan.sertifikatKadaluarsa,
+                      totalUjiKompetensi: _ringkasan.totalUjiKompetensi,
+                    ),
                   const SizedBox(height: 24),
                   MenuProfilWidget(
                     onDataDiriTap: () {

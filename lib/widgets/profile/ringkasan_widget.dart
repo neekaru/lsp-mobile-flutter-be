@@ -8,10 +8,10 @@ class RingkasanWidget extends StatelessWidget {
 
   const RingkasanWidget({
     super.key,
-    this.sertifikatAktif = 12,
-    this.skemaKompetensi = 8,
-    this.sertifikatKadaluarsa = 2,
-    this.totalUjiKompetensi = 12,
+    this.sertifikatAktif = 0,
+    this.skemaKompetensi = 0,
+    this.sertifikatKadaluarsa = 0,
+    this.totalUjiKompetensi = 0,
   });
 
   @override
