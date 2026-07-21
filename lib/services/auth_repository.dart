@@ -102,24 +102,11 @@ class AuthRepository {
 
   Future<AuthUser> currentUser() async {
     final token = await _tokenStorage.getAccessToken();
-    if (token == 'fake-asesi-token' || token == 'fake-user-token' || token == 'fake-asesor-token') {
-      final cached = await _tokenStorage.getUserProfile();
-      if (cached != null) {
-        currentUserInstance = cached;
-        return cached;
-      }
-      final isAsesi = token == 'fake-asesi-token';
-      final isAsesor = token == 'fake-asesor-token';
-      final fallbackUser = AuthUser(
-        id: isAsesi ? 'fake-asesi-id' : (isAsesor ? 'fake-asesor-id' : 'fake-user-id'),
-        account: isAsesi ? 'asesi' : (isAsesor ? 'asesor' : 'user'),
-        name: isAsesi ? 'Asesi Demo' : (isAsesor ? 'Muhammad Hanafi' : 'User Demo'),
-        role: isAsesi ? 'asesi' : (isAsesor ? 'asesor' : 'admin'),
-        roles: [isAsesi ? 'asesi' : (isAsesor ? 'asesor' : 'admin')],
-      );
-      await _tokenStorage.saveUserProfile(fallbackUser);
-      currentUserInstance = fallbackUser;
-      return fallbackUser;
+    // Discard legacy demo tokens (pre-API mock login)
+    if (token != null && token.startsWith('fake-')) {
+      await _tokenStorage.clear();
+      currentUserInstance = null;
+      throw Exception('Sesi demo tidak valid. Silakan login ulang.');
     }
 
     final response = await _dio.get<Map<String, dynamic>>(ApiRoutes.authCurrent);

@@ -355,18 +355,27 @@ class AsesiItem {
   final int id;
   final String namaLengkap;
   final String? hasilRekomendasi; // 'K', 'BK', or null
+  /// Optional city/kabupaten when BE provides it (not in list endpoint yet).
+  final String? kota;
 
   const AsesiItem({
     required this.id,
     required this.namaLengkap,
     this.hasilRekomendasi,
+    this.kota,
   });
 
   factory AsesiItem.fromJson(Map<String, dynamic> json) {
+    final rawKota = json['kota'] ??
+        json['kabupaten_kota'] ??
+        json['tempat_lahir'] ??
+        json['alamat'];
+    final kotaStr = rawKota?.toString().trim();
     return AsesiItem(
       id: json['id'] ?? 0,
       namaLengkap: json['nama_lengkap'] ?? '',
       hasilRekomendasi: json['hasil_rekomendasi'],
+      kota: (kotaStr != null && kotaStr.isNotEmpty) ? kotaStr : null,
     );
   }
 }

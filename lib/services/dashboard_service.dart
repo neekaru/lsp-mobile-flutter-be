@@ -86,10 +86,10 @@ class DashboardService {
         return AsesorDashboardData.fromJson(data);
       }
 
-      return AsesorDashboardData.mock();
+      return AsesorDashboardData.empty();
     } catch (e) {
       debugPrint('Error fetching asesor dashboard: $e');
-      return AsesorDashboardData.mock();
+      return AsesorDashboardData.empty();
     }
   }
 
@@ -130,12 +130,11 @@ class DashboardService {
           );
         }
 
-        if (list.isEmpty) return _getFallbackMonthlyAssessments();
         return list;
       }
-      return _getFallbackMonthlyAssessments();
+      return [];
     } catch (e) {
-      return _getFallbackMonthlyAssessments();
+      return [];
     }
   }
 
@@ -177,13 +176,12 @@ class DashboardService {
           );
         }
 
-        if (list.isEmpty) return _getFallbackMonthlyAssessments();
         return list;
       }
-      return _getFallbackMonthlyAssessments();
+      return [];
     } catch (e) {
       debugPrint('Error fetching assessment graph: $e');
-      return _getFallbackMonthlyAssessments();
+      return [];
     }
   }
 
@@ -240,9 +238,9 @@ class DashboardService {
         }
       }
 
-      return _getFallbackSectorDistribution();
+      return [];
     } catch (e) {
-      return _getFallbackSectorDistribution();
+      return [];
     }
   }
 
@@ -296,26 +294,4 @@ class DashboardService {
     }
   }
 
-  // ============================================================================
-  // Private Fallback Data
-  // ============================================================================
-
-  static List<MonthlyAssessment> _getFallbackMonthlyAssessments() {
-    return const [
-      MonthlyAssessment(label: 'Mei 2026', total: 1050, heightPercentage: 0.42),
-      MonthlyAssessment(label: 'Jun 2026', total: 1550, heightPercentage: 0.62),
-      MonthlyAssessment(label: 'Jul 2026', total: 2050, heightPercentage: 0.82),
-      MonthlyAssessment(label: 'Agu 2026', total: 2545, heightPercentage: 1.0),
-    ];
-  }
-
-  static List<SectorDistribution> _getFallbackSectorDistribution() {
-    return const [
-      SectorDistribution(sectorName: 'Teknologi Informasi & Komunikasi', count: 9060, percentage: 0.35),
-      SectorDistribution(sectorName: 'Manufaktur & Teknik Industri', count: 5695, percentage: 0.22),
-      SectorDistribution(sectorName: 'Pariwisata & Perhotelan', count: 4660, percentage: 0.18),
-      SectorDistribution(sectorName: 'Bisnis & Keuangan Administrasi', count: 3880, percentage: 0.15),
-      SectorDistribution(sectorName: 'Kesehatan & Farmasi', count: 2595, percentage: 0.10),
-    ];
-  }
 }

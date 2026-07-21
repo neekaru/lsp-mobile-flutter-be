@@ -27,10 +27,8 @@ class JadwalService {
             .map((item) => JadwalBaru.fromJson(item as Map<String, dynamic>))
             .toList();
       }
-      if (kDebugMode) return _getFallbackJadwalBaru();
       return [];
     } catch (e) {
-      if (kDebugMode) return _getFallbackJadwalBaru();
       debugPrint('Error fetching jadwal baru: $e');
       return [];
     }
@@ -49,10 +47,8 @@ class JadwalService {
             .map((item) => JadwalOverdue.fromJson(item as Map<String, dynamic>))
             .toList();
       }
-      if (kDebugMode) return _getFallbackJadwal();
       return [];
     } catch (e) {
-      if (kDebugMode) return _getFallbackJadwal();
       debugPrint('Error fetching jadwal out of date: $e');
       return [];
     }
@@ -227,52 +223,6 @@ class JadwalService {
     int jadwalId,
     int pesertaId,
   ) async {
-    // Intercept dummy / mock calls
-    if (jadwalId == 101 ||
-        jadwalId == 102 ||
-        jadwalId == 103 ||
-        jadwalId == 11152 ||
-        pesertaId == 101 ||
-        pesertaId == 102 ||
-        pesertaId == 103) {
-      final name = pesertaId == 101
-          ? 'Andi Pratama'
-          : (pesertaId == 102 ? 'Budi Santoso' : 'Citra Lestari');
-      final rec = pesertaId == 101 ? 'K' : (pesertaId == 102 ? 'BK' : null);
-
-      String tugasStatus = 'Belum Dinilai';
-      if (rec == 'K') tugasStatus = 'Kompeten';
-      if (rec == 'BK') tugasStatus = 'Belum Kompeten';
-
-      return ParticipantDetailResponse(
-        status: 'success',
-        message: 'Participant detail retrieved successfully',
-        data: ParticipantDetailData(
-          pesertaId: pesertaId,
-          noPeserta: 'PES-2026-0724-${pesertaId.toString().padLeft(3, '0')}',
-          namaLengkap: name,
-          nik: '6253748567382',
-          tempatLahir: 'Yogyakarta',
-          tanggalLahir: '1998-05-10',
-          skemaSertifikat: 'UI/UX Design',
-          institusi: 'LPP Jigja',
-          email: '${name.toLowerCase().replaceAll(' ', '')}@gmail.com',
-          noTelepon: '085678736521',
-          statusKelengkapan: const StatusKelengkapan(
-            portofolio: 'Lengkap',
-            dokumenPendukung: 'Lengkap',
-            persyaratan: 'Lengkap',
-          ),
-          statusAssessment: StatusAssessment(
-            kehadiran: 'Hadir',
-            tugasAsesmen: tugasStatus,
-            laporan: 'Belum Dibuat',
-            rekaman: 'Belum Diunggah',
-          ),
-        ),
-      );
-    }
-
     try {
       final response = await _dio.get(
         ApiRoutes.asesorJadwalPesertaDetail(jadwalId, pesertaId),
@@ -291,46 +241,6 @@ class JadwalService {
   static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(
     int jadwalId,
   ) async {
-    // Intercept dummy IDs for PenugasanScreen flow
-    if (jadwalId == 101 || jadwalId == 102 || jadwalId == 103) {
-      final is101 = jadwalId == 101;
-      final is102 = jadwalId == 102;
-      return JadwalAsesorDetailResponse(
-        totalAsesor: 1,
-        data: JadwalAsesorDetailData(
-          id: jadwalId,
-          jadwal: is101 ? 'UI/UX Design' : 'Digital Marketing',
-          tanggal: '2026-07-20',
-          tanggalAkhir: '2026-07-20',
-          statusJadwal: is101
-              ? '0'
-              : (is102 ? '1' : '2'), // 0: waiting, 1: completed, 2: canceled
-          statusLabel: is101 ? 'Waiting' : (is102 ? 'Completed' : 'Canceled'),
-          idTuk: 1,
-          tuk: is101 ? 'LPP Cahaya Borneo' : 'LPP Jogja',
-          alamatTuk: is101 ? 'Kalimantan Tengah' : 'Yogyakarta',
-          jenisTuk: 'Sewaktu',
-          asesor: [
-            const AsesorDetailItem(
-              idAsesor: 1,
-              namaAsesor: 'Eko Setiabudi',
-              noReg: 'MET.000.001928 2023',
-              email: 'eko.setiabudi@lsp.com',
-              hp: '08123456789',
-              jenisAsesmen: 'Mandiri',
-              statusSpt: 'Disetujui',
-              isComplete: '1',
-              masaBerlaku: '2028-12-31',
-              kabupatenKota: 'Yogyakarta',
-              provinsiId: '34',
-              kabupatenId: '3471',
-              totalAsesmen: 15,
-            ),
-          ],
-        ),
-      );
-    }
-
     try {
       final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
       final path = isAsesor
@@ -431,65 +341,4 @@ class JadwalService {
     }
   }
 
-  // ============================================================================
-  // Private Fallback Data
-  // ============================================================================
-
-  static List<JadwalOverdue> _getFallbackJadwal() {
-    return const [
-      JadwalOverdue(
-        id: 1,
-        jadwal: 'Sertifikasi Kompetensi TIK Bidang Programmer',
-        tanggal: '2025-05-23',
-        tuk: 'TUK Campus Digital',
-        daysOverdue: 3,
-        statusLabel: 'Terjadwal',
-      ),
-      JadwalOverdue(
-        id: 2,
-        jadwal: 'Asesmen Ulang Klaster Cloud Computing',
-        tanggal: '2025-05-24',
-        tuk: 'TUK Sewaktu LSP',
-        daysOverdue: 2,
-        statusLabel: 'Sedang Berlangsung',
-      ),
-      JadwalOverdue(
-        id: 3,
-        jadwal: 'Uji Kompetensi Jabatan Fungsional Sandiman',
-        tanggal: '2025-05-25',
-        tuk: 'TUK Mandiri Cyber',
-        daysOverdue: 1,
-        statusLabel: 'Terjadwal',
-      ),
-    ];
-  }
-
-  static List<JadwalBaru> _getFallbackJadwalBaru() {
-    return const [
-      JadwalBaru(
-        id: 9048,
-        jadwal: 'Sertifikasi Borneo Engineer - Digital Marketing Batch 2',
-        tanggal: '2025-04-30',
-        kuota: 54,
-        statusJadwal: '0',
-        tuk: 'Borneo Engineer',
-      ),
-      JadwalBaru(
-        id: 9049,
-        jadwal: 'Sertifikasi Campus Digital - Content Creator Batch 1',
-        tanggal: '2025-05-15',
-        kuota: 30,
-        statusJadwal: '0',
-        tuk: 'Campus Digital',
-      ),
-      JadwalBaru(
-        id: 9050,
-        jadwal: 'Asesmen Mandiri Cyber - Ethical Hacker',
-        tanggal: '2025-05-20',
-        kuota: 25,
-        statusJadwal: '0',
-        tuk: 'Mandiri Cyber',
-      ),
-    ];
-  }
 }

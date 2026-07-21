@@ -742,19 +742,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
       debugPrint('Error loading participants: $e');
     }
 
-    // If still empty, load mock participants so screen is never blank
-    if (_participants.isEmpty) {
-      if (!mounted) return;
-      setState(() {
-        _participants.addAll([
-          ParticipantItem(name: 'Ayu Putri Sri', nim: '0897556789', isPresent: true),
-          ParticipantItem(name: 'Arya Pamungkas', nim: '125809872315', isPresent: true),
-          ParticipantItem(name: 'Bima Sakti', nim: '09890980007', isPresent: true),
-          ParticipantItem(name: 'Bayu Nugrahan', nim: '09769990862', isPresent: false),
-          ParticipantItem(name: 'Setiabudi', nim: '90876898777', isPresent: false),
-        ]);
-      });
-    }
+    // Keep empty when API returns no asesi — never inject mock names
   }
 
   void _nextStep() {
@@ -813,11 +801,11 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
     }).toList();
 
     final response = await AsesorService.submitLaporan(
-      jadwalId: _selectedSchedule?['id'] ?? 11152,
+      jadwalId: _selectedSchedule?['id'] ?? 0,
       namaAsesor: _nameController.text,
-      skemaId: _selectedSkemaTuk?['id'] ?? 1,
+      skemaId: _selectedSkemaTuk?['id'] ?? 0,
       tanggalPelaksanaan: _selectedDate,
-      suratTugasUrl: 'https://example.com/storage/surat_tugas.pdf',
+      suratTugasUrl: _uploadedFileName ?? '',
       linkDokumentasi: _linkController.text,
       catatan: _notesController.text,
       daftarPeserta: participantList,

@@ -39,10 +39,10 @@ class DashboardSummary {
     this.suratTugasMenungguPengiriman = 0,
     this.pendaftaranAsesiBaru = 0,
     this.honorAsesorBelumDibayar = 0,
-    this.trendAsesmen = '+15,7%',
-    this.trendPemegangSertifikat = '+12,3%',
-    this.trendAsesor = '+8,1%',
-    this.trendTuk = '+4,5%',
+    this.trendAsesmen = '+0%',
+    this.trendPemegangSertifikat = '+0%',
+    this.trendAsesor = '+0%',
+    this.trendTuk = '+0%',
     this.isCurrentMonth = false,
     this.note,
     this.jadwalAsesmen = '0 > 0',
@@ -51,26 +51,27 @@ class DashboardSummary {
     this.tempatUjiKompetensi = '0 > 0',
   });
 
+  /// Empty shell when API fails — zeros only, never demo numbers.
   factory DashboardSummary.fallback() {
     return const DashboardSummary(
-      totalAsesmen: 2545,
-      totalPemegangSertifikat: 3045,
-      totalAsesor: 120,
-      totalTuk: 45,
-      totalAsesi: 15005,
-      jadwalBelumTerkonfirmasi: 15,
-      suratTugasMenungguPengiriman: 3,
-      pendaftaranAsesiBaru: 12,
-      honorAsesorBelumDibayar: 4,
-      trendAsesmen: '+15,7%',
-      trendPemegangSertifikat: '+12,3%',
-      trendAsesor: '+8,1%',
-      trendTuk: '+4,5%',
+      totalAsesmen: 0,
+      totalPemegangSertifikat: 0,
+      totalAsesor: 0,
+      totalTuk: 0,
+      totalAsesi: 0,
+      jadwalBelumTerkonfirmasi: 0,
+      suratTugasMenungguPengiriman: 0,
+      pendaftaranAsesiBaru: 0,
+      honorAsesorBelumDibayar: 0,
+      trendAsesmen: '+0%',
+      trendPemegangSertifikat: '+0%',
+      trendAsesor: '+0%',
+      trendTuk: '+0%',
       isCurrentMonth: false,
-      jadwalAsesmen: '200 > 120',
-      sertifikatPerSkema: '4 > 3',
-      sebaranAsesor: '20 > 10',
-      tempatUjiKompetensi: '10 > 5',
+      jadwalAsesmen: '0 > 0',
+      sertifikatPerSkema: '0 > 0',
+      sebaranAsesor: '0 > 0',
+      tempatUjiKompetensi: '0 > 0',
     );
   }
   
@@ -159,15 +160,15 @@ class AsesorStats {
 
   factory AsesorStats.fallback() {
     return const AsesorStats(
-      totalAsesor: 1317,
-      asesorAktif: 1200,
-      asesorInternal: 1095,
-      asesorExternal: 222,
-      totalTuk: 45,
-      onlineAsesmen: 1684,
-      offlineAsesmen: 5894,
-      wilayahTercover: 34,
-      trendTotalAsesor: '+15,7%',
+      totalAsesor: 0,
+      asesorAktif: 0,
+      asesorInternal: 0,
+      asesorExternal: 0,
+      totalTuk: 0,
+      onlineAsesmen: 0,
+      offlineAsesmen: 0,
+      wilayahTercover: 0,
+      trendTotalAsesor: '+0%',
     );
   }
 }
@@ -199,10 +200,10 @@ class SkemaStats {
 
   factory SkemaStats.fallback() {
     return const SkemaStats(
-      totalSkema: 200,
-      provinsi: 34,
-      skemaAktif: 166,
-      skemaNonaktif: 34,
+      totalSkema: 0,
+      provinsi: 0,
+      skemaAktif: 0,
+      skemaNonaktif: 0,
     );
   }
 }
@@ -250,22 +251,22 @@ class StatistikOverview {
     required this.sertifikatTerbit,
     required this.lspTerdaftar,
     required this.tingkatKelulusan,
-    this.trendTotalAsesi = '+14,2%',
-    this.trendSertifikatTerbit = '+11,8%',
-    this.trendLspTerdaftar = '+4,5%',
-    this.trendTingkatKelulusan = '+1,2%',
+    this.trendTotalAsesi = '+0%',
+    this.trendSertifikatTerbit = '+0%',
+    this.trendLspTerdaftar = '+0%',
+    this.trendTingkatKelulusan = '+0%',
   });
 
   factory StatistikOverview.fallback() {
     return const StatistikOverview(
-      totalAsesi: 25890,
-      sertifikatTerbit: 21435,
-      lspTerdaftar: 145,
-      tingkatKelulusan: 82.8,
-      trendTotalAsesi: '+14,2%',
-      trendSertifikatTerbit: '+11,8%',
-      trendLspTerdaftar: '+4,5%',
-      trendTingkatKelulusan: '+1,2%',
+      totalAsesi: 0,
+      sertifikatTerbit: 0,
+      lspTerdaftar: 0,
+      tingkatKelulusan: 0,
+      trendTotalAsesi: '+0%',
+      trendSertifikatTerbit: '+0%',
+      trendLspTerdaftar: '+0%',
+      trendTingkatKelulusan: '+0%',
     );
   }
 }
@@ -551,12 +552,12 @@ class AsesorDashboardSummaryCount {
     );
   }
 
-  factory AsesorDashboardSummaryCount.mock() {
+  factory AsesorDashboardSummaryCount.empty() {
     return const AsesorDashboardSummaryCount(
-      menungguVerifikasi: 1,
+      menungguVerifikasi: 0,
       asesmenBerlangsung: 0,
-      asesmenSelesai: 12,
-      menungguPenugasan: 2,
+      asesmenSelesai: 0,
+      menungguPenugasan: 0,
     );
   }
 }
@@ -580,11 +581,11 @@ class AsesorDashboardAlertBanner {
     );
   }
 
-  factory AsesorDashboardAlertBanner.mock() {
+  factory AsesorDashboardAlertBanner.empty() {
     return const AsesorDashboardAlertBanner(
-      hasAlert: true,
-      title: "Verifikasi laporan tertunda",
-      subtitle: "Anda memiliki 1 laporan yang menunggu verifikasi",
+      hasAlert: false,
+      title: '',
+      subtitle: '',
     );
   }
 }
@@ -685,58 +686,13 @@ class AsesorDashboardData {
     );
   }
 
-  factory AsesorDashboardData.mock() {
+  /// Empty shell when API fails — no demo jadwal/tugas.
+  factory AsesorDashboardData.empty() {
     return AsesorDashboardData(
-      summary: AsesorDashboardSummaryCount.mock(),
-      alertBanner: AsesorDashboardAlertBanner.mock(),
-      jadwalHariIni: [
-        const AsesorDashboardJadwal(
-          idJadwal: 11152,
-          skema: "Sertifikasi Junior Web Developer",
-          tanggal: "2026-04-27",
-          waktu: "08:00",
-          tuk: "SMK Media Informatika",
-          status: "1",
-        ),
-      ],
-      tugasPrioritas: [
-        const AsesorDashboardTugas(
-          idTugas: 28054,
-          title: "Laporan menunggu verifikasi",
-          subtitle: "Sertifikasi Junior Web Developer - SMK Media Informatika",
-          type: "menunggu_verifikasi",
-        ),
-        const AsesorDashboardTugas(
-          idTugas: 28055,
-          title: "Unggah Surat Tugas",
-          subtitle: "Sertifikasi Junior Graphic Designer - Politeknik Sampit",
-          type: "penugasan_baru",
-        ),
-        const AsesorDashboardTugas(
-          idTugas: 28056,
-          title: "Isi Catatan Asesmen",
-          subtitle: "Sertifikasi Network Security Engineer - UI",
-          type: "penugasan_baru",
-        ),
-        const AsesorDashboardTugas(
-          idTugas: 28057,
-          title: "Evaluasi Portofolio Mandiri",
-          subtitle: "Sertifikasi Cloud Computing Admin - SMK Media Informatika",
-          type: "asesmen_berlangsung",
-        ),
-        const AsesorDashboardTugas(
-          idTugas: 28058,
-          title: "Verifikasi Kehadiran Asesi",
-          subtitle: "Sertifikasi Junior Web Developer - SMK Media Informatika",
-          type: "asesmen_berlangsung",
-        ),
-        const AsesorDashboardTugas(
-          idTugas: 28059,
-          title: "Kirim Laporan Akhir",
-          subtitle: "Sertifikasi Junior Graphic Designer - Politeknik Sampit",
-          type: "asesmen_selesai",
-        ),
-      ],
+      summary: AsesorDashboardSummaryCount.empty(),
+      alertBanner: AsesorDashboardAlertBanner.empty(),
+      jadwalHariIni: const [],
+      tugasPrioritas: const [],
     );
   }
 }

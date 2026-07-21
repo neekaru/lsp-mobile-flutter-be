@@ -89,12 +89,11 @@ class AsesorService {
           );
         }
 
-        if (list.isEmpty) return _getFallbackProvinces();
         return list;
       }
-      return _getFallbackProvinces();
+      return [];
     } catch (e) {
-      return _getFallbackProvinces();
+      return [];
     }
   }
 
@@ -129,12 +128,11 @@ class AsesorService {
           );
         }
 
-        if (list.isEmpty) return _getFallbackMitras();
         return list;
       }
-      return _getFallbackMitras();
+      return [];
     } catch (e) {
-      return _getFallbackMitras();
+      return [];
     }
   }
 
@@ -149,11 +147,11 @@ class AsesorService {
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        int totalSkema = response.data['meta']?['total_skema'] ?? 58;
+        int totalSkema = response.data['meta']?['total_skema'] ?? 0;
 
         return SkemaStats(
           totalSkema: totalSkema,
-          provinsi: 34,
+          provinsi: 0,
           skemaAktif: totalSkema,
           skemaNonaktif: 0,
         );
@@ -162,38 +160,6 @@ class AsesorService {
     } catch (e) {
       return SkemaStats.fallback();
     }
-  }
-
-  // ============================================================================
-  // Private Fallback Data
-  // ============================================================================
-
-  static List<TopProvinsi> _getFallbackProvinces() {
-    return const [
-      TopProvinsi(
-        name: 'Sampit, Kalimantan Tengah',
-        value: 214,
-        percentage: '17,2%',
-      ),
-      TopProvinsi(name: 'Yogyakarta', value: 100, percentage: '15,9%'),
-      TopProvinsi(name: 'Sumatra Utara', value: 62, percentage: '12,3%'),
-      TopProvinsi(name: 'Semarang', value: 200, percentage: '11,4%'),
-      TopProvinsi(name: 'Balikpapan', value: 97, percentage: '8,7%'),
-    ];
-  }
-
-  static List<TopMitra> _getFallbackMitras() {
-    return const [
-      TopMitra(
-        name: 'LKP Gen Komputer Sampit',
-        value: 214,
-        percentage: '17,2%',
-      ),
-      TopMitra(name: 'LPP Enter Pangkalanbun', value: 100, percentage: '15,9%'),
-      TopMitra(name: 'TUK Tanascom Lempuing', value: 62, percentage: '12,3%'),
-      TopMitra(name: 'SMKN 2 Jakarta', value: 200, percentage: '11,4%'),
-      TopMitra(name: 'SMK Muhammadiyah Malang', value: 97, percentage: '8,7%'),
-    ];
   }
 
   /// 6. Daftar Laporan Tugas Asesor

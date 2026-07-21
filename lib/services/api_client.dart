@@ -61,12 +61,10 @@ class ApiClient {
                   debugPrint('🔴 URL: ${error.requestOptions.uri}');
                 }
 
-                final currentToken = await TokenStorage.instance.getAccessToken();
-                final isFakeToken = currentToken == 'fake-asesi-token' || currentToken == 'fake-user-token';
                 final isAuthPath = error.requestOptions.path.contains(ApiRoutes.authLogin) ||
                     error.requestOptions.path.contains(ApiRoutes.authRefresh);
 
-                if (error.response?.statusCode == 401 && !isFakeToken && !isAuthPath) {
+                if (error.response?.statusCode == 401 && !isAuthPath) {
                   if (_isRefreshing) {
                     return handler.next(error);
                   }

@@ -20,7 +20,7 @@ class PenugasanScreen extends StatefulWidget {
 class _PenugasanScreenState extends State<PenugasanScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  String _selectedMonthYear = 'Mei 2025';
+  late String _selectedMonthYear;
   bool _isLoading = true;
   String _errorMessage = '';
 
@@ -39,7 +39,8 @@ class _PenugasanScreenState extends State<PenugasanScreen>
     'November',
     'Desember',
   ];
-  final List<String> _years = ['2025', '2026', '2027'];
+  /// Years: current-2 .. current+2 (dynamic, not hardcode 2025–2027)
+  late final List<String> _years;
 
   // All schedules loaded from the API
   List<JadwalItem> _allAssignments = [];
@@ -54,6 +55,7 @@ class _PenugasanScreenState extends State<PenugasanScreen>
 
     // Set default month & year to current month & year
     final now = DateTime.now();
+    _years = List.generate(5, (i) => '${now.year - 2 + i}');
     final currentMonthName = _months[now.month - 1];
     final shortMonth = currentMonthName == 'Mei' ? 'Mei' : currentMonthName.substring(0, 3);
     _selectedMonthYear = '$shortMonth ${now.year}';

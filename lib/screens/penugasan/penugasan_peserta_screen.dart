@@ -263,10 +263,10 @@ class _PenugasanPesertaScreenState extends State<PenugasanPesertaScreen> {
 
   Widget _buildAsesiItem(AsesiItem item) {
     final hasRec = item.hasilRekomendasi;
-    
-    // Deterministic cities matching mockup variety (Yogyakarta, Semarang, Surabaya)
-    final cities = ['Yogyakarta', 'Semarang', 'Surabaya'];
-    final city = cities[item.id % cities.length];
+    // API list asesi belum expose kota; jangan hardcode mock city
+    final city = item.kota?.trim().isNotEmpty == true
+        ? item.kota!.trim()
+        : '—';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

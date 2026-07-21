@@ -230,10 +230,9 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   Future<bool> _ensureAsesiSession(Map<String, dynamic> dataPribadi) async {
     final token = await TokenStorage.instance.getAccessToken();
     final role = AuthRepository.currentUserInstance?.role;
-    final fake = token == 'fake-asesi-token' ||
-        token == 'fake-user-token' ||
-        token == 'fake-asesor-token';
-    final hasRealJwt = token != null && token.isNotEmpty && !fake;
+    final hasRealJwt = token != null &&
+        token.isNotEmpty &&
+        !token.startsWith('fake-');
 
     // Sudah login asesi → langsung daftar
     if (hasRealJwt && (role == null || role == 'asesi')) {

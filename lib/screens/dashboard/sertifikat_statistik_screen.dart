@@ -89,8 +89,7 @@ class _SertifikatStatistikScreenState extends State<SertifikatStatistikScreen> {
     }
   }
 
-  // Mock data - dalam implementasi nyata, ambil dari API
-  final SertifikatRingkasan ringkasan = SertifikatRingkasan.fallback();
+  // Ringkasan UI memakai _summary dari API (getSertifikatSummary).
 
   // Fungsi untuk filter distribusi data berdasarkan kategori yang dipilih
   List<SertifikatDistribusi> _getFilteredDistribusi() {

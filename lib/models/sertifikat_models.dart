@@ -28,11 +28,11 @@ class SertifikatItem {
     required this.status,
     required this.kategori,
     this.institusi,
-    this.nomorRegistrasi = 'REG-12345-2026',
-    this.nomorBlanko = 'BLANKO-998877',
-    this.nomorSeri = 'SERI-001A',
-    this.tempatUji = 'TUK LSP Digital',
-    this.namaAsesor = 'Dr. Ir. Asesor Utama, M.Kom',
+    this.nomorRegistrasi = '',
+    this.nomorBlanko = '',
+    this.nomorSeri = '',
+    this.tempatUji = '',
+    this.namaAsesor = '',
   });
 
   factory SertifikatItem.fromJson(Map<String, dynamic> json) {
@@ -52,14 +52,11 @@ class SertifikatItem {
       status: json['status_sertifikat'] ?? json['status'] ?? 'aktif',
       kategori: skemaMap['kategori'] ?? json['kategori'] ?? '',
       institusi: json['institusi'],
-      nomorRegistrasi: json['nomor_registrasi'] ?? 'REG-12345-2026',
-      nomorBlanko: json['nomor_blanko'] ?? 'BLANKO-998877',
-      nomorSeri: json['nomor_seri'] ?? 'SERI-001A',
-      tempatUji: json['tempat_uji'] ?? 'TUK LSP Digital',
-      namaAsesor:
-          asesorMap['nama'] ??
-          json['nama_asesor'] ??
-          'Dr. Ir. Asesor Utama, M.Kom',
+      nomorRegistrasi: json['nomor_registrasi'] ?? '',
+      nomorBlanko: json['nomor_blanko'] ?? '',
+      nomorSeri: json['nomor_seri'] ?? '',
+      tempatUji: json['tempat_uji'] ?? '',
+      namaAsesor: asesorMap['nama'] ?? json['nama_asesor'] ?? '',
     );
   }
 }
@@ -83,12 +80,12 @@ class SertifikatRingkasan {
 
   factory SertifikatRingkasan.fallback() {
     return const SertifikatRingkasan(
-      totalPemegangSertifikat: 3980,
-      persentasePertumbuhan: 15.7,
-      totalSkema: 2000,
-      persentaseSkema: 16.8,
-      totalSertifikatYangDiterbitkan: 8000,
-      persentaseSertifikat: 18.7,
+      totalPemegangSertifikat: 0,
+      persentasePertumbuhan: 0,
+      totalSkema: 0,
+      persentaseSkema: 0,
+      totalSertifikatYangDiterbitkan: 0,
+      persentaseSertifikat: 0,
     );
   }
 }

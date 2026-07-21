@@ -38,52 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    // Jalur alternatif (Bypass) untuk testing / demo
-    if ((identityVal == 'user' && passwordVal == 'password123') ||
-        (identityVal == 'asesi' && passwordVal == 'deng123') ||
-        (identityVal == 'asesor' && passwordVal == 'deng123')) {
-      await Future.delayed(const Duration(milliseconds: 600));
-      if (!mounted) return;
-
-      final isAsesi = identityVal == 'asesi';
-      final isAsesor = identityVal == 'asesor';
-      final fakeUser = AuthUser(
-        id: isAsesi ? 'fake-asesi-id' : (isAsesor ? 'fake-asesor-id' : 'fake-user-id'),
-        account: identityVal,
-        name: isAsesi ? 'Asesi Demo' : (isAsesor ? 'Muhammad Hanafi' : 'User Demo'),
-        role: isAsesi ? 'asesi' : (isAsesor ? 'asesor' : 'admin'),
-        roles: [isAsesi ? 'asesi' : (isAsesor ? 'asesor' : 'admin')],
-      );
-
-      final tokenStorage = TokenStorage.instance;
-      await tokenStorage.saveTokens(
-        accessToken: isAsesi
-            ? 'fake-asesi-token'
-            : (isAsesor ? 'fake-asesor-token' : 'fake-user-token'),
-        refreshToken: 'fake-refresh-token',
-      );
-      await tokenStorage.saveUserProfile(fakeUser);
-      AuthRepository.currentUserInstance = fakeUser;
-
-      if (!mounted) return;
-
-      mainNavigatorKey = GlobalKey<MainNavigatorState>();
-      Navigator.of(context).pushAndRemoveUntil(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => MainNavigator(key: mainNavigatorKey),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 600),
-        ),
-        (route) => false,
-      );
-      return;
-    }
-
     try {
       final authRepo = AuthRepository(
         dio: ApiService.dio,
