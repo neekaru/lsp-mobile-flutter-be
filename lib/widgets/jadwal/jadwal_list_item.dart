@@ -944,19 +944,15 @@ class JadwalListItem extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: item.needsAcc
-                              ? const Color(0xFFFFEBEE)
-                              : _getStatusColor().withValues(alpha: 0.1),
+                          color: _getStatusColor().withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          item.needsAcc ? 'Butuh ACC' : item.displayStatusLabel,
+                          item.displayStatusLabel,
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: item.needsAcc
-                                ? const Color(0xFFE53935)
-                                : _getStatusColor(),
+                            color: _getStatusColor(),
                           ),
                         ),
                       ),
@@ -991,8 +987,8 @@ class JadwalListItem extends StatelessWidget {
               ),
             ),
 
-            // Bottom Action Button
-            if (item.needsAcc)
+            // Bottom action — same structure for Draft / Running / others
+            if (item.status != 'completed' && item.status != 'canceled')
               Container(
                 decoration: const BoxDecoration(
                   border: Border(
@@ -1013,55 +1009,13 @@ class JadwalListItem extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            LucideIcons.circle_check,
-                            size: 16,
-                            color: const Color(0xFF2C6C9C),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Detail & ACC Jadwal',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF2C6C9C),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            else if (item.status != 'completed' &&
-                item.status != 'canceled' &&
-                item.status != 'pelaporan')
-              Container(
-                decoration: const BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Color(0xFFF0F0F0), width: 1),
-                  ),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onTap,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(12),
-                      bottomRight: Radius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            LucideIcons.pencil,
+                            LucideIcons.eye,
                             size: 16,
                             color: const Color(0xFF5B9FD8),
                           ),
                           const SizedBox(width: 8),
                           const Text(
-                            'Ubah Status Jadwal',
+                            'Lihat Detail',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,

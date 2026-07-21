@@ -438,6 +438,17 @@ class _JadwalScreenState extends State<JadwalScreen>
     return sorted;
   }
 
+  bool _isValidTrend(String value) {
+    final v = value.trim();
+    if (v.isEmpty) return false;
+    if (v == '+0%' || v == '0%' || v == '-0%') return false;
+    final upper = v.toUpperCase();
+    if (upper == 'N/A' || upper == 'NA' || upper == '-' || upper == 'NULL') {
+      return false;
+    }
+    return true;
+  }
+
   Future<void> _handleRefresh() async {
     await _loadJadwalData();
 
@@ -600,8 +611,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                             ),
                           ),
                           const SizedBox(width: 8),
-                          if (trendPercentage.isNotEmpty &&
-                              trendPercentage != '+0%')
+                          if (_isValidTrend(trendPercentage))
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,

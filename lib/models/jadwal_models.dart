@@ -194,11 +194,21 @@ class JadwalStatistik {
       sedangBerjalan: readInt(data['sedang_berjalan']),
       selesai: readInt(data['selesai']),
       terlambat: readInt(data['terlambat']),
-      trendPercentage:
-          meta['trend_percentage']?.toString() ??
-          data['trend_percentage']?.toString() ??
-          '+0%',
+      trendPercentage: _normalizeTrend(
+        meta['trend_percentage']?.toString() ??
+            data['trend_percentage']?.toString(),
+      ),
     );
+  }
+
+  static String _normalizeTrend(String? raw) {
+    final v = (raw ?? '').trim();
+    if (v.isEmpty) return '+0%';
+    final upper = v.toUpperCase();
+    if (upper == 'N/A' || upper == 'NA' || upper == '-' || upper == 'NULL') {
+      return '+0%';
+    }
+    return v;
   }
 
   factory JadwalStatistik.fallback() {
