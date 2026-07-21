@@ -81,6 +81,15 @@ class ApiRoutes {
       '/api/pra-asesmen/skema/$skemaId/submit';
 
   // ============================================================================
+  // Ujian (Tes Tertulis) — universal paths
+  // ============================================================================
+
+  static String ujianSkema(int skemaId) => '/api/ujian/skema/$skemaId';
+  static String ujianSkemaSoal(int skemaId) => '/api/ujian/skema/$skemaId/soal';
+  static String ujianSoalByExam(int examId) => '/api/ujian/soal/$examId';
+  static String ujianSubmit(int asesiId) => '/api/ujian/$asesiId/submit';
+
+  // ============================================================================
   // Sertifikasi Routes
   // ============================================================================
 

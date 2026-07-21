@@ -723,6 +723,119 @@ class UnitKompetensi {
   }
 }
 
+/// GET /api/ujian/skema/:id/soal
+class UjianSkemaSoal {
+  final int skemaId;
+  final String namaSkema;
+  final String kodeSkema;
+  final int examId;
+  final String namaExam;
+  final int durasiMenit;
+  final int totalSoal;
+  final List<UjianSoalItem> soal;
+
+  const UjianSkemaSoal({
+    required this.skemaId,
+    required this.namaSkema,
+    required this.kodeSkema,
+    required this.examId,
+    required this.namaExam,
+    required this.durasiMenit,
+    required this.totalSoal,
+    required this.soal,
+  });
+
+  factory UjianSkemaSoal.fromJson(Map<String, dynamic> json) {
+    final list = json['soal'] as List? ?? [];
+    return UjianSkemaSoal(
+      skemaId: _asInt(json['skema_id']),
+      namaSkema: json['nama_skema']?.toString() ?? '',
+      kodeSkema: json['kode_skema']?.toString() ?? '',
+      examId: _asInt(json['exam_id']),
+      namaExam: json['nama_exam']?.toString() ?? '',
+      durasiMenit: _asInt(json['durasi_menit']),
+      totalSoal: _asInt(json['total_soal']),
+      soal: list
+          .map((e) =>
+              UjianSoalItem.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList(),
+    );
+  }
+}
+
+class UjianSoalItem {
+  final int id;
+  final String pertanyaan;
+  final String jenisSoal;
+  final String tipeSoal;
+  final String jawabanA;
+  final String jawabanB;
+  final String jawabanC;
+  final String jawabanD;
+  final String jawabanE;
+  final String jawabanBenar;
+  final int urutan;
+
+  const UjianSoalItem({
+    required this.id,
+    required this.pertanyaan,
+    this.jenisSoal = '',
+    this.tipeSoal = '',
+    this.jawabanA = '',
+    this.jawabanB = '',
+    this.jawabanC = '',
+    this.jawabanD = '',
+    this.jawabanE = '',
+    this.jawabanBenar = '',
+    this.urutan = 0,
+  });
+
+  factory UjianSoalItem.fromJson(Map<String, dynamic> json) {
+    return UjianSoalItem(
+      id: _asInt(json['id']),
+      pertanyaan: json['pertanyaan']?.toString() ?? '',
+      jenisSoal: json['jenis_soal']?.toString() ?? '',
+      tipeSoal: json['tipe_soal']?.toString() ?? '',
+      jawabanA: json['jawaban_a']?.toString() ?? '',
+      jawabanB: json['jawaban_b']?.toString() ?? '',
+      jawabanC: json['jawaban_c']?.toString() ?? '',
+      jawabanD: json['jawaban_d']?.toString() ?? '',
+      jawabanE: json['jawaban_e']?.toString() ?? '',
+      jawabanBenar: json['jawaban_benar']?.toString() ?? '',
+      urutan: _asInt(json['urutan']),
+    );
+  }
+
+  /// UI map: options as A/B/C/D/E labels + letters for submit.
+  Map<String, dynamic> toQuizMap() {
+    final opts = <String>[];
+    final letters = <String>[];
+    void add(String letter, String text) {
+      final t = text.trim();
+      if (t.isEmpty) return;
+      opts.add('$letter. $t');
+      letters.add(letter);
+    }
+
+    add('A', jawabanA);
+    add('B', jawabanB);
+    add('C', jawabanC);
+    add('D', jawabanD);
+    add('E', jawabanE);
+
+    return {
+      'id_soal': id,
+      'category': jenisSoal.isNotEmpty
+          ? jenisSoal
+          : (tipeSoal.isNotEmpty ? tipeSoal : 'Soal'),
+      'question': pertanyaan,
+      'options': opts,
+      'option_letters': letters,
+      'correct_letter': jawabanBenar.trim().toUpperCase(),
+    };
+  }
+}
+
 class KukItem {
   final int idKuk;
   final int idElemen;

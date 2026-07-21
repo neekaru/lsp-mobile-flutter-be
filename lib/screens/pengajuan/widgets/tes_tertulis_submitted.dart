@@ -15,9 +15,7 @@ class TesTertulisSubmitted extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
-    final String displayTitle = title.toLowerCase().contains('pemasaran') || title.toLowerCase().contains('marketing')
-        ? 'Digital Marketing Muda'
-        : title;
+    final String displayTitle = title;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),

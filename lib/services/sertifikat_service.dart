@@ -337,6 +337,64 @@ class SertifikatService {
     }
   }
 
+  /// GET /api/ujian/skema/:id/soal — soal tes tertulis by skema (full API).
+  static Future<UjianSkemaSoal?> getUjianSoalBySkema(int skemaId) async {
+    try {
+      final response = await _dio.get(
+        ApiRoutes.ujianSkemaSoal(skemaId),
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final raw = response.data;
+        final map = raw is Map<String, dynamic>
+            ? raw
+            : Map<String, dynamic>.from(raw as Map);
+        return UjianSkemaSoal.fromJson(map);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching ujian soal skema $skemaId: $e');
+      return null;
+    }
+  }
+
+  /// POST /api/ujian/:asesi_id/submit
+  static Future<bool> submitUjian({
+    required int asesiId,
+    required int skemaId,
+    required int examId,
+    required List<Map<String, dynamic>> jawaban,
+    required int jawabanBenar,
+    required int jawabanSalah,
+    int idAsesor = 0,
+  }) async {
+    try {
+      final token = await TokenStorage.instance.getAccessToken();
+      final response = await _dio.post(
+        ApiRoutes.ujianSubmit(asesiId),
+        data: {
+          'id_asesor': idAsesor,
+          'id_skema': skemaId,
+          'id_perangkat_detail': examId,
+          'jawaban': jawaban,
+          'jawaban_benar': jawabanBenar,
+          'jawaban_salah': jawabanSalah,
+        },
+        options: Options(
+          headers: {
+            if (token != null && token.isNotEmpty)
+              'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('🔴 Error submitting ujian: $e');
+      return false;
+    }
+  }
+
   // ============================================================================
   // Private Fallback Data
   // ============================================================================
