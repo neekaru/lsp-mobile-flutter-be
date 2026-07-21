@@ -71,13 +71,15 @@ class DokumenPortofolioForm extends StatelessWidget {
             kukCount: kukCount,
             onUnitTap: onUnitTap,
           ),
-          if (unitCount == 0)
+          if (unitCount == 0 || (elemenCount == 0 && kukCount == 0))
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Text(
                 selectedSkema.trim().isEmpty
                     ? 'Pilih skema di Data Pengajuan agar unit/elemen/KUK tampil.'
-                    : 'Data unit/elemen/KUK belum termuat untuk skema ini. Pastikan skema sudah dipilih di Data Pengajuan.',
+                    : unitCount == 0
+                        ? 'Data unit/elemen/KUK belum termuat untuk skema ini. Pastikan skema sudah dipilih di Data Pengajuan.'
+                        : 'Elemen/KUK masih 0 — data detail sedang dimuat ulang saat Anda buka step ini. Jika tetap 0, pilih ulang skema di Data Pengajuan.',
                 style: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
               ),
             ),

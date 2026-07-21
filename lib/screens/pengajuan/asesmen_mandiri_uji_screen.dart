@@ -573,24 +573,29 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                       foregroundColor: const Color(0xFF64748B),
                       backgroundColor: const Color(0xFFE2E8F0),
                       side: BorderSide.none,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.arrow_back_rounded, size: 18),
-                        SizedBox(width: 6),
-                        Text('Kembali',
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.bold)),
-                      ],
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.arrow_back_rounded, size: 18),
+                          SizedBox(width: 4),
+                          Text('Kembali',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 flex: 2,
                 child: SizedBox(
@@ -613,19 +618,24 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                       backgroundColor: const Color(0xFF378CE7),
                       foregroundColor: Colors.white,
                       elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('Selesai dan Kirim',
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.bold)),
-                        SizedBox(width: 6),
-                        Icon(Icons.arrow_forward_rounded, size: 18),
-                      ],
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Selesai & Kirim',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold)),
+                          SizedBox(width: 4),
+                          Icon(Icons.arrow_forward_rounded, size: 18),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -653,24 +663,29 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                     foregroundColor: const Color(0xFF64748B),
                     backgroundColor: const Color(0xFFE2E8F0),
                     side: BorderSide.none,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.arrow_back_rounded, size: 18),
-                      SizedBox(width: 6),
-                      Text('Kembali',
-                          style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.bold)),
-                    ],
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.arrow_back_rounded, size: 18),
+                        SizedBox(width: 4),
+                        Text('Kembali',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               flex: 2,
               child: SizedBox(
@@ -681,19 +696,24 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                     backgroundColor: const Color(0xFF378CE7),
                     foregroundColor: Colors.white,
                     elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Selesai & Kirim',
-                          style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.bold)),
-                      SizedBox(width: 6),
-                      Icon(Icons.check_rounded, size: 18),
-                    ],
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('Selesai & Kirim',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold)),
+                        SizedBox(width: 4),
+                        Icon(Icons.check_rounded, size: 18),
+                      ],
+                    ),
                   ),
                 ),
               ),

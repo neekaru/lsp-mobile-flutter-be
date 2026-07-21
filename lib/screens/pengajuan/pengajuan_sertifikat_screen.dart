@@ -462,8 +462,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   int? _selectedPemberiAnggaranId;
   String? _selectedSkema;
   String? _selectedJadwal;
-  String? _selectedSumberAnggaran;
-  String? _selectedPemberiAnggaran;
 
   List<MasterSkema> _masterSkemaList = [];
   List<MasterJadwal> _masterJadwalList = [];
@@ -540,6 +538,8 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   bool _isLoadingUnitPersyaratan = false;
   int? _sertifikasiId;
   int? _kompetensiSkemaId;
+  /// true only when pra-asesmen kompetensi API returned nested elemen/KUK
+  bool _kompetensiHasDetail = false;
 
   String _sectionFromJenisBukti(String jenis, String key, String label) {
     final j = jenis.toLowerCase().trim();
@@ -653,10 +653,31 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     await _fetchPraAsesmenKompetensi(idSkema);
   }
 
+  int _countElemen(List<Map<String, dynamic>> units) {
+    var n = 0;
+    for (final u in units) {
+      final el = u['elemen'];
+      if (el is List) n += el.length;
+    }
+    return n;
+  }
+
+  List<Map<String, dynamic>> _unitsFromCacheOnly() {
+    return _cachedUnitKompetensi
+        .map((u) => {
+              'kode': u['kode']?.toString() ?? '',
+              'judul': u['judul']?.toString() ?? '',
+              'kuk_count': '0 item',
+              'elemen': <Map<String, dynamic>>[],
+            })
+        .toList();
+  }
+
   Future<void> _fetchPraAsesmenKompetensi(int idSkema) async {
     setState(() {
       _isLoadingKompetensi = true;
       _asesmenUnits = [];
+      _kompetensiHasDetail = false;
       _kukAssessments.clear();
       _kukEvidence.clear();
       _kompetensiSkemaId = idSkema;
@@ -671,17 +692,10 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       if (_kompetensiSkemaId != idSkema) return;
 
       if (komp == null) {
-        // Fallback: still show unit list from FR.APL.01 if available
-        final fallbackUnits = _cachedUnitKompetensi
-            .map((u) => {
-                  'kode': u['kode']?.toString() ?? '',
-                  'judul': u['judul']?.toString() ?? '',
-                  'kuk_count': '0 item',
-                  'elemen': <Map<String, dynamic>>[],
-                })
-            .toList();
+        // Temporary shell only — _kompetensiHasDetail stays false so we retry
         setState(() {
-          _asesmenUnits = fallbackUnits;
+          _asesmenUnits = _unitsFromCacheOnly();
+          _kompetensiHasDetail = false;
           _isLoadingKompetensi = false;
         });
         return;
@@ -717,26 +731,28 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         };
       }).toList();
 
-      // If API returned empty units but FR.APL.01 has units, keep those visible
-      final resolved = units.isNotEmpty
-          ? units
-          : _cachedUnitKompetensi
-              .map((u) => {
-                    'kode': u['kode']?.toString() ?? '',
-                    'judul': u['judul']?.toString() ?? '',
-                    'kuk_count': '0 item',
-                    'elemen': <Map<String, dynamic>>[],
-                  })
-              .toList();
+      final hasDetail = units.isNotEmpty && _countElemen(units) > 0;
+      final resolved = units.isNotEmpty ? units : _unitsFromCacheOnly();
 
       setState(() {
         _asesmenUnits = resolved;
+        // Only mark complete when API nested elemen/KUK present
+        _kompetensiHasDetail = hasDetail;
         _isLoadingKompetensi = false;
       });
+
+      debugPrint(
+        'pra-asesmen kompetensi skema=$idSkema units=${resolved.length} '
+        'elemen=${_countElemen(resolved)} hasDetail=$hasDetail',
+      );
     } catch (e) {
       debugPrint('Error fetching pra-asesmen kompetensi: $e');
       if (mounted && _kompetensiSkemaId == idSkema) {
         setState(() {
+          if (_asesmenUnits.isEmpty) {
+            _asesmenUnits = _unitsFromCacheOnly();
+          }
+          _kompetensiHasDetail = false;
           _isLoadingKompetensi = false;
         });
       }
@@ -747,7 +763,12 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     final id = _selectedSkemaId;
     if (id == null) return;
     if (_isLoadingKompetensi) return;
-    if (_asesmenUnits.isNotEmpty && _kompetensiSkemaId == id) return;
+    // Retry when only unit shell loaded (elemen/KUK still 0) — e.g. Desainer Grafis Muda
+    if (_kompetensiSkemaId == id &&
+        _kompetensiHasDetail &&
+        _asesmenUnits.isNotEmpty) {
+      return;
+    }
     await _fetchPraAsesmenKompetensi(id);
   }
 
@@ -755,6 +776,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     _cachedUnitKompetensi = [];
     _asesmenUnits = [];
     _kompetensiSkemaId = null;
+    _kompetensiHasDetail = false;
     _persyaratanDasar = [];
     _persyaratanAdministratif = const [
       {'key': 'pasfoto', 'label': 'Pasfoto*', 'section': 'a'},
@@ -1311,18 +1333,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             setState(() {
               _selectedSumberAnggaranId = val;
               _selectedPemberiAnggaranId = null;
-              _selectedPemberiAnggaran = null;
               _masterPemberiAnggaranList = [];
-              if (val != null) {
-                try {
-                  final selected = _masterSumberAnggaranList.firstWhere((item) => item.id == val);
-                  _selectedSumberAnggaran = selected.jenisAnggaran;
-                } catch (_) {
-                  _selectedSumberAnggaran = null;
-                }
-              } else {
-                _selectedSumberAnggaran = null;
-              }
             });
             if (val != null) {
               _fetchMasterPemberiAnggaran(val);
@@ -1331,17 +1342,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           onPemberiAnggaranChanged: (val) {
             setState(() {
               _selectedPemberiAnggaranId = val;
-              if (val != null) {
-                try {
-                  final selected =
-                      _masterPemberiAnggaranList.firstWhere((item) => item.id == val);
-                  _selectedPemberiAnggaran = selected.instansiPemberiAnggaran;
-                } catch (_) {
-                  _selectedPemberiAnggaran = null;
-                }
-              } else {
-                _selectedPemberiAnggaran = null;
-              }
             });
           },
         );
