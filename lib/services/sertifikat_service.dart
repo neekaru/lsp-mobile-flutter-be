@@ -226,6 +226,11 @@ class SertifikatService {
       );
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data'] ?? [];
+        // Kalau API sukses tapi list kosong, pakai fallback
+        if (list.isEmpty) {
+          debugPrint('🟡 Asesor list kosong untuk skema $skemaId, pakai fallback');
+          return _getFallbackAsesorList();
+        }
         return list
             .map(
               (item) => AsesorDetailItem.fromJson(item as Map<String, dynamic>),
