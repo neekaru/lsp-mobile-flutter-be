@@ -5,7 +5,6 @@ import '../../widgets/custom_app_bar.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_repository.dart';
 import '../../services/token_storage.dart';
-import '../../models/auth_models.dart';
 import '../../widgets/pengajuan/step_indicator.dart';
 import '../../widgets/pengajuan/data_pengajuan_form.dart';
 import '../../widgets/pengajuan/data_pribadi_form.dart';
@@ -293,24 +292,48 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     return payload;
   }
 
-  /// Persist session if BE daftar auto-created/logged-in asesi (tokens in response).
-  Future<void> _persistSessionFromDaftar(Map<String, dynamic> regRes) async {
-    final access = regRes['access_token']?.toString() ?? '';
-    final refresh = regRes['refresh_token']?.toString() ?? '';
-    if (access.isEmpty) return;
+  /// Publik (belum login): POST ensure-asesi → JWT. Sudah login asesi: skip.
+  Future<void> _ensureAsesiSession(Map<String, dynamic> dataPribadi) async {
+    final token = await TokenStorage.instance.getAccessToken();
+    final role = AuthRepository.currentUserInstance?.role;
+    final fake = token == 'fake-asesi-token' ||
+        token == 'fake-user-token' ||
+        token == 'fake-asesor-token';
+    final hasRealJwt =
+        token != null && token.isNotEmpty && !fake;
 
-    await TokenStorage.instance.saveTokens(
-      accessToken: access,
-      refreshToken: refresh,
-    );
-    final userRaw = regRes['user'];
-    if (userRaw is Map) {
-      final user = AuthUser.fromJson(Map<String, dynamic>.from(userRaw));
-      await TokenStorage.instance.saveUserProfile(user);
-      AuthRepository.currentUserInstance = user;
+    // Sudah login asesi → langsung daftar
+    if (hasRealJwt && (role == null || role == 'asesi')) {
+      return;
     }
-    debugPrint(
-      '✅ Session from daftar BE account_created=${regRes['account_created']}',
+
+    final nik = (dataPribadi['nik']?.toString() ?? '').trim();
+    final email = (dataPribadi['email']?.toString() ?? '').trim();
+    final nama = (dataPribadi['nama_lengkap']?.toString() ?? '').trim();
+    final telp = (dataPribadi['telp']?.toString() ?? '').trim();
+
+    var account = nik;
+    if (account.isEmpty && email.contains('@')) {
+      account = email.split('@').first;
+    }
+    if (account.isEmpty) {
+      throw Exception(
+        'NIK wajib diisi untuk membuat akun login (password default 123456).',
+      );
+    }
+    if (account.length > 18) account = account.substring(0, 18);
+
+    final auth = AuthRepository(
+      dio: ApiClient.dio,
+      tokenStorage: TokenStorage.instance,
+    );
+    await auth.ensureAsesi(
+      account: account,
+      password: '123456',
+      namaLengkap: nama,
+      email: email.isNotEmpty ? email : null,
+      hp: telp.isNotEmpty ? telp : null,
+      platform: 'mobile',
     );
   }
 
@@ -1028,7 +1051,10 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         final jadwalId = _selectedJadwalId;
         final dataPribadi = _buildDataPribadiPayload();
 
-        // 1. BE daftar (public): auto-create akun NIK + password 123456 bila belum login
+        // 0. Publik: ensure-asesi → token. Sudah login asesi: skip.
+        await _ensureAsesiSession(dataPribadi);
+
+        // 1. Daftar (auth) — BE tolak jika sudah lulus skema & sertifikat masih berlaku
         final regRes = await AsesiService.daftarSertifikasi(
           skemaId: skemaId,
           jadwalId: jadwalId,
@@ -1038,9 +1064,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         if (regRes == null) {
           throw Exception('Gagal melakukan pendaftaran sertifikasi.');
         }
-
-        // Simpan JWT dari BE bila auto-login (untuk upload/portofolio/submit berikutnya)
-        await _persistSessionFromDaftar(regRes);
 
         final sertifikasiId = regRes['sertifikasi_id'] ?? regRes['id'];
         if (sertifikasiId == null) {

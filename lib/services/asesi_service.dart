@@ -114,9 +114,9 @@ class AsesiService {
     }
   }
 
-  /// 7. Daftar Sertifikasi (POST /api/sertifikasi/daftar) — **public**
-  /// BE: without JWT auto-creates asesi (NIK + password 123456) and may return
-  /// `access_token` / `refresh_token` / `user` in data for FE to persist session.
+  /// 7. Daftar Sertifikasi (POST /api/sertifikasi/daftar) — **auth required**
+  /// Public flow: POST /api/auth/ensure-asesi dulu → simpan token → daftar.
+  /// BE menolak (409) jika sudah lulus skema & sertifikat belum expired.
   static Future<Map<String, dynamic>?> daftarSertifikasi({
     required int skemaId,
     int? tukId,
@@ -151,9 +151,15 @@ class AsesiService {
         if (data is Map) return Map<String, dynamic>.from(data);
       }
       return null;
+    } on DioException catch (e) {
+      final msg = e.response?.data is Map
+          ? (e.response!.data['message']?.toString() ?? e.message)
+          : e.message;
+      debugPrint('Error registering certification: $msg');
+      throw Exception(msg ?? 'Gagal daftar sertifikasi');
     } catch (e) {
       debugPrint('Error registering certification: $e');
-      return null;
+      rethrow;
     }
   }
 
