@@ -109,10 +109,15 @@ class SertifikatService {
     try {
       final params = <String>[];
       params.add('q=$query');
-      if (skema != null && skema.isNotEmpty) params.add('skema=$skema');
-      if (kategori != null && kategori.isNotEmpty)
+      if (skema != null && skema.isNotEmpty) {
+        params.add('skema=$skema');
+      }
+      if (kategori != null && kategori.isNotEmpty) {
         params.add('kategori=$kategori');
-      if (status != null && status.isNotEmpty) params.add('status=$status');
+      }
+      if (status != null && status.isNotEmpty) {
+        params.add('status=$status');
+      }
       params.add('limit=$limit');
       params.add('offset=$offset');
 
@@ -147,12 +152,21 @@ class SertifikatService {
   }) async {
     try {
       final params = <String>[];
-      if (search != null && search.isNotEmpty) params.add('search=$search');
-      if (kategori != null && kategori.isNotEmpty)
+      if (search != null && search.isNotEmpty) {
+        params.add('search=$search');
+      }
+      if (kategori != null && kategori.isNotEmpty) {
         params.add('kategori=$kategori');
-      if (jenjang != null && jenjang.isNotEmpty) params.add('jenjang=$jenjang');
-      if (bidang != null && bidang.isNotEmpty) params.add('bidang=$bidang');
-      if (sort != null && sort.isNotEmpty) params.add('sort=$sort');
+      }
+      if (jenjang != null && jenjang.isNotEmpty) {
+        params.add('jenjang=$jenjang');
+      }
+      if (bidang != null && bidang.isNotEmpty) {
+        params.add('bidang=$bidang');
+      }
+      if (sort != null && sort.isNotEmpty) {
+        params.add('sort=$sort');
+      }
       params.add('page=$page');
       params.add('limit=$limit');
 

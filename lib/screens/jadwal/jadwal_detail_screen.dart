@@ -251,8 +251,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     try {
       final start = DateTime.tryParse(widget.jadwal.tanggalMulai);
       final end = DateTime.tryParse(widget.jadwal.tanggalSelesai);
-      if (start == null || end == null)
+      if (start == null || end == null) {
         return '${widget.jadwal.tanggalMulai} - ${widget.jadwal.tanggalSelesai}';
+      }
       final days = [
         'Senin',
         'Selasa',
@@ -646,8 +647,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                 final fileUrl = await ApiService.getSuratTugas(
                   widget.jadwal.id,
                 );
-                if (context.mounted)
+                if (context.mounted) {
                   Navigator.pop(context); // Dismiss loading dialog
+                }
                 if (fileUrl != null && fileUrl.isNotEmpty) {
                   final uri = Uri.parse(fileUrl);
                   if (await canLaunchUrl(uri)) {
@@ -669,8 +671,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                   throw Exception('Surat tugas belum tersedia');
                 }
               } catch (e) {
-                if (context.mounted)
+                if (context.mounted) {
                   Navigator.pop(context); // Dismiss loading dialog
+                }
                 final errorMsg = e.toString().replaceAll('Exception: ', '');
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(

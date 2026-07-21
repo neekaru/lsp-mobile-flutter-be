@@ -159,17 +159,29 @@ class StepEvaluasiKompetensi extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
-            SizedBox(
-              width: 22,
-              height: 22,
-              child: Radio<String>(
-                value: value,
-                groupValue: groupValue ?? '',
-                onChanged: (_) => onChanged(),
-                activeColor: const Color(0xFF3B82F6),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected
+                      ? const Color(0xFF3B82F6)
+                      : const Color(0xFF94A3B8),
+                  width: 2,
+                ),
               ),
+              alignment: Alignment.center,
+              child: selected
+                  ? Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF3B82F6),
+                      ),
+                    )
+                  : null,
             ),
             const SizedBox(width: 8),
             Expanded(
