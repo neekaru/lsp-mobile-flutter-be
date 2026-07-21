@@ -114,8 +114,9 @@ class AsesiService {
     }
   }
 
-  /// 7. Daftar Sertifikasi (POST /api/sertifikasi/daftar)
-  /// Prefer [jadwalId]; [tukId] kept for legacy. Optional FR.APL.01 fields via [dataPribadi].
+  /// 7. Daftar Sertifikasi (POST /api/sertifikasi/daftar) — **public**
+  /// BE: without JWT auto-creates asesi (NIK + password 123456) and may return
+  /// `access_token` / `refresh_token` / `user` in data for FE to persist session.
   static Future<Map<String, dynamic>?> daftarSertifikasi({
     required int skemaId,
     int? tukId,
@@ -143,8 +144,11 @@ class AsesiService {
         ApiRoutes.sertifikasiDaftar,
         data: payload,
       );
-      if ((response.statusCode == 200 || response.statusCode == 201) && response.data != null) {
-        return response.data['data'] as Map<String, dynamic>?;
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          response.data != null) {
+        final data = response.data['data'];
+        if (data is Map<String, dynamic>) return data;
+        if (data is Map) return Map<String, dynamic>.from(data);
       }
       return null;
     } catch (e) {
