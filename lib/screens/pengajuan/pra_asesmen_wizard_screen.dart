@@ -87,12 +87,14 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
       setState(() {
         _kompetensiData = komp;
         _isLoadingKompetensi = false;
-        
+
         // Initialize default answers with 'ya' for each element
         _answers.clear();
-        for (var unit in komp.unitKompetensi) {
-          for (var el in unit.elemen) {
-            _answers[el.idElemen] = 'ya';
+        if (komp != null) {
+          for (var unit in komp.unitKompetensi) {
+            for (var el in unit.elemen) {
+              _answers[el.idElemen] = 'ya';
+            }
           }
         }
       });

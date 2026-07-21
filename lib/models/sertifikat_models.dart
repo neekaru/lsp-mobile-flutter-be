@@ -663,10 +663,14 @@ class PraAsesmenKompetensi {
   factory PraAsesmenKompetensi.fromJson(Map<String, dynamic> json) {
     final List<dynamic> list = json['unit_kompetensi'] ?? [];
     return PraAsesmenKompetensi(
-      skemaId: json['skema_id'] ?? 0,
-      namaSkema: json['nama_skema'] ?? '',
+      skemaId: _asInt(json['skema_id']),
+      namaSkema: json['nama_skema']?.toString() ?? '',
       unitKompetensi: list
-          .map((item) => UnitKompetensi.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) => UnitKompetensi.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
           .toList(),
     );
   }
@@ -694,11 +698,13 @@ class UnitKompetensi {
   factory UnitKompetensi.fromJson(Map<String, dynamic> json) {
     final List<dynamic> list = json['elemen'] ?? [];
     return UnitKompetensi(
-      kodeUnit: json['kode_unit'] ?? '',
-      judulUnit: json['judul_unit'] ?? '',
+      kodeUnit: json['kode_unit']?.toString() ?? '',
+      judulUnit: json['judul_unit']?.toString() ?? '',
       elemen: list
           .map(
-            (item) => ElemenKompetensi.fromJson(item as Map<String, dynamic>),
+            (item) => ElemenKompetensi.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
           )
           .toList(),
     );
@@ -718,11 +724,17 @@ class KukItem {
 
   factory KukItem.fromJson(Map<String, dynamic> json) {
     return KukItem(
-      idKuk: json['id_kuk'] ?? 0,
-      idElemen: json['id_elemen'] ?? 0,
-      pertanyaanKuk: json['pertanyaan_kuk'] ?? '',
+      idKuk: _asInt(json['id_kuk']),
+      idElemen: _asInt(json['id_elemen']),
+      pertanyaanKuk: json['pertanyaan_kuk']?.toString() ?? '',
     );
   }
+}
+
+int _asInt(dynamic v) {
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  return int.tryParse(v?.toString() ?? '') ?? 0;
 }
 
 class ElemenKompetensi {
@@ -741,11 +753,11 @@ class ElemenKompetensi {
   factory ElemenKompetensi.fromJson(Map<String, dynamic> json) {
     final List<dynamic> kukList = json['kuk'] ?? [];
     return ElemenKompetensi(
-      idElemen: json['id_elemen'] ?? 0,
-      elemenKompetensi: json['elemen_kompetensi'] ?? '',
-      pertanyaanKuk: json['pertanyaan_kuk'] ?? '',
+      idElemen: _asInt(json['id_elemen']),
+      elemenKompetensi: json['elemen_kompetensi']?.toString() ?? '',
+      pertanyaanKuk: json['pertanyaan_kuk']?.toString() ?? '',
       kuk: kukList
-          .map((item) => KukItem.fromJson(item as Map<String, dynamic>))
+          .map((item) => KukItem.fromJson(Map<String, dynamic>.from(item as Map)))
           .toList(),
     );
   }

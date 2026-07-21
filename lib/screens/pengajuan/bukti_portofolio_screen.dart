@@ -81,6 +81,30 @@ class _BuktiPortofolioScreenState extends State<BuktiPortofolioScreen> {
     if (raw == 'b' || raw == 'pendidikan' || raw == 'pekerjaan') return 'b';
     if (raw == 'c' || raw == 'karya' || raw == 'kompetensi') return 'c';
 
+    final jenis = d['jenis_bukti']?.toString().toLowerCase().trim() ?? '';
+    if (jenis == 'a' ||
+        jenis == 'admin' ||
+        jenis == 'administratif' ||
+        jenis == 'identitas') {
+      return 'a';
+    }
+    if (jenis == 'c' ||
+        jenis == 'bukti_pelatihan' ||
+        jenis == 'pelatihan' ||
+        jenis == 'karya' ||
+        jenis == 'kompetensi' ||
+        jenis == 'portofolio') {
+      return 'c';
+    }
+    if (jenis == 'b' ||
+        jenis == 'pendidikan' ||
+        jenis == 'bukti_bekerja' ||
+        jenis == 'bukti_pekerja' ||
+        jenis == 'pekerjaan' ||
+        jenis == 'kerja') {
+      return 'b';
+    }
+
     final t = '${key.toLowerCase()} ${label.toLowerCase()}';
     bool has(List<String> xs) => xs.any(t.contains);
 

@@ -63,7 +63,7 @@ class DokumenPortofolioForm extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CircularProgressIndicator()),
           )
-        else
+        else ...[
           SkemaDetailSummary(
             selectedSkema: selectedSkema,
             unitCount: unitCount,
@@ -71,6 +71,17 @@ class DokumenPortofolioForm extends StatelessWidget {
             kukCount: kukCount,
             onUnitTap: onUnitTap,
           ),
+          if (unitCount == 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text(
+                selectedSkema.trim().isEmpty
+                    ? 'Pilih skema di Data Pengajuan agar unit/elemen/KUK tampil.'
+                    : 'Data unit/elemen/KUK belum termuat untuk skema ini. Pastikan skema sudah dipilih di Data Pengajuan.',
+                style: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
+              ),
+            ),
+        ],
       ],
     );
   }

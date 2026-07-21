@@ -272,35 +272,43 @@ class SertifikatService {
   }
 
   /// Fetch Pra-Asesmen Kompetensi for a specific skema.
-  static Future<PraAsesmenKompetensi> getPraAsesmenKompetensi(
+  /// Returns null on hard failure so callers can retry / show error.
+  /// Empty unit list is a valid 200 response (skema without detail).
+  static Future<PraAsesmenKompetensi?> getPraAsesmenKompetensi(
     int skemaId,
     String fallbackTitle,
   ) async {
     try {
-      final token = await TokenStorage.instance.getAccessToken();
       final response = await _dio.get(
         ApiRoutes.praAsesmenSkemaKompetensi(skemaId),
         options: Options(
-          headers: {
-            if (token != null && token.isNotEmpty)
-              'Authorization': 'Bearer $token',
-            'Accept': 'application/json',
-          },
+          headers: {'Accept': 'application/json'},
         ),
       );
       if (response.statusCode == 200 &&
           response.data != null &&
           response.data['data'] != null) {
-        return PraAsesmenKompetensi.fromJson(
-          response.data['data'] as Map<String, dynamic>,
-        );
+        final raw = response.data['data'];
+        final map = raw is Map<String, dynamic>
+            ? raw
+            : Map<String, dynamic>.from(raw as Map);
+        final parsed = PraAsesmenKompetensi.fromJson(map);
+        if (parsed.namaSkema.isEmpty && fallbackTitle.isNotEmpty) {
+          return PraAsesmenKompetensi(
+            skemaId: parsed.skemaId == 0 ? skemaId : parsed.skemaId,
+            namaSkema: fallbackTitle,
+            unitKompetensi: parsed.unitKompetensi,
+          );
+        }
+        return parsed;
       }
-      return PraAsesmenKompetensi.fallback(skemaId, fallbackTitle);
-    } catch (e) {
       debugPrint(
-        '🔴 Error fetching pra-asesmen kompetensi (using fallback): $e',
+        '🔴 pra-asesmen kompetensi unexpected response for skema $skemaId',
       );
-      return PraAsesmenKompetensi.fallback(skemaId, fallbackTitle);
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching pra-asesmen kompetensi: $e');
+      return null;
     }
   }
 

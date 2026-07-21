@@ -71,11 +71,13 @@ class AsesmenMandiriForm extends StatelessWidget {
             child: Center(child: CircularProgressIndicator()),
           )
         else if (unitKompetensi.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(16),
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Text(
-              'Unit kompetensi belum tersedia. Pilih skema dulu.',
-              style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+              selectedSkema.trim().isEmpty
+                  ? 'Unit kompetensi belum tersedia. Pilih skema di Data Pengajuan.'
+                  : 'Unit/elemen/KUK skema "$selectedSkema" belum termuat. Kembali ke Data Pengajuan lalu pilih ulang skema.',
+              style: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
             ),
           )
         else

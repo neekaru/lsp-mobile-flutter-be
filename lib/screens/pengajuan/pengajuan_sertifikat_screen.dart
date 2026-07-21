@@ -530,14 +530,69 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   // FR.APL.01 bagian 2 — unit + persyaratan from API (by id_skema)
   List<Map<String, String>> _persyaratanDasar = [];
   List<Map<String, String>> _persyaratanAdministratif = const [
-    {'key': 'pasfoto', 'label': 'Pasfoto*'},
+    {'key': 'pasfoto', 'label': 'Pasfoto*', 'section': 'a'},
     {
       'key': 'identitas-pribadi-ktp-kartu-pelajar',
-      'label': 'Identitas pribadi (KTP/Kartu Pelajar)*'
+      'label': 'Identitas pribadi (KTP/Kartu Pelajar)*',
+      'section': 'a',
     },
   ];
   bool _isLoadingUnitPersyaratan = false;
   int? _sertifikasiId;
+  int? _kompetensiSkemaId;
+
+  String _sectionFromJenisBukti(String jenis, String key, String label) {
+    final j = jenis.toLowerCase().trim();
+    if (j == 'a' ||
+        j == 'admin' ||
+        j == 'administratif' ||
+        j == 'identitas') {
+      return 'a';
+    }
+    if (j == 'c' ||
+        j == 'bukti_pelatihan' ||
+        j == 'pelatihan' ||
+        j == 'karya' ||
+        j == 'kompetensi' ||
+        j == 'portofolio') {
+      return 'c';
+    }
+    if (j == 'b' ||
+        j == 'pendidikan' ||
+        j == 'bukti_bekerja' ||
+        j == 'bukti_pekerja' ||
+        j == 'pekerjaan' ||
+        j == 'kerja') {
+      return 'b';
+    }
+    final t = '${key.toLowerCase()} ${label.toLowerCase()}';
+    bool has(List<String> xs) => xs.any(t.contains);
+    if (has([
+      'ktp',
+      'identitas',
+      'pasfoto',
+      'pas-foto',
+      'pas foto',
+      'kartu pelajar',
+      'foto 4x6',
+      '4x6',
+    ])) {
+      return 'a';
+    }
+    if (has([
+      'github',
+      'portofolio',
+      'karya',
+      'sertifikat',
+      'pelatihan',
+      'kompetensi teknis',
+      'tautan',
+      'url',
+    ])) {
+      return 'c';
+    }
+    return 'b';
+  }
 
   Future<void> _fetchSkemaUnitPersyaratan(int idSkema) async {
     setState(() {
@@ -559,6 +614,12 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               .map((p) => {
                     'key': p.key,
                     'label': p.label,
+                    'jenis_bukti': p.jenisBukti,
+                    'section': _sectionFromJenisBukti(
+                      p.jenisBukti,
+                      p.key,
+                      p.label,
+                    ),
                   })
               .toList();
           if (data.persyaratanAdministratif.isNotEmpty) {
@@ -566,6 +627,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                 .map((p) => {
                       'key': p.key,
                       'label': p.label,
+                      'section': 'a',
                     })
                 .toList();
           }
@@ -588,7 +650,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       }
     }
     // FR.APL.02 kompetensi (unit → elemen/KUK)
-    _fetchPraAsesmenKompetensi(idSkema);
+    await _fetchPraAsesmenKompetensi(idSkema);
   }
 
   Future<void> _fetchPraAsesmenKompetensi(int idSkema) async {
@@ -597,6 +659,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       _asesmenUnits = [];
       _kukAssessments.clear();
       _kukEvidence.clear();
+      _kompetensiSkemaId = idSkema;
     });
     try {
       final komp = await SertifikatService.getPraAsesmenKompetensi(
@@ -604,8 +667,32 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         _selectedSkema ?? '',
       );
       if (!mounted) return;
+      // Ignore stale response if user switched skema mid-flight
+      if (_kompetensiSkemaId != idSkema) return;
+
+      if (komp == null) {
+        // Fallback: still show unit list from FR.APL.01 if available
+        final fallbackUnits = _cachedUnitKompetensi
+            .map((u) => {
+                  'kode': u['kode']?.toString() ?? '',
+                  'judul': u['judul']?.toString() ?? '',
+                  'kuk_count': '0 item',
+                  'elemen': <Map<String, dynamic>>[],
+                })
+            .toList();
+        setState(() {
+          _asesmenUnits = fallbackUnits;
+          _isLoadingKompetensi = false;
+        });
+        return;
+      }
+
+      if (komp.namaSkema.isNotEmpty &&
+          (_selectedSkema == null || _selectedSkema!.isEmpty)) {
+        _selectedSkema = komp.namaSkema;
+      }
+
       final units = komp.unitKompetensi.map((u) {
-        // Nested: elemen groups → each has kuk[] (or self if empty)
         final elemenGroups = u.elemen.map((e) {
           final items = e.assessableItems;
           return {
@@ -629,13 +716,26 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           'elemen': elemenGroups,
         };
       }).toList();
+
+      // If API returned empty units but FR.APL.01 has units, keep those visible
+      final resolved = units.isNotEmpty
+          ? units
+          : _cachedUnitKompetensi
+              .map((u) => {
+                    'kode': u['kode']?.toString() ?? '',
+                    'judul': u['judul']?.toString() ?? '',
+                    'kuk_count': '0 item',
+                    'elemen': <Map<String, dynamic>>[],
+                  })
+              .toList();
+
       setState(() {
-        _asesmenUnits = units;
+        _asesmenUnits = resolved;
         _isLoadingKompetensi = false;
       });
     } catch (e) {
       debugPrint('Error fetching pra-asesmen kompetensi: $e');
-      if (mounted) {
+      if (mounted && _kompetensiSkemaId == idSkema) {
         setState(() {
           _isLoadingKompetensi = false;
         });
@@ -643,15 +743,25 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     }
   }
 
+  Future<void> _ensureKompetensiLoaded() async {
+    final id = _selectedSkemaId;
+    if (id == null) return;
+    if (_isLoadingKompetensi) return;
+    if (_asesmenUnits.isNotEmpty && _kompetensiSkemaId == id) return;
+    await _fetchPraAsesmenKompetensi(id);
+  }
+
   void _clearUnitPersyaratan() {
     _cachedUnitKompetensi = [];
     _asesmenUnits = [];
+    _kompetensiSkemaId = null;
     _persyaratanDasar = [];
     _persyaratanAdministratif = const [
-      {'key': 'pasfoto', 'label': 'Pasfoto*'},
+      {'key': 'pasfoto', 'label': 'Pasfoto*', 'section': 'a'},
       {
         'key': 'identitas-pribadi-ktp-kartu-pelajar',
-        'label': 'Identitas pribadi (KTP/Kartu Pelajar)*'
+        'label': 'Identitas pribadi (KTP/Kartu Pelajar)*',
+        'section': 'a',
       },
     ];
     _uploadedDocs.clear();
@@ -683,6 +793,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       String label, {
       bool required = true,
       String section = 'b',
+      String jenisBukti = '',
     }) {
       if (key.isEmpty || seen.contains(key)) return;
       seen.add(key);
@@ -690,6 +801,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         'key': key,
         'label': label,
         'section': section,
+        'jenis_bukti': jenisBukti,
         'is_required': required,
         'status': _uploadedDocs[key] == true
             ? 'Menunggu Verifikasi'
@@ -699,14 +811,35 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     }
 
     for (final p in _persyaratanAdministratif) {
-      add(p['key'] ?? '', p['label'] ?? '', section: 'a');
+      add(
+        p['key'] ?? '',
+        p['label'] ?? '',
+        section: p['section'] ?? 'a',
+        jenisBukti: 'administratif',
+      );
     }
     for (final p in _persyaratanDasar) {
-      add(p['key'] ?? '', p['label'] ?? '', required: false, section: 'b');
+      final key = p['key'] ?? '';
+      final label = p['label'] ?? '';
+      final jenis = p['jenis_bukti'] ?? '';
+      final section = p['section'] ??
+          _sectionFromJenisBukti(jenis, key, label);
+      add(
+        key,
+        label,
+        required: false,
+        section: section,
+        jenisBukti: jenis,
+      );
     }
     for (final entry in _uploadedDocs.entries) {
       if (entry.value == true && !seen.contains(entry.key)) {
-        add(entry.key, entry.key, required: false, section: 'c');
+        add(
+          entry.key,
+          entry.key,
+          required: false,
+          section: _sectionFromJenisBukti('', entry.key, entry.key),
+        );
       }
     }
     return docs;
@@ -756,10 +889,35 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       try {
         final remote = await AsesiService.getPortofolioList(_sertifikasiId!);
         if (remote.isNotEmpty) {
-          documents = remote;
+          // Merge remote status into local section map (keep a/b/c separation)
+          final localByKey = {
+            for (final d in documents) (d['key']?.toString() ?? ''): d,
+          };
+          final merged = <Map<String, dynamic>>[];
+          final seen = <String>{};
           for (final d in remote) {
             final key = d['key']?.toString() ?? '';
             if (key.isEmpty) continue;
+            seen.add(key);
+            final local = localByKey[key];
+            final section = (d['section']?.toString().isNotEmpty == true)
+                ? d['section'].toString()
+                : (local?['section']?.toString() ??
+                    _sectionFromJenisBukti(
+                      d['jenis_bukti']?.toString() ??
+                          local?['jenis_bukti']?.toString() ??
+                          '',
+                      key,
+                      d['label']?.toString() ?? key,
+                    ));
+            merged.add({
+              ...d,
+              'section': section,
+              'jenis_bukti': d['jenis_bukti'] ?? local?['jenis_bukti'] ?? '',
+              'label': (d['label']?.toString().isNotEmpty == true)
+                  ? d['label']
+                  : (local?['label'] ?? key),
+            });
             final fn = d['file_name']?.toString();
             final st = d['status']?.toString() ?? '';
             if (fn != null && fn.isNotEmpty) {
@@ -767,6 +925,12 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               _uploadedDocs[key] = st != 'Belum Diunggah';
             }
           }
+          for (final d in documents) {
+            final key = d['key']?.toString() ?? '';
+            if (key.isEmpty || seen.contains(key)) continue;
+            merged.add(d);
+          }
+          documents = merged;
         }
       } catch (e) {
         debugPrint('Error load portofolio list: $e');
@@ -777,7 +941,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => BuktiPortofolioScreen(
-          selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+          selectedSkema: _selectedSkema ?? '',
           uploadedDocs: _uploadedDocs,
           uploadedFileNames: _uploadedFileNames,
           uploadedFilePaths: _uploadedFilePaths,
@@ -800,9 +964,14 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   // Progress to next step with validation (bypassed for testing)
   Future<void> _nextStep() async {
     if (_currentStep < 5) {
+      final next = _currentStep + 1;
       setState(() {
-        _currentStep++;
+        _currentStep = next;
       });
+      // Ensure unit/elemen/KUK loaded when entering Dokumen Portofolio / Asesmen
+      if (next == 4 || next == 5) {
+        await _ensureKompetensiLoaded();
+      }
     } else {
       setState(() {
         _isSubmitting = true;
@@ -1282,7 +1451,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         );
       case 4:
         return DokumenPortofolioForm(
-          selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+          selectedSkema: _selectedSkema ?? '',
           unitKompetensi: _asesmenUnits,
           isLoading: _isLoadingKompetensi,
           onBuktiTap: _navigateToBuktiPortofolio,
@@ -1291,7 +1460,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => AsesmenMandiriUjiScreen(
-                  selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+                  selectedSkema: _selectedSkema ?? '',
                   unitKompetensi: _asesmenUnits,
                   uploadedFileNames: _uploadedFileNames,
                   kukAssessments: _kukAssessments,
@@ -1365,7 +1534,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         }
 
         return AsesmenMandiriForm(
-          selectedSkema: _selectedSkema ?? 'Pemasaran Digital',
+          selectedSkema: _selectedSkema ?? '',
           unitKompetensi: _asesmenUnits,
           isLoading: _isLoadingKompetensi,
           onUnitTap: (index) {
