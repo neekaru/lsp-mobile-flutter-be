@@ -345,7 +345,7 @@ class JadwalListItem extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _getDisplayAsesi(),
+                          _getDisplayAsesor(),
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -649,7 +649,7 @@ class JadwalListItem extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _getDisplayAsesi(),
+                          _getDisplayAsesor(),
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
