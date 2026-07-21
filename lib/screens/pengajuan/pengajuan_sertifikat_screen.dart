@@ -21,7 +21,15 @@ import 'asesmen_mandiri_uji_screen.dart';
 import '../../models/master_models.dart';
 
 class PengajuanSertifikatScreen extends StatefulWidget {
-  const PengajuanSertifikatScreen({super.key});
+  /// Pre-select skema when opened from Detail Skema → Daftar Sekarang.
+  final int? initialSkemaId;
+  final String? initialSkemaName;
+
+  const PengajuanSertifikatScreen({
+    super.key,
+    this.initialSkemaId,
+    this.initialSkemaName,
+  });
 
   @override
   State<PengajuanSertifikatScreen> createState() => _PengajuanSertifikatScreenState();
@@ -489,6 +497,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           _masterSkemaList = list;
           _isLoadingSkema = false;
         });
+        await _applyInitialSkema();
       }
     } catch (e) {
       debugPrint('Error fetching master skema: $e');
@@ -497,6 +506,60 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           _isLoadingSkema = false;
         });
       }
+    }
+  }
+
+  /// Auto-select skema from Detail Skema so user tidak perlu cari manual.
+  Future<void> _applyInitialSkema() async {
+    final id = widget.initialSkemaId;
+    if (id == null || id <= 0) return;
+    if (_selectedSkemaId != null) return;
+
+    MasterSkema? match;
+    try {
+      match = _masterSkemaList.firstWhere((s) => s.id == id);
+    } catch (_) {
+      match = null;
+    }
+
+    final name = match?.namaSkema ??
+        (widget.initialSkemaName?.trim().isNotEmpty == true
+            ? widget.initialSkemaName!.trim()
+            : null);
+
+    if (match == null && name != null) {
+      // Pastikan muncul di dropdown walau belum ada di master list
+      _masterSkemaList = [
+        ..._masterSkemaList,
+        MasterSkema(
+          id: id,
+          kodeSkema: '',
+          namaSkema: name,
+        ),
+      ];
+    } else if (match == null) {
+      return;
+    }
+
+    setState(() {
+      _selectedSkemaId = id;
+      _selectedSkema = name ?? match?.namaSkema;
+      _selectedJadwalId = null;
+      _selectedJadwal = null;
+      _masterJadwalList = [];
+      _clearUnitPersyaratan();
+    });
+
+    // Cek duplicate di FE (sama seperti onSkemaChanged)
+    final already = await _isAlreadyRegisteredOnSkema(id);
+    if (already && mounted) {
+      await _showAlreadyRegisteredWarning(skemaName: _selectedSkema);
+      return;
+    }
+
+    if (mounted && _selectedSkemaId == id) {
+      _fetchMasterJadwal(id);
+      _fetchSkemaUnitPersyaratan(id);
     }
   }
 
@@ -647,11 +710,17 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   // FR.APL.01 bagian 2 — unit + persyaratan from API (by id_skema)
   List<Map<String, String>> _persyaratanDasar = [];
   List<Map<String, String>> _persyaratanAdministratif = const [
-    {'key': 'pasfoto', 'label': 'Pasfoto*', 'section': 'a'},
+    {
+      'key': 'pasfoto',
+      'label': 'Pasfoto*',
+      'section': 'a',
+      'mandatory': '1',
+    },
     {
       'key': 'identitas-pribadi-ktp-kartu-pelajar',
       'label': 'Identitas pribadi (KTP/Kartu Pelajar)*',
       'section': 'a',
+      'mandatory': '1',
     },
   ];
   bool _isLoadingUnitPersyaratan = false;
@@ -734,6 +803,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                     'key': p.key,
                     'label': p.label,
                     'jenis_bukti': p.jenisBukti,
+                    'mandatory': p.mandatory ? '1' : '0',
                     'section': _sectionFromJenisBukti(
                       p.jenisBukti,
                       p.key,
@@ -747,6 +817,8 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                       'key': p.key,
                       'label': p.label,
                       'section': 'a',
+                      // Admin default + API: always required for daftar
+                      'mandatory': '1',
                     })
                 .toList();
           }
@@ -898,11 +970,17 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     _kompetensiHasDetail = false;
     _persyaratanDasar = [];
     _persyaratanAdministratif = const [
-      {'key': 'pasfoto', 'label': 'Pasfoto*', 'section': 'a'},
+      {
+        'key': 'pasfoto',
+        'label': 'Pasfoto*',
+        'section': 'a',
+        'mandatory': '1',
+      },
       {
         'key': 'identitas-pribadi-ktp-kartu-pelajar',
         'label': 'Identitas pribadi (KTP/Kartu Pelajar)*',
         'section': 'a',
+        'mandatory': '1',
       },
     ];
     _uploadedDocs.clear();
@@ -951,10 +1029,12 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       });
     }
 
+    // Same list as GET /portofolio: admin defaults + skema_syarat (mandatory flag from DB)
     for (final p in _persyaratanAdministratif) {
       add(
         p['key'] ?? '',
         p['label'] ?? '',
+        required: true,
         section: p['section'] ?? 'a',
         jenisBukti: 'administratif',
       );
@@ -965,10 +1045,11 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       final jenis = p['jenis_bukti'] ?? '';
       final section = p['section'] ??
           _sectionFromJenisBukti(jenis, key, label);
+      final mand = (p['mandatory'] ?? '').toLowerCase();
       add(
         key,
         label,
-        required: false,
+        required: mand == '1' || mand == 'true',
         section: section,
         jenisBukti: jenis,
       );
@@ -1025,6 +1106,11 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   }
 
   Future<void> _navigateToBuktiPortofolio() async {
+    final ok = await _ensurePersyaratanLengkap(
+      contextLabel: 'ke Bukti Portofolio',
+    );
+    if (!ok) return;
+
     var documents = _buildPortofolioDocuments();
     if (_sertifikasiId != null) {
       try {
@@ -1247,7 +1333,118 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         .trim();
   }
 
-  // Progress to next step with validation (bypassed for testing)
+  /// Missing mandatory uploads only (match web: admin default + mandatory DB).
+  List<String> _missingPersyaratanLabels() {
+    final missing = <String>[];
+    void check(List<Map<String, String>> items, {bool forceRequired = false}) {
+      for (final p in items) {
+        final key = p['key'] ?? '';
+        if (key.isEmpty) continue;
+        final mand = (p['mandatory'] ?? '').toLowerCase();
+        final required = forceRequired ||
+            mand == '1' ||
+            mand == 'true' ||
+            mand == 'yes';
+        if (!required) continue;
+        final ok = _uploadedDocs[key] == true &&
+            (_uploadedFilePaths[key]?.isNotEmpty == true ||
+                _uploadedFileNames[key]?.isNotEmpty == true);
+        if (!ok) missing.add(p['label'] ?? key);
+      }
+    }
+
+    // Administratif default (Pasfoto + KTP) always mandatory — same as web
+    check(_persyaratanAdministratif, forceRequired: true);
+    // Dasar: only when mandatory=1 from DB
+    check(_persyaratanDasar);
+    return missing;
+  }
+
+  Future<bool> _ensurePersyaratanLengkap({String contextLabel = 'persyaratan'}) async {
+    final missing = _missingPersyaratanLabels();
+    if (missing.isEmpty) return true;
+    if (!mounted) return false;
+    final list = missing.take(6).map((e) => '• $e').join('\n');
+    final more = missing.length > 6 ? '\n…dan ${missing.length - 6} lainnya' : '';
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFFF3E0),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.warning_amber_rounded,
+                      color: Color(0xFFF59E0B),
+                      size: 44,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Persyaratan Belum Lengkap',
+                  style: TextStyle(
+                    color: Color(0xFF1E293B),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Lengkapi dulu Persyaratan Dasar & Administratif sebelum melanjutkan $contextLabel.\n\nBelum diunggah:\n$list$more',
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF378CE7),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Mengerti',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    return false;
+  }
+
   Future<void> _nextStep() async {
     if (_currentStep < 5) {
       // Step 0 → 1: warning FE jika skema sudah terdaftar (login asesi)
@@ -1260,6 +1457,13 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             return;
           }
         }
+      }
+      // Step 3 = Dokumen Persyaratan (Dasar + Administratif) harus lengkap
+      if (_currentStep == 3) {
+        final ok = await _ensurePersyaratanLengkap(
+          contextLabel: 'ke Dokumen Portofolio',
+        );
+        if (!ok) return;
       }
       final next = _currentStep + 1;
       setState(() {
@@ -1275,6 +1479,15 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       });
 
       try {
+        // Guard: persyaratan Dasar + Administratif harus lengkap sebelum submit
+        final reqOk = await _ensurePersyaratanLengkap(
+          contextLabel: 'submit pendaftaran',
+        );
+        if (!reqOk) {
+          if (mounted) setState(() => _isSubmitting = false);
+          return;
+        }
+
         final skemaId = _selectedSkemaId ?? 1;
         final jadwalId = _selectedJadwalId;
         final dataPribadi = _buildDataPribadiPayload();

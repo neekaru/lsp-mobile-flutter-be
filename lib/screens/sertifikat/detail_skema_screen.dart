@@ -216,7 +216,10 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const PengajuanSertifikatScreen(),
+                                        builder: (context) => PengajuanSertifikatScreen(
+                                          initialSkemaId: widget.skemaId,
+                                          initialSkemaName: detail.title,
+                                        ),
                                       ),
                                     );
                                   }
