@@ -53,13 +53,14 @@ class IslandData {
         return const Color(0xFF559AD4);
       case 'sulawesi':
         return const Color(0xFF4FA8E8);
+      case 'bali_nusa_tenggara':
       case 'bali_nusa':
       case 'bali':
         return const Color(0xFF7CB8E6);
+      case 'maluku_papua':
       case 'maluku':
-        return const Color(0xFFA1D0F5);
       case 'papua':
-        return const Color(0xFFBFE0FA);
+        return const Color(0xFFA1D0F5);
       default:
         return const Color(0xFF3E82B3);
     }

@@ -4,6 +4,8 @@ import '../../models/dashboard_models.dart';
 import '../../helpers/number_format_helper.dart';
 import '../../widgets/custom_app_bar.dart';
 import 'indonesia_map.dart';
+import 'island_data.dart';
+import 'detail_breakdown_card.dart';
 import '../../screens/dashboard/asesor_homebase_screen.dart';
 import '../../screens/dashboard/distribusi_asesor_sertifikasi_screen.dart';
 
@@ -157,6 +159,8 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   AsesorStats? _asesorStats;
   List<TopProvinsi> _topProvinces = [];
   List<AsesorHomebase> _homebaseList = [];
+  Map<String, IslandData> _islandDataMap = {};
+  IslandData? _selectedIsland;
 
   @override
   void initState() {
@@ -176,10 +180,13 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
         ApiService.getAsesorStats(),
         ApiService.getTopProvinces(),
         ApiService.getAsesorHomebase(),
+        ApiService.getPenyebaranRegional(),
       ]);
 
       if (mounted) {
         final homebase = results[3] as List<AsesorHomebase>;
+        final regional = results[4] as List<RegionalDistribution>;
+        final islandMap = islandDataFromApi(regional);
         setState(() {
           _overview = results[0] as StatistikOverview;
           _asesorStats = results[1] as AsesorStats;
@@ -188,6 +195,10 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
           _homebaseList = homebase.length > 4
               ? homebase.sublist(0, 4)
               : homebase;
+          _islandDataMap = islandMap;
+          if (_selectedIsland != null) {
+            _selectedIsland = islandMap[_selectedIsland!.id];
+          }
           _isLoading = false;
         });
       }
@@ -286,7 +297,15 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                           ),
                           IndonesiaMap(
                             isAdminDashboard: true,
-                            onIslandSelected: (islandId) {},
+                            onIslandSelected: (islandId) {
+                              setState(() {
+                                if (_selectedIsland?.id == islandId) {
+                                  _selectedIsland = null;
+                                } else {
+                                  _selectedIsland = _islandDataMap[islandId];
+                                }
+                              });
+                            },
                             onProvinceSelected: (province) {
                               _showTUKDistributionBottomSheet(
                                 context,
@@ -295,6 +314,10 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                               );
                             },
                           ),
+                          if (_selectedIsland != null) ...[
+                            const SizedBox(height: 8),
+                            DetailBreakdownCard(selectedData: _selectedIsland!),
+                          ],
                           const SizedBox(height: 16),
 
                           // 4. Section: Skema/Wilayah Asesor Card
