@@ -1,27 +1,83 @@
 import 'package:flutter/material.dart';
+import '../../services/sertifikat_service.dart';
 import '../../widgets/custom_app_bar.dart';
 import 'tes_tertulis_screen.dart';
 
-class HasilReviewPraAsesmenScreen extends StatelessWidget {
+class HasilReviewPraAsesmenScreen extends StatefulWidget {
   final int skemaId;
   final String title;
   final String kodeSkema;
+  final String tuk;
+  final String tanggalAsesmen;
+  final String namaAsesor;
 
   const HasilReviewPraAsesmenScreen({
     super.key,
     required this.skemaId,
     required this.title,
     required this.kodeSkema,
+    this.tuk = '',
+    this.tanggalAsesmen = '',
+    this.namaAsesor = '',
   });
+
+  @override
+  State<HasilReviewPraAsesmenScreen> createState() =>
+      _HasilReviewPraAsesmenScreenState();
+}
+
+class _HasilReviewPraAsesmenScreenState
+    extends State<HasilReviewPraAsesmenScreen> {
+  late String _title;
+  late String _kodeSkema;
+  String _tuk = '';
+  String _tanggalAsesmen = '';
+  String _namaAsesor = '';
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _title = widget.title;
+    _kodeSkema = widget.kodeSkema;
+    _tuk = widget.tuk;
+    _tanggalAsesmen = widget.tanggalAsesmen;
+    _namaAsesor = widget.namaAsesor;
+    if (_tuk.isEmpty || _tanggalAsesmen.isEmpty || _namaAsesor.isEmpty) {
+      _loadInfo();
+    }
+  }
+
+  Future<void> _loadInfo() async {
+    setState(() => _loading = true);
+    try {
+      final info = await SertifikatService.getPraAsesmenInfo(
+        widget.skemaId,
+        widget.title,
+        widget.kodeSkema,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (info.namaSkema.isNotEmpty) _title = info.namaSkema;
+        if (info.kodeSkema.isNotEmpty) _kodeSkema = info.kodeSkema;
+        if (info.tuk.isNotEmpty) _tuk = info.tuk;
+        if (info.tanggalAsesmen.isNotEmpty) {
+          _tanggalAsesmen = info.tanggalAsesmen;
+        }
+        if (info.namaAsesor.isNotEmpty) _namaAsesor = info.namaAsesor;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
+
+  String _orDash(String v) => v.trim().isEmpty ? '—' : v.trim();
 
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
-    
-    // Normalize name to Digital Marketing to match mock layout nicely
-    final String displayTitle = title.toLowerCase().contains('pemasaran') || title.toLowerCase().contains('marketing')
-        ? 'Digital Marketing'
-        : title;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
@@ -30,20 +86,29 @@ class HasilReviewPraAsesmenScreen extends StatelessWidget {
           SizedBox(height: statusBarHeight + 8),
           _buildAppBar(context),
           Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-              child: Column(
-                children: [
-                  _buildStatusBanner(),
-                  const SizedBox(height: 20),
-                  _buildDetailCard(displayTitle),
-                  const SizedBox(height: 16),
-                  _buildEmptyCard(),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            ),
+            child: _loading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF5B9FD8),
+                    ),
+                  )
+                : SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 12.0,
+                    ),
+                    child: Column(
+                      children: [
+                        _buildStatusBanner(),
+                        const SizedBox(height: 20),
+                        _buildDetailCard(),
+                        const SizedBox(height: 16),
+                        _buildMetaCard(),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
           ),
           _buildBottomButton(context),
         ],
@@ -104,7 +169,7 @@ class HasilReviewPraAsesmenScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailCard(String displayTitle) {
+  Widget _buildDetailCard() {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -137,7 +202,7 @@ class HasilReviewPraAsesmenScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      displayTitle,
+                      _title,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -145,38 +210,14 @@ class HasilReviewPraAsesmenScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        const Text(
-                          'LPP Jogja',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF64748B),
-                          ),
+                    if (_kodeSkema.isNotEmpty)
+                      Text(
+                        _kodeSkema,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF64748B),
                         ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade50,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Icon(
-                            Icons.person,
-                            size: 10,
-                            color: Colors.red.shade400,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Text(
-                          'Yogyakarta',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
                   ],
                 ),
               ),
@@ -192,6 +233,60 @@ class HasilReviewPraAsesmenScreen extends StatelessWidget {
           _buildChecklistItem('Pra Asesmen Disetujui'),
         ],
       ),
+    );
+  }
+
+  Widget _buildMetaCard() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildMetaRow('TUK', _orDash(_tuk)),
+          const SizedBox(height: 12),
+          _buildMetaRow('Tanggal Asesmen', _orDash(_tanggalAsesmen)),
+          const SizedBox(height: 12),
+          _buildMetaRow('Asesor', _orDash(_namaAsesor)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetaRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 120,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const Text(
+          ': ',
+          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -227,18 +322,6 @@ class HasilReviewPraAsesmenScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyCard() {
-    return Container(
-      width: double.infinity,
-      height: 180,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-    );
-  }
-
   Widget _buildBottomButton(BuildContext context) {
     return Container(
       color: Colors.white,
@@ -254,9 +337,9 @@ class HasilReviewPraAsesmenScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => TesTertulisScreen(
-                    skemaId: skemaId,
-                    title: title,
-                    kodeSkema: kodeSkema,
+                    skemaId: widget.skemaId,
+                    title: _title,
+                    kodeSkema: _kodeSkema,
                   ),
                 ),
               );

@@ -9,9 +9,9 @@ class RingkasanPendaftaranCard extends StatelessWidget {
   const RingkasanPendaftaranCard({
     super.key,
     required this.skemaTitle,
-    this.assessorName = 'Eko Stiabudi',
-    this.jadwalAsessmen = '20 Juli 2026 (Sabtu)\n09:00 - 10:30 WIB',
-    this.totalPembayaran = 'Rp. 1.500.000',
+    this.assessorName = 'Belum Ditentukan',
+    this.jadwalAsessmen = 'Belum Ditentukan',
+    this.totalPembayaran = 'Rp. 0',
   });
 
   @override

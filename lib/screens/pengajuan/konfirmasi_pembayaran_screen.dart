@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../services/sertifikat_service.dart';
 import 'konfirmasi_persetujuan_screen.dart';
 
-class KonfirmasiPembayaranScreen extends StatelessWidget {
+class KonfirmasiPembayaranScreen extends StatefulWidget {
   final int skemaId;
   final String title;
   final String kodeSkema;
@@ -16,6 +17,40 @@ class KonfirmasiPembayaranScreen extends StatelessWidget {
   });
 
   @override
+  State<KonfirmasiPembayaranScreen> createState() =>
+      _KonfirmasiPembayaranScreenState();
+}
+
+class _KonfirmasiPembayaranScreenState
+    extends State<KonfirmasiPembayaranScreen> {
+  bool _loading = true;
+  String _totalPembayaran = 'Rp. 0';
+  String _skemaTitle = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _skemaTitle = widget.title;
+    _loadPrice();
+  }
+
+  Future<void> _loadPrice() async {
+    try {
+      final detail = await SertifikatService.getSkemaDetail(widget.skemaId);
+      if (!mounted) return;
+      setState(() {
+        _totalPembayaran =
+            detail.price.isNotEmpty ? detail.price : 'Rp. 0';
+        if (detail.title.isNotEmpty) _skemaTitle = detail.title;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
 
@@ -26,7 +61,13 @@ class KonfirmasiPembayaranScreen extends StatelessWidget {
           SizedBox(height: statusBarHeight + 8),
           _buildAppBar(context),
           Expanded(
-            child: SingleChildScrollView(
+            child: _loading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF5B9FD8),
+                    ),
+                  )
+                : SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -109,8 +150,8 @@ class KonfirmasiPembayaranScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
-          Text(
+        children: [
+          const Text(
             'Total Pembayaran',
             style: TextStyle(
               fontSize: 13,
@@ -119,8 +160,8 @@ class KonfirmasiPembayaranScreen extends StatelessWidget {
             ),
           ),
           Text(
-            'Rp. 1.500.000',
-            style: TextStyle(
+            _totalPembayaran,
+            style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: Colors.black,
@@ -390,9 +431,9 @@ class KonfirmasiPembayaranScreen extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) => KonfirmasiPersetujuanScreen(
-                skemaId: skemaId,
-                title: title,
-                kodeSkema: kodeSkema,
+                skemaId: widget.skemaId,
+                title: _skemaTitle.isNotEmpty ? _skemaTitle : widget.title,
+                kodeSkema: widget.kodeSkema,
               ),
             ),
           );

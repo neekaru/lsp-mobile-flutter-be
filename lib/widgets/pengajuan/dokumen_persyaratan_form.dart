@@ -23,7 +23,7 @@ class DokumenPersyaratanForm extends StatelessWidget {
       {'key': 'pasfoto', 'label': 'Pasfoto*'},
       {
         'key': 'identitas-pribadi-ktp-kartu-pelajar',
-        'label': 'Identitas pribadi (KTP/Kartu Pelajar)*'
+        'label': 'Identitas pribadi (KTP/Kartu Pelajar)*',
       },
     ],
     this.isLoading = false,

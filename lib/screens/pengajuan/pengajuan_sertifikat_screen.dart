@@ -36,22 +36,6 @@ class PengajuanSertifikatScreen extends StatefulWidget {
 }
 
 class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
-  // Lists of schemas and schedules loaded dynamically from the API/Database
-  List<String> _listSkema = [
-    'Pemasaran Digital',
-    'Programmer (Web & Mobile Developer)',
-    'Cloud Computing Administrator',
-    'Digital Marketing Specialist',
-    'Network Security Engineer',
-    'Data Analyst Specialist',
-  ];
-
-  List<String> _listJadwal = [
-    'Sertifikasi Kompetensi TIK Programmer - Batch 2 (TUK Campus Digital)',
-    'Asesmen Cloud Computing - Batch 1 (TUK Sewaktu LSP)',
-    'Digital Marketing Sertifikasi - Batch 3 (TUK Borneo Engineer)',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -64,72 +48,10 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     await Future.delayed(const Duration(milliseconds: 375));
     if (!mounted) return;
 
-    // Collect all fetched data FIRST, then batch into a single setState.
-    // This prevents 3 separate full-tree rebuilds during init.
-    List<String>? newSkema;
-    List<String>? newJadwal;
-
-    try {
-      final skemaRes = await ApiService.getSertifikatPerSkema(limit: 100);
-      if (skemaRes.data.isNotEmpty) {
-        final fetched = skemaRes.data
-            .map((item) => item.skema)
-            .where((name) => name.isNotEmpty)
-            .toSet()
-            .toList();
-        if (fetched.isNotEmpty) newSkema = fetched;
-      }
-    } catch (e) {
-      debugPrint('Error loading skemas from API: $e');
-    }
-
-    try {
-      final activeJadwal = await ApiService.getJadwalList(limit: 100);
-      if (activeJadwal.isNotEmpty) {
-        final fetched = activeJadwal
-            .map((item) => item.skema)
-            .where((name) => name.isNotEmpty)
-            .toSet()
-            .toList();
-        if (fetched.isNotEmpty) newJadwal = fetched;
-      } else {
-        final jadwalBaruList = await ApiService.getJadwalBaru();
-        if (jadwalBaruList.isNotEmpty) {
-          final fetched = jadwalBaruList
-              .map((item) => item.jadwal)
-              .where((name) => name.isNotEmpty)
-              .toSet()
-              .toList();
-          if (fetched.isNotEmpty) newJadwal = fetched;
-        }
-      }
-    } catch (e) {
-      debugPrint('Error loading schedules from API: $e');
-    }
-
-    // Single setState: one rebuild instead of three
-    if (!mounted) return;
-    setState(() {
-      if (newSkema != null) _listSkema = newSkema;
-      if (newJadwal != null) _listJadwal = newJadwal;
-      if (_selectedSkema != null && !_listSkema.contains(_selectedSkema)) {
-        _listSkema.add(_selectedSkema!);
-      }
-      if (_selectedJadwal != null && !_listJadwal.contains(_selectedJadwal)) {
-        _selectedJadwal = null;
-      }
-    });
-
-    // Fetch master data for Provinsi dropdown
+    // Master data only (dropdowns bind to _master* lists from API)
     _fetchProvinsi();
-
-    // Fetch master data for Skema dropdown
     _fetchMasterSkema();
-
-    // Fetch master sumber anggaran (pemberi di-load cascade saat sumber dipilih)
     _fetchMasterSumberAnggaran();
-
-    // FR.APL.01: master pendidikan/pekerjaan + prefill profile
     _fetchMasterPendidikan();
     _fetchMasterPekerjaan();
     _loadAsesiProfile();
@@ -545,7 +467,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       _selectedSkemaId = id;
       _selectedSkema = name ?? match?.namaSkema;
       _selectedJadwalId = null;
-      _selectedJadwal = null;
       _masterJadwalList = [];
       _clearUnitPersyaratan();
     });
@@ -643,7 +564,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
   int? _selectedSumberAnggaranId;
   int? _selectedPemberiAnggaranId;
   String? _selectedSkema;
-  String? _selectedJadwal;
 
   List<MasterSkema> _masterSkemaList = [];
   List<MasterJadwal> _masterJadwalList = [];
@@ -709,6 +629,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
 
   // FR.APL.01 bagian 2 — unit + persyaratan from API (by id_skema)
   List<Map<String, String>> _persyaratanDasar = [];
+  // Default admin keys always present for upload; API can replace/extend.
   List<Map<String, String>> _persyaratanAdministratif = const [
     {
       'key': 'pasfoto',
@@ -811,17 +732,39 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                     ),
                   })
               .toList();
-          if (data.persyaratanAdministratif.isNotEmpty) {
-            _persyaratanAdministratif = data.persyaratanAdministratif
-                .map((p) => {
-                      'key': p.key,
-                      'label': p.label,
-                      'section': 'a',
-                      // Admin default + API: always required for daftar
-                      'mandatory': '1',
-                    })
-                .toList();
+          // Merge API admin list with defaults — never drop pasfoto/KTP keys.
+          const defaults = [
+            {
+              'key': 'pasfoto',
+              'label': 'Pasfoto*',
+              'section': 'a',
+              'mandatory': '1',
+            },
+            {
+              'key': 'identitas-pribadi-ktp-kartu-pelajar',
+              'label': 'Identitas pribadi (KTP/Kartu Pelajar)*',
+              'section': 'a',
+              'mandatory': '1',
+            },
+          ];
+          final fromApi = data.persyaratanAdministratif
+              .map((p) => {
+                    'key': p.key,
+                    'label': p.label,
+                    'section': 'a',
+                    'mandatory': '1',
+                  })
+              .toList();
+          final byKey = <String, Map<String, String>>{};
+          for (final d in defaults) {
+            byKey[d['key']!] = Map<String, String>.from(d);
           }
+          for (final p in fromApi) {
+            final k = p['key'] ?? '';
+            if (k.isEmpty) continue;
+            byKey[k] = p;
+          }
+          _persyaratanAdministratif = byKey.values.toList();
           if (_selectedSkema == null || _selectedSkema!.isEmpty) {
             _selectedSkema = data.namaSkema;
           }
@@ -1210,7 +1153,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     _selectedSkemaId = null;
     _selectedSkema = null;
     _selectedJadwalId = null;
-    _selectedJadwal = null;
     _masterJadwalList = [];
     _selectedSumberAnggaranId = null;
     _selectedPemberiAnggaranId = null;
@@ -1488,8 +1430,14 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           return;
         }
 
-        final skemaId = _selectedSkemaId ?? 1;
+        final skemaId = _selectedSkemaId;
         final jadwalId = _selectedJadwalId;
+        if (skemaId == null || skemaId <= 0) {
+          throw Exception('Pilih skema sertifikasi terlebih dahulu.');
+        }
+        if (jadwalId == null || jadwalId <= 0) {
+          throw Exception('Pilih jadwal asesmen terlebih dahulu.');
+        }
         final dataPribadi = _buildDataPribadiPayload();
 
         // 0. Publik: ensure-asesi → token. Sudah login asesi: skip.
@@ -1532,11 +1480,21 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           if (filePath != null &&
               filePath.isNotEmpty &&
               !filePath.startsWith('http')) {
-            await AsesiService.uploadPortofolio(sertId, docKey, filePath);
+            final up = await AsesiService.uploadPortofolio(
+              sertId,
+              docKey,
+              filePath,
+            );
+            if (up == null) {
+              throw Exception(
+                'Gagal unggah dokumen "$docKey". Periksa file lalu coba lagi.',
+              );
+            }
           }
         }
 
         // 3. Submit Pra-Asesmen (key: k:{id_kuk} | e:{id_elemen})
+        await _ensureKompetensiLoaded();
         final List<Map<String, dynamic>> evaluasi = [];
         _kukAssessments.forEach((key, isKompeten) {
           if (isKompeten == null) return;
@@ -1576,11 +1534,17 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           evaluasi.add(item);
         });
 
-        final submitRes = evaluasi.isEmpty
-            ? true
-            : await AsesiService.submitPraAsesmen(skemaId, evaluasi);
-        if (!submitRes) {
-          throw Exception('Gagal submit evaluasi pra-asesmen.');
+        if (_kompetensiHasDetail && evaluasi.isEmpty) {
+          throw Exception(
+            'Lengkapi asesmen mandiri (evaluasi kompetensi) sebelum mengirim.',
+          );
+        }
+        if (evaluasi.isNotEmpty) {
+          final submitRes =
+              await AsesiService.submitPraAsesmen(skemaId, evaluasi);
+          if (!submitRes) {
+            throw Exception('Gagal submit evaluasi pra-asesmen.');
+          }
         }
 
         if (!mounted) return;
@@ -1827,7 +1791,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             setState(() {
               _selectedSkemaId = val;
               _selectedJadwalId = null;
-              _selectedJadwal = null;
               _masterJadwalList = [];
               if (val != null) {
                 try {
@@ -1862,17 +1825,6 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             if (_selectedSkemaId == null) return;
             setState(() {
               _selectedJadwalId = val;
-              if (val != null) {
-                try {
-                  final selected =
-                      _masterJadwalList.firstWhere((item) => item.id == val);
-                  _selectedJadwal = selected.displayName;
-                } catch (_) {
-                  _selectedJadwal = null;
-                }
-              } else {
-                _selectedJadwal = null;
-              }
             });
           },
           onSumberAnggaranChanged: (val) {

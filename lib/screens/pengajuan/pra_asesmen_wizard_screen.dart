@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../helpers/date_format_helper.dart';
 import '../../widgets/custom_app_bar.dart';
 import 'hasil_review_pra_asesmen_screen.dart';
 import 'widgets/animated_success_badge.dart';
@@ -231,8 +232,17 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
                         MaterialPageRoute(
                           builder: (context) => HasilReviewPraAsesmenScreen(
                             skemaId: widget.skemaId,
-                            title: widget.title,
-                            kodeSkema: widget.kodeSkema,
+                            title: _praAsesmenInfo?.namaSkema.isNotEmpty == true
+                                ? _praAsesmenInfo!.namaSkema
+                                : widget.title,
+                            kodeSkema:
+                                _praAsesmenInfo?.kodeSkema.isNotEmpty == true
+                                    ? _praAsesmenInfo!.kodeSkema
+                                    : widget.kodeSkema,
+                            tuk: _praAsesmenInfo?.tuk ?? '',
+                            tanggalAsesmen:
+                                _praAsesmenInfo?.tanggalAsesmen ?? '',
+                            namaAsesor: _praAsesmenInfo?.namaAsesor ?? '',
                           ),
                         ),
                       );
@@ -333,11 +343,15 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
     switch (_currentStep) {
       case 1:
         return StepInformasiSkema(
-          title: _praAsesmenInfo?.namaSkema ?? widget.title,
-          kodeSkema: _praAsesmenInfo?.kodeSkema ?? widget.kodeSkema,
-          tanggalAsesmen: _praAsesmenInfo?.tanggalAsesmen ?? '',
-          tuk: _praAsesmenInfo?.tuk ?? '',
-          namaAsesor: _praAsesmenInfo?.namaAsesor ?? '',
+          title: _praAsesmenInfo?.namaSkema.isNotEmpty == true
+              ? _praAsesmenInfo!.namaSkema
+              : widget.title,
+          kodeSkema: _praAsesmenInfo?.kodeSkema.isNotEmpty == true
+              ? _praAsesmenInfo!.kodeSkema
+              : widget.kodeSkema,
+          tanggalAsesmen: _formatOrEmpty(_praAsesmenInfo?.tanggalAsesmen),
+          tuk: _orBelum(_praAsesmenInfo?.tuk),
+          namaAsesor: _resolveAsesorName(_praAsesmenInfo?.namaAsesor),
           isLoading: _isLoadingInfo,
         );
       case 2:
@@ -488,5 +502,27 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
         ),
       ),
     );
+  }
+
+  String _orBelum(String? value) {
+    final v = value?.trim() ?? '';
+    return v.isEmpty ? 'Belum Ditentukan' : v;
+  }
+
+  String _formatOrEmpty(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return 'Belum Ditentukan';
+    return DateFormatHelper.formatToLong(v);
+  }
+
+  /// UI shows a single assessor; API may return comma-separated list.
+  String _resolveAsesorName(String? raw) {
+    for (final part in (raw ?? '').split(',')) {
+      final name = part.trim();
+      if (name.isEmpty) continue;
+      if (name.toLowerCase() == 'belum ada') continue;
+      return name;
+    }
+    return 'Belum Ditentukan';
   }
 }

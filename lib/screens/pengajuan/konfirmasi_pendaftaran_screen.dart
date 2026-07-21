@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../helpers/date_format_helper.dart';
+import '../../models/sertifikat_models.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/pengajuan/periksa_data_banner.dart';
 import '../../widgets/pengajuan/ringkasan_pendaftaran_card.dart';
 import '../../widgets/pengajuan/data_diri_konfirmasi_card.dart';
-import '../../services/auth_repository.dart';
+import '../../services/asesi_service.dart';
+import '../../services/sertifikat_service.dart';
 import 'edit_data_pendaftaran_screen.dart';
 import 'konfirmasi_portofolio_screen.dart';
 
@@ -20,26 +23,95 @@ class KonfirmasiPendaftaranScreen extends StatefulWidget {
   });
 
   @override
-  State<KonfirmasiPendaftaranScreen> createState() => _KonfirmasiPendaftaranScreenState();
+  State<KonfirmasiPendaftaranScreen> createState() =>
+      _KonfirmasiPendaftaranScreenState();
 }
 
-class _KonfirmasiPendaftaranScreenState extends State<KonfirmasiPendaftaranScreen> {
-  // Mock data of the candidate matching the screenshots exactly
-  String _name = 'Muhammad Hanafi';
-  String _email = 'HanafiMuhammad@gmail.com';
-  String _phone = '085026954823';
-  String _address = 'Jl. Pramuka Km 4,5 Baamang, Kalimantan Selatan';
-  String _nik = '6256400136573124';
-  String _pendidikan = 'D3 Teknik Informasi';
+class _KonfirmasiPendaftaranScreenState
+    extends State<KonfirmasiPendaftaranScreen> {
+  bool _isLoading = true;
+
+  String _skemaTitle = '';
+  String _assessorName = 'Belum Ditentukan';
+  String _jadwalAsessmen = 'Belum Ditentukan';
+  String _totalPembayaran = 'Rp. 0';
+
+  String _name = '';
+  String _email = '';
+  String _phone = '';
+  String _address = '';
+  String _nik = '';
+  String _pendidikan = '';
+  int? _pendidikanId;
+
   @override
   void initState() {
     super.initState();
-    final user = AuthRepository.currentUserInstance;
-    if (user != null) {
-      _name = user.name;
-      _email = user.email ?? '';
-    }
+    _skemaTitle = widget.title;
+    _loadAll();
   }
+
+  Future<void> _loadAll() async {
+    setState(() => _isLoading = true);
+
+    final results = await Future.wait([
+      AsesiService.getProfile(),
+      SertifikatService.getPraAsesmenInfo(
+        widget.skemaId,
+        widget.title,
+        widget.kodeSkema,
+      ),
+      () async {
+        try {
+          return await SertifikatService.getSkemaDetail(widget.skemaId);
+        } catch (e) {
+          debugPrint('Error loading skema detail: $e');
+          return null;
+        }
+      }(),
+    ]);
+
+    if (!mounted) return;
+
+    final profile = results[0] as Map<String, dynamic>?;
+    final info = results[1] as PraAsesmenInfo;
+    final detail = results[2] as SkemaSertifikatDetailResponse?;
+
+    final namaAsesor = info.namaAsesor.trim();
+    final tanggalRaw = info.tanggalAsesmen.trim();
+    final skemaFromInfo = info.namaSkema.trim();
+
+    final price = detail?.price ?? 'Rp. 0';
+    final skemaTitle = skemaFromInfo.isNotEmpty
+        ? skemaFromInfo
+        : (detail?.title.isNotEmpty == true ? detail!.title : widget.title);
+
+    setState(() {
+      if (profile != null) {
+        _name = (profile['nama_lengkap'] ?? '').toString();
+        _email = (profile['email'] ?? '').toString();
+        _phone = (profile['telp'] ?? '').toString();
+        _address = (profile['alamat'] ?? '').toString();
+        _nik = (profile['nik'] ?? '').toString();
+        _pendidikan = (profile['nama_pendidikan'] ?? '').toString();
+        final idPend = profile['id_pendidikan'];
+        if (idPend is int) {
+          _pendidikanId = idPend;
+        } else if (idPend is num) {
+          _pendidikanId = idPend.toInt();
+        }
+      }
+
+      _skemaTitle = skemaTitle;
+      _assessorName = _resolveAsesorName(namaAsesor);
+      _jadwalAsessmen = tanggalRaw.isNotEmpty
+          ? DateFormatHelper.formatToLong(tanggalRaw)
+          : 'Belum Ditentukan';
+      _totalPembayaran = price;
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
@@ -51,33 +123,51 @@ class _KonfirmasiPendaftaranScreenState extends State<KonfirmasiPendaftaranScree
           SizedBox(height: statusBarHeight + 8),
           _buildAppBar(),
           Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const PeriksaDataBanner(),
-                  const SizedBox(height: 16),
-                  RingkasanPendaftaranCard(
-                    skemaTitle: widget.title,
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF5B9FD8),
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadAll,
+                    color: const Color(0xFF5B9FD8),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 12.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const PeriksaDataBanner(),
+                          const SizedBox(height: 16),
+                          RingkasanPendaftaranCard(
+                            skemaTitle: _skemaTitle,
+                            assessorName: _assessorName,
+                            jadwalAsessmen: _jadwalAsessmen,
+                            totalPembayaran: _totalPembayaran,
+                          ),
+                          const SizedBox(height: 16),
+                          DataDiriKonfirmasiCard(
+                            name: _name,
+                            nik: _nik,
+                            phone: _phone,
+                            email: _email,
+                            pendidikan: _pendidikan,
+                            address: _address,
+                            onEdit: _navigateToEditDataDiri,
+                          ),
+                          const SizedBox(height: 24),
+                          _buildActionButtons(),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  DataDiriKonfirmasiCard(
-                    name: _name,
-                    nik: _nik,
-                    phone: _phone,
-                    email: _email,
-                    pendidikan: _pendidikan,
-                    address: _address,
-                    onEdit: _navigateToEditDataDiri,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildActionButtons(),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
           ),
         ],
       ),
@@ -101,6 +191,7 @@ class _KonfirmasiPendaftaranScreenState extends State<KonfirmasiPendaftaranScree
           currentPhone: _phone,
           currentEmail: _email,
           currentPendidikan: _pendidikan,
+          currentPendidikanId: _pendidikanId,
           currentAddress: _address,
           onSave: (name, nik, phone, email, pendidikan, address,
               {int? pendidikanId}) {
@@ -111,6 +202,7 @@ class _KonfirmasiPendaftaranScreenState extends State<KonfirmasiPendaftaranScree
               _email = email;
               _pendidikan = pendidikan;
               _address = address;
+              _pendidikanId = pendidikanId;
             });
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -159,5 +251,16 @@ class _KonfirmasiPendaftaranScreenState extends State<KonfirmasiPendaftaranScree
         ),
       ),
     );
+  }
+
+  /// UI shows a single assessor; API may return comma-separated list.
+  String _resolveAsesorName(String raw) {
+    for (final part in raw.split(',')) {
+      final name = part.trim();
+      if (name.isEmpty) continue;
+      if (name.toLowerCase() == 'belum ada') continue;
+      return name;
+    }
+    return 'Belum Ditentukan';
   }
 }

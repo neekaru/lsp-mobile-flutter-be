@@ -633,8 +633,20 @@ class PraAsesmenInfo {
       kodeSkema: json['kode_skema'] ?? '',
       tanggalAsesmen: json['tanggal_asesmen'] ?? '',
       tuk: json['tuk'] ?? '',
-      namaAsesor: json['nama_asesor'] ?? '',
+      // UI shows a single assessor; API may return comma-separated list.
+      namaAsesor: _firstAsesorName(json['nama_asesor']?.toString() ?? ''),
     );
+  }
+
+  /// Picks the first non-empty assessor name from a comma-separated list.
+  static String _firstAsesorName(String raw) {
+    for (final part in raw.split(',')) {
+      final name = part.trim();
+      if (name.isEmpty) continue;
+      if (name.toLowerCase() == 'belum ada') continue;
+      return name;
+    }
+    return '';
   }
 
   factory PraAsesmenInfo.fallback(int skemaId, String title, String kodeSkema) {
@@ -642,9 +654,9 @@ class PraAsesmenInfo {
       skemaId: skemaId,
       namaSkema: title,
       kodeSkema: kodeSkema,
-      tanggalAsesmen: '20 Mei 2026',
-      tuk: 'TUK Universitas LPP',
-      namaAsesor: 'Belum Ditentukan',
+      tanggalAsesmen: '',
+      tuk: '',
+      namaAsesor: '',
     );
   }
 }
