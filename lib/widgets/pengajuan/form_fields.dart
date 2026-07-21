@@ -424,6 +424,7 @@ class SearchableModalSelectorGeneric<T> extends StatelessWidget {
   final ValueChanged<T?> onChanged;
   final bool isLoading;
   final String title;
+  final bool enabled;
 
   const SearchableModalSelectorGeneric({
     super.key,
@@ -433,6 +434,7 @@ class SearchableModalSelectorGeneric<T> extends StatelessWidget {
     required this.onChanged,
     required this.title,
     this.isLoading = false,
+    this.enabled = true,
   });
 
   @override
@@ -441,13 +443,14 @@ class SearchableModalSelectorGeneric<T> extends StatelessWidget {
     final selectedItem = items.any((item) => item.value == value)
         ? items.firstWhere((item) => item.value == value)
         : null;
+    final isDisabled = !enabled || isLoading || items.isEmpty;
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: enabled ? const Color(0xFFF8FAFC) : const Color(0xFFF1F5F9),
         borderRadius: _kBorderRadius,
         border: Border.all(
-          color: const Color(0xFFCBD5E1),
+          color: enabled ? const Color(0xFFCBD5E1) : const Color(0xFFE2E8F0),
           width: 1.2,
         ),
         boxShadow: const [
@@ -459,7 +462,7 @@ class SearchableModalSelectorGeneric<T> extends StatelessWidget {
         ],
       ),
       child: InkWell(
-        onTap: (isLoading || items.isEmpty) ? null : () => _showSearchModal(context),
+        onTap: isDisabled ? null : () => _showSearchModal(context),
         borderRadius: _kBorderRadius,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -469,18 +472,22 @@ class SearchableModalSelectorGeneric<T> extends StatelessWidget {
                 child: Text(
                   isLoading
                       ? 'Memuat data...'
-                      : (!isLoading && items.isEmpty)
-                          ? 'Tidak ada data'
-                          : (selectedItem != null ? selectedItem.label : hint),
+                      : !enabled
+                          ? hint
+                          : (!isLoading && items.isEmpty)
+                              ? 'Tidak ada data'
+                              : (selectedItem != null ? selectedItem.label : hint),
                   style: TextStyle(
                     fontSize: 13.5,
-                    color: isLoading
-                        ? const Color(0xFF0F4C81)
-                        : (!isLoading && items.isEmpty)
-                            ? const Color(0xFFEF4444)
-                            : (selectedItem != null
-                                ? const Color(0xFF1E293B)
-                                : const Color(0xFF94A3B8)),
+                    color: !enabled
+                        ? const Color(0xFF94A3B8)
+                        : isLoading
+                            ? const Color(0xFF0F4C81)
+                            : (!isLoading && items.isEmpty)
+                                ? const Color(0xFFEF4444)
+                                : (selectedItem != null
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFF94A3B8)),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -495,12 +502,12 @@ class SearchableModalSelectorGeneric<T> extends StatelessWidget {
                     valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F4C81)),
                   ),
                 )
-              else if (items.isEmpty)
-                const SizedBox.shrink()
               else
-                const Icon(
+                Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  color: Color(0xFF0F4C81),
+                  color: enabled
+                      ? const Color(0xFF0F4C81)
+                      : const Color(0xFF94A3B8),
                   size: 20,
                 ),
             ],

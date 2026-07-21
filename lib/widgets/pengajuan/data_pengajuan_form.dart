@@ -83,50 +83,62 @@ class DataPengajuanForm extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        // Dropdown Jadwal Uji Kompetensi
+        // Dropdown Jadwal Uji Kompetensi (disabled jika skema null)
         const CustomFieldLabel(label: 'Jadwal Uji Kompetensi'),
         SearchableModalSelectorGeneric<int>(
           title: 'Jadwal Uji Kompetensi',
           hint: selectedSkema == null
               ? 'Pilih skema terlebih dahulu'
               : 'Pilih jadwal',
-          value: selectedJadwal,
-          items: List<DropdownItemData<int>>.generate(
-            listJadwal.length,
-            (i) => DropdownItemData<int>(
-              value: listJadwal[i].id,
-              label: listJadwal[i].displayName,
-            ),
-          ),
-          isLoading: isLoadingJadwal,
-          onChanged: onJadwalChanged,
+          value: selectedSkema == null ? null : selectedJadwal,
+          items: selectedSkema == null
+              ? const <DropdownItemData<int>>[]
+              : List<DropdownItemData<int>>.generate(
+                  listJadwal.length,
+                  (i) => DropdownItemData<int>(
+                    value: listJadwal[i].id,
+                    label: listJadwal[i].displayName,
+                  ),
+                ),
+          isLoading: selectedSkema == null ? false : isLoadingJadwal,
+          onChanged: selectedSkema == null ? (_) {} : onJadwalChanged,
+          enabled: selectedSkema != null,
         ),
         const SizedBox(height: 6),
-        const Text(
-          'Perhatikan nama jadwal, Pilih jadwal berdasarkan skema dan tempat uji coba',
+        Text(
+          selectedSkema == null
+              ? 'Pilih skema lain yang belum terisi untuk membuka jadwal uji kompetensi.'
+              : 'Perhatikan nama jadwal, Pilih jadwal berdasarkan skema dan tempat uji coba',
           style: TextStyle(
-            color: Color(0xFF27AE60),
+            color: selectedSkema == null
+                ? const Color(0xFFEF4444)
+                : const Color(0xFF27AE60),
             fontSize: 11,
             fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 20),
 
-        // Dropdown Sumber Anggaran
+        // Dropdown Sumber Anggaran (disabled jika skema null)
         const CustomFieldLabel(label: 'Sumber Anggaran'),
         SearchableModalSelectorGeneric<int>(
           title: 'Sumber Anggaran',
-          hint: 'Pilih sumber anggaran',
-          value: selectedSumberAnggaran,
-          items: List<DropdownItemData<int>>.generate(
-            listSumberAnggaran.length,
-            (i) => DropdownItemData<int>(
-              value: listSumberAnggaran[i].id,
-              label: listSumberAnggaran[i].displayName,
-            ),
-          ),
-          isLoading: isLoadingSumberAnggaran,
-          onChanged: onSumberAnggaranChanged,
+          hint: selectedSkema == null
+              ? 'Pilih skema terlebih dahulu'
+              : 'Pilih sumber anggaran',
+          value: selectedSkema == null ? null : selectedSumberAnggaran,
+          items: selectedSkema == null
+              ? const <DropdownItemData<int>>[]
+              : List<DropdownItemData<int>>.generate(
+                  listSumberAnggaran.length,
+                  (i) => DropdownItemData<int>(
+                    value: listSumberAnggaran[i].id,
+                    label: listSumberAnggaran[i].displayName,
+                  ),
+                ),
+          isLoading: selectedSkema == null ? false : isLoadingSumberAnggaran,
+          onChanged: selectedSkema == null ? (_) {} : onSumberAnggaranChanged,
+          enabled: selectedSkema != null,
         ),
         const SizedBox(height: 20),
 
@@ -134,19 +146,30 @@ class DataPengajuanForm extends StatelessWidget {
         const CustomFieldLabel(label: 'Pemberi Anggaran'),
         SearchableModalSelectorGeneric<int>(
           title: 'Pemberi Anggaran',
-          hint: selectedSumberAnggaran == null
-              ? 'Pilih sumber anggaran terlebih dahulu'
-              : 'Pilih pemberi anggaran',
-          value: selectedPemberiAnggaran,
-          items: List<DropdownItemData<int>>.generate(
-            listPemberiAnggaran.length,
-            (i) => DropdownItemData<int>(
-              value: listPemberiAnggaran[i].id,
-              label: listPemberiAnggaran[i].displayName,
-            ),
-          ),
-          isLoading: isLoadingPemberiAnggaran,
-          onChanged: onPemberiAnggaranChanged,
+          hint: selectedSkema == null
+              ? 'Pilih skema terlebih dahulu'
+              : selectedSumberAnggaran == null
+                  ? 'Pilih sumber anggaran terlebih dahulu'
+                  : 'Pilih pemberi anggaran',
+          value: (selectedSkema == null || selectedSumberAnggaran == null)
+              ? null
+              : selectedPemberiAnggaran,
+          items: (selectedSkema == null || selectedSumberAnggaran == null)
+              ? const <DropdownItemData<int>>[]
+              : List<DropdownItemData<int>>.generate(
+                  listPemberiAnggaran.length,
+                  (i) => DropdownItemData<int>(
+                    value: listPemberiAnggaran[i].id,
+                    label: listPemberiAnggaran[i].displayName,
+                  ),
+                ),
+          isLoading: (selectedSkema == null || selectedSumberAnggaran == null)
+              ? false
+              : isLoadingPemberiAnggaran,
+          onChanged: (selectedSkema == null || selectedSumberAnggaran == null)
+              ? (_) {}
+              : onPemberiAnggaranChanged,
+          enabled: selectedSkema != null && selectedSumberAnggaran != null,
         ),
       ],
     );

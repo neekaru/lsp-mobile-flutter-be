@@ -1120,6 +1120,18 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     return false;
   }
 
+  void _clearSkemaAndJadwal() {
+    _selectedSkemaId = null;
+    _selectedSkema = null;
+    _selectedJadwalId = null;
+    _selectedJadwal = null;
+    _masterJadwalList = [];
+    _selectedSumberAnggaranId = null;
+    _selectedPemberiAnggaranId = null;
+    _masterPemberiAnggaranList = [];
+    _clearUnitPersyaratan();
+  }
+
   Future<void> _showAlreadyRegisteredWarning({
     String? skemaName,
     String? beMessage,
@@ -1128,50 +1140,92 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     final name = (skemaName ?? _selectedSkema ?? 'skema ini').trim();
     final body = (beMessage != null && beMessage.trim().isNotEmpty)
         ? beMessage.trim()
-        : 'Anda sudah terdaftar pada skema "$name". '
-            'Pendaftaran di tempat/TUK lain untuk skema yang sama tidak diizinkan.';
+        : 'Skema "$name" sudah terisi / sudah Anda daftarkan. '
+            'Silakan pilih skema lain untuk melanjutkan pendaftaran.';
 
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Color(0xFFF59E0B), size: 28),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFFF3E0),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.warning_amber_rounded,
+                      color: Color(0xFFF59E0B),
+                      size: 44,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
                   'Sudah Terdaftar',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                  style: TextStyle(
+                    color: Color(0xFF1E293B),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-            ],
-          ),
-          content: Text(
-            body,
-            style: const TextStyle(
-              fontSize: 14,
-              height: 1.45,
-              color: Color(0xFF475569),
+                const SizedBox(height: 8),
+                Text(
+                  body,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF378CE7),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Mengerti',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text(
-                'Mengerti',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2563EB),
-                ),
-              ),
-            ),
-          ],
         );
       },
     );
+
+    // Setelah warning: null-kan skema + kosongkan jadwal, jadwal tidak bisa dipilih
+    if (mounted) {
+      setState(_clearSkemaAndJadwal);
+    }
   }
 
   bool _isAlreadyRegisteredError(Object e) {
@@ -1556,6 +1610,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           isLoadingSumberAnggaran: _isLoadingSumberAnggaran,
           isLoadingPemberiAnggaran: _isLoadingPemberiAnggaran,
           onSkemaChanged: (val) async {
+            String? skemaName;
             setState(() {
               _selectedSkemaId = val;
               _selectedJadwalId = null;
@@ -1563,8 +1618,10 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               _masterJadwalList = [];
               if (val != null) {
                 try {
-                  final selected = _masterSkemaList.firstWhere((item) => item.id == val);
+                  final selected =
+                      _masterSkemaList.firstWhere((item) => item.id == val);
                   _selectedSkema = selected.namaSkema;
+                  skemaName = selected.namaSkema;
                 } catch (_) {
                   _selectedSkema = null;
                 }
@@ -1578,20 +1635,24 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             if (val != null && val > 0) {
               final already = await _isAlreadyRegisteredOnSkema(val);
               if (already && mounted) {
-                await _showAlreadyRegisteredWarning();
+                await _showAlreadyRegisteredWarning(skemaName: skemaName);
+                return; // skema/jadwal sudah di-reset di warning
               }
             }
-            if (val != null) {
+            if (val != null && mounted && _selectedSkemaId == val) {
               _fetchMasterJadwal(val);
               _fetchSkemaUnitPersyaratan(val);
             }
           },
           onJadwalChanged: (val) {
+            // Larang pilih jadwal jika skema belum valid
+            if (_selectedSkemaId == null) return;
             setState(() {
               _selectedJadwalId = val;
               if (val != null) {
                 try {
-                  final selected = _masterJadwalList.firstWhere((item) => item.id == val);
+                  final selected =
+                      _masterJadwalList.firstWhere((item) => item.id == val);
                   _selectedJadwal = selected.displayName;
                 } catch (_) {
                   _selectedJadwal = null;
