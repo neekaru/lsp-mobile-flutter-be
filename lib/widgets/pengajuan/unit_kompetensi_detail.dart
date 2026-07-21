@@ -49,6 +49,29 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
     return const [];
   }
 
+  void _setGroupAssessment(List<Map<String, dynamic>> items, bool isK) {
+    for (final item in items) {
+      final key = item['key']?.toString() ?? '';
+      if (key.isEmpty) continue;
+      widget.onAssessmentChanged(key, isK);
+    }
+    setState(() {});
+  }
+
+  bool? _groupAllState(List<Map<String, dynamic>> items) {
+    if (items.isEmpty) return null;
+    bool? first;
+    for (final item in items) {
+      final key = item['key']?.toString() ?? '';
+      if (key.isEmpty) continue;
+      final v = widget.kukAssessments[key];
+      if (v == null) return null;
+      first ??= v;
+      if (v != first) return null;
+    }
+    return first;
+  }
+
   void _showEvidencePicker(BuildContext context, String itemKey) {
     final availableFiles =
         widget.uploadedFileNames.values.whereType<String>().toList();
@@ -203,65 +226,122 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InkWell(
-                    onTap: () =>
-                        setState(() => _expanded[gIdx] = !isExpanded),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 14),
-                      child: Row(
-                        children: [
-                          Text(
-                            '${String.fromCharCode(65 + gIdx)}.',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setState(
+                                () => _expanded[gIdx] = !isExpanded),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Row(
                               children: [
                                 Text(
-                                  title,
+                                  '${String.fromCharCode(65 + gIdx)}.',
                                   style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF1E293B),
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  countLabel,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF94A3B8),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        title,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        countLabel,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF94A3B8),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
+                                if (!isExpanded)
+                                  const Icon(Icons.keyboard_arrow_right,
+                                      color: Color(0xFF378CE7)),
                               ],
                             ),
                           ),
-                          if (isExpanded) ...[
-                            const Text('K',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569))),
-                            const SizedBox(width: 20),
-                            const Text('KB',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569))),
-                            const SizedBox(width: 8),
-                          ] else
-                            const Icon(Icons.keyboard_arrow_right,
-                                color: Color(0xFF378CE7)),
+                        ),
+                        if (isExpanded) ...[
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: items.isEmpty
+                                ? null
+                                : () => _setGroupAssessment(items, true),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 2),
+                              child: Column(
+                                children: [
+                                  const Text('K',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF475569))),
+                                  const SizedBox(height: 2),
+                                  Icon(
+                                    _groupAllState(items) == true
+                                        ? Icons.check_box_rounded
+                                        : Icons
+                                            .check_box_outline_blank_rounded,
+                                    size: 20,
+                                    color: _groupAllState(items) == true
+                                        ? const Color(0xFF378CE7)
+                                        : const Color(0xFF94A3B8),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: items.isEmpty
+                                ? null
+                                : () => _setGroupAssessment(items, false),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 2),
+                              child: Column(
+                                children: [
+                                  const Text('KB',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF475569))),
+                                  const SizedBox(height: 2),
+                                  Icon(
+                                    _groupAllState(items) == false
+                                        ? Icons.check_box_rounded
+                                        : Icons
+                                            .check_box_outline_blank_rounded,
+                                    size: 20,
+                                    color: _groupAllState(items) == false
+                                        ? const Color(0xFF378CE7)
+                                        : const Color(0xFF94A3B8),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
-                      ),
+                      ],
                     ),
                   ),
                   if (isExpanded) ...[

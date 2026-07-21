@@ -34,12 +34,75 @@ class AsesmenMandiriUjiScreen extends StatefulWidget {
 class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
   int? _activeUnitIndex;
   late List<String> _localUploadedFiles;
+  bool _showAllUnits = false;
+  static const int _unitPreviewLimit = 4;
 
   @override
   void initState() {
     super.initState();
     _localUploadedFiles =
         widget.uploadedFileNames.values.whereType<String>().toList();
+  }
+
+  void _setGroupAssessment(List<Map<String, dynamic>> items, bool isK) {
+    for (final item in items) {
+      final key = item['key']?.toString() ?? '';
+      if (key.isEmpty) continue;
+      widget.onAssessmentChanged(key, isK);
+    }
+    setState(() {});
+  }
+
+  /// null = mixed/none, true = all K, false = all KB
+  bool? _groupAllState(List<Map<String, dynamic>> items) {
+    if (items.isEmpty) return null;
+    bool? first;
+    for (final item in items) {
+      final key = item['key']?.toString() ?? '';
+      if (key.isEmpty) continue;
+      final v = widget.kukAssessments[key];
+      if (v == null) return null;
+      first ??= v;
+      if (v != first) return null;
+    }
+    return first;
+  }
+
+  Widget _buildGroupCheckAll({
+    required String label,
+    required bool checked,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Icon(
+              checked
+                  ? Icons.check_box_rounded
+                  : Icons.check_box_outline_blank_rounded,
+              size: 22,
+              color: checked
+                  ? const Color(0xFF378CE7)
+                  : const Color(0xFF94A3B8),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showEvidencePickerSheet(BuildContext context, String elemenKey) async {
@@ -205,16 +268,89 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
               style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
             ),
           )
-        else
-          ...List.generate(widget.unitKompetensi.length, (index) {
-            final unit = widget.unitKompetensi[index];
-            final kode = unit['kode'] as String? ?? '';
-            final judul = unit['judul'] as String? ?? '';
-            final kukLabel = unit['kuk_count'] as String? ??
-                '${_allItemsOf(unit).length} item';
+        else ...[
+          ...List.generate(
+            _showAllUnits
+                ? widget.unitKompetensi.length
+                : widget.unitKompetensi.length.clamp(0, _unitPreviewLimit),
+            (index) {
+              final unit = widget.unitKompetensi[index];
+              final kode = unit['kode'] as String? ?? '';
+              final judul = unit['judul'] as String? ?? '';
+              final kukLabel = unit['kuk_count'] as String? ??
+                  '${_allItemsOf(unit).length} item';
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: InkWell(
+                  onTap: () => setState(() => _activeUnitIndex = index),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${index + 1}.',
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                kode,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                judul,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                  height: 1.3,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                kukLabel,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.keyboard_arrow_right_rounded,
+                            color: Color(0xFF378CE7), size: 22),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          if (widget.unitKompetensi.length > _unitPreviewLimit)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -222,48 +358,45 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: InkWell(
-                onTap: () => setState(() => _activeUnitIndex = index),
+                onTap: () => setState(() => _showAllUnits = !_showAllUnits),
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${index + 1}.',
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          _showAllUnits
+                              ? Icons.unfold_less_rounded
+                              : Icons.folder_open_rounded,
+                          color: const Color(0xFF378CE7),
+                          size: 22,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              kode,
+                              _showAllUnits
+                                  ? 'Sembunyikan Unit Kompetensi'
+                                  : 'Lihat Semua Unit Kompetensi',
                               style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: 13.5,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF64748B),
+                                color: Color(0xFF0F4C81),
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 2),
                             Text(
-                              judul,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                                height: 1.3,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              kukLabel,
+                              '${widget.unitKompetensi.length} Unit',
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Color(0xFF94A3B8),
@@ -272,14 +405,18 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                           ],
                         ),
                       ),
-                      const Icon(Icons.keyboard_arrow_right_rounded,
-                          color: Color(0xFF378CE7), size: 22),
+                      Icon(
+                        _showAllUnits
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                        color: const Color(0xFF378CE7),
+                      ),
                     ],
                   ),
                 ),
               ),
-            );
-          }),
+            ),
+        ],
       ],
     );
   }
@@ -407,18 +544,22 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                             ],
                           ),
                         ),
-                        const Text('K',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B))),
-                        const SizedBox(width: 28),
-                        const Text('KB',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B))),
-                        const SizedBox(width: 6),
+                        // Centang all K / KB untuk seluruh KUK di elemen ini
+                        _buildGroupCheckAll(
+                          label: 'K',
+                          checked: _groupAllState(items) == true,
+                          onTap: items.isEmpty
+                              ? null
+                              : () => _setGroupAssessment(items, true),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildGroupCheckAll(
+                          label: 'KB',
+                          checked: _groupAllState(items) == false,
+                          onTap: items.isEmpty
+                              ? null
+                              : () => _setGroupAssessment(items, false),
+                        ),
                       ],
                     ),
                   ),
