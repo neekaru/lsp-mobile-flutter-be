@@ -1260,15 +1260,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                 iconColor: const Color(0xFF2F80ED),
                                 iconBgColor: const Color(0xFFE5F1FC),
                                 label: 'Asesor',
-                                value:
-                                    _detailData != null &&
-                                        _detailData!.asesor.isNotEmpty
-                                    ? _detailData!.asesor
-                                          .map((e) => e.namaAsesor)
-                                          .join(', ')
-                                    : (widget.jadwal.asesor.isEmpty
-                                          ? 'Belum ditentukan'
-                                          : widget.jadwal.asesor.join(', ')),
+                                value: '', // dikosongkan (admin)
                               ),
                               _buildInfoRow(
                                 icon: LucideIcons.users,

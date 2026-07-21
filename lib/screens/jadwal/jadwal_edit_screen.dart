@@ -718,10 +718,9 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Asesor & Jumlah Asesi Row
+                        // Asesor dikosongkan (admin) — Jumlah Asesi tetap
                         Row(
                           children: [
-                            // Asesor
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -734,35 +733,18 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        LucideIcons.user,
-                                        size: 16,
-                                        color: Colors.green,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          widget.jadwal.asesor.isEmpty
-                                              ? 'Belum ditentukan'
-                                              : widget.jadwal.asesor.first,
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black87,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
+                                  const Text(
+                                    '',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                             const SizedBox(width: 16),
-                            // Jumlah Asesi Box
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [

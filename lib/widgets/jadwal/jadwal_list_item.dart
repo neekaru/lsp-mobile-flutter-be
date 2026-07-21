@@ -653,7 +653,7 @@ class JadwalListItem extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1F2937), // Dark gray
+                            color: Color(0xFF1F2937),
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -695,7 +695,7 @@ class JadwalListItem extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1F2937), // Dark gray
+                            color: Color(0xFF1F2937),
                           ),
                         ),
                       ],
@@ -704,8 +704,6 @@ class JadwalListItem extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-
-              // Button
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
@@ -877,19 +875,7 @@ class JadwalListItem extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            // Asesor
-                            Expanded(
-                              child: Text(
-                                'Asesor: ${_getDisplayAsesor()}',
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.grey,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
+                            // Asesor dikosongkan (admin) — Jumlah Asesi tetap
                           ],
                         ),
                       ],
@@ -987,8 +973,10 @@ class JadwalListItem extends StatelessWidget {
               ),
             ),
 
-            // Bottom action — same structure for Draft / Running / others
-            if (item.status != 'completed' && item.status != 'canceled')
+            // Bottom action — hide for completed / canceled / pelaporan
+            if (item.status != 'completed' &&
+                item.status != 'canceled' &&
+                item.status != 'pelaporan')
               Container(
                 decoration: const BoxDecoration(
                   border: Border(
