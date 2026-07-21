@@ -1102,9 +1102,111 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
     if (mounted) setState(() {});
   }
 
+  /// FE pre-check: GET /api/sertifikasi/status — true jika sudah terdaftar di skema.
+  Future<bool> _isAlreadyRegisteredOnSkema(int skemaId) async {
+    if (skemaId <= 0) return false;
+    final token = await TokenStorage.instance.getAccessToken();
+    if (token == null || token.isEmpty || token.startsWith('fake-')) {
+      return false; // belum login → biar ensure-asesi dulu
+    }
+    final status = await AsesiService.getSertifikasiStatus(skemaId);
+    if (status == null) return false;
+    final terdaftar = status['terdaftar'] == true ||
+        status['terdaftar'] == 1 ||
+        status['terdaftar']?.toString() == 'true';
+    final st = (status['status_pendaftaran']?.toString() ?? '').toLowerCase();
+    if (terdaftar) return true;
+    if (st.isNotEmpty && st != 'belum_terdaftar') return true;
+    return false;
+  }
+
+  Future<void> _showAlreadyRegisteredWarning({
+    String? skemaName,
+    String? beMessage,
+  }) async {
+    if (!mounted) return;
+    final name = (skemaName ?? _selectedSkema ?? 'skema ini').trim();
+    final body = (beMessage != null && beMessage.trim().isNotEmpty)
+        ? beMessage.trim()
+        : 'Anda sudah terdaftar pada skema "$name". '
+            'Pendaftaran di tempat/TUK lain untuk skema yang sama tidak diizinkan.';
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Color(0xFFF59E0B), size: 28),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Sudah Terdaftar',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            body,
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.45,
+              color: Color(0xFF475569),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text(
+                'Mengerti',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2563EB),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  bool _isAlreadyRegisteredError(Object e) {
+    final msg = e.toString().toLowerCase();
+    return msg.contains('sudah terdaftar') ||
+        msg.contains('sudah lulus') ||
+        msg.contains('sertifikat masih berlaku') ||
+        msg.contains('tidak bisa daftar ulang') ||
+        msg.contains('pendaftaran ulang') ||
+        msg.contains('conflict') ||
+        msg.contains('409');
+  }
+
+  String _cleanErrorMessage(Object e) {
+    return e
+        .toString()
+        .replaceFirst(RegExp(r'^Exception:\s*'), '')
+        .replaceFirst(RegExp(r'^DioException.*?:\s*'), '')
+        .trim();
+  }
+
   // Progress to next step with validation (bypassed for testing)
   Future<void> _nextStep() async {
     if (_currentStep < 5) {
+      // Step 0 → 1: warning FE jika skema sudah terdaftar (login asesi)
+      if (_currentStep == 0) {
+        final skemaId = _selectedSkemaId;
+        if (skemaId != null && skemaId > 0) {
+          final already = await _isAlreadyRegisteredOnSkema(skemaId);
+          if (already) {
+            await _showAlreadyRegisteredWarning();
+            return;
+          }
+        }
+      }
       final next = _currentStep + 1;
       setState(() {
         _currentStep = next;
@@ -1126,7 +1228,17 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         // 0. Publik: ensure-asesi → token. Sudah login asesi: skip.
         final fromPublicLogin = await _ensureAsesiSession(dataPribadi);
 
-        // 1. Daftar (auth) — BE tolak jika sudah lulus skema & sertifikat masih berlaku
+        // 0b. FE pre-check status (setelah punya JWT) — dialog warning, jangan hanya andalkan BE 409
+        final already = await _isAlreadyRegisteredOnSkema(skemaId);
+        if (already) {
+          if (mounted) {
+            setState(() => _isSubmitting = false);
+          }
+          await _showAlreadyRegisteredWarning();
+          return;
+        }
+
+        // 1. Daftar (auth) — BE tolak jika sudah lulus / sudah terdaftar skema sama
         final regRes = await AsesiService.daftarSertifikasi(
           skemaId: skemaId,
           jadwalId: jadwalId,
@@ -1217,15 +1329,20 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         _showSuccessDialog();
       } catch (e) {
         debugPrint('Error during submission flow: $e');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Terjadi kesalahan: $e'),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+        if (!mounted) return;
+        final clean = _cleanErrorMessage(e);
+        if (_isAlreadyRegisteredError(e)) {
+          setState(() => _isSubmitting = false);
+          await _showAlreadyRegisteredWarning(beMessage: clean);
+          return;
         }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(clean.isEmpty ? 'Terjadi kesalahan.' : clean),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       } finally {
         if (mounted) {
           setState(() {
@@ -1438,7 +1555,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
           isLoadingJadwal: _isLoadingJadwal,
           isLoadingSumberAnggaran: _isLoadingSumberAnggaran,
           isLoadingPemberiAnggaran: _isLoadingPemberiAnggaran,
-          onSkemaChanged: (val) {
+          onSkemaChanged: (val) async {
             setState(() {
               _selectedSkemaId = val;
               _selectedJadwalId = null;
@@ -1457,6 +1574,13 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                 _clearUnitPersyaratan();
               }
             });
+            // Warning FE saat pilih skema (jika sudah login asesi)
+            if (val != null && val > 0) {
+              final already = await _isAlreadyRegisteredOnSkema(val);
+              if (already && mounted) {
+                await _showAlreadyRegisteredWarning();
+              }
+            }
             if (val != null) {
               _fetchMasterJadwal(val);
               _fetchSkemaUnitPersyaratan(val);
