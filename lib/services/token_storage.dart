@@ -17,6 +17,7 @@ class TokenStorage {
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _userProfileKey = 'user_profile';
+  static const _hasSeenOnboardingKey = 'has_seen_onboarding';
 
   // In-memory cache so the interceptor doesn't hit EncryptedSharedPreferences
   // (which runs on Android's main thread and can block the Choreographer
@@ -77,6 +78,20 @@ class TokenStorage {
     return _storage.read(key: _refreshTokenKey);
   }
 
+  Future<bool> hasSeenOnboarding() async {
+    final value = await _storage.read(key: _hasSeenOnboardingKey);
+    return value == 'true';
+  }
+
+  Future<void> setHasSeenOnboarding(bool seen) async {
+    await _storage.write(
+      key: _hasSeenOnboardingKey,
+      value: seen ? 'true' : 'false',
+    );
+  }
+
+  /// Clears auth session only. Onboarding flag is kept so returning users
+  /// do not see onboarding again after logout.
   Future<void> clear() async {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);

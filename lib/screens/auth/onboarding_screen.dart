@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../main.dart';
+import '../../services/token_storage.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -26,7 +27,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _skipOnboarding() {
+  Future<void> _completeOnboarding() async {
+    await TokenStorage.instance.setHasSeenOnboarding(true);
+    if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (context) => MainNavigator(key: mainNavigatorKey),
@@ -131,7 +134,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: SizedBox(
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: _skipOnboarding,
+                          onPressed: _completeOnboarding,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFF1F5F9),
                             foregroundColor: const Color(0xFF475569),
@@ -186,7 +189,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: SizedBox(
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: _skipOnboarding,
+                          onPressed: _completeOnboarding,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF4FA8E8),
                             foregroundColor: Colors.white,

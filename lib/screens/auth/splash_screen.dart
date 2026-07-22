@@ -176,9 +176,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Smooth transition
     await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) {
+      final bool seenOnboarding =
+          await TokenStorage.instance.hasSeenOnboarding();
       final Widget nextScreen = loggedInUser != null
           ? MainNavigator(key: mainNavigatorKey)
-          : const OnboardingScreen();
+          : (seenOnboarding
+              ? MainNavigator(key: mainNavigatorKey)
+              : const OnboardingScreen());
 
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
