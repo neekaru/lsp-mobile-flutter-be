@@ -7,6 +7,7 @@ import '../../services/asesor_service.dart';
 import '../../services/api_client.dart';
 import '../../services/jadwal_service.dart';
 import '../../helpers/api_routes.dart';
+import '../../main.dart' show mainNavigatorKey;
 import '../pengajuan/widgets/animated_success_badge.dart';
 
 class ParticipantItem {
@@ -39,10 +40,66 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   String _selectedSkema = 'Desaign UI/Ux';
   String _selectedDate = '';
   String? _uploadedFileName;
+  String? _uploadedFileUrl;
   final _linkController = TextEditingController();
+
+  Future<String?> _uploadFileToApi(String filePath) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF54A0EB)),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Mengunggah file...',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final result = await AsesorService.uploadLampiran(filePath);
+    if (!mounted) return null;
+    Navigator.of(context, rootNavigator: true).pop();
+
+    if (result != null) {
+      final url = result['file_url']?.toString();
+      _showFeedbackDialog(
+        isSuccess: true,
+        message: 'Upload File Berhasil',
+      );
+      return (url != null && url.isNotEmpty) ? url : null;
+    }
+
+    _showFeedbackDialog(
+      isSuccess: false,
+      message: 'Ada Kesalahan, Periksa Kembali Dokumen Anda',
+    );
+    return null;
+  }
 
   void _pickSuratTugas() {
     String? tempFileName = _uploadedFileName;
+    String? tempFilePath;
     String? tempFileSize;
 
     showModalBottomSheet(
@@ -175,8 +232,12 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                                 );
                                 if (result != null && result.files.isNotEmpty) {
                                   final file = result.files.first;
+                                  if (file.path == null || file.path!.isEmpty) {
+                                    return;
+                                  }
                                   setSheetState(() {
                                     tempFileName = file.name;
+                                    tempFilePath = file.path;
                                     final double kb = file.size / 1024;
                                     final double mb = kb / 1024;
                                     tempFileSize = mb >= 1
@@ -221,7 +282,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text(
-                          'Format : PDF. Maksimal 10MB',
+                          'Format : PDF. Maksimal 5MB',
                           style: TextStyle(
                             fontSize: 11,
                             color: Color(0xFF64748B),
@@ -234,6 +295,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                           onPressed: () {
                             setSheetState(() {
                               tempFileName = null;
+                              tempFilePath = null;
                               tempFileSize = null;
                             });
                           },
@@ -285,14 +347,22 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                         child: SizedBox(
                           height: 48,
                           child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _uploadedFileName = tempFileName;
-                              });
-                              Navigator.pop(context);
-                            },
+                            onPressed: tempFilePath == null
+                                ? null
+                                : () async {
+                                    final name = tempFileName!;
+                                    final path = tempFilePath!;
+                                    Navigator.pop(context);
+                                    final url = await _uploadFileToApi(path);
+                                    if (!mounted || url == null) return;
+                                    setState(() {
+                                      _uploadedFileName = name;
+                                      _uploadedFileUrl = url;
+                                    });
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF54A0EB),
+                              disabledBackgroundColor: const Color(0xFF93C5FD),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -322,6 +392,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
 
   void _pickLampiran() {
     String? tempFileName;
+    String? tempFilePath;
     String? tempFileSize;
 
     showModalBottomSheet(
@@ -454,8 +525,12 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                                 );
                                 if (result != null && result.files.isNotEmpty) {
                                   final file = result.files.first;
+                                  if (file.path == null || file.path!.isEmpty) {
+                                    return;
+                                  }
                                   setSheetState(() {
                                     tempFileName = file.name;
+                                    tempFilePath = file.path;
                                     final double kb = file.size / 1024;
                                     final double mb = kb / 1024;
                                     tempFileSize = mb >= 1
@@ -500,7 +575,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text(
-                          'Format : PDF, JPG, PNG. Maksimal 10MB',
+                          'Format : PDF, JPG, PNG. Maksimal 5MB',
                           style: TextStyle(
                             fontSize: 11,
                             color: Color(0xFF64748B),
@@ -513,6 +588,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                           onPressed: () {
                             setSheetState(() {
                               tempFileName = null;
+                              tempFilePath = null;
                               tempFileSize = null;
                             });
                           },
@@ -564,16 +640,20 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                         child: SizedBox(
                           height: 48,
                           child: ElevatedButton(
-                            onPressed: () {
-                              if (tempFileName != null) {
-                                setState(() {
-                                  _attachments.add(tempFileName!);
-                                });
-                              }
-                              Navigator.pop(context);
-                            },
+                            onPressed: tempFilePath == null
+                                ? null
+                                : () async {
+                                    final path = tempFilePath!;
+                                    Navigator.pop(context);
+                                    final url = await _uploadFileToApi(path);
+                                    if (!mounted || url == null) return;
+                                    setState(() {
+                                      _attachments.add(url);
+                                    });
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF54A0EB),
+                              disabledBackgroundColor: const Color(0xFF93C5FD),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -781,7 +861,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   }
 
   void _submitLaporan() async {
-    if (_uploadedFileName == null) {
+    if (_uploadedFileUrl == null || _uploadedFileUrl!.isEmpty) {
       _showFeedbackDialog(
         isSuccess: false,
         message: 'Ada Kesalahan, Periksa Kembali Dokumen Anda',
@@ -805,7 +885,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
       namaAsesor: _nameController.text,
       skemaId: _selectedSkemaTuk?['id'] ?? 0,
       tanggalPelaksanaan: _selectedDate,
-      suratTugasUrl: _uploadedFileName ?? '',
+      suratTugasUrl: _uploadedFileUrl ?? '',
       linkDokumentasi: _linkController.text,
       catatan: _notesController.text,
       daftarPeserta: participantList,
@@ -822,33 +902,14 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
         isSuccess: true,
         message: 'Laporan Tugas Berhasil Dibuat',
         onConfirm: () {
-          final newReport = {
-            'id': response['id']?.toString() ?? '',
-            'code': response['kode_laporan']?.toString() ?? '',
-            'status': response['status']?.toString() ?? 'Terkonfirmasi',
-            'asesor': _nameController.text,
-            'skema': _selectedSkema,
-            'tanggal': _selectedDate,
-          };
-          Navigator.pop(context, newReport);
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          mainNavigatorKey.currentState?.setTab(0);
         },
       );
     } else {
-      // Offline fallback success for flawless review
       _showFeedbackDialog(
-        isSuccess: true,
-        message: 'Laporan Tugas Berhasil Dibuat',
-        onConfirm: () {
-          final newReport = {
-            'id': '24346',
-            'code': 'LAP-2025-${DateTime.now().millisecond}',
-            'status': 'Terkonfirmasi',
-            'asesor': _nameController.text,
-            'skema': _selectedSkema,
-            'tanggal': _selectedDate,
-          };
-          Navigator.pop(context, newReport);
-        },
+        isSuccess: false,
+        message: 'Ada Kesalahan, Periksa Kembali Dokumen Anda',
       );
     }
   }
@@ -1775,6 +1836,10 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
           ..._attachments.asMap().entries.map((entry) {
             final idx = entry.key;
             final file = entry.value;
+            final displayName = file.contains('/')
+                ? file.split('/').last
+                : file;
+            final isPdf = displayName.toLowerCase().endsWith('.pdf');
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1786,19 +1851,25 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        file.endsWith('.pdf') ? Icons.picture_as_pdf : Icons.image,
-                        color: file.endsWith('.pdf') ? const Color(0xFFEF4444) : const Color(0xFF3B82F6),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        file,
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
-                      ),
-                    ],
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          isPdf ? Icons.picture_as_pdf : Icons.image,
+                          color: isPdf ? const Color(0xFFEF4444) : const Color(0xFF3B82F6),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            displayName,
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444), size: 18),

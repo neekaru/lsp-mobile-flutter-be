@@ -144,6 +144,8 @@ class ApiRoutes {
   static const String asesorProfile = '/api/asesor/profile';
   static const String asesorHonor = '/api/asesor/honor';
   static const String asesorTiket = '/api/asesor/tiket';
+  static const String asesorTiketUploadDokumentasi =
+      '/api/asesor/tiket/upload-dokumentasi';
   static String asesorLaporanDetail(int id) => '/api/asesor/laporan/$id';
   static String asesorJadwalPeserta(int jadwalId) =>
       '/api/asesor/jadwal/$jadwalId/peserta';

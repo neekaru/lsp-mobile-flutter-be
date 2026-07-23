@@ -203,7 +203,7 @@ class AsesorService {
     }
   }
 
-  /// 9. Upload Lampiran Pendukung
+  /// 9. Upload Lampiran Laporan (POST /api/asesor/laporan/upload-lampiran)
   static Future<Map<String, dynamic>?> uploadLampiran(String filePath) async {
     try {
       final formData = FormData.fromMap({
@@ -211,6 +211,27 @@ class AsesorService {
       });
       final response = await _dio.post(
         ApiRoutes.asesorLaporanUploadLampiran,
+        data: formData,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 9b. Upload Dokumentasi Tiket (POST /api/asesor/tiket/upload-dokumentasi)
+  static Future<Map<String, dynamic>?> uploadTiketDokumentasi(
+    String filePath,
+  ) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+      });
+      final response = await _dio.post(
+        ApiRoutes.asesorTiketUploadDokumentasi,
         data: formData,
       );
       if (response.statusCode == 200 && response.data != null) {

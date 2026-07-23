@@ -19,6 +19,7 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
 
   String? _selectedFileName;
   String? _selectedFileSize;
+  String? _dokumentasiUrl;
 
   @override
   void dispose() {
@@ -29,8 +30,60 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
     super.dispose();
   }
 
+  Future<String?> _uploadDokumentasi(String filePath) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF54A0EB)),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Mengunggah file...',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final result = await AsesorService.uploadTiketDokumentasi(filePath);
+    if (!mounted) return null;
+    Navigator.of(context, rootNavigator: true).pop();
+
+    if (result != null) {
+      final url = result['file_url']?.toString();
+      if (url != null && url.isNotEmpty) return url;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal mengunggah dokumentasi.')),
+      );
+    }
+    return null;
+  }
+
   void _pickDocument() {
     String? tempFileName = _selectedFileName;
+    String? tempFilePath;
     String? tempFileSize = _selectedFileSize;
 
     showModalBottomSheet(
@@ -167,8 +220,12 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
                                 );
                                 if (result != null && result.files.isNotEmpty) {
                                   final file = result.files.first;
+                                  if (file.path == null || file.path!.isEmpty) {
+                                    return;
+                                  }
                                   setSheetState(() {
                                     tempFileName = file.name;
+                                    tempFilePath = file.path;
                                     final double kb = file.size / 1024;
                                     final double mb = kb / 1024;
                                     tempFileSize = mb >= 1
@@ -214,7 +271,7 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text(
-                          'Format : PDF, JPG, PNG. Maksimal 10MB',
+                          'Format : PDF, JPG, PNG. Maksimal 5MB',
                           style: TextStyle(
                             fontSize: 11,
                             color: Color(0xFF64748B),
@@ -227,6 +284,7 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
                           onPressed: () {
                             setSheetState(() {
                               tempFileName = null;
+                              tempFilePath = null;
                               tempFileSize = null;
                             });
                           },
@@ -279,16 +337,25 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
                         child: SizedBox(
                           height: 48,
                           child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedFileName = tempFileName;
-                                _selectedFileSize = tempFileSize;
-                                _dokumentasiController.text = tempFileName ?? '';
-                              });
-                              Navigator.pop(context);
-                            },
+                            onPressed: tempFilePath == null
+                                ? null
+                                : () async {
+                                    final name = tempFileName!;
+                                    final path = tempFilePath!;
+                                    final size = tempFileSize;
+                                    Navigator.pop(context);
+                                    final url = await _uploadDokumentasi(path);
+                                    if (!mounted || url == null) return;
+                                    setState(() {
+                                      _selectedFileName = name;
+                                      _selectedFileSize = size;
+                                      _dokumentasiUrl = url;
+                                      _dokumentasiController.text = name;
+                                    });
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF54A0EB),
+                              disabledBackgroundColor: const Color(0xFF93C5FD),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
@@ -340,7 +407,7 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
           judul: _judulController.text.trim(),
           pesan: _pesanController.text.trim(),
           namaLengkap: _namaController.text.trim(),
-          dokumentasiUrl: _dokumentasiController.text.trim(),
+          dokumentasiUrl: _dokumentasiUrl ?? '',
         );
 
         if (mounted) {
@@ -556,6 +623,7 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
                                 setState(() {
                                   _selectedFileName = null;
                                   _selectedFileSize = null;
+                                  _dokumentasiUrl = null;
                                   _dokumentasiController.clear();
                                 });
                               },
