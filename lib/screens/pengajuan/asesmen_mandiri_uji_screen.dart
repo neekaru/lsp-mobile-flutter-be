@@ -36,12 +36,19 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
   late List<String> _localUploadedFiles;
   bool _showAllUnits = false;
   static const int _unitPreviewLimit = 4;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _localUploadedFiles =
         widget.uploadedFileNames.values.whereType<String>().toList();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _setGroupAssessment(List<Map<String, dynamic>> items, bool isK) {
@@ -224,6 +231,7 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
           ),
           Expanded(
             child: SingleChildScrollView(
+              controller: _scrollController,
               padding: const EdgeInsets.all(16),
               child: _activeUnitIndex == null
                   ? _buildUnitList()
@@ -289,7 +297,15 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: InkWell(
-                  onTap: () => setState(() => _activeUnitIndex = index),
+                  onTap: () {
+                    setState(() => _activeUnitIndex = index);
+                    // Scroll ke atas setelah setState selesai
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_scrollController.hasClients) {
+                        _scrollController.jumpTo(0);
+                      }
+                    });
+                  },
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(

@@ -125,7 +125,7 @@ class DataPengajuanForm extends StatelessWidget {
           title: 'Sumber Anggaran',
           hint: selectedSkema == null
               ? 'Pilih skema terlebih dahulu'
-              : 'Pilih sumber anggaran',
+              : 'Pilih Sumber Anggaran',
           value: selectedSkema == null ? null : selectedSumberAnggaran,
           items: selectedSkema == null
               ? const <DropdownItemData<int>>[]
@@ -149,8 +149,8 @@ class DataPengajuanForm extends StatelessWidget {
           hint: selectedSkema == null
               ? 'Pilih skema terlebih dahulu'
               : selectedSumberAnggaran == null
-                  ? 'Pilih sumber anggaran terlebih dahulu'
-                  : 'Pilih pemberi anggaran',
+                  ? 'Pilih Sumber Anggaran Terlebih Dahulu'
+                  : 'Pilih Pemberi Anggaran',
           value: (selectedSkema == null || selectedSumberAnggaran == null)
               ? null
               : selectedPemberiAnggaran,

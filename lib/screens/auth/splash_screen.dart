@@ -175,16 +175,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     // Smooth transition
     await Future.delayed(const Duration(milliseconds: 500));
-    if (mounted) {
-      final bool seenOnboarding =
-          await TokenStorage.instance.hasSeenOnboarding();
-      final Widget nextScreen = loggedInUser != null
-          ? MainNavigator(key: mainNavigatorKey)
-          : (seenOnboarding
-              ? MainNavigator(key: mainNavigatorKey)
-              : const OnboardingScreen());
+    final bool seenOnboarding =
+        await TokenStorage.instance.hasSeenOnboarding();
+    if (!mounted) return;
 
-      Navigator.of(context).pushReplacement(
+    final Widget nextScreen = loggedInUser != null
+        ? MainNavigator(key: mainNavigatorKey)
+        : (seenOnboarding
+            ? MainNavigator(key: mainNavigatorKey)
+            : const OnboardingScreen());
+
+    Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 850),
           reverseTransitionDuration: const Duration(milliseconds: 850),
@@ -213,7 +214,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           },
         ),
       );
-    }
   }
 
   Future<void> _showNoConnectionDialog() async {

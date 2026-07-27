@@ -182,9 +182,9 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
                 const AnimatedSuccessBadge(),
                 const SizedBox(height: 24),
                 
-                // Casing matching screenshot: "konfirmasi Pendaftaran Berhasil"
+                // Casing matching screenshot: "Konfirmasi Pendaftaran Berhasil"
                 const Text(
-                  'konfirmasi Pendaftaran Berhasil',
+                  'Konfirmasi Pendaftaran Berhasil',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
