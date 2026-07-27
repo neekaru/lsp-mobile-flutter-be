@@ -661,7 +661,7 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
                       ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Dokumentasi bis berupa PDF, PNG, JPG minimal 68 Mb',
+                      'Dokumentasi bisa berupa PDF, PNG, JPG minimal 8 Mb',
                       style: TextStyle(
                         fontSize: 11,
                         color: Color(0xFF0D9488),
