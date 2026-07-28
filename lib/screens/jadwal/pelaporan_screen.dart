@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/api_service.dart';
+import '../../services/admin_laporan_service.dart';
 import 'detail_pelaporan_screen.dart';
 
 class PelaporanScreen extends StatefulWidget {
@@ -51,160 +51,45 @@ class _PelaporanScreenState extends State<PelaporanScreen>
     });
 
     try {
-      // Fetch status 1 (Completed/Disetujui) and 4 (Pelaporan/Revisi)
-      final results = await Future.wait([
-        ApiService.getJadwalList(statusJadwal: '4', limit: 20),
-        ApiService.getJadwalList(statusJadwal: '1', limit: 20),
-      ]);
+      final adminLaporanService = AdminLaporanService();
+      final response = await adminLaporanService.getLaporanList();
 
-      final rawRevisi = results[0];
-      final rawDisetujui = results[1];
+      // Split by status
+      List<PelaporanItemData> revisiList = [];
+      List<PelaporanItemData> disetujuiList = [];
 
-      List<PelaporanItemData> mappedRevisi = rawRevisi.map((item) {
-        return PelaporanItemData(
+      for (var item in response.data) {
+        final data = PelaporanItemData(
           id: item.id.toString(),
-          skema: item.skema.isNotEmpty
-              ? item.skema
-              : 'Sertifikasi Pemrograman Basisdata',
-          tuk: item.tuk.isNotEmpty ? item.tuk : 'SMK Infokom Bogor',
-          asesorName: item.asesor.isNotEmpty ? item.asesor.first : 'Karina',
-          tanggalMulai: item.tanggalMulai.isNotEmpty
-              ? item.tanggalMulai
-              : '18 Juli 2026',
-          tanggalSelesai: item.tanggalSelesai.isNotEmpty
-              ? item.tanggalSelesai
-              : '18 Juli 2026',
-          status: 'Revisi',
-          tanggalStatus: '20 Juli 2026',
+          skema: item.skemaSertifikasi,
+          tuk: item.tuk,
+          asesorName: item.namaAsesor,
+          tanggalMulai: item.tanggalPelaksanaan,
+          tanggalSelesai: item.tanggalPelaksanaan,
+          status: item.status,
+          tanggalStatus: item.tanggalPelaksanaan,
         );
-      }).toList();
 
-      List<PelaporanItemData> mappedDisetujui = rawDisetujui.map((item) {
-        return PelaporanItemData(
-          id: item.id.toString(),
-          skema: item.skema.isNotEmpty
-              ? item.skema
-              : 'Sertifikasi Pemrograman Basisdata',
-          tuk: item.tuk.isNotEmpty ? item.tuk : 'SMK Infokom Bogor',
-          asesorName: item.asesor.isNotEmpty ? item.asesor.first : 'Karina',
-          tanggalMulai: item.tanggalMulai.isNotEmpty
-              ? item.tanggalMulai
-              : '18 Juli 2026',
-          tanggalSelesai: item.tanggalSelesai.isNotEmpty
-              ? item.tanggalSelesai
-              : '18 Juli 2026',
-          status: 'Disetujui',
-          tanggalStatus: '20 Juli 2026',
+        if (item.status == 'Revisi') {
+          revisiList.add(data);
+        } else if (item.status == 'Disetujui') {
+          disetujuiList.add(data);
+        }
+      }
+
+      setState(() {
+        _revisiList = revisiList;
+        _disetujuiList = disetujuiList;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memuat data: $e')),
         );
-      }).toList();
-
-      // Default mock data matching mockup if API list is empty
-      if (mappedDisetujui.isEmpty) {
-        mappedDisetujui = [
-          PelaporanItemData(
-            id: '1',
-            skema: 'Sertifikasi Pemrograman Basisdata - SMK Infokom Bogor',
-            tuk: 'SMK Infokom Bogor',
-            asesorName: 'Karina',
-            tanggalMulai: '18 Juli 2026',
-            tanggalSelesai: '18 Juli 2026',
-            status: 'Disetujui',
-            tanggalStatus: '20 Juli 2026',
-          ),
-          PelaporanItemData(
-            id: '2',
-            skema: 'Sertifikasi Pemrograman Basisdata - SMK Infokom Bogor',
-            tuk: 'SMK Infokom Bogor',
-            asesorName: 'Karina',
-            tanggalMulai: '18 Juli 2026',
-            tanggalSelesai: '18 Juli 2026',
-            status: 'Disetujui',
-            tanggalStatus: '20 Juli 2026',
-          ),
-          PelaporanItemData(
-            id: '3',
-            skema: 'Sertifikasi Pemrograman Basisdata - SMK Infokom Bogor',
-            tuk: 'SMK Infokom Bogor',
-            asesorName: 'Karina',
-            tanggalMulai: '18 Juli 2026',
-            tanggalSelesai: '18 Juli 2026',
-            status: 'Disetujui',
-            tanggalStatus: '20 Juli 2026',
-          ),
-        ];
-      }
-
-      if (mappedRevisi.isEmpty) {
-        mappedRevisi = [
-          PelaporanItemData(
-            id: '4',
-            skema: 'Sertifikasi Pemrograman Web - SMK Negeri 1 Bogor',
-            tuk: 'SMK Negeri 1 Bogor',
-            asesorName: 'Budi Santoso',
-            tanggalMulai: '15 Juli 2026',
-            tanggalSelesai: '15 Juli 2026',
-            status: 'Revisi',
-            tanggalStatus: '19 Juli 2026',
-          ),
-        ];
-      }
-
-      if (mounted) {
-        setState(() {
-          _revisiList = mappedRevisi;
-          _disetujuiList = mappedDisetujui;
-          _isLoading = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _disetujuiList = [
-            PelaporanItemData(
-              id: '1',
-              skema: 'Sertifikasi Pemrograman Basisdata - SMK Infokom Bogor',
-              tuk: 'SMK Infokom Bogor',
-              asesorName: 'Karina',
-              tanggalMulai: '18 Juli 2026',
-              tanggalSelesai: '18 Juli 2026',
-              status: 'Disetujui',
-              tanggalStatus: '20 Juli 2026',
-            ),
-            PelaporanItemData(
-              id: '2',
-              skema: 'Sertifikasi Pemrograman Basisdata - SMK Infokom Bogor',
-              tuk: 'SMK Infokom Bogor',
-              asesorName: 'Karina',
-              tanggalMulai: '18 Juli 2026',
-              tanggalSelesai: '18 Juli 2026',
-              status: 'Disetujui',
-              tanggalStatus: '20 Juli 2026',
-            ),
-            PelaporanItemData(
-              id: '3',
-              skema: 'Sertifikasi Pemrograman Basisdata - SMK Infokom Bogor',
-              tuk: 'SMK Infokom Bogor',
-              asesorName: 'Karina',
-              tanggalMulai: '18 Juli 2026',
-              tanggalSelesai: '18 Juli 2026',
-              status: 'Disetujui',
-              tanggalStatus: '20 Juli 2026',
-            ),
-          ];
-          _revisiList = [
-            PelaporanItemData(
-              id: '4',
-              skema: 'Sertifikasi Pemrograman Web - SMK Negeri 1 Bogor',
-              tuk: 'SMK Negeri 1 Bogor',
-              asesorName: 'Budi Santoso',
-              tanggalMulai: '15 Juli 2026',
-              tanggalSelesai: '15 Juli 2026',
-              status: 'Revisi',
-              tanggalStatus: '19 Juli 2026',
-            ),
-          ];
-          _isLoading = false;
-        });
       }
     }
   }
@@ -499,11 +384,7 @@ class _PelaporanScreenState extends State<PelaporanScreen>
           context,
           MaterialPageRoute(
             builder: (context) => DetailPelaporanScreen(
-              skema: item.skema,
-              tuk: item.tuk,
-              asesorName: item.asesorName,
-              tanggalStatus: item.tanggalStatus,
-              status: item.status,
+              laporanId: int.tryParse(item.id) ?? 0,
             ),
           ),
         );

@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../services/admin_laporan_service.dart';
+import '../../models/admin_laporan_models.dart';
 
 class DetailPelaporanScreen extends StatefulWidget {
-  final String skema;
-  final String tuk;
-  final String asesorName;
-  final String tanggalStatus;
-  final String status;
+  final int laporanId;
 
   const DetailPelaporanScreen({
     super.key,
-    this.skema = 'Digital Marketing',
-    this.tuk = 'LPK Digital Center',
-    this.asesorName = 'Karina',
-    this.tanggalStatus = '20 Juli 2026',
-    this.status = 'Disetujui',
+    required this.laporanId,
   });
 
   @override
@@ -23,52 +17,11 @@ class DetailPelaporanScreen extends StatefulWidget {
 class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final AdminLaporanService _service = AdminLaporanService();
 
-  final List<Map<String, String>> _attachments = [
-    {
-      'title': 'Berita Acara',
-      'fileName': 'berita_acara.pdf',
-      'size': '136KB',
-    },
-    {
-      'title': 'Daftar Hadir',
-      'fileName': 'daftar_hadir.pdf',
-      'size': '136KB',
-    },
-    {
-      'title': 'FR.APL.01',
-      'fileName': 'fr.apl.01.pdf',
-      'size': '136KB',
-    },
-    {
-      'title': 'FR.AK.01',
-      'fileName': 'fr.ak.01.pdf',
-      'size': '136KB',
-    },
-    {
-      'title': 'Rekaman Vidio',
-      'fileName': 'drive.google.com',
-      'size': '136KB',
-    },
-  ];
-
-  final List<Map<String, String>> _asesiList = [
-    {
-      'nama': 'Karina',
-      'nik': '3201234567890001',
-      'status': 'Kompeten',
-    },
-    {
-      'nama': 'Ahmad Subagja',
-      'nik': '3201234567890002',
-      'status': 'Kompeten',
-    },
-    {
-      'nama': 'Dewi Lestari',
-      'nik': '3201234567890003',
-      'status': 'Belum Kompeten',
-    },
-  ];
+  bool _isLoading = true;
+  String? _errorMessage;
+  AdminLaporanDetailData? _detail;
 
   @override
   void initState() {
@@ -77,6 +30,130 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
+    _loadDetailLaporan();
+  }
+
+  Future<void> _loadDetailLaporan() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await _service.getLaporanDetail(widget.laporanId);
+      if (mounted) {
+        setState(() {
+          _detail = response.data;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleApprove() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Setujui Laporan'),
+        content: const Text('Apakah Anda yakin ingin menyetujui laporan ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Setujui'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      try {
+        await _service.approveLaporan(widget.laporanId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Laporan berhasil disetujui')),
+          );
+          _loadDetailLaporan();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal menyetujui laporan: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleReject() async {
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tolak Laporan'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Berikan alasan penolakan:'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                hintText: 'Contoh: Daftar hadir belum lengkap',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Tolak'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty && mounted) {
+      try {
+        await _service.rejectLaporan(widget.laporanId, alasan: result);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Laporan dikembalikan untuk revisi')),
+          );
+          _loadDetailLaporan();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal menolak laporan: $e')),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -88,7 +165,6 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
-    final bool isApproved = widget.status == 'Disetujui';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -138,181 +214,267 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
           const SizedBox(height: 12),
 
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                children: [
-                  // Top Summary Header Card
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x06000000),
-                          blurRadius: 6,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF3B82F6),
                     ),
-                    padding: const EdgeInsets.all(14),
-                    child: Row(
-                      children: [
-                        // Left Blue Document Icon
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFDBEAFE),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.description_rounded,
-                            color: Color(0xFF3B82F6),
-                            size: 24,
-                          ),
-                        ),
-
-                        const SizedBox(width: 12),
-
-                        // Title & Subtitle Info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.skema,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                'Tuk : ${widget.tuk}',
-                                style: const TextStyle(
-                                  fontSize: 11.5,
-                                  color: Color(0xFF64748B),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Tanggal ${widget.tanggalStatus}',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF94A3B8),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        // Right Status Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isApproved
-                                ? const Color(0xFFDCFCE7)
-                                : const Color(0xFFFEF3C7),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            widget.status,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: isApproved
-                                  ? const Color(0xFF16A34A)
-                                  : const Color(0xFFD97706),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Main Content Card with 3 Tabs
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x06000000),
-                          blurRadius: 6,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Sub-TabBar (Lampiran, Asessi, Informasi)
-                        Row(
+                  )
+                : _errorMessage != null
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Expanded(
-                              child: _buildSubTabItem(
-                                index: 0,
-                                icon: Icons.attach_file_rounded,
-                                label: 'Lampiran',
-                              ),
+                            const Icon(Icons.error_outline,
+                                size: 48, color: Colors.red),
+                            const SizedBox(height: 16),
+                            Text(
+                              _errorMessage!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Color(0xFF64748B)),
                             ),
-                            Expanded(
-                              child: _buildSubTabItem(
-                                index: 1,
-                                icon: Icons.people_outline_rounded,
-                                label: 'Asessi',
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _loadDetailLaporan,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF3B82F6),
+                                foregroundColor: Colors.white,
                               ),
-                            ),
-                            Expanded(
-                              child: _buildSubTabItem(
-                                index: 2,
-                                icon: Icons.article_outlined,
-                                label: 'Informasi',
-                              ),
+                              child: const Text('Coba Lagi'),
                             ),
                           ],
                         ),
+                      )
+                    : _detail == null
+                        ? const Center(
+                            child: Text(
+                              'Data laporan tidak ditemukan.',
+                              style: TextStyle(color: Color(0xFF64748B)),
+                            ),
+                          )
+                        : _buildDetailBody(),
+          ),
+        ],
+      ),
+    );
+  }
 
-                        const Divider(
-                          height: 24,
-                          thickness: 1,
-                          color: Color(0xFFE2E8F0),
+  Widget _buildDetailBody() {
+    final detail = _detail!;
+    final bool isApproved =
+        detail.status == 'Disetujui' || detail.status.toLowerCase() == 'completed';
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        children: [
+          // Top Summary Header Card from Real API Data
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x06000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                // Left Blue Document Icon
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDBEAFE),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.description_rounded,
+                    color: Color(0xFF3B82F6),
+                    size: 24,
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                // Title & Subtitle Info from Real API Data
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        detail.skemaSertifikasi,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Kode : ${detail.kodeLaporan}',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: Color(0xFF64748B),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Tanggal ${detail.tanggalPelaksanaan}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-                        // Active Tab Content
-                        if (_tabController.index == 0)
-                          _buildLampiranContent(isApproved)
-                        else if (_tabController.index == 1)
-                          _buildAsesiContent()
-                        else
-                          _buildInformasiContent(),
-                      ],
+                const SizedBox(width: 8),
+
+                // Right Status Badge from Real API Data
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isApproved
+                        ? const Color(0xFFDCFCE7)
+                        : const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    detail.status,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isApproved
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFFD97706),
                     ),
                   ),
-
-                  const SizedBox(height: 24),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+
+          const SizedBox(height: 16),
+
+          // Main Content Card with 3 Sub-Tabs
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x06000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Sub-TabBar (Lampiran, Asessi, Informasi)
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildSubTabItem(
+                        index: 0,
+                        icon: Icons.attach_file_rounded,
+                        label: 'Lampiran',
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildSubTabItem(
+                        index: 1,
+                        icon: Icons.people_outline_rounded,
+                        label: 'Asessi',
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildSubTabItem(
+                        index: 2,
+                        icon: Icons.article_outlined,
+                        label: 'Informasi',
+                      ),
+                    ),
+                  ],
+                ),
+
+                const Divider(
+                  height: 24,
+                  thickness: 1,
+                  color: Color(0xFFE2E8F0),
+                ),
+
+                // Active Tab Content
+                if (_tabController.index == 0)
+                  _buildLampiranContent(detail, isApproved)
+                else if (_tabController.index == 1)
+                  _buildAsesiContent(detail)
+                else
+                  _buildInformasiContent(detail),
+              ],
+            ),
+          ),
+
+          // Action buttons for Admin when report status is pending/waiting/revisi
+          if (detail.status.toLowerCase() == 'waiting' ||
+              detail.status.toLowerCase() == 'pending' ||
+              detail.status == 'Revisi') ...[
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _handleReject,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Minta Revisi'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _handleApprove,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Setujui Laporan'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -361,89 +523,88 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
     );
   }
 
-  Widget _buildLampiranContent(bool isApproved) {
+  Widget _buildLampiranContent(AdminLaporanDetailData detail, bool isApproved) {
+    final lampiranList = detail.lampiranPendukung;
+
     return Column(
       children: [
-        // List of Attachments
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _attachments.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final item = _attachments[index];
-            return Row(
-              children: [
-                // Light Blue Document Icon
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDBEAFE),
-                    borderRadius: BorderRadius.circular(6),
+        if (lampiranList.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Text(
+              'Tidak ada lampiran pendukung.',
+              style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: lampiranList.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final item = lampiranList[index];
+              return Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDBEAFE),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(
+                      Icons.description_rounded,
+                      color: Color(0xFF3B82F6),
+                      size: 20,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.description_rounded,
-                    color: Color(0xFF3B82F6),
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
-
-                // Title & Subtitle PDF Name
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item['title']!,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.fileName,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        item['fileName']!,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF94A3B8),
+                        const SizedBox(height: 2),
+                        Text(
+                          item.fileUrl,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF94A3B8),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-
-                // Size info
-                Text(
-                  item['size']!,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF94A3B8),
+                  const SizedBox(width: 10),
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF22C55E),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 14,
+                    ),
                   ),
-                ),
-
-                const SizedBox(width: 10),
-
-                // Green Checked Box Icon matching mockup
-                Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF22C55E),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 14,
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+                ],
+              );
+            },
+          ),
 
         const SizedBox(height: 20),
 
@@ -466,7 +627,6 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon Circle Checkmark
               Container(
                 width: 28,
                 height: 28,
@@ -482,10 +642,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
                   size: 18,
                 ),
               ),
-
               const SizedBox(width: 12),
-
-              // Title and Description
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -525,18 +682,33 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
     );
   }
 
-  Widget _buildAsesiContent() {
+  Widget _buildAsesiContent(AdminLaporanDetailData detail) {
+    final asesiList = detail.daftarAsesiDinilai;
+
+    if (asesiList.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16.0),
+        child: Center(
+          child: Text(
+            'Belum ada data asesi dinilai.',
+            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+          ),
+        ),
+      );
+    }
+
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _asesiList.length,
+      itemCount: asesiList.length,
       separatorBuilder: (context, index) => const Divider(
         height: 16,
         color: Color(0xFFF1F5F9),
       ),
       itemBuilder: (context, index) {
-        final asesi = _asesiList[index];
-        final bool isKompeten = asesi['status'] == 'Kompeten';
+        final asesi = asesiList[index];
+        final bool isKompeten = asesi.penilaian == 'K' ||
+            asesi.penilaian.toLowerCase().contains('kompeten');
 
         return Row(
           children: [
@@ -559,7 +731,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    asesi['nama']!,
+                    asesi.nama,
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -568,7 +740,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'NIK: ${asesi['nik']}',
+                    'NIM/NIK: ${asesi.nim}',
                     style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFF94A3B8),
@@ -589,7 +761,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                asesi['status']!,
+                isKompeten ? 'Kompeten' : 'Belum Kompeten',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
@@ -605,14 +777,17 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
     );
   }
 
-  Widget _buildInformasiContent() {
+  Widget _buildInformasiContent(AdminLaporanDetailData detail) {
     return Column(
       children: [
-        _buildInfoRow('Skema Sertifikasi', widget.skema),
-        _buildInfoRow('Tempat Uji (TUK)', widget.tuk),
-        _buildInfoRow('Nama Asesor', widget.asesorName),
-        _buildInfoRow('Tanggal Status', widget.tanggalStatus),
-        _buildInfoRow('Catatan', 'Dokumen laporan lengkap & terverifikasi.'),
+        _buildInfoRow('Kode Laporan', detail.kodeLaporan),
+        _buildInfoRow('Skema Sertifikasi', detail.skemaSertifikasi),
+        _buildInfoRow('Nama Asesor', detail.namaAsesor),
+        _buildInfoRow('Tanggal Pelaksanaan', detail.tanggalPelaksanaan),
+        _buildInfoRow('Link Dokumentasi',
+            detail.linkDokumentasi.isNotEmpty ? detail.linkDokumentasi : '-'),
+        _buildInfoRow('Catatan',
+            detail.catatan.isNotEmpty ? detail.catatan : 'Tidak ada catatan.'),
       ],
     );
   }
