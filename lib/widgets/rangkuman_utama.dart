@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/dashboard_models.dart';
 import '../helpers/number_format_helper.dart';
+import '../screens/jadwal/pelaporan_screen.dart';
 
 class RangkumanUtama extends StatefulWidget {
   final DashboardSummary? data;
@@ -197,6 +198,14 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                 value: jadwalValue,
                 subtitle: 'Jadwal belum terkonfirmasi',
                 icon: Icons.pending_actions_rounded,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PelaporanScreen(),
+                    ),
+                  );
+                },
               ),
               NewSummaryCard(
                 title: 'Asessor',
@@ -205,10 +214,18 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                 icon: Icons.person_search_rounded,
               ),
               NewSummaryCard(
-                title: 'Surat Tugas',
+                title: 'Pelaporan',
                 value: suratTugasValue,
-                subtitle: 'Menunggu Pengiriman',
+                subtitle: 'Pelaporan & Verifikasi',
                 icon: Icons.assignment_turned_in_rounded,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PelaporanScreen(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -256,6 +273,7 @@ class NewSummaryCard extends StatelessWidget {
   final String value;
   final String subtitle;
   final IconData icon;
+  final VoidCallback? onTap;
 
   const NewSummaryCard({
     super.key,
@@ -263,11 +281,14 @@ class NewSummaryCard extends StatelessWidget {
     required this.value,
     required this.subtitle,
     required this.icon,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -326,8 +347,9 @@ class NewSummaryCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 /*
