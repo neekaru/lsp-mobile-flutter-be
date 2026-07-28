@@ -105,6 +105,8 @@ class AdminLaporanDetailData {
   final String namaAsesor;
   final String skemaSertifikasi;
   final String tanggalPelaksanaan;
+  final String tuk;
+  final String jenisAsesmen;
   final String linkDokumentasi;
   final String catatan;
   final AdminLaporanRingkasan ringkasan;
@@ -119,6 +121,8 @@ class AdminLaporanDetailData {
     required this.namaAsesor,
     required this.skemaSertifikasi,
     required this.tanggalPelaksanaan,
+    required this.tuk,
+    required this.jenisAsesmen,
     required this.linkDokumentasi,
     required this.catatan,
     required this.ringkasan,
@@ -135,6 +139,8 @@ class AdminLaporanDetailData {
       namaAsesor: json['nama_asesor'] ?? '',
       skemaSertifikasi: json['skema_sertifikasi'] ?? '',
       tanggalPelaksanaan: json['tanggal_pelaksanaan'] ?? '',
+      tuk: json['tuk'] ?? json['nama_tuk'] ?? '',
+      jenisAsesmen: json['jenis_asesmen'] ?? 'Offline',
       linkDokumentasi: json['link_dokumentasi'] ?? '',
       catatan: json['catatan'] ?? '',
       ringkasan: AdminLaporanRingkasan.fromJson(json['ringkasan'] ?? {}),
@@ -218,18 +224,27 @@ class AdminLaporanAsesiItem {
 }
 
 class AdminLaporanLampiranItem {
+  final String title;
   final String fileName;
   final String fileUrl;
+  final String fileSize;
+  final bool isValid;
 
   AdminLaporanLampiranItem({
+    required this.title,
     required this.fileName,
     required this.fileUrl,
+    required this.fileSize,
+    required this.isValid,
   });
 
   factory AdminLaporanLampiranItem.fromJson(Map<String, dynamic> json) {
     return AdminLaporanLampiranItem(
+      title: json['title'] ?? json['file_name'] ?? '',
       fileName: json['file_name'] ?? '',
       fileUrl: json['file_url'] ?? '',
+      fileSize: json['file_size'] ?? '136KB',
+      isValid: json['is_valid'] ?? (json['status'] == 'valid' || json['status'] == null),
     );
   }
 }
