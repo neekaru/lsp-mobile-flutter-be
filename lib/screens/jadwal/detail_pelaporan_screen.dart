@@ -931,7 +931,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
     final String asesor = detail.namaAsesor.isNotEmpty
         ? detail.namaAsesor
         : 'Karina';
-    final String jumlahAsessi = '${detail.ringkasan.totalPeserta > 0 ? detail.ringkasan.totalPeserta : 115} Peserta';
+    final String jumlahAsessi = '${detail.ringkasan.totalPeserta} Peserta';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
