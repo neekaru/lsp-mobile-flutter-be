@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/admin_laporan_service.dart';
 import '../../models/admin_laporan_models.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class DetailPelaporanScreen extends StatefulWidget {
   final int laporanId;
@@ -212,46 +213,13 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
         children: [
           SizedBox(height: statusBarHeight + 8),
 
-          // Custom Top Header Bar: Chevron Back + "Detail Laporan"
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFF1E293B),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.chevron_left_rounded,
-                      color: Color(0xFF1E293B),
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Detail Laporan',
-                  style: TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ],
-            ),
+          // Standard App Heading matching app-wide CustomAppBar
+          CustomAppBar(
+            title: 'Detail Laporan',
+            onBack: () => Navigator.of(context).pop(),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
 
           Expanded(
             child: _isLoading
@@ -469,7 +437,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
                 ),
 
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 16.0),
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
                     child: _tabController.index == 0
@@ -558,8 +526,9 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
           itemCount: items.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 14),
+          separatorBuilder: (context, index) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
             final item = items[index];
             final bool isValid = item['isValid'] == true;
@@ -648,9 +617,9 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
           },
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 14),
         const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
 
         if (!isApproved) ...[
           const Text(
@@ -698,7 +667,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
     );
   }
 
-  /// 2. Asessi Tab Content (Matches uploaded Image 1 & Image 2)
+  /// 2. Asessi Tab Content (Gap above list removed & compact header layout)
   Widget _buildAsesiContent(AdminLaporanDetailData detail, bool isApproved) {
     final List<Map<String, String>> rawAsesiList = detail.daftarAsesiDinilai.map((a) {
       return {
@@ -754,11 +723,11 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
           ),
         ),
 
-        const SizedBox(height: 14),
+        const SizedBox(height: 8),
 
         // Table Header Box (Nama | No Registrasi | Hasil)
         Container(
-          height: 38,
+          height: 36,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
@@ -806,12 +775,12 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
           ),
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
 
-        // List of Asesi Cards
+        // List of Asesi Cards without top gap
         if (filteredList.isEmpty)
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24.0),
+            padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
                 'Tidak ada peserta yang cocok.',
@@ -823,8 +792,9 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
             itemCount: filteredList.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
+            separatorBuilder: (context, index) => const SizedBox(height: 6),
             itemBuilder: (context, index) {
               final item = filteredList[index];
               final String nama = item['nama'] ?? '';
@@ -838,7 +808,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: Row(
                   children: [
                     Expanded(
@@ -902,16 +872,16 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
             },
           ),
 
-        // Status Banner ONLY shown if Disetujui (Image 1)
+        // Status Banner ONLY shown if Disetujui
         if (isApproved) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _buildGreenStatusBanner(),
         ],
       ],
     );
   }
 
-  /// 3. Informasi Tab Content (Matches uploaded Image 1 & Image 2)
+  /// 3. Informasi Tab Content
   Widget _buildInformasiContent(AdminLaporanDetailData detail, bool isApproved) {
     final String namaSkema = detail.skemaSertifikasi.isNotEmpty
         ? detail.skemaSertifikasi
@@ -968,7 +938,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
           ),
         ),
 
-        // Status Banner ONLY shown if Disetujui (Image 1)
+        // Status Banner ONLY shown if Disetujui
         if (isApproved) ...[
           const SizedBox(height: 16),
           _buildGreenStatusBanner(),
@@ -981,10 +951,10 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFD1FAE5), // Soft Green background
+        color: const Color(0xFFD1FAE5),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: const Color(0xFF34D399), // Green border
+          color: const Color(0xFF34D399),
           width: 1,
         ),
       ),
@@ -1068,8 +1038,8 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
   }
 
   /// Bottom Action Buttons:
-  /// - If Disetujui (Image 1): Single wide button "Unduh Lampiran"
-  /// - If Belum Disetujui (Image 2): Two side-by-side buttons "Minta Revisi" & "Disetujui"
+  /// - If Disetujui: Single wide button "Unduh Lampiran"
+  /// - If Belum Disetujui: Two side-by-side buttons "Minta Revisi" & "Disetujui"
   Widget _buildBottomActions() {
     final detail = _detail!;
     final bool isApproved =
