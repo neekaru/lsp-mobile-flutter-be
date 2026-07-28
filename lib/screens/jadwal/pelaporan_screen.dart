@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/admin_laporan_service.dart';
+import '../../widgets/custom_app_bar.dart';
+import '../../widgets/bottom_menu_bar.dart';
 import 'detail_pelaporan_screen.dart';
 
 class PelaporanScreen extends StatefulWidget {
@@ -11,97 +14,157 @@ class PelaporanScreen extends StatefulWidget {
   State<PelaporanScreen> createState() => _PelaporanScreenState();
 }
 
+/// Per-tab pagination state. Each tab (Revisi / Disetujui) fetches its own
+/// page from the server — the API does the status/search filtering, so the
+/// client never has to hold or scan the full 14k+ row table.
+class _TabState {
+  final String status; // 'Revisi' | 'Disetujui'
+  List<PelaporanItemData> items = [];
+  bool isLoading = true;
+  bool isLoadingMore = false;
+  bool hasMore = true;
+  bool hasLoadedOnce = false;
+  int offset = 0;
+  static const int limit = 20;
+
+  _TabState(this.status);
+}
+
 class _PelaporanScreenState extends State<PelaporanScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
-  
-  bool _isLoading = true;
+  final AdminLaporanService _service = AdminLaporanService();
+
+  final ScrollController _revisiScrollController = ScrollController();
+  final ScrollController _disetujuiScrollController = ScrollController();
+
   String _searchQuery = '';
+  Timer? _debounce;
   String _selectedMonth = 'Juli 2026';
 
-  List<PelaporanItemData> _revisiList = [];
-  List<PelaporanItemData> _disetujuiList = [];
+  late final _TabState _revisi = _TabState('Revisi');
+  late final _TabState _disetujui = _TabState('Disetujui');
+
+  void _onTabChanged() {
+    if (!mounted) return;
+    setState(() {});
+    // Lazily fetch the tab's first page the first time it's opened.
+    final current = _tabController.index == 0 ? _revisi : _disetujui;
+    if (!current.hasLoadedOnce) {
+      _fetchPage(current, reset: true);
+    }
+  }
+
+  void _onSearchChanged() {
+    final query = _searchController.text.trim();
+    if (query == _searchQuery) return;
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+      setState(() {
+        _searchQuery = query;
+      });
+      // Reset & refetch both tabs so switching tabs doesn't show stale results.
+      _fetchPage(_revisi, reset: true);
+      _fetchPage(_disetujui, reset: true);
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      if (mounted) setState(() {});
-    });
-    _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text.trim().toLowerCase();
-      });
-    });
-    _loadPelaporanData();
+    _tabController.addListener(_onTabChanged);
+    _searchController.addListener(_onSearchChanged);
+    _revisiScrollController.addListener(() => _onScroll(_revisi, _revisiScrollController));
+    _disetujuiScrollController.addListener(() => _onScroll(_disetujui, _disetujuiScrollController));
+    // Only load the initially visible tab (Revisi) up front.
+    _fetchPage(_revisi, reset: true);
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
+    _tabController.removeListener(_onTabChanged);
+    _searchController.removeListener(_onSearchChanged);
     _tabController.dispose();
     _searchController.dispose();
+    _revisiScrollController.dispose();
+    _disetujuiScrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadPelaporanData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final adminLaporanService = AdminLaporanService();
-      final response = await adminLaporanService.getLaporanList();
-
-      // Split by status
-      List<PelaporanItemData> revisiList = [];
-      List<PelaporanItemData> disetujuiList = [];
-
-      for (var item in response.data) {
-        final data = PelaporanItemData(
-          id: item.id.toString(),
-          skema: item.skemaSertifikasi,
-          tuk: item.tuk,
-          asesorName: item.namaAsesor,
-          tanggalMulai: item.tanggalPelaksanaan,
-          tanggalSelesai: item.tanggalPelaksanaan,
-          status: item.status,
-          tanggalStatus: item.tanggalPelaksanaan,
-        );
-
-        if (item.status == 'Revisi') {
-          revisiList.add(data);
-        } else if (item.status == 'Disetujui') {
-          disetujuiList.add(data);
-        }
-      }
-
-      setState(() {
-        _revisiList = revisiList;
-        _disetujuiList = disetujuiList;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memuat data: $e')),
-        );
-      }
+  void _onScroll(_TabState tab, ScrollController controller) {
+    if (!tab.hasMore || tab.isLoadingMore || tab.isLoading) return;
+    if (controller.position.pixels >= controller.position.maxScrollExtent - 200) {
+      _fetchPage(tab, reset: false);
     }
   }
 
-  List<PelaporanItemData> _getFilteredList(List<PelaporanItemData> source) {
-    if (_searchQuery.isEmpty) return source;
-    return source.where((item) {
-      final matchesSkema = item.skema.toLowerCase().contains(_searchQuery);
-      final matchesTuk = item.tuk.toLowerCase().contains(_searchQuery);
-      final matchesAsesor = item.asesorName.toLowerCase().contains(_searchQuery);
-      return matchesSkema || matchesTuk || matchesAsesor;
-    }).toList();
+  Future<void> _fetchPage(_TabState tab, {required bool reset}) async {
+    if (!mounted) return;
+
+    setState(() {
+      if (reset) {
+        tab.isLoading = true;
+        tab.offset = 0;
+        tab.hasMore = true;
+      } else {
+        tab.isLoadingMore = true;
+      }
+    });
+
+    try {
+      final response = await _service.getLaporanList(
+        status: tab.status,
+        search: _searchQuery,
+        limit: _TabState.limit,
+        offset: reset ? 0 : tab.offset,
+      );
+
+      if (!mounted) return;
+
+      final mapped = response.data
+          .map((item) => PelaporanItemData(
+                id: item.id.toString(),
+                skema: item.skemaSertifikasi,
+                tuk: item.tuk,
+                asesorName: item.namaAsesor,
+                tanggalMulai: item.tanggalPelaksanaan,
+                tanggalSelesai: item.tanggalPelaksanaan,
+                status: item.status,
+                tanggalStatus: item.tanggalPelaksanaan,
+              ))
+          .toList();
+
+      setState(() {
+        if (reset) {
+          tab.items = mapped;
+        } else {
+          tab.items.addAll(mapped);
+        }
+        tab.offset = tab.items.length;
+        tab.hasMore = tab.items.length < response.pagination.total;
+        tab.isLoading = false;
+        tab.isLoadingMore = false;
+        tab.hasLoadedOnce = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        tab.isLoading = false;
+        tab.isLoadingMore = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memuat data: $e')),
+      );
+    }
+  }
+
+  Future<void> _refreshCurrentTab() async {
+    final current = _tabController.index == 0 ? _revisi : _disetujui;
+    await _fetchPage(current, reset: true);
   }
 
   @override
@@ -114,45 +177,11 @@ class _PelaporanScreenState extends State<PelaporanScreen>
         children: [
           SizedBox(height: statusBarHeight + 8),
 
-          // Custom Header: "< pelaporan"
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: widget.onBack ?? () => Navigator.of(context).pop(),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFF1E293B),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.chevron_left_rounded,
-                      color: Color(0xFF1E293B),
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'pelaporan',
-                  style: TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ],
-            ),
+          CustomAppBar(
+            title: 'Pelaporan',
+            onBack: widget.onBack ?? () => Navigator.of(context).pop(),
           ),
-
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
 
           // Top Tab Bar following Jadwal pill design system
           Padding(
@@ -283,32 +312,27 @@ class _PelaporanScreenState extends State<PelaporanScreen>
 
           const SizedBox(height: 16),
 
-          // TabBarView Content
+          // TabBarView Content — each tab holds its own paginated data.
           Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF6C8BB4),
-                    ),
-                  )
-                : TabBarView(
-                    controller: _tabController,
-                    children: [
-                      // Tab 0: Revisi
-                      _buildPelaporanListView(
-                        _getFilteredList(_revisiList),
-                        'Revisi',
-                      ),
-
-                      // Tab 1: Disetujui
-                      _buildPelaporanListView(
-                        _getFilteredList(_disetujuiList),
-                        'Disetujui',
-                      ),
-                    ],
-                  ),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildTabBody(_revisi, _revisiScrollController),
+                _buildTabBody(_disetujui, _disetujuiScrollController),
+              ],
+            ),
           ),
         ],
+      ),
+      bottomNavigationBar: BottomMenuBar(
+        selectedIndex: 0,
+        onTap: (index) {
+          if (widget.onBack != null) {
+            widget.onBack!();
+          } else {
+            Navigator.of(context).pop();
+          }
+        },
       ),
     );
   }
@@ -347,29 +371,60 @@ class _PelaporanScreenState extends State<PelaporanScreen>
     );
   }
 
-  Widget _buildPelaporanListView(
-      List<PelaporanItemData> items, String currentStatus) {
-    if (items.isEmpty) {
-      return Center(
-        child: Text(
-          'Tidak ada data pelaporan ($currentStatus).',
-          style: const TextStyle(
-            color: Color(0xFF64748B),
-            fontSize: 14,
-          ),
+  Widget _buildTabBody(_TabState tab, ScrollController scrollController) {
+    if (tab.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF6C8BB4)),
+      );
+    }
+
+    if (tab.items.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _refreshCurrentTab,
+        color: const Color(0xFF6C8BB4),
+        child: ListView(
+          children: [
+            SizedBox(
+              height: 240,
+              child: Center(
+                child: Text(
+                  'Tidak ada data pelaporan (${tab.status}).',
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
 
     return RefreshIndicator(
-      onRefresh: _loadPelaporanData,
+      onRefresh: _refreshCurrentTab,
       color: const Color(0xFF6C8BB4),
       child: ListView.builder(
+        controller: scrollController,
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-        itemCount: items.length,
+        itemCount: tab.items.length + (tab.hasMore ? 1 : 0),
         itemBuilder: (context, index) {
-          final item = items[index];
-          return _buildPelaporanCard(item);
+          if (index >= tab.items.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Color(0xFF6C8BB4),
+                  ),
+                ),
+              ),
+            );
+          }
+          return _buildPelaporanCard(tab.items[index]);
         },
       ),
     );
@@ -387,7 +442,7 @@ class _PelaporanScreenState extends State<PelaporanScreen>
               laporanId: int.tryParse(item.id) ?? 0,
             ),
           ),
-        );
+        ).then((_) => _refreshCurrentTab());
       },
       child: Container(
       margin: const EdgeInsets.only(bottom: 12),

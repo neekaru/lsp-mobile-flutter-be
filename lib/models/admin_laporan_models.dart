@@ -4,11 +4,13 @@ class AdminLaporanListResponse {
   final String status;
   final String message;
   final List<AdminLaporanListItem> data;
+  final AdminLaporanPagination pagination;
 
   AdminLaporanListResponse({
     required this.status,
     required this.message,
     required this.data,
+    required this.pagination,
   });
 
   factory AdminLaporanListResponse.fromJson(Map<String, dynamic> json) {
@@ -19,6 +21,27 @@ class AdminLaporanListResponse {
               ?.map((item) => AdminLaporanListItem.fromJson(item))
               .toList() ??
           [],
+      pagination: AdminLaporanPagination.fromJson(json['pagination'] ?? {}),
+    );
+  }
+}
+
+class AdminLaporanPagination {
+  final int total;
+  final int limit;
+  final int offset;
+
+  AdminLaporanPagination({
+    required this.total,
+    required this.limit,
+    required this.offset,
+  });
+
+  factory AdminLaporanPagination.fromJson(Map<String, dynamic> json) {
+    return AdminLaporanPagination(
+      total: json['total'] ?? 0,
+      limit: json['limit'] ?? 20,
+      offset: json['offset'] ?? 0,
     );
   }
 }

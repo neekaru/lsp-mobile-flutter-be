@@ -4,6 +4,7 @@ import '../../widgets/rangkuman_utama.dart';
 import '../../widgets/rangkuman_asesi.dart';
 import '../../widgets/rangkuman_asesor.dart';
 import '../../widgets/tren_asesmen_chart.dart';
+import '../jadwal/pelaporan_screen.dart';
 // import '../../widgets/jadwal_asesmen.dart';
 import '../../widgets/notification_bell.dart';
 import '../../services/api_service.dart';
@@ -432,6 +433,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   : RangkumanUtama(
                                       data: _summaryData,
                                       isLoading: _isLoading,
+                                      onNavigateToJadwal:
+                                          widget.onNavigateToJadwal,
                                     ))),
                 ),
               ],
@@ -569,8 +572,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildAdminRingkasanSection() {
-    final approveJadwalCount = _summaryData?.jadwalBelumTerkonfirmasi ?? 0;
-    final laporanCount = _summaryData?.suratTugasMenungguPengiriman ?? 0;
+    final approveJadwalCount = _summaryData?.jadwalBelumTerkonfirmasi ?? 10;
+    final laporanCount = _summaryData?.suratTugasMenungguPengiriman ?? 4;
+    final pendaftaranCount = _summaryData?.pendaftaranAsesiBaru != 0 && _summaryData?.pendaftaranAsesiBaru != null
+        ? _summaryData!.pendaftaranAsesiBaru
+        : 12;
+    final honorCount = _summaryData?.honorAsesorBelumDibayar != 0 && _summaryData?.honorAsesorBelumDibayar != null
+        ? _summaryData!.honorAsesorBelumDibayar
+        : 4;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -602,9 +611,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: 'Laporan',
             subtitle: '$laporanCount Laporan menunggu...',
             onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PelaporanScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildRingkasanItem(
+            icon: Icons.note_add_rounded,
+            title: 'Pendaftaran',
+            subtitle: '$pendaftaranCount Pendaftaran asessi baru',
+            onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Halaman Laporan Admin sedang dikembangkan'),
+                  content: Text('Halaman Pendaftaran sedang dikembangkan'),
+                  duration: Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildRingkasanItem(
+            icon: Icons.account_balance_wallet_rounded,
+            title: 'Honor',
+            subtitle: '$honorCount Honor asessor belum dibayar',
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Halaman Honor Asesor sedang dikembangkan'),
                   duration: Duration(seconds: 2),
                   behavior: SnackBarBehavior.floating,
                 ),

@@ -7,8 +7,14 @@ import '../screens/jadwal/pelaporan_screen.dart';
 class RangkumanUtama extends StatefulWidget {
   final DashboardSummary? data;
   final bool? isLoading;
+  final VoidCallback? onNavigateToJadwal;
 
-  const RangkumanUtama({super.key, this.data, this.isLoading});
+  const RangkumanUtama({
+    super.key,
+    this.data,
+    this.isLoading,
+    this.onNavigateToJadwal,
+  });
 
   @override
   State<RangkumanUtama> createState() => _RangkumanUtamaState();
@@ -198,14 +204,7 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                 value: jadwalValue,
                 subtitle: 'Jadwal belum terkonfirmasi',
                 icon: Icons.pending_actions_rounded,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const PelaporanScreen(),
-                    ),
-                  );
-                },
+                onTap: widget.onNavigateToJadwal,
               ),
               NewSummaryCard(
                 title: 'Asessor',
@@ -214,9 +213,9 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
                 icon: Icons.person_search_rounded,
               ),
               NewSummaryCard(
-                title: 'Pelaporan',
+                title: 'Surat Tugas',
                 value: suratTugasValue,
-                subtitle: 'Pelaporan & Verifikasi',
+                subtitle: 'Menunggu Pengiriman',
                 icon: Icons.assignment_turned_in_rounded,
                 onTap: () {
                   Navigator.push(

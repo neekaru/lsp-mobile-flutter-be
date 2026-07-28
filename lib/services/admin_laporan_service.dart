@@ -5,10 +5,24 @@ import 'api_client.dart';
 class AdminLaporanService {
   final Dio _dio = ApiClient.dio;
 
-  // GET /api/admin/laporan - List all reports
-  Future<AdminLaporanListResponse> getLaporanList() async {
+  // GET /api/admin/laporan - List reports, filtered/paginated at the server.
+  // status: "Revisi" | "Disetujui" | "Draft" | "Terkonfirmasi" (omit for all)
+  Future<AdminLaporanListResponse> getLaporanList({
+    String? status,
+    String? search,
+    int limit = 20,
+    int offset = 0,
+  }) async {
     try {
-      final response = await _dio.get('/api/admin/laporan');
+      final response = await _dio.get(
+        '/api/admin/laporan',
+        queryParameters: {
+          if (status != null && status.isNotEmpty) 'status': status,
+          if (search != null && search.isNotEmpty) 'search': search,
+          'limit': limit,
+          'offset': offset,
+        },
+      );
       return AdminLaporanListResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw _handleError(e);
