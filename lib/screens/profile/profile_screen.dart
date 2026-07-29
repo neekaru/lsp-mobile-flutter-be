@@ -30,11 +30,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   AsesiDashboardSummary _ringkasan = AsesiDashboardSummary.empty();
   String _instansiType = 'Mahasiswa';
   Map<String, String> _instansiData = {
-    'Nama Perguruan Tinggi': 'Politeknik Sampit',
-    'Falkutas': 'Teknologi Informasi',
-    'Program Studi': 'Sisitem Informasi',
-    'NIM': '087685674568',
-    'Alamat': 'Jl. Wengga Metropolitan',
+    'Nama Perguruan Tinggi': '',
+    'Falkutas': '',
+    'Program Studi': '',
+    'NIM': '',
+    'Alamat': '',
   };
 
   @override
@@ -99,7 +99,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _copyTukId() {
-    Clipboard.setData(const ClipboardData(text: 'DM-2026-000123'));
+    final userAccount = AuthRepository.currentUserInstance?.account ?? AuthRepository.currentUserInstance?.id ?? '';
+    Clipboard.setData(ClipboardData(text: userAccount));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Row(
@@ -531,7 +532,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'ID TUK : DM-2026-000123',
+                          'ID TUK : ${user.account.isNotEmpty ? user.account : user.id.isNotEmpty ? user.id : '-'}',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.75),
                             fontSize: 11.5,

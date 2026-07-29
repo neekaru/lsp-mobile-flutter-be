@@ -48,46 +48,46 @@ class _EditInstansiScreenState extends State<EditInstansiScreen> {
 
     // Initialize Mahasiswa values
     _univController = TextEditingController(
-      text: widget.currentType == 'Mahasiswa' ? widget.currentData['Nama Perguruan Tinggi'] ?? '' : 'Politeknik Sampit',
+      text: widget.currentData['Nama Perguruan Tinggi'] ?? '',
     );
     _facultyController = TextEditingController(
-      text: widget.currentType == 'Mahasiswa' ? widget.currentData['Falkutas'] ?? '' : 'Teknologi Informasi',
+      text: widget.currentData['Falkutas'] ?? '',
     );
     _majorController = TextEditingController(
-      text: widget.currentType == 'Mahasiswa' ? widget.currentData['Program Studi'] ?? '' : 'Sisitem Informasi',
+      text: widget.currentData['Program Studi'] ?? '',
     );
     _nimController = TextEditingController(
-      text: widget.currentType == 'Mahasiswa' ? widget.currentData['NIM'] ?? '' : '087685674568',
+      text: widget.currentData['NIM'] ?? '',
     );
 
     // Initialize Karyawan values
     _companyController = TextEditingController(
-      text: widget.currentType == 'Karyawan' ? widget.currentData['Nama Perusahaan'] ?? '' : 'PT Digital Nusantara',
+      text: widget.currentData['Nama Perusahaan'] ?? '',
     );
     _jobTitleController = TextEditingController(
-      text: widget.currentType == 'Karyawan' ? widget.currentData['Jabatan'] ?? '' : 'Senior Developer',
+      text: widget.currentData['Jabatan'] ?? '',
     );
     _jobFieldController = TextEditingController(
-      text: widget.currentType == 'Karyawan' ? widget.currentData['Bidang Pekerjaan'] ?? '' : 'Teknologi Informasi',
+      text: widget.currentData['Bidang Pekerjaan'] ?? '',
     );
     _workDurationController = TextEditingController(
-      text: widget.currentType == 'Karyawan' ? widget.currentData['Lama Bekerja'] ?? '' : '3 Tahun',
+      text: widget.currentData['Lama Bekerja'] ?? '',
     );
 
     // Initialize Wirausaha values
     _businessNameController = TextEditingController(
-      text: widget.currentType == 'Wirausaha' ? widget.currentData['Nama Usaha'] ?? '' : 'Creative Studio',
+      text: widget.currentData['Nama Usaha'] ?? '',
     );
     _businessFieldController = TextEditingController(
-      text: widget.currentType == 'Wirausaha' ? widget.currentData['Bidang Usaha'] ?? '' : 'Jasa Desain',
+      text: widget.currentData['Bidang Usaha'] ?? '',
     );
     _establishedYearController = TextEditingController(
-      text: widget.currentType == 'Wirausaha' ? widget.currentData['Tahun Berdiri'] ?? '' : '2021',
+      text: widget.currentData['Tahun Berdiri'] ?? '',
     );
 
     // Initialize Shared Address value
     _addressController = TextEditingController(
-      text: widget.currentData['Alamat'] ?? 'Jl. Wengga Metropolitan',
+      text: widget.currentData['Alamat'] ?? '',
     );
   }
 

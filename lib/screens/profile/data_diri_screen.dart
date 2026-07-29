@@ -23,10 +23,10 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
     super.initState();
     final user = AuthRepository.currentUserInstance;
     
-    _nameController = TextEditingController(text: user?.name ?? 'Muhammad Hanafi');
-    _emailController = TextEditingController(text: user?.email ?? 'muhammadhanafi_12@gmail.com');
-    _phoneController = TextEditingController(text: '0858978655634');
-    _addressController = TextEditingController(text: 'Jl.Pramuka km 4,5 No 34, Baamang Hulu, Kalimantan Tengah');
+    _nameController = TextEditingController(text: user?.name ?? '');
+    _emailController = TextEditingController(text: user?.email ?? '');
+    _phoneController = TextEditingController(text: '');
+    _addressController = TextEditingController(text: '');
     _fetchProfile();
   }
 
@@ -38,10 +38,10 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
       final profile = await AsesorService.getProfile();
       if (profile != null && mounted) {
         setState(() {
-          _nameController.text = profile['nama_lengkap'] ?? _nameController.text;
-          _emailController.text = profile['email'] ?? _emailController.text;
-          _phoneController.text = profile['no_telepon'] ?? _phoneController.text;
-          _addressController.text = profile['alamat'] ?? _addressController.text;
+          _nameController.text = profile['nama_lengkap']?.toString() ?? profile['nama']?.toString() ?? '';
+          _emailController.text = profile['email']?.toString() ?? '';
+          _phoneController.text = profile['no_telepon']?.toString() ?? profile['telepon']?.toString() ?? profile['phone']?.toString() ?? '';
+          _addressController.text = profile['alamat']?.toString() ?? '';
         });
       }
     } catch (_) {}

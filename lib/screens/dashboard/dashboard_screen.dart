@@ -5,6 +5,7 @@ import '../../widgets/rangkuman_asesi.dart';
 import '../../widgets/rangkuman_asesor.dart';
 import '../../widgets/tren_asesmen_chart.dart';
 import '../jadwal/pelaporan_screen.dart';
+import '../pendaftaran/permohonan_pendaftaran_screen.dart';
 // import '../../widgets/jadwal_asesmen.dart';
 import '../../widgets/notification_bell.dart';
 import '../../services/api_service.dart';
@@ -625,11 +626,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: 'Pendaftaran',
             subtitle: '$pendaftaranCount Pendaftaran asessi baru',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Halaman Pendaftaran sedang dikembangkan'),
-                  duration: Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PermohonanPendaftaranScreen(),
                 ),
               );
             },
