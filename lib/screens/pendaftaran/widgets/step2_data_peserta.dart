@@ -1,14 +1,17 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
+import '../../../services/permohonan_service.dart';
 
 class Step2DataPeserta extends StatefulWidget {
   final String namaPemohon;
   final String skemaSertifikasi;
+  final int? permohonanId;
 
   const Step2DataPeserta({
     super.key,
     required this.namaPemohon,
     required this.skemaSertifikasi,
+    this.permohonanId,
   });
 
   @override
@@ -19,6 +22,28 @@ class _Step2DataPesertaState extends State<Step2DataPeserta> {
   String _rekomendasi = 'Diterima'; // 'Diterima' or 'Tidak Diterima'
   final TextEditingController _catatanController = TextEditingController();
   bool _isAgreed = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStep2Data();
+  }
+
+  Future<void> _loadStep2Data() async {
+    final id = widget.permohonanId ?? 251343;
+    final realData = await PermohonanService.getStep2Data(id);
+    if (!mounted) return;
+    if (realData != null) {
+      setState(() {
+        if (realData['rekomendasi'] != null && realData['rekomendasi']!.isNotEmpty) {
+          _rekomendasi = realData['rekomendasi']!.contains('Tidak') ? 'Tidak Diterima' : 'Diterima';
+        }
+        if (realData['catatan_pemohon'] != null && realData['catatan_pemohon'] != '-') {
+          _catatanController.text = realData['catatan_pemohon']!;
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {

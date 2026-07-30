@@ -1,8 +1,14 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
+import '../../../services/permohonan_service.dart';
 
 class Step3Jadwal extends StatefulWidget {
-  const Step3Jadwal({super.key});
+  final int? permohonanId;
+
+  const Step3Jadwal({
+    super.key,
+    this.permohonanId,
+  });
 
   @override
   State<Step3Jadwal> createState() => _Step3JadwalState();
@@ -10,29 +16,28 @@ class Step3Jadwal extends StatefulWidget {
 
 class _Step3JadwalState extends State<Step3Jadwal> {
   int _selectedJadwalIndex = 0;
+  List<Map<String, String>> _jadwalList = [];
 
-  final List<Map<String, String>> _jadwalList = [
-    {
-      'jadwal': 'Sertifikasi SMA 5 Semarang - DG Muda 200726',
-      'tglPra': '20/07/2026',
-      'tglAsesmen': '20/07/2026',
-    },
-    {
-      'jadwal': 'Uji Desainer Grafis Muda - Jabshun 010826',
-      'tglPra': '01/08/2026',
-      'tglAsesmen': '01/08/2026',
-    },
-    {
-      'jadwal': 'Uji Desainer Grafis Muda - Jabshun 010826',
-      'tglPra': '01/08/2026',
-      'tglAsesmen': '01/08/2026',
-    },
-    {
-      'jadwal': 'Uji Desainer Grafis Muda - Jabshun 010826',
-      'tglPra': '01/08/2026',
-      'tglAsesmen': '01/08/2026',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadStep3Data();
+  }
+
+  Future<void> _loadStep3Data() async {
+    final id = widget.permohonanId ?? 251343;
+    final realSchedules = await PermohonanService.getStep3Data(id);
+    if (!mounted) return;
+    if (realSchedules.isNotEmpty) {
+      setState(() {
+        _jadwalList = realSchedules.map((e) => {
+          'jadwal': e['nama_jadwal'] ?? '',
+          'tglPra': e['tgl_pra'] ?? '',
+          'tglAsesmen': e['tgl_asesmen'] ?? '',
+        }).toList();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

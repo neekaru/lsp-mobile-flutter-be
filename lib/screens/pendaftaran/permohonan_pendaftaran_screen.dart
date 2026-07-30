@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../services/permohonan_service.dart';
 import 'detail_permohonan_screen.dart';
 
 class PermohonanPendaftaranScreen extends StatefulWidget {
@@ -12,57 +13,7 @@ class PermohonanPendaftaranScreen extends StatefulWidget {
 class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, String>> _allData = [
-    {
-      'tanggal': '20/07/2026',
-      'jam': '09:03:54',
-      'nama': 'Aldi Taher',
-      'skema': 'Digital Marketing',
-      'status': 'Terverifikasi',
-    },
-    {
-      'tanggal': '20/07/2026',
-      'jam': '09:03:54',
-      'nama': 'Aldi Taher',
-      'skema': 'Digital Marketing',
-      'status': 'Terverifikasi',
-    },
-    {
-      'tanggal': '20/07/2026',
-      'jam': '09:03:54',
-      'nama': 'Aldi Taher',
-      'skema': 'Digital Marketing',
-      'status': '',
-    },
-    {
-      'tanggal': '20/07/2026',
-      'jam': '09:03:54',
-      'nama': 'Aldi Taher',
-      'skema': 'Digital Marketing',
-      'status': 'Terverifikasi',
-    },
-    {
-      'tanggal': '20/07/2026',
-      'jam': '09:03:54',
-      'nama': 'Aldi Taher',
-      'skema': 'Digital Marketing',
-      'status': 'Terverifikasi',
-    },
-    {
-      'tanggal': '20/07/2026',
-      'jam': '09:03:54',
-      'nama': 'Aldi Taher',
-      'skema': 'Digital Marketing',
-      'status': 'Terverifikasi',
-    },
-    {
-      'tanggal': '20/07/2026',
-      'jam': '09:03:54',
-      'nama': 'Aldi Taher',
-      'skema': 'Digital Marketing',
-      'status': '',
-    },
-  ];
+  List<Map<String, String>> _allData = [];
 
   List<Map<String, String>> _filteredData = [];
 
@@ -71,6 +22,18 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
     super.initState();
     _filteredData = List.from(_allData);
     _searchController.addListener(_onSearchChanged);
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final realData = await PermohonanService.getPermohonanList();
+    if (!mounted) return;
+    setState(() {
+      if (realData.isNotEmpty) {
+        _allData = realData;
+        _filteredData = List.from(realData);
+      }
+    });
   }
 
   void _onSearchChanged() {

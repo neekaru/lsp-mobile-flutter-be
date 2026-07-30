@@ -9,11 +9,13 @@ import 'widgets/step4_biodata_peserta.dart';
 class EditPendaftaranScreen extends StatefulWidget {
   final String namaPemohon;
   final String skemaSertifikasi;
+  final int? permohonanId;
 
   const EditPendaftaranScreen({
     super.key,
-    this.namaPemohon = 'Aldi Taher',
+    this.namaPemohon = 'Asesi Demo',
     this.skemaSertifikasi = 'Digital Marketing',
+    this.permohonanId,
   });
 
   @override
@@ -60,62 +62,59 @@ class _EditPendaftaranScreenState extends State<EditPendaftaranScreen> {
               title: 'Edit Permohonan',
               onBack: _handleBack,
             ),
-
-          // Stepper Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-            child: _buildStepperHeader(),
-          ),
-
-          // Content Body according to active step
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: _buildStepContent(),
+            _buildStepperHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: _buildStepContent(),
+              ),
             ),
-          ),
-
-          // Bottom Action Buttons (Batal/Kembali & Selanjutnya)
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 46,
-                    child: ElevatedButton(
-                      onPressed: _handleBack,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFCBD5E1),
-                        foregroundColor: const Color(0xFF334155),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+            // Bottom Button Bar
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  if (_currentStep > 1) ...[
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _handleBack,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: const BorderSide(color: Color(0xFF0F172A)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        _currentStep == 1 ? 'Batal' : 'Kembali',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                        child: const Text(
+                          'Kembali',
+                          style: TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: SizedBox(
-                    height: 46,
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
                     child: ElevatedButton(
                       onPressed: _handleNext,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF60A5FA),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
+                        backgroundColor: const Color(0xFF0F172A),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: Text(
@@ -127,31 +126,31 @@ class _EditPendaftaranScreenState extends State<EditPendaftaranScreen> {
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 
   Widget _buildStepContent() {
     switch (_currentStep) {
       case 1:
-        return const Step1PersyaratanAsessi();
+        return Step1PersyaratanAsessi(permohonanId: widget.permohonanId);
       case 2:
         return Step2DataPeserta(
           namaPemohon: widget.namaPemohon,
           skemaSertifikasi: widget.skemaSertifikasi,
+          permohonanId: widget.permohonanId,
         );
       case 3:
-        return const Step3Jadwal();
+        return Step3Jadwal(permohonanId: widget.permohonanId);
       case 4:
         return const Step4BiodataPeserta();
       default:
-        return const Step1PersyaratanAsessi();
+        return Step1PersyaratanAsessi(permohonanId: widget.permohonanId);
     }
   }
 

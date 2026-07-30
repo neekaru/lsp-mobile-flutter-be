@@ -1,39 +1,43 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
+import '../../../services/permohonan_service.dart';
 
 class Step1PersyaratanAsessi extends StatefulWidget {
-  const Step1PersyaratanAsessi({super.key});
+  final int? permohonanId;
+
+  const Step1PersyaratanAsessi({
+    super.key,
+    this.permohonanId,
+  });
 
   @override
   State<Step1PersyaratanAsessi> createState() => _Step1PersyaratanAsessiState();
 }
 
 class _Step1PersyaratanAsessiState extends State<Step1PersyaratanAsessi> {
-  final List<Map<String, String>> _persyaratanDasarList = [
-    {
-      'title': 'Foto copy transkrip nilai minimal kelas 12 SMK/SMA sederajat',
-      'file': 'transkrip.PDF',
-      'status': 'Memenuhi Syarat',
-    },
-    {
-      'title': 'Foto copy transkrip nilai minimal kelas 12 SMK/SMA sederajat',
-      'file': 'bukti.PDF',
-      'status': 'Tidak Memenuhi Syarat',
-    },
-  ];
+  List<Map<String, String>> _persyaratanDasarList = [];
+  List<Map<String, String>> _persyaratanAdministrasiList = [];
 
-  final List<Map<String, String>> _persyaratanAdministrasiList = [
-    {
-      'title': 'Foto copy KTP',
-      'file': 'fotocopy_KTP.PDF',
-      'status': 'Tidak Memenuhi Syarat',
-    },
-    {
-      'title': 'Foto 3x4',
-      'file': 'Foto.PDF',
-      'status': 'Tidak Memenuhi Syarat',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadStep1Data();
+  }
+
+  Future<void> _loadStep1Data() async {
+    final id = widget.permohonanId ?? 251343;
+    final realItems = await PermohonanService.getStep1Data(id);
+    if (!mounted) return;
+    if (realItems.isNotEmpty) {
+      setState(() {
+        _persyaratanDasarList = realItems.where((e) => e['jenis'] == 'pendidikan' || e['jenis'] == 'dasar').toList();
+        _persyaratanAdministrasiList = realItems.where((e) => e['jenis'] != 'pendidikan' && e['jenis'] != 'dasar').toList();
+        if (_persyaratanDasarList.isEmpty) {
+          _persyaratanAdministrasiList = realItems;
+        }
+      });
+    }
+  }
 
   void _showPilihStatusModal(
     BuildContext context,

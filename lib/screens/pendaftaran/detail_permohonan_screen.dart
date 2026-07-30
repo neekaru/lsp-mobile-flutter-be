@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/status_notification_dialog.dart';
+import '../../services/permohonan_service.dart';
 import 'edit_pendaftaran_screen.dart';
 
-class DetailPermohonanScreen extends StatelessWidget {
+class DetailPermohonanScreen extends StatefulWidget {
   final Map<String, String> itemData;
 
   const DetailPermohonanScreen({
@@ -12,10 +13,40 @@ class DetailPermohonanScreen extends StatelessWidget {
   });
 
   @override
+  State<DetailPermohonanScreen> createState() => _DetailPermohonanScreenState();
+}
+
+class _DetailPermohonanScreenState extends State<DetailPermohonanScreen> {
+  late Map<String, String> _data;
+
+  @override
+  void initState() {
+    super.initState();
+    _data = Map.from(widget.itemData);
+    _loadDetail();
+  }
+
+  Future<void> _loadDetail() async {
+    final idStr = _data['id'];
+    if (idStr == null || idStr.isEmpty) return;
+    final id = int.tryParse(idStr);
+    if (id == null) return;
+
+    final realDetail = await PermohonanService.getPermohonanDetail(id);
+    if (!mounted) return;
+    setState(() {
+      if (realDetail != null && realDetail.isNotEmpty) {
+        _data = realDetail;
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isVerified = itemData['status'] == 'Terverifikasi' || itemData['status'] == 'Terferivikasi';
-    final nama = itemData['nama'] ?? 'Aldi Taher';
-    final skema = itemData['skema'] ?? 'Digital Marketing';
+    final isVerified = _data['status'] == 'Terverifikasi' || _data['status'] == 'Terferivikasi';
+    final nama = _data['nama'] ?? '-';
+    final skema = _data['skema'] ?? '-';
+    final noUjk = _data['no_ujk'] ?? '-';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -89,9 +120,9 @@ class DetailPermohonanScreen extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              const Text(
-                                'No UJK : 987577382222',
-                                style: TextStyle(
+                              Text(
+                                'No UJK : $noUjk',
+                                style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF64748B),
@@ -138,31 +169,31 @@ class DetailPermohonanScreen extends StatelessWidget {
                         _buildInfoRow(
                           icon: Icons.calendar_today_outlined,
                           label: 'Tanggal Daftar',
-                          value: '${itemData['tanggal'] ?? '20/07/2026'} ${itemData['jam'] ?? '09:03:54'}',
+                          value: '${_data['tanggal'] ?? '-'} ${_data['jam'] ?? ''}'.trim(),
                         ),
                         const SizedBox(height: 14),
                         _buildInfoRow(
                           icon: Icons.person_outline_rounded,
                           label: 'Asessor',
-                          value: 'Karina',
+                          value: _data['asessor'] ?? '-',
                         ),
                         const SizedBox(height: 14),
                         _buildInfoRow(
                           icon: Icons.calendar_today_outlined,
                           label: 'Jadwal Uji\nKompetensi',
-                          value: '26/07/2026 - 09:00 WIB',
+                          value: _data['jadwal_uji_kompetensi'] ?? '-',
                         ),
                         const SizedBox(height: 14),
                         _buildInfoRow(
                           icon: Icons.location_on_outlined,
                           label: 'Tempat Uji\nKompetensi',
-                          value: 'LPP Semarang',
+                          value: _data['tempat_uji_kompetensi'] ?? '-',
                         ),
                         const SizedBox(height: 14),
                         _buildInfoRow(
                           icon: Icons.person_outline_rounded,
                           label: 'Lembaga/\nPerusahaan',
-                          value: 'SMA 5 Semarang,\nJl. Bahagia, Semarang.',
+                          value: _data['lembaga_perusahaan'] ?? '-',
                           isLast: true,
                         ),
                       ],
@@ -178,12 +209,14 @@ class DetailPermohonanScreen extends StatelessWidget {
                     iconColor: const Color(0xFF3B82F6),
                     label: 'Edit Data',
                     onTap: () {
+                      final id = int.tryParse(_data['id'] ?? '');
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => EditPendaftaranScreen(
                             namaPemohon: nama,
                             skemaSertifikasi: skema,
+                            permohonanId: id,
                           ),
                         ),
                       );
