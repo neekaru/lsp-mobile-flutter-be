@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
 import 'detail_permohonan_screen.dart';
 
 class PermohonanPendaftaranScreen extends StatefulWidget {
@@ -13,49 +14,49 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
 
   final List<Map<String, String>> _allData = [
     {
-      'tanggal': '20,07/2026',
+      'tanggal': '20/07/2026',
       'jam': '09:03:54',
       'nama': 'Aldi Taher',
       'skema': 'Digital Marketing',
       'status': 'Terverifikasi',
     },
     {
-      'tanggal': '20,07/2026',
+      'tanggal': '20/07/2026',
       'jam': '09:03:54',
       'nama': 'Aldi Taher',
       'skema': 'Digital Marketing',
       'status': 'Terverifikasi',
     },
     {
-      'tanggal': '20,07/2026',
+      'tanggal': '20/07/2026',
       'jam': '09:03:54',
       'nama': 'Aldi Taher',
       'skema': 'Digital Marketing',
       'status': '',
     },
     {
-      'tanggal': '20,07/2026',
+      'tanggal': '20/07/2026',
       'jam': '09:03:54',
       'nama': 'Aldi Taher',
       'skema': 'Digital Marketing',
       'status': 'Terverifikasi',
     },
     {
-      'tanggal': '20,07/2026',
+      'tanggal': '20/07/2026',
       'jam': '09:03:54',
       'nama': 'Aldi Taher',
       'skema': 'Digital Marketing',
       'status': 'Terverifikasi',
     },
     {
-      'tanggal': '20,07/2026',
+      'tanggal': '20/07/2026',
       'jam': '09:03:54',
       'nama': 'Aldi Taher',
       'skema': 'Digital Marketing',
       'status': 'Terverifikasi',
     },
     {
-      'tanggal': '20,07/2026',
+      'tanggal': '20/07/2026',
       'jam': '09:03:54',
       'nama': 'Aldi Taher',
       'skema': 'Digital Marketing',
@@ -96,77 +97,15 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
 
   @override
   Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.paddingOf(context).top;
-
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // Header Bar with Light Grey Background matching screenshot exactly
-          Container(
-            width: double.infinity,
-            color: const Color(0xFFEBEBEB),
-            padding: EdgeInsets.only(
-              top: statusBarHeight + 8,
-              bottom: 12,
-              left: 16,
-              right: 12,
+      body: SafeArea(
+        child: Column(
+          children: [
+            CustomAppBar(
+              title: 'Permohonan',
+              onBack: () => Navigator.pop(context),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Back Arrow + Title "Permohonan" aligned left
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  behavior: HitTestBehavior.opaque,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF0F172A),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.chevron_left_rounded,
-                            color: Color(0xFF0F172A),
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Permohonan',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Right icon (...)
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: const Icon(
-                    Icons.more_horiz_rounded,
-                    color: Color(0xFF0F172A),
-                    size: 24,
-                  ),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ),
 
           // Main Body Content
           Expanded(
@@ -215,11 +154,11 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     child: const Row(
                       children: [
                         Expanded(
-                          flex: 3,
+                          flex: 4,
                           child: Text(
                             'Tanggal Daftar',
                             style: TextStyle(
@@ -229,6 +168,7 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
                             ),
                           ),
                         ),
+                        SizedBox(width: 4),
                         Expanded(
                           flex: 3,
                           child: Text(
@@ -240,6 +180,7 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
                             ),
                           ),
                         ),
+                        SizedBox(width: 4),
                         Expanded(
                           flex: 4,
                           child: Text(
@@ -251,10 +192,10 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
                             ),
                           ),
                         ),
+                        SizedBox(width: 4),
                         Expanded(
                           flex: 3,
-                          child: Align(
-                            alignment: Alignment.centerRight,
+                          child: Center(
                             child: Text(
                               'Status',
                               style: TextStyle(
@@ -302,99 +243,101 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(color: const Color(0xFFE2E8F0)),
                                   ),
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    // Tanggal & Jam
-                                    Expanded(
-                                      flex: 3,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            item['tanggal'] ?? '',
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF0F172A),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      // Tanggal & Jam
+                                      Expanded(
+                                        flex: 4,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              item['tanggal'] ?? '',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF0F172A),
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            item['jam'] ?? '',
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF0F172A),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              item['jam'] ?? '',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF0F172A),
+                                              ),
                                             ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+
+                                      // Nama
+                                      Expanded(
+                                        flex: 3,
+                                        child: Text(
+                                          item['nama'] ?? '',
+                                          style: const TextStyle(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF0F172A),
                                           ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    // Nama
-                                    Expanded(
-                                      flex: 3,
-                                      child: Text(
-                                        item['nama'] ?? '',
-                                        style: const TextStyle(
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0F172A),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
+                                      const SizedBox(width: 4),
 
-                                    // Skema
-                                    Expanded(
-                                      flex: 4,
-                                      child: Text(
-                                        item['skema'] ?? '',
-                                        style: const TextStyle(
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0F172A),
+                                      // Skema
+                                      Expanded(
+                                        flex: 4,
+                                        child: Text(
+                                          item['skema'] ?? '',
+                                          style: const TextStyle(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF0F172A),
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
+                                      const SizedBox(width: 4),
 
-                                    // Status Badge
-                                    Expanded(
-                                      flex: 3,
-                                      child: Align(
-                                        alignment: Alignment.centerRight,
-                                        child: isVerified
-                                            ? Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 4,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFFD1FAE5),
-                                                  borderRadius: BorderRadius.circular(6),
-                                                ),
-                                                child: const Text(
-                                                  'Terverifikasi',
-                                                  style: TextStyle(
-                                                    color: Color(0xFF10B981),
-                                                    fontSize: 10.5,
-                                                    fontWeight: FontWeight.bold,
+                                      // Status Badge
+                                      Expanded(
+                                        flex: 3,
+                                        child: Center(
+                                          child: isVerified
+                                              ? Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
                                                   ),
-                                                ),
-                                              )
-                                            : const SizedBox.shrink(),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFD1FAE5),
+                                                    borderRadius: BorderRadius.circular(6),
+                                                  ),
+                                                  child: const Text(
+                                                    'Terverifikasi',
+                                                    style: TextStyle(
+                                                      color: Color(0xFF10B981),
+                                                      fontSize: 10.5,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                )
+                                              : const SizedBox.shrink(),
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
                             },
                           ),
                   ),
@@ -404,6 +347,7 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
           ),
         ],
       ),
+    ),
     );
   }
 }

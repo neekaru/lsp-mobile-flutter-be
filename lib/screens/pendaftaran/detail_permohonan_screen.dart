@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_app_bar.dart';
+import '../../widgets/status_notification_dialog.dart';
 import 'edit_pendaftaran_screen.dart';
 
 class DetailPermohonanScreen extends StatelessWidget {
@@ -11,150 +13,103 @@ class DetailPermohonanScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.paddingOf(context).top;
-    final isVerified = itemData['status'] == 'Terverifikasi';
+    final isVerified = itemData['status'] == 'Terverifikasi' || itemData['status'] == 'Terferivikasi';
+    final nama = itemData['nama'] ?? 'Aldi Taher';
+    final skema = itemData['skema'] ?? 'Digital Marketing';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
-        children: [
-          // Header Bar
-          Container(
-            width: double.infinity,
-            color: const Color(0xFFEBEBEB),
-            padding: EdgeInsets.only(
-              top: statusBarHeight + 8,
-              bottom: 12,
-              left: 16,
-              right: 16,
+      body: SafeArea(
+        child: Column(
+          children: [
+            CustomAppBar(
+              title: 'Detail Permohonan',
+              onBack: () => Navigator.pop(context),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  behavior: HitTestBehavior.opaque,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF0F172A),
-                            width: 1.5,
-                          ),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.chevron_left_rounded,
-                            color: Color(0xFF0F172A),
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Detail Permohonan',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditPendaftaranScreen(
-                          namaPemohon: itemData['nama'] ?? 'Aldi Taher',
-                          skemaSertifikasi: itemData['skema'] ?? 'Digital Marketing',
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF3B82F6),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.edit_rounded, size: 14, color: Colors.white),
-                        SizedBox(width: 4),
-                        Text(
-                          'Edit',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
 
-          // Content Body
+          // Main Scrollable Content Body matching Screenshot
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status Banner Card
+                  // ==========================================================
+                  // 1. Profile Header Card
+                  // ==========================================================
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFFFAFAFA),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(14),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Status Verifikasi',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF64748B),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Status Pendaftaran',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F172A),
-                              ),
-                            ),
-                          ],
-                        ),
+                        // Avatar Icon Box
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDBEAFE),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.person_rounded,
+                              color: Color(0xFF3B82F6),
+                              size: 26,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Name, Skema, & No UJK
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                nama,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                skema,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'No UJK : 987577382222',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Status Badge Pill
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: isVerified ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            isVerified ? 'Terverifikasi' : 'Menunggu Verifikasi',
+                            isVerified ? 'Terverifikasi' : 'Menunggu',
                             style: TextStyle(
                               color: isVerified ? const Color(0xFF10B981) : const Color(0xFFD97706),
                               fontSize: 11,
@@ -165,170 +120,194 @@ class DetailPermohonanScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
-                  // Data Peserta Card
-                  _buildSectionTitle('Data Peserta'),
-                  const SizedBox(height: 8),
+                  // ==========================================================
+                  // 2. Information Details Card
+                  // ==========================================================
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFFFAFAFA),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(14),
                     child: Column(
                       children: [
-                        _buildDetailRow('Nama Lengkap', itemData['nama'] ?? '-'),
-                        const Divider(height: 20),
-                        _buildDetailRow('Tanggal Daftar', '${itemData['tanggal']} ${itemData['jam']}'),
-                        const Divider(height: 20),
-                        _buildDetailRow('Email', '${(itemData['nama'] ?? 'peserta').toLowerCase().replaceAll(' ', '')}@gmail.com'),
-                        const Divider(height: 20),
-                        _buildDetailRow('No. Handphone', '081234567890'),
+                        _buildInfoRow(
+                          icon: Icons.calendar_today_outlined,
+                          label: 'Tanggal Daftar',
+                          value: '${itemData['tanggal'] ?? '20/07/2026'} ${itemData['jam'] ?? '09:03:54'}',
+                        ),
+                        const SizedBox(height: 14),
+                        _buildInfoRow(
+                          icon: Icons.person_outline_rounded,
+                          label: 'Asessor',
+                          value: 'Karina',
+                        ),
+                        const SizedBox(height: 14),
+                        _buildInfoRow(
+                          icon: Icons.calendar_today_outlined,
+                          label: 'Jadwal Uji\nKompetensi',
+                          value: '26/07/2026 - 09:00 WIB',
+                        ),
+                        const SizedBox(height: 14),
+                        _buildInfoRow(
+                          icon: Icons.location_on_outlined,
+                          label: 'Tempat Uji\nKompetensi',
+                          value: 'LPP Semarang',
+                        ),
+                        const SizedBox(height: 14),
+                        _buildInfoRow(
+                          icon: Icons.person_outline_rounded,
+                          label: 'Lembaga/\nPerusahaan',
+                          value: 'SMA 5 Semarang,\nJl. Bahagia, Semarang.',
+                          isLast: true,
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Data Skema Card
-                  _buildSectionTitle('Detail Sertifikasi'),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _buildDetailRow('Skema Sertifikasi', itemData['skema'] ?? '-'),
-                        const Divider(height: 20),
-                        _buildDetailRow('Jenis Uji', 'Online Asesmen'),
-                        const Divider(height: 20),
-                        _buildDetailRow('TUK', 'TUK Digital Marketing Utama'),
-                      ],
-                    ),
+                  // ==========================================================
+                  // 3. Action Cards (Edit Data, Unduh Data, Hapus Data)
+                  // ==========================================================
+                  _buildActionButton(
+                    icon: Icons.edit_outlined,
+                    iconColor: const Color(0xFF3B82F6),
+                    label: 'Edit Data',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditPendaftaranScreen(
+                            namaPemohon: nama,
+                            skemaSertifikasi: skema,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 10),
 
-                  // Action Buttons
-                  if (!isVerified) ...[
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 46,
-                            child: OutlinedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Permohonan ditolak'),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                                Navigator.pop(context);
-                              },
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Color(0xFFEF4444)),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'Tolak',
-                                style: TextStyle(
-                                  color: Color(0xFFEF4444),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: SizedBox(
-                            height: 46,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Permohonan berhasil diverifikasi'),
-                                    backgroundColor: Color(0xFF10B981),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                                Navigator.pop(context);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF10B981),
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'Verifikasi',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  _buildActionButton(
+                    icon: Icons.download_rounded,
+                    iconColor: const Color(0xFF10B981),
+                    label: 'Unduh Data',
+                    onTap: () {
+                      StatusNotificationDialog.showSuccess(
+                        context: context,
+                        title: 'Dokumen Berhasil Diunduh',
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 10),
+
+                  _buildActionButton(
+                    icon: Icons.delete_outline_rounded,
+                    iconColor: const Color(0xFFEF4444),
+                    label: 'Hapus Data',
+                    onTap: () {
+                      StatusNotificationDialog.showError(
+                        context: context,
+                        title: 'Yakin Ingin Menghapus Data?',
+                        buttonText: 'Hapus',
+                        onOk: () {
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
           ),
         ],
       ),
+    ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
-        color: Color(0xFF0F172A),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isLast = false,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12.5,
-            color: Color(0xFF64748B),
-            fontWeight: FontWeight.w500,
+        Icon(
+          icon,
+          size: 18,
+          color: const Color(0xFF3B82F6),
+        ),
+        const SizedBox(width: 10),
+        SizedBox(
+          width: 120,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF64748B),
+              height: 1.3,
+            ),
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 8),
         Expanded(
           child: Text(
             value,
             textAlign: TextAlign.right,
             style: const TextStyle(
-              fontSize: 12.5,
-              color: Color(0xFF0F172A),
+              fontSize: 12,
               fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+              height: 1.3,
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFAFAFA),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: iconColor,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
