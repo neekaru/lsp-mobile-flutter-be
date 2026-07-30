@@ -69,59 +69,54 @@ class _EditPendaftaranScreenState extends State<EditPendaftaranScreen> {
                 child: _buildStepContent(),
               ),
             ),
-            // Bottom Button Bar
-            Container(
+            // Bottom Action Buttons (Batal/Kembali & Selanjutnya)
+            Padding(
               padding: const EdgeInsets.all(16.0),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 4,
-                    offset: Offset(0, -2),
-                  ),
-                ],
-              ),
               child: Row(
                 children: [
-                  if (_currentStep > 1) ...[
-                    Expanded(
-                      child: OutlinedButton(
+                  Expanded(
+                    child: SizedBox(
+                      height: 46,
+                      child: ElevatedButton(
                         onPressed: _handleBack,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: Color(0xFF0F172A)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFCBD5E1),
+                          foregroundColor: const Color(0xFF334155),
+                          elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text(
-                          'Kembali',
-                          style: TextStyle(
-                            color: Color(0xFF0F172A),
+                        child: Text(
+                          _currentStep == 1 ? 'Batal' : 'Kembali',
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                  ],
+                  ),
+                  const SizedBox(width: 16),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: _handleNext,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F172A),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
+                      height: 46,
+                      child: ElevatedButton(
+                        onPressed: _handleNext,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF60A5FA),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        _currentStep == 4 ? 'Simpan Perubahan' : 'Selanjutnya',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                        child: Text(
+                          _currentStep == 4 ? 'Simpan Perubahan' : 'Selanjutnya',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
