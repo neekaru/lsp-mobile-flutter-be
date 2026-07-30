@@ -175,7 +175,9 @@ class _DetailPermohonanScreenState extends State<DetailPermohonanScreen> {
                         _buildInfoRow(
                           icon: Icons.person_outline_rounded,
                           label: 'Asessor',
-                          value: _data['asessor'] ?? '-',
+                          value: (_data['asessor'] != null && _data['asessor']!.isNotEmpty && _data['asessor'] != '-')
+                              ? _data['asessor']!
+                              : 'Belum Ditentukan',
                         ),
                         const SizedBox(height: 14),
                         _buildInfoRow(
