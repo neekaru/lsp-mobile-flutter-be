@@ -46,6 +46,7 @@ class _Step1PersyaratanAsessiState extends State<Step1PersyaratanAsessi> {
   ) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         String tempStatus = currentStatus;
@@ -54,22 +55,34 @@ class _Step1PersyaratanAsessiState extends State<Step1PersyaratanAsessi> {
             return Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Material 3 drag handle pill
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFCBD5E1),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   const Text(
                     'Pilih Status',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF0F172A),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 12),
                   _buildStatusRadioTile(
                     label: 'Memenuhi Syarat',
                     value: 'Memenuhi Syarat',
@@ -100,7 +113,6 @@ class _Step1PersyaratanAsessiState extends State<Step1PersyaratanAsessi> {
                       Navigator.pop(context);
                     },
                   ),
-                  const SizedBox(height: 6),
                 ],
               ),
             );
@@ -119,23 +131,22 @@ class _Step1PersyaratanAsessiState extends State<Step1PersyaratanAsessi> {
     final isSelected = value == groupValue;
     return InkWell(
       onTap: () => onChanged(value),
+      borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 6.0),
         child: Row(
           children: [
             Radio<String>(
               value: value,
               groupValue: groupValue,
               activeColor: const Color(0xFF3B82F6),
-              visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               onChanged: onChanged,
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 15,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: const Color(0xFF0F172A),
               ),
