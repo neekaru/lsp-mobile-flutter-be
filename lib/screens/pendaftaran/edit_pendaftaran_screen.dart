@@ -143,7 +143,7 @@ class _EditPendaftaranScreenState extends State<EditPendaftaranScreen> {
       case 3:
         return Step3Jadwal(permohonanId: widget.permohonanId);
       case 4:
-        return const Step4BiodataPeserta();
+        return Step4BiodataPeserta(permohonanId: widget.permohonanId);
       default:
         return Step1PersyaratanAsessi(permohonanId: widget.permohonanId);
     }

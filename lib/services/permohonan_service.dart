@@ -125,4 +125,44 @@ class PermohonanService {
       return [];
     }
   }
+
+  /// Fetch Step 4 Biodata Peserta from API (GET /api/permohonan/:id/step4)
+  static Future<Map<String, String>?> getStep4Data(int id) async {
+    try {
+      final response = await _dio.get('/api/permohonan/$id/step4');
+      if (response.statusCode == 200 && response.data != null) {
+        final Map<String, dynamic> data = response.data['data'] ?? {};
+        return {
+          'id_peserta': data['id_peserta']?.toString() ?? '',
+          'nik': data['nik']?.toString() ?? '',
+          'nama_pemohon': data['nama_pemohon']?.toString() ?? '',
+          'skema_sertifikasi': data['skema_sertifikasi']?.toString() ?? '',
+          'jenis_kelamin': data['jenis_kelamin']?.toString() ?? '',
+          'tempat_lahir': data['tempat_lahir']?.toString() ?? '',
+          'tanggal_lahir': data['tanggal_lahir']?.toString() ?? '',
+          'alamat': data['alamat']?.toString() ?? '',
+          'provinsi': data['provinsi']?.toString() ?? '',
+          'kabupaten': data['kabupaten']?.toString() ?? '',
+          'kecamatan': data['kecamatan']?.toString() ?? '',
+          'kontak': data['kontak']?.toString() ?? '',
+          'email': data['email']?.toString() ?? '',
+          'pendidikan_terakhir': data['pendidikan_terakhir']?.toString() ?? '',
+          'nama_sekolah': data['nama_sekolah']?.toString() ?? '',
+          'jurusan': data['jurusan']?.toString() ?? '',
+          'pekerjaan': data['pekerjaan']?.toString() ?? '',
+          'perusahaan': data['perusahaan']?.toString() ?? '',
+          'jabatan': data['jabatan']?.toString() ?? '',
+          'alamat_perusahaan': data['alamat_perusahaan']?.toString() ?? '',
+          'no_kontak_perusahaan': data['no_kontak_perusahaan']?.toString() ?? '',
+          'tuk': data['tuk']?.toString() ?? '',
+          'pra_asesmen_checked': data['pra_asesmen_checked']?.toString() ?? '',
+          'perangkat_asesmen': data['perangkat_asesmen']?.toString() ?? '',
+        };
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting step 4 data: $e');
+      return null;
+    }
+  }
 }
