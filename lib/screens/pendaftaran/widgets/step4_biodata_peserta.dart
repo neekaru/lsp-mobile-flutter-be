@@ -288,6 +288,33 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
       children: [
         _buildTopBanner(),
         const SizedBox(height: 12),
+        // Save Button at TOP
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              debugPrint('🔴 BUTTON CLICKED!');
+              _saveData();
+            },
+            icon: const Icon(Icons.save, size: 18, color: Colors.white),
+            label: const Text(
+              'Simpan Perubahan',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         _buildAccordionCard(
           icon: Icons.person_rounded,
           iconBgColor: const Color(0xFFDBEAFE),
@@ -334,7 +361,10 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _saveData,
+            onPressed: () {
+              debugPrint('🔴 BUTTON CLICKED!');
+              _saveData();
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF3B82F6),
               padding: const EdgeInsets.symmetric(vertical: 14),
