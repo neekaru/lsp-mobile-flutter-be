@@ -128,6 +128,8 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   }
 
   Future<void> _saveData() async {
+    debugPrint('🔵 _saveData called, permohonanId: ${widget.permohonanId}');
+    
     if (widget.permohonanId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -164,6 +166,7 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     if (_noKontakPerusahaanController.text.isNotEmpty) updateData['telp_company'] = _noKontakPerusahaanController.text;
 
     if (updateData.isEmpty) {
+      debugPrint('⚠️ updateData is empty');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Tidak ada data yang diubah'),
@@ -173,6 +176,8 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
       return;
     }
 
+    debugPrint('🟢 updateData: $updateData');
+
     // Show loading
     showDialog(
       context: context,
@@ -181,10 +186,13 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     );
 
     try {
+      debugPrint('🔵 Calling updatePermohonan API...');
       final result = await PermohonanService.updatePermohonan(
         widget.permohonanId!,
         updateData,
       );
+
+      debugPrint('🟢 API result: $result');
 
       if (!mounted) return;
       Navigator.pop(context); // Close loading
