@@ -165,4 +165,37 @@ class PermohonanService {
       return null;
     }
   }
+
+  /// Update Permohonan (All Steps) - PUT /api/permohonan/:id
+  static Future<Map<String, dynamic>?> updatePermohonan(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final response = await _dio.put(
+        '/api/permohonan/$id',
+        data: data,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return {
+          'status': response.data['status'] ?? 'success',
+          'message': response.data['message'] ?? 'Data berhasil diperbarui',
+        };
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error updating permohonan: $e');
+      if (e is DioException) {
+        return {
+          'status': 'error',
+          'message': e.response?.data['message'] ?? 'Gagal memperbarui data',
+        };
+      }
+      return {
+        'status': 'error',
+        'message': 'Terjadi kesalahan saat memperbarui data',
+      };
+    }
+  }
 }

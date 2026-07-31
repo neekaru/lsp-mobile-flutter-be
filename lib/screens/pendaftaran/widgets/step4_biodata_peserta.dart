@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../services/permohonan_service.dart';
 
 class Step4BiodataPeserta extends StatefulWidget {
@@ -126,6 +127,98 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     super.dispose();
   }
 
+  Future<void> _saveData() async {
+    if (widget.permohonanId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('ID permohonan tidak valid'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // Build update payload
+    final Map<String, dynamic> updateData = {};
+
+    // Data Peserta
+    if (_nikController.text.isNotEmpty) updateData['nik'] = _nikController.text;
+    if (_namaLengkapController.text.isNotEmpty) updateData['nama_lengkap'] = _namaLengkapController.text;
+    if (_jenisKelamin.isNotEmpty) {
+      updateData['jenis_kelamin'] = _jenisKelamin == 'Laki-laki' ? '1' : '2';
+    }
+    if (_tempatLahir.isNotEmpty) updateData['tempat_lahir'] = _tempatLahir;
+    if (_tanggalLahirController.text.isNotEmpty) updateData['tgl_lahir'] = _tanggalLahirController.text;
+    if (_alamatController.text.isNotEmpty) updateData['alamat'] = _alamatController.text;
+    if (_kontakController.text.isNotEmpty) updateData['telp'] = _kontakController.text;
+    if (_emailController.text.isNotEmpty) updateData['email'] = _emailController.text;
+
+    // Data Pendidikan
+    if (_namaSekolahController.text.isNotEmpty) updateData['perg_tinggi'] = _namaSekolahController.text;
+    if (_jurusanController.text.isNotEmpty) updateData['jurusan'] = _jurusanController.text;
+
+    // Data Pekerjaan
+    if (_perusahaanController.text.isNotEmpty) updateData['organisasi'] = _perusahaanController.text;
+    if (_jabatanController.text.isNotEmpty) updateData['jabatan'] = _jabatanController.text;
+    if (_alamatPerusahaanController.text.isNotEmpty) updateData['alamat_company'] = _alamatPerusahaanController.text;
+    if (_noKontakPerusahaanController.text.isNotEmpty) updateData['telp_company'] = _noKontakPerusahaanController.text;
+
+    if (updateData.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tidak ada data yang diubah'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final result = await PermohonanService.updatePermohonan(
+        widget.permohonanId!,
+        updateData,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+
+      if (result != null && result['status'] == 'success') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Data berhasil disimpan'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result?['message'] ?? 'Gagal menyimpan data'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -140,6 +233,43 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
       setState(() {
         _tanggalLahirController.text = '$day/$month/$year';
       });
+    }
+  }
+
+  Future<void> _openWhatsApp(String phone) async {
+    final cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
+    if (cleanPhone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nomor kontak belum terisi'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    String formattedPhone = cleanPhone;
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '62${formattedPhone.substring(1)}';
+    } else if (formattedPhone.startsWith('+')) {
+      formattedPhone = formattedPhone.substring(1);
+    }
+
+    final Uri waUrl = Uri.parse('https://wa.me/$formattedPhone');
+    try {
+      if (await canLaunchUrl(waUrl)) {
+        await launchUrl(waUrl, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(waUrl, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Tidak dapat membuka WhatsApp: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -380,7 +510,7 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           hint: 'Pilih Kecamatan',
           onTap: () {},
         ),
-        _buildInputField(
+        _buildPhoneField(
           label: 'No.Kontak',
           controller: _kontakController,
           hint: 'Masukkan No.Kontak',
@@ -445,7 +575,7 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           hint: 'Masukkan Alamat Perusahaan',
           maxLines: 2,
         ),
-        _buildInputField(
+        _buildPhoneField(
           label: 'No.Kontak Perusahaan',
           controller: _noKontakPerusahaanController,
           hint: 'Masukkan No.Kontak',
@@ -664,6 +794,70 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
                       minWidth: 32,
                       minHeight: 32,
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+                    ),
+                    fillColor: Colors.white,
+                    filled: true,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhoneField({
+    required String label,
+    required TextEditingController controller,
+    String hint = 'Masukkan No.Kontak',
+    bool isLast = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0.0 : 10.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+                height: 1.3,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => _openWhatsApp(controller.text),
+              child: AbsorbPointer(
+                child: TextField(
+                  controller: controller,
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: hint,
+                    hintStyle: const TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.normal,
+                      color: Color(0xFF94A3B8),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
                       borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
