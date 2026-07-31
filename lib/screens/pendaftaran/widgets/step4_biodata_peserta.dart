@@ -322,6 +322,29 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           content: _buildDataPekerjaanContent(),
         ),
         const SizedBox(height: 16),
+        // Save Button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _saveData,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF3B82F6),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Simpan Perubahan',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
       ],
     );
   }
