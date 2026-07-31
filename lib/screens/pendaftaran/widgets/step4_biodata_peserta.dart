@@ -12,10 +12,10 @@ class Step4BiodataPeserta extends StatefulWidget {
   });
 
   @override
-  State<Step4BiodataPeserta> createState() => _Step4BiodataPesertaState();
+  State<Step4BiodataPeserta> createState() => Step4BiodataPesertaState();
 }
 
-class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
+class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   // Accordion Expand / Collapse States
   bool _isDataPesertaExpanded = true;
   bool _isDataPendidikanExpanded = false;
@@ -50,6 +50,14 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   String _tuk = '';
   String _praAsesmenChecked = '';
   String _perangkatAsesmen = '';
+
+  // Raw IDs from backend (for PUT-back)
+  int? _idProvinsi;
+  int? _idKabupaten;
+  String _idKecamatan = '';
+  int? _idPendidikan;
+  int? _idPekerjaan;
+  String _idPerangkat = '';
 
   @override
   void initState() {
@@ -105,6 +113,14 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         if (realData['tuk'] != null) _tuk = realData['tuk']!;
         if (realData['pra_asesmen_checked'] != null) _praAsesmenChecked = realData['pra_asesmen_checked']!;
         if (realData['perangkat_asesmen'] != null) _perangkatAsesmen = realData['perangkat_asesmen']!;
+
+        // Raw IDs for PUT-back
+        if (realData['id_provinsi'] != null) _idProvinsi = int.tryParse(realData['id_provinsi']!);
+        if (realData['id_kabupaten'] != null) _idKabupaten = int.tryParse(realData['id_kabupaten']!);
+        if (realData['id_kecamatan'] != null) _idKecamatan = realData['id_kecamatan']!;
+        if (realData['id_pendidikan'] != null) _idPendidikan = int.tryParse(realData['id_pendidikan']!);
+        if (realData['id_pekerjaan'] != null) _idPekerjaan = int.tryParse(realData['id_pekerjaan']!);
+        if (realData['id_perangkat'] != null) _idPerangkat = realData['id_perangkat']!;
       });
     }
   }
@@ -128,6 +144,10 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   }
 
   Future<void> _saveData() async {
+    await saveData();
+  }
+
+  Future<void> saveData() async {
     debugPrint('🔵 _saveData called, permohonanId: ${widget.permohonanId}');
     
     if (widget.permohonanId == null) {
@@ -164,6 +184,21 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     if (_jabatanController.text.isNotEmpty) updateData['jabatan'] = _jabatanController.text;
     if (_alamatPerusahaanController.text.isNotEmpty) updateData['alamat_company'] = _alamatPerusahaanController.text;
     if (_noKontakPerusahaanController.text.isNotEmpty) updateData['telp_company'] = _noKontakPerusahaanController.text;
+
+    // ID-based fields (pass raw IDs back to backend)
+    if (_idProvinsi != null) updateData['id_provinsi'] = _idProvinsi;
+    if (_idKabupaten != null) updateData['id_kabupaten'] = _idKabupaten;
+    if (_idKecamatan.isNotEmpty) updateData['id_kecamatan'] = _idKecamatan;
+    if (_idPendidikan != null) updateData['id_pendidikan'] = _idPendidikan;
+    if (_idPekerjaan != null) updateData['id_pekerjaan'] = _idPekerjaan;
+    if (_idPerangkat.isNotEmpty) {
+      final perangkatInt = int.tryParse(_idPerangkat);
+      if (perangkatInt != null) updateData['id_perangkat'] = perangkatInt;
+    }
+    // pra_asesmen: convert display 'Ya'/'Tidak' back to '1'/'0'
+    if (_praAsesmenChecked.isNotEmpty) {
+      updateData['pra_asesmen'] = _praAsesmenChecked == 'Ya' ? '1' : '0';
+    }
 
     if (updateData.isEmpty) {
       debugPrint('⚠️ updateData is empty');
@@ -288,33 +323,6 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
       children: [
         _buildTopBanner(),
         const SizedBox(height: 12),
-        // Save Button at TOP
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              debugPrint('🔴 BUTTON CLICKED!');
-              _saveData();
-            },
-            icon: const Icon(Icons.save, size: 18, color: Colors.white),
-            label: const Text(
-              'Simpan Perubahan',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
         _buildAccordionCard(
           icon: Icons.person_rounded,
           iconBgColor: const Color(0xFFDBEAFE),
@@ -355,32 +363,6 @@ class _Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
             });
           },
           content: _buildDataPekerjaanContent(),
-        ),
-        const SizedBox(height: 16),
-        // Save Button
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              debugPrint('🔴 BUTTON CLICKED!');
-              _saveData();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Simpan Perubahan',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
         ),
         const SizedBox(height: 16),
       ],

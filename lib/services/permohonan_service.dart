@@ -157,6 +157,13 @@ class PermohonanService {
           'tuk': data['tuk']?.toString() ?? '',
           'pra_asesmen_checked': data['pra_asesmen_checked']?.toString() ?? '',
           'perangkat_asesmen': data['perangkat_asesmen']?.toString() ?? '',
+          // Raw IDs for PUT-back
+          'id_provinsi': data['id_provinsi']?.toString() ?? '',
+          'id_kabupaten': data['id_kabupaten']?.toString() ?? '',
+          'id_kecamatan': data['id_kecamatan']?.toString() ?? '',
+          'id_pendidikan': data['id_pendidikan']?.toString() ?? '',
+          'id_pekerjaan': data['id_pekerjaan']?.toString() ?? '',
+          'id_perangkat': data['id_perangkat']?.toString() ?? '',
         };
       }
       return null;

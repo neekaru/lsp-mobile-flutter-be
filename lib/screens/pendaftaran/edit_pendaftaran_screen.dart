@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/status_notification_dialog.dart';
+import '../../services/permohonan_service.dart';
 import 'widgets/step1_persyaratan_asessi.dart';
 import 'widgets/step2_data_peserta.dart';
 import 'widgets/step3_jadwal.dart';
@@ -24,6 +25,7 @@ class EditPendaftaranScreen extends StatefulWidget {
 
 class _EditPendaftaranScreenState extends State<EditPendaftaranScreen> {
   int _currentStep = 1;
+  final _step4Key = GlobalKey<Step4BiodataPesertaState>();
 
   void _handleNext() {
     if (_currentStep < 4) {
@@ -31,13 +33,16 @@ class _EditPendaftaranScreenState extends State<EditPendaftaranScreen> {
         _currentStep++;
       });
     } else {
-      StatusNotificationDialog.showSuccess(
-        context: context,
-        title: 'Perubahan Telah Tersimpan',
-        onOk: () {
-          Navigator.pop(context);
-        },
-      );
+      // Step 4: save biodata via PUT then show success
+      _step4Key.currentState?.saveData().then((_) {
+        StatusNotificationDialog.showSuccess(
+          context: context,
+          title: 'Perubahan Telah Tersimpan',
+          onOk: () {
+            Navigator.pop(context);
+          },
+        );
+      });
     }
   }
 
@@ -143,7 +148,7 @@ class _EditPendaftaranScreenState extends State<EditPendaftaranScreen> {
       case 3:
         return Step3Jadwal(permohonanId: widget.permohonanId);
       case 4:
-        return Step4BiodataPeserta(permohonanId: widget.permohonanId);
+        return Step4BiodataPeserta(key: _step4Key, permohonanId: widget.permohonanId);
       default:
         return Step1PersyaratanAsessi(permohonanId: widget.permohonanId);
     }
