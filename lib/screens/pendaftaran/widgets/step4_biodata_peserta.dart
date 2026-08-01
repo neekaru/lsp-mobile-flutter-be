@@ -54,6 +54,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   // Asesor info
   String _asesorShortName = '';
   String _asesorEmail = '';
+  // ignore: unused_field
   String _asesorUserCategory = '';
   // Perangkat asesmen info
   String _namaPerangkatAsesmen = '';
@@ -956,13 +957,17 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         ),
         _buildSelectField(
           label: 'Pra Asessmen Checked',
-          value: _asesorShortName,
+          value: _asesorShortName.isNotEmpty && _asesorEmail.isNotEmpty
+              ? '$_asesorShortName ($_asesorEmail)'
+              : _asesorShortName,
           hint: 'Pilih Asesor',
           onTap: _selectPraAsesmenChecked,
         ),
         _buildSelectField(
           label: 'Perangkat Asesmen',
-          value: _namaPerangkatAsesmen,
+          value: _namaPerangkatAsesmen.isNotEmpty && _kodePerangkatAsesmen.isNotEmpty
+              ? '$_namaPerangkatAsesmen [$_kodePerangkatAsesmen]'
+              : _namaPerangkatAsesmen,
           hint: 'Pilih Perangkat',
           onTap: _selectPerangkatAsesmen,
           isLast: true,
