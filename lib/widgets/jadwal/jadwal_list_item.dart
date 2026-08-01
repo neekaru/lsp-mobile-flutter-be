@@ -86,9 +86,8 @@ class JadwalListItem extends StatelessWidget {
   }
 
   String _getDisplayAsesi() {
-    final kuota = item.kuota;
-    if (kuota == null) return '-';
-    return '$kuota Kuota';
+    final kuota = item.kuota ?? 0;
+    return 'Kuota: $kuota';
   }
 
   bool _shouldShowWarning() {
