@@ -50,8 +50,14 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   late TextEditingController _alamatPerusahaanController;
   late TextEditingController _noKontakPerusahaanController;
   String _tuk = '';
-  String _praAsesmenChecked = '';
-  String _perangkatAsesmen = '';
+
+  // Asesor info
+  String _asesorShortName = '';
+  String _asesorEmail = '';
+  String _asesorUserCategory = '';
+  // Perangkat asesmen info
+  String _namaPerangkatAsesmen = '';
+  String _kodePerangkatAsesmen = '';
 
   // Raw IDs from backend (for PUT-back)
   int? _idProvinsi;
@@ -127,20 +133,6 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         if (realData['alamat_perusahaan'] != null) _alamatPerusahaanController.text = realData['alamat_perusahaan']!;
         if (realData['no_kontak_perusahaan'] != null) _noKontakPerusahaanController.text = realData['no_kontak_perusahaan']!;
         if (realData['tuk'] != null) _tuk = realData['tuk']!;
-
-        // Normalisasi Pra Asesmen Checked
-        if (realData['pra_asesmen_checked'] != null) {
-          final pra = realData['pra_asesmen_checked']!;
-          if (pra == '1' || pra.toLowerCase() == 'ya' || pra.toLowerCase() == 'true') {
-            _praAsesmenChecked = 'Ya';
-          } else if (pra == '0' || pra.toLowerCase() == 'tidak' || pra.toLowerCase() == 'false') {
-            _praAsesmenChecked = 'Tidak';
-          } else {
-            _praAsesmenChecked = pra;
-          }
-        }
-
-        if (realData['perangkat_asesmen'] != null) _perangkatAsesmen = realData['perangkat_asesmen']!;
 
         // Raw IDs for PUT-back
         if (realData['id_provinsi'] != null) _idProvinsi = int.tryParse(realData['id_provinsi']!);
