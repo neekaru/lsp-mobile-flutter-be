@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../services/asesor_service.dart';
 
 class DetailHonorScreen extends StatefulWidget {
   final Map<String, dynamic> detail;
@@ -27,46 +27,31 @@ class DetailHonorScreen extends StatefulWidget {
 class _DetailHonorScreenState extends State<DetailHonorScreen> {
   late String _currentStatus;
   late TextEditingController _catatanController;
-  String _buktiPembayaranFile = '';
+  late TextEditingController _buktiUrlController;
 
   @override
   void initState() {
     super.initState();
     _currentStatus = widget.status;
-    if (_currentStatus.toLowerCase() == 'selesai' || _currentStatus.toLowerCase() == 'complete') {
+    if (_currentStatus.toLowerCase() == 'selesai' || _currentStatus.toLowerCase() == 'complete' || _currentStatus == 'Pembayaran Selesai') {
       _currentStatus = 'Pembayaran Selesai';
-      _buktiPembayaranFile = 'bukti_pembayaran.jpg';
     } else {
       _currentStatus = 'Menunggu Pembayaran';
-      _buktiPembayaranFile = '';
     }
-    _catatanController = TextEditingController(text: '-');
+    _buktiUrlController = TextEditingController(
+      text: widget.detail['link_bukti_pembayaran']?.toString() ?? '',
+    );
+    final initialCatatan = widget.detail['catatan']?.toString() ?? '';
+    _catatanController = TextEditingController(
+      text: (initialCatatan.isNotEmpty && initialCatatan != '-') ? initialCatatan : '',
+    );
   }
 
   @override
   void dispose() {
     _catatanController.dispose();
+    _buktiUrlController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickFile() async {
-    try {
-      FilePickerResult? result = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
-        allowMultiple: false,
-      );
-      if (result != null && result.files.isNotEmpty) {
-        final name = result.files.single.name;
-        if (name.isNotEmpty) {
-          setState(() {
-            _buktiPembayaranFile = name;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Error picking file: $e');
-    }
   }
 
   void _showStatusPicker() {
@@ -115,9 +100,6 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
                     onTap: () {
                       setState(() {
                         _currentStatus = 'Pembayaran Selesai';
-                        if (_buktiPembayaranFile.isEmpty) {
-                          _buktiPembayaranFile = 'bukti_pembayaran.jpg';
-                        }
                       });
                       Navigator.pop(context);
                     },
@@ -147,7 +129,20 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
     );
   }
 
-  void _simpanPerubahan() {
+  Future<void> _simpanPerubahan() async {
+    final int? tugasId = widget.detail['id'] is int
+        ? widget.detail['id']
+        : int.tryParse(widget.detail['id']?.toString() ?? '');
+
+    if (tugasId != null) {
+      final String statusDb = _currentStatus == 'Pembayaran Selesai' ? '1' : '0';
+      await AsesorService.updateAdminHonorTugasStatus(
+        tugasId,
+        status: statusDb,
+        linkBuktiPembayaran: _buktiUrlController.text.trim(),
+      );
+    }
+
     _showSuccessDialog();
   }
 
@@ -528,7 +523,7 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
 
                   const SizedBox(height: 12),
 
-                  // 4. Lampiran Bukti Pembayaran Card (With File Picker)
+                  // 4. Lampiran Bukti Pembayaran Card (URL Input)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
@@ -549,62 +544,24 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        GestureDetector(
-                          onTap: _pickFile,
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
+                        TextField(
+                          controller: _buktiUrlController,
+                          keyboardType: TextInputType.url,
+                          style: const TextStyle(fontSize: 12.5, color: Color(0xFF0F172A)),
+                          decoration: InputDecoration(
+                            hintText: 'Tempel link bukti pembayaran (opsional)',
+                            hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                            isDense: true,
+                            filled: true,
+                            fillColor: const Color(0xFFF8FAFC),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
                             ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _buktiPembayaranFile.isNotEmpty
-                                      ? Icons.description_rounded
-                                      : Icons.cloud_upload_outlined,
-                                  color: _buktiPembayaranFile.isNotEmpty
-                                      ? const Color(0xFF3B82F6)
-                                      : const Color(0xFF94A3B8),
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _buktiPembayaranFile.isNotEmpty
-                                        ? _buktiPembayaranFile
-                                        : 'Bukti pembayaran (Klik untuk unggah)',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: _buktiPembayaranFile.isNotEmpty
-                                          ? const Color(0xFF334155)
-                                          : const Color(0xFF94A3B8),
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                if (_buktiPembayaranFile.isNotEmpty)
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _buktiPembayaranFile = '';
-                                      });
-                                    },
-                                    child: const Icon(
-                                      Icons.close_rounded,
-                                      size: 18,
-                                      color: Color(0xFF94A3B8),
-                                    ),
-                                  )
-                                else
-                                  const Icon(
-                                    Icons.attach_file_rounded,
-                                    size: 18,
-                                    color: Color(0xFF94A3B8),
-                                  ),
-                              ],
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Color(0xFF3B82F6)),
                             ),
                           ),
                         ),
@@ -651,18 +608,25 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
                                 maxLength: 200,
                                 style: const TextStyle(fontSize: 12.5, color: Color(0xFF0F172A)),
                                 decoration: const InputDecoration(
+                                  hintText: 'Tambah catatan (opsional)...',
+                                  hintStyle: TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
                                   isDense: true,
                                   contentPadding: EdgeInsets.zero,
                                   border: InputBorder.none,
                                   counterText: '',
                                 ),
                               ),
-                              const Text(
-                                '0/200',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Color(0xFF94A3B8),
-                                ),
+                              ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: _catatanController,
+                                builder: (context, value, _) {
+                                  return Text(
+                                    '${value.text.length}/200',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Color(0xFF94A3B8),
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),

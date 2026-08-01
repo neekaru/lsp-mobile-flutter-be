@@ -11,232 +11,253 @@ class HonorAsesorScreen extends StatefulWidget {
   State<HonorAsesorScreen> createState() => _HonorAsesorScreenState();
 }
 
-class _HonorAsesorScreenState extends State<HonorAsesorScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
+  int _selectedTabIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _selectedMonth = 'Juli 2026';
+  static const List<String> _monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+  ];
+  DateTime? _selectedMonth;
   bool _isLoading = false;
-  final List<String> _availableMonths = ['Semua', 'Juli 2026', 'Juni 2026', 'Mei 2026'];
   List<Map<String, dynamic>> _honorItems = [];
 
-  // Default Mock Data matching user reference design
-  final List<Map<String, dynamic>> _defaultHonorItems = [
-    {
-      'id': 1,
-      'nama_asesor': 'Karina',
-      'tipe_asesor': 'Asessor Internal',
-      'judul_asesmen': 'Sertifikasi Software Development',
-      'skema': 'Skema Programmer',
-      'honor': 'Rp 2.250.000',
-      'status': 'Selesai',
-      'tanggal': '20 Juli 2026',
-      'tuk': 'TUK Sewaktu',
-      'jumlah_asesi': 15,
-      'metode_pembayaran': 'Transfer Bank',
-      'tanggal_pembayaran': '20 Juli 2026',
-      'no_transfer': 'PAY-20260720-001',
-    },
-    {
-      'id': 2,
-      'nama_asesor': 'Eko Setiabudi',
-      'tipe_asesor': 'Asessor Internal',
-      'judul_asesmen': 'Sertifikasi Data Science',
-      'skema': 'Skema Data Science',
-      'honor': 'Rp 2.250.000',
-      'status': 'Selesai',
-      'tanggal': '19 Juli 2026',
-      'tuk': 'TUK Sewaktu',
-      'jumlah_asesi': 12,
-      'metode_pembayaran': 'Transfer Bank',
-      'tanggal_pembayaran': '19 Juli 2026',
-      'no_transfer': 'PAY-20260719-002',
-    },
-    {
-      'id': 3,
-      'nama_asesor': 'Sintia Alia',
-      'tipe_asesor': 'Asessor Eksternal',
-      'judul_asesmen': 'Sertifikasi Cyber Security',
-      'skema': 'Skema Cyber Security',
-      'honor': 'Rp 2.250.000',
-      'status': 'Selesai',
-      'tanggal': '18 Juli 2026',
-      'tuk': 'TUK Tempat Kerja',
-      'jumlah_asesi': 10,
-      'metode_pembayaran': 'Transfer Bank',
-      'tanggal_pembayaran': '18 Juli 2026',
-      'no_transfer': 'PAY-20260718-003',
-    },
-    {
-      'id': 4,
-      'nama_asesor': 'Santirya',
-      'tipe_asesor': 'Asessor Eksternal',
-      'judul_asesmen': 'Sertifikasi Network Administrator',
-      'skema': 'Skema Network Administrator',
-      'honor': 'Rp 2.250.000',
-      'status': 'Selesai',
-      'tanggal': '17 Juli 2026',
-      'tuk': 'TUK Tempat Kerja',
-      'jumlah_asesi': 14,
-      'metode_pembayaran': 'Transfer Bank',
-      'tanggal_pembayaran': '17 Juli 2026',
-      'no_transfer': 'PAY-20260717-004',
-    },
-    {
-      'id': 5,
-      'nama_asesor': 'Ahmad Hidayat',
-      'tipe_asesor': 'Asessor Internal',
-      'judul_asesmen': 'Sertifikasi Digital Marketing',
-      'skema': 'Skema Digital Marketing',
-      'honor': 'Rp 1.800.000',
-      'status': 'Menunggu',
-      'tanggal': '22 Juli 2026',
-      'tuk': 'TUK Mandiri',
-      'jumlah_asesi': 8,
-      'metode_pembayaran': 'Transfer Bank',
-      'tanggal_pembayaran': 'Pending',
-      'no_transfer': '-',
-    },
-    {
-      'id': 6,
-      'nama_asesor': 'Dewi Lestari',
-      'tipe_asesor': 'Asessor Eksternal',
-      'judul_asesmen': 'Sertifikasi UI/UX Designer',
-      'skema': 'Skema UI/UX Designer',
-      'honor': 'Rp 2.500.000',
-      'status': 'Menunggu',
-      'tanggal': '23 Juli 2026',
-      'tuk': 'TUK Pusat',
-      'jumlah_asesi': 16,
-      'metode_pembayaran': 'Transfer Bank',
-      'tanggal_pembayaran': 'Pending',
-      'no_transfer': '-',
-    },
-  ];
+  String get _selectedMonthLabel => _selectedMonth == null
+      ? 'Semua'
+      : '${_monthNames[_selectedMonth!.month - 1]} ${_selectedMonth!.year}';
+
+  String get _selectedMonthCode => _selectedMonth == null
+      ? 'semua'
+      : '${_selectedMonth!.year}-${_selectedMonth!.month.toString().padLeft(2, '0')}';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      if (mounted) setState(() {});
-    });
-    _honorItems = List.from(_defaultHonorItems);
+    _honorItems = [];
     _fetchHonorData();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _fetchHonorData() async {
+  Future<void> _fetchHonorData([String? statusOverride]) async {
     setState(() {
       _isLoading = true;
     });
     try {
-      final res = _selectedMonth == 'Semua'
-          ? await AsesorService.getHonorList()
-          : await AsesorService.getHonorList(_selectedMonth);
-      if (mounted && res != null && res['rincian'] != null) {
-        final List<dynamic> list = res['rincian'];
-        if (list.isNotEmpty) {
-          setState(() {
-            _honorItems = list.map((item) {
-              final Map<String, dynamic> map = Map<String, dynamic>.from(item as Map);
-              return {
-                ...map,
-                'nama_asesor': map['nama_asesor'] ?? map['judul_asesmen'] ?? 'Asesor',
-                'tipe_asesor': map['tipe_asesor'] ?? map['skema'] ?? 'Asessor Internal',
-                'honor': map['honor'] ?? 'Rp 0',
-                'status': map['status'] ?? 'Selesai',
-              };
-            }).toList();
-          });
-        }
+      final String tabStatus = statusOverride ??
+          (_selectedTabIndex == 1
+              ? 'menunggu'
+              : _selectedTabIndex == 2
+                  ? 'selesai'
+                  : 'semua');
+
+      // 1. Try Admin endpoint first (/api/admin/honor-asesor)
+      final resAdmin = await AsesorService.getAdminHonorAsesorList(
+        status: tabStatus,
+        bulan: _selectedMonthCode,
+        search: _searchQuery,
+      );
+
+      if (mounted && resAdmin != null && resAdmin['data'] != null) {
+        final List<dynamic> list = resAdmin['data'];
+        setState(() {
+          _honorItems = list.map((item) {
+            final Map<String, dynamic> map = Map<String, dynamic>.from(item as Map);
+            return {
+              ...map,
+              'id': map['id'] ?? map['asesor_id'],
+              'nama_asesor': map['nama_asesor'] ?? 'Asesor',
+              'tipe_asesor': map['tipe_asesor'] ?? 'Asesor Internal',
+              'judul_asesmen': map['judul_asesmen'] ?? map['skema'] ?? '',
+              'skema': map['skema'] ?? map['judul_asesmen'] ?? '',
+              'honor': map['honor'] ?? 'Rp 0',
+              'status': map['status'] ?? 'Selesai',
+              'tanggal': map['tanggal'] ?? '',
+            };
+          }).toList();
+        });
+        return;
       }
-    } catch (_) {}
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+
+      // 2. Fallback to Asesor endpoint (/api/asesor/honor) if logged in as Asesor (403 on Admin endpoint)
+      final resAsesor = await AsesorService.getHonorList(
+        _selectedMonth == null ? null : _selectedMonthLabel,
+      );
+
+      if (mounted && resAsesor != null) {
+        final List<dynamic> list = resAsesor['rincian'] ?? resAsesor['data'] ?? [];
+        setState(() {
+          _honorItems = list.map((item) {
+            final Map<String, dynamic> map = Map<String, dynamic>.from(item as Map);
+            return {
+              ...map,
+              'id': map['id'] ?? map['asesor_id'] ?? map['tugas_id'],
+              'nama_asesor': map['nama_asesor'] ?? map['judul_asesmen'] ?? 'Asesor',
+              'tipe_asesor': map['tipe_asesor'] ?? map['skema'] ?? 'Asesor Internal',
+              'judul_asesmen': map['judul_asesmen'] ?? map['skema'] ?? '',
+              'skema': map['skema'] ?? map['judul_asesmen'] ?? '',
+              'honor': map['honor'] ?? 'Rp 0',
+              'status': map['status'] ?? 'Selesai',
+              'tanggal': map['tanggal'] ?? '',
+            };
+          }).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('🔴 Error in _fetchHonorData: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   void _showMonthPicker(BuildContext context) {
+    int year = _selectedMonth?.year ?? DateTime.now().year;
+    DateTime? picked = _selectedMonth;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return Material(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Material(
+              color: Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Pilih Periode Bulan',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Pilih Periode Bulan',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 20, color: Color(0xFF64748B)),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close, size: 20, color: Color(0xFF64748B)),
-                        onPressed: () => Navigator.pop(context),
+                      const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF3B82F6)),
+                            onPressed: () => setSheetState(() => year--),
+                          ),
+                          Text(
+                            '$year',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.chevron_right_rounded, color: Color(0xFF3B82F6)),
+                            onPressed: () => setSheetState(() => year++),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      GridView.count(
+                        crossAxisCount: 4,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                        childAspectRatio: 2.2,
+                        children: List.generate(12, (i) {
+                          final month = i + 1;
+                          final isSelected =
+                              picked != null && picked!.year == year && picked!.month == month;
+                          return GestureDetector(
+                            onTap: () => setSheetState(() => picked = DateTime(year, month)),
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                _monthNames[i].substring(0, 3),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelected ? Colors.white : const Color(0xFF0F172A),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                setState(() => _selectedMonth = null);
+                                _fetchHonorData();
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF475569),
+                                side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text('Semua', style: TextStyle(fontSize: 13)),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: FilledButton(
+                              onPressed: picked == null
+                                  ? null
+                                  : () {
+                                      Navigator.pop(context);
+                                      setState(() => _selectedMonth = picked);
+                                      _fetchHonorData();
+                                    },
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF3B82F6),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text('Terapkan', style: TextStyle(fontSize: 13)),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                  const SizedBox(height: 8),
-                  ..._availableMonths.map((monthName) {
-                    final isSelected = monthName == _selectedMonth;
-                    return ListTile(
-                      dense: true,
-                      leading: Icon(
-                        Icons.calendar_today_rounded,
-                        size: 18,
-                        color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF64748B),
-                      ),
-                      title: Text(
-                        monthName,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF0F172A),
-                        ),
-                      ),
-                      trailing: isSelected
-                          ? const Icon(
-                              Icons.check_circle_rounded,
-                              color: Color(0xFF3B82F6),
-                              size: 18,
-                            )
-                          : null,
-                      onTap: () {
-                        setState(() {
-                          _selectedMonth = monthName;
-                        });
-                        Navigator.pop(context);
-                        _fetchHonorData();
-                      },
-                    );
-                  }),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -244,19 +265,6 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen>
 
   List<Map<String, dynamic>> _getFilteredItems() {
     List<Map<String, dynamic>> result = List.from(_honorItems);
-
-    // Filter by tab index (0: Semua, 1: Menunggu, 2: Selesai)
-    if (_tabController.index == 1) {
-      result = result.where((item) {
-        final st = (item['status'] ?? '').toString().toLowerCase();
-        return st == 'menunggu' || st == 'pending';
-      }).toList();
-    } else if (_tabController.index == 2) {
-      result = result.where((item) {
-        final st = (item['status'] ?? '').toString().toLowerCase();
-        return st == 'selesai' || st == 'complete';
-      }).toList();
-    }
 
     // Filter by search query
     if (_searchQuery.trim().isNotEmpty) {
@@ -398,16 +406,22 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen>
   }
 
   Widget _buildPillTab({required int index, required String label}) {
-    final isSelected = _tabController.index == index;
+    final isSelected = _selectedTabIndex == index;
     final containerColor = isSelected ? const Color(0xFF6C8BB4) : const Color(0xFFD2E3F4);
     final textColor = isSelected ? Colors.white : const Color(0xFF5A7EAA);
 
     return Expanded(
       child: GestureDetector(
         onTap: () {
+          final String nextStatus = index == 1
+              ? 'menunggu'
+              : index == 2
+                  ? 'selesai'
+                  : 'semua';
           setState(() {
-            _tabController.animateTo(index);
+            _selectedTabIndex = index;
           });
+          _fetchHonorData(nextStatus);
         },
         child: Container(
           height: 38,
@@ -500,7 +514,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen>
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    _selectedMonth,
+                    _selectedMonthLabel,
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,

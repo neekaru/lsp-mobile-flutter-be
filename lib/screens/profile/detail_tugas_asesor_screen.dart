@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../services/asesor_service.dart';
 import 'detail_honor_screen.dart';
 
 class DetailTugasAsesorScreen extends StatefulWidget {
@@ -14,83 +15,65 @@ class DetailTugasAsesorScreen extends StatefulWidget {
   State<DetailTugasAsesorScreen> createState() => _DetailTugasAsesorScreenState();
 }
 
-class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
+  int _selectedTabIndex = 0;
+  List<Map<String, dynamic>> _loadedTasks = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      if (mounted) setState(() {});
+    _fetchTugasData();
+  }
+
+  Future<void> _fetchTugasData() async {
+    final int? asesorId = widget.asesorData['id'] is int
+        ? widget.asesorData['id']
+        : int.tryParse(widget.asesorData['id']?.toString() ?? '');
+    if (asesorId == null) return;
+
+    setState(() {
+      _isLoading = true;
     });
+
+    try {
+      final String tabStatus = _selectedTabIndex == 1
+          ? 'selesai'
+          : _selectedTabIndex == 2
+              ? 'menunggu'
+              : 'semua';
+
+      final res = await AsesorService.getAdminHonorAsesorTugas(
+        asesorId,
+        status: tabStatus,
+      );
+
+      if (mounted && res != null && res['tugas'] != null) {
+        final List<dynamic> list = res['tugas'];
+        if (list.isNotEmpty) {
+          setState(() {
+            _loadedTasks = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('🔴 Error fetching tugas data: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
   }
 
   List<Map<String, dynamic>> _getTasksForAsesor() {
-    // Default task items matching reference screenshot
-    return [
-      {
-        'id': 101,
-        'judul': 'Junior Grafik Desain',
-        'tuk': 'SMK 2 Jakarta',
-        'waktu': '07/05/2026 09:00 wib',
-        'mode': '(Offline)',
-        'honor': 'Rp 2.250.000',
-        'status': 'Selesai',
-      },
-      {
-        'id': 102,
-        'judul': 'Junior Web Developer',
-        'tuk': 'SMA 5 Semarang',
-        'waktu': '20/05/2026 09:00 wib',
-        'mode': '(Offline)',
-        'honor': 'Rp 2.250.000',
-        'status': 'Selesai',
-      },
-      {
-        'id': 103,
-        'judul': 'Digital Marketing',
-        'tuk': 'SMA 5 Semarang',
-        'waktu': '30/05/2026 09:00 wib',
-        'mode': '(Online)',
-        'honor': 'Rp 2.250.000',
-        'status': 'Menunggu',
-      },
-      {
-        'id': 104,
-        'judul': 'Digital Marketing',
-        'tuk': 'SMA 5 Semarang',
-        'waktu': '30/05/2026 09:00 wib',
-        'mode': '(Online)',
-        'honor': 'Rp 2.250.000',
-        'status': 'Menunggu',
-      },
-      {
-        'id': 105,
-        'judul': 'Junior Web Developer',
-        'tuk': 'SMA 5 Semarang',
-        'waktu': '30/07/2026 09:00 wib',
-        'mode': '(Offline)',
-        'honor': 'Rp 2.250.000',
-        'status': 'Selesai',
-      },
-      {
-        'id': 106,
-        'judul': 'Junior Web Developer',
-        'tuk': 'SMA 5 Semarang',
-        'waktu': '30/07/2026 09:00 wib',
-        'mode': '(Offline)',
-        'honor': 'Rp 2.250.000',
-        'status': 'Selesai',
-      },
-    ];
+    return _loadedTasks;
   }
 
   void _navigateToDetailHonor(Map<String, dynamic> task) {
@@ -99,6 +82,7 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen>
       MaterialPageRoute(
         builder: (context) => DetailHonorScreen(
           detail: {
+            'id': task['id'],
             'judul_asesmen': task['judul'],
             'honor': task['honor'],
             'tanggal': task['waktu'],
@@ -119,9 +103,9 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen>
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
     
-    final String namaAsesor = widget.asesorData['nama_asesor'] ?? 'Karina';
-    final String tipeAsesor = widget.asesorData['tipe_asesor'] ?? 'Asessor Internal';
-    final String totalHonor = widget.asesorData['total_honor'] ?? 'Rp 4.000.000';
+    final String namaAsesor = widget.asesorData['nama_asesor'] ?? 'Asesor';
+    final String tipeAsesor = widget.asesorData['tipe_asesor'] ?? 'Asesor Internal';
+    final String totalHonor = widget.asesorData['honor'] ?? widget.asesorData['total_honor'] ?? 'Rp 0';
     final String statusAsesor = widget.asesorData['status_asesor'] ?? 'Aktif';
 
     final allTasks = _getTasksForAsesor();
@@ -129,9 +113,9 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen>
     final menungguTasks = allTasks.where((t) => (t['status'] ?? '').toString().toLowerCase() == 'menunggu').toList();
 
     List<Map<String, dynamic>> currentTasks = allTasks;
-    if (_tabController.index == 1) {
+    if (_selectedTabIndex == 1) {
       currentTasks = selesaiTasks;
-    } else if (_tabController.index == 2) {
+    } else if (_selectedTabIndex == 2) {
       currentTasks = menungguTasks;
     }
 
@@ -162,6 +146,13 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen>
               ],
             ),
           ),
+
+          if (_isLoading)
+            const LinearProgressIndicator(
+              minHeight: 2,
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+            ),
 
           Expanded(
             child: SingleChildScrollView(
@@ -310,15 +301,13 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen>
                             ),
                           )
                         else
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: currentTasks.length,
-                            separatorBuilder: (context, index) => const SizedBox(height: 10),
-                            itemBuilder: (context, index) {
-                              final task = currentTasks[index];
-                              return _buildTaskCard(task);
-                            },
+                          Column(
+                            children: [
+                              for (final task in currentTasks) ...[
+                                _buildTaskCard(task),
+                                if (task != currentTasks.last) const SizedBox(height: 10),
+                              ],
+                            ],
                           ),
                       ],
                     ),
@@ -337,14 +326,15 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen>
     required String label,
     required int count,
   }) {
-    final isSelected = _tabController.index == index;
+    final isSelected = _selectedTabIndex == index;
 
     return Expanded(
       child: GestureDetector(
         onTap: () {
           setState(() {
-            _tabController.animateTo(index);
+            _selectedTabIndex = index;
           });
+          _fetchTugasData();
         },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),

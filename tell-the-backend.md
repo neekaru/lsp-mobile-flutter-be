@@ -307,3 +307,212 @@ Endpoint berikut tetap diperlukan untuk proses setelah akun dibuat dan login. Se
 | AC-05 | Endpoint daftar skema tidak mengembalikan skema yang pernah diuji oleh Asesi login. |
 | AC-06 | `POST /api/sertifikasi/daftar` menolak skema pernah diuji dengan `422` dan kode `SCHEME_ALREADY_TESTED`, termasuk bila request dibuat di luar aplikasi. |
 | AC-07 | Asesi tidak dapat membaca, mengubah, atau mengunduh sumber daya milik Asesi lain. |
+
+### 8. Endpoint Admin Honor Asesor
+
+Modul ini digunakan oleh pengguna berhak akses `admin` untuk mengelola honorarium Asesor, melihat daftar tugas per Asesor, serta memperbarui status pembayaran dan bukti transfer.
+
+#### 8.1. Daftar Honor Asesor (`HonorAsesorScreen`)
+
+| Metode | Endpoint | Auth | Fungsi |
+|---|---|---|---|
+| `GET` | `/api/admin/honor-asesor` | Role `admin` | Mengambil daftar summary honor per Asesor |
+
+##### Query Parameters:
+| Parameter | Contoh | Keterangan |
+|---|---|---|
+| `status` | `semua` / `menunggu` / `selesai` | Filter status pembayaran honor (default: `semua`) |
+| `bulan` | `2026-07` / `semua` | Filter periode bulan (default: bulan berjalan) |
+| `search` | `Karina` / `Programmer` | Pencarian nama asesor, tipe, atau judul skema |
+| `limit` | `20` | Batas jumlah data per halaman |
+| `offset` | `0` | Offset pagination |
+
+##### Response Berhasil: `200 OK`
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "nama_asesor": "Karina",
+      "tipe_asesor": "Asessor Internal",
+      "judul_asesmen": "Sertifikasi Software Development",
+      "skema": "Skema Programmer",
+      "honor": "Rp 4.000.000",
+      "total_honor_numeric": 4000000,
+      "status": "Selesai",
+      "tanggal": "20 Juli 2026",
+      "avatar_url": null
+    },
+    {
+      "id": 2,
+      "nama_asesor": "Budi Santoso",
+      "tipe_asesor": "Asessor Eksternal",
+      "judul_asesmen": "Uji Kompetensi Digital Marketing",
+      "skema": "Digital Marketing",
+      "honor": "Rp 2.250.000",
+      "total_honor_numeric": 2250000,
+      "status": "Menunggu",
+      "tanggal": "18 Juli 2026",
+      "avatar_url": null
+    }
+  ],
+  "meta": {
+    "total_count": 2,
+    "menunggu_count": 1,
+    "selesai_count": 1,
+    "selected_month": "Juli 2026"
+  }
+}
+```
+
+---
+
+#### 8.2. Detail Tugas Asesor (`DetailTugasAsesorScreen`)
+
+| Metode | Endpoint | Auth | Fungsi |
+|---|---|---|---|
+| `GET` | `/api/admin/honor-asesor/:asesor_id/tugas` | Role `admin` | Mengambil info Asesor dan daftar seluruh tugas honor milik Asesor tersebut |
+
+##### Query Parameters:
+| Parameter | Contoh | Keterangan |
+|---|---|---|
+| `status` | `semua` / `selesai` / `menunggu` | Filter status tugas honor Asesor |
+
+##### Response Berhasil: `200 OK`
+
+```json
+{
+  "status": "success",
+  "data": {
+    "asesor_info": {
+      "id": 1,
+      "nama_asesor": "Karina",
+      "tipe_asesor": "Asessor Internal",
+      "status_keaktifan": "Aktif",
+      "total_honor": "Rp 4.000.000",
+      "total_honor_numeric": 4000000,
+      "avatar_url": null
+    },
+    "counts": {
+      "semua": 3,
+      "selesai": 2,
+      "menunggu": 1
+    },
+    "tugas": [
+      {
+        "id": 101,
+        "judul": "Junior Grafik Desain",
+        "tuk": "TUK : SMK 2 Jakarta",
+        "waktu": "07/05/2026 09:00 wib",
+        "mode": "Offline",
+        "honor": "Rp 2.250.000",
+        "status": "Selesai"
+      },
+      {
+        "id": 102,
+        "judul": "Junior Web Developer",
+        "tuk": "TUK : SMA 5 Semarang",
+        "waktu": "20/05/2026 09:00 wib",
+        "mode": "Offline",
+        "honor": "Rp 2.250.000",
+        "status": "Selesai"
+      },
+      {
+        "id": 103,
+        "judul": "Conten Creator",
+        "tuk": "TUK : LPP Tenggerang",
+        "waktu": "20/06/2026 09:00 wib",
+        "mode": "Offline",
+        "honor": "Rp 2.150.000",
+        "status": "Menunggu"
+      }
+    ]
+  }
+}
+```
+
+---
+
+#### 8.3. Detail Honor Asesor (`DetailHonorScreen`)
+
+| Metode | Endpoint | Auth | Fungsi |
+|---|---|---|---|
+| `GET` | `/api/admin/honor-asesor/tugas/:tugas_id` | Role `admin` | Mengambil detail komprehensif rincian honor tugas tertentu |
+
+##### Response Berhasil: `200 OK`
+
+```json
+{
+  "status": "success",
+  "data": {
+    "tugas_id": 102,
+    "judul_asesmen": "Junior Web Developer",
+    "tuk": "SMA 5 Semarang",
+    "waktu": "20/05/2026 09:00 wib",
+    "mode": "Offline",
+    "status_pembayaran": "Pembayaran Selesai",
+    "rincian_honor": {
+      "honor_asesmen": 2250000,
+      "uang_kendaraan": 100000,
+      "uang_makan": 0,
+      "lainnya": 0,
+      "total_honor": 4000000
+    },
+    "lampiran_bukti": {
+      "file_name": "bukti_pembayaran.jpg",
+      "file_url": "https://api.lsp.id/uploads/bukti_pembayaran_102.jpg"
+    },
+    "catatan": "-"
+  }
+}
+```
+
+---
+
+#### 8.4. Update Status & Upload Bukti Honor (`DetailHonorScreen`)
+
+| Metode | Endpoint | Auth | Content-Type | Fungsi |
+|---|---|---|---|---|
+| `POST` / `PUT` | `/api/admin/honor-asesor/tugas/:tugas_id` | Role `admin` | `multipart/form-data` | Memperbarui status pembayaran, catatan, dan mengunggah berkas bukti pembayaran |
+
+##### Form Data Body (Multipart):
+| Key | Tipe | Wajib | Keterangan |
+|---|---|---:|---|
+| `status` | String | Ya | `"Pembayaran Selesai"` atau `"Menunggu Pembayaran"` |
+| `catatan` | String | Tidak | Teks catatan/keterangan tambahan (maks 200 karakter) |
+| `bukti_pembayaran` | File | Tidak | Berkas lampiran bukti transfer (`.jpg`, `.jpeg`, `.png`, `.pdf`) |
+
+##### Response Berhasil: `200 OK`
+
+```json
+{
+  "status": "success",
+  "message": "Pembayaran Honor Asessor Telah Di Simpan",
+  "data": {
+    "tugas_id": 102,
+    "status": "Pembayaran Selesai",
+    "catatan": "-",
+    "bukti_pembayaran": {
+      "file_name": "bukti_pembayaran.jpg",
+      "file_url": "https://api.lsp.id/uploads/bukti_pembayaran_102.jpg"
+    },
+    "updated_at": "2026-08-01T10:15:00Z"
+  }
+}
+```
+
+##### Respons Gagal Validasi: `422 Unprocessable Entity`
+
+```json
+{
+  "status": "error",
+  "code": "VALIDATION_ERROR",
+  "message": "Format file bukti pembayaran tidak didukung atau ukuran file melebihi batas.",
+  "errors": {
+    "bukti_pembayaran": ["File harus berupa JPG, PNG, atau PDF."]
+  }
+}
+```
+

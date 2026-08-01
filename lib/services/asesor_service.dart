@@ -430,4 +430,113 @@ class AsesorService {
       return [];
     }
   }
+
+  // ============================================================================
+  // Admin Honor Asesor APIs (what-be-say.md specifications)
+  // ============================================================================
+
+  /// 1. Fetch Admin Honor Asesor Summary List
+  static Future<Map<String, dynamic>?> getAdminHonorAsesorList({
+    String status = 'semua',
+    String? bulan,
+    String? search,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    try {
+      final Map<String, dynamic> queryParams = {
+        'status': status.toLowerCase(),
+        'limit': limit,
+        'offset': offset,
+      };
+      if (bulan != null && bulan.isNotEmpty) {
+        queryParams['bulan'] = bulan;
+      }
+      if (search != null && search.trim().isNotEmpty) {
+        queryParams['search'] = search.trim();
+      }
+
+      final response = await _dio.get(
+        ApiRoutes.adminHonorAsesor,
+        queryParameters: queryParams,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching admin honor asesor list: $e');
+      return null;
+    }
+  }
+
+  /// 2. Fetch Detail Tugas Asesor by asesorId
+  static Future<Map<String, dynamic>?> getAdminHonorAsesorTugas(
+    int asesorId, {
+    String status = 'semua',
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiRoutes.adminHonorAsesorTugas(asesorId),
+        queryParameters: {'status': status.toLowerCase()},
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching admin honor asesor tugas: $e');
+      return null;
+    }
+  }
+
+  /// 3. Fetch Detail Honor Tugas by tugasId
+  static Future<Map<String, dynamic>?> getAdminHonorTugasDetail(
+    int tugasId,
+  ) async {
+    try {
+      final response = await _dio.get(
+        ApiRoutes.adminHonorAsesorTugasDetail(tugasId),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching admin honor tugas detail: $e');
+      return null;
+    }
+  }
+
+  /// 4. Update Status & Link Bukti Pembayaran
+  static Future<Map<String, dynamic>?> updateAdminHonorTugasStatus(
+    int tugasId, {
+    required String status, // "1" for Selesai, "0" for Menunggu
+    String? linkBuktiPembayaran,
+  }) async {
+    try {
+      final Map<String, dynamic> body = {
+        'status': status,
+      };
+      if (linkBuktiPembayaran != null && linkBuktiPembayaran.isNotEmpty) {
+        body['link_bukti_pembayaran'] = linkBuktiPembayaran;
+      }
+
+      final response = await _dio.post(
+        ApiRoutes.adminHonorAsesorTugasDetail(tugasId),
+        data: body,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error updating admin honor tugas status: $e');
+      return null;
+    }
+  }
 }

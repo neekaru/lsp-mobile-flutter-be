@@ -37,6 +37,16 @@ class ApiRoutes {
       '/api/dashboard/asesor-homebase';
 
   // ============================================================================
+  // Admin Honor Asesor Routes
+  // ============================================================================
+
+  static const String adminHonorAsesor = '/api/admin/honor-asesor';
+  static String adminHonorAsesorTugas(int asesorId) =>
+      '/api/admin/honor-asesor/$asesorId/tugas';
+  static String adminHonorAsesorTugasDetail(int tugasId) =>
+      '/api/admin/honor-asesor/tugas/$tugasId';
+
+  // ============================================================================
   // Jadwal Routes
   // ============================================================================
 
