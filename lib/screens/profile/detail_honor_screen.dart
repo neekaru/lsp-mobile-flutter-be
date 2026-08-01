@@ -274,20 +274,20 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.paddingOf(context).top;
-
     final String judul = widget.detail['judul_asesmen'] ?? widget.detail['judul'] ?? 'Junior Web Developer';
     final String tuk = widget.detail['tuk'] ?? 'SMA 5 Semarang';
-    final String waktu = widget.detail['waktu'] ?? widget.detail['tanggal'] ?? '20/05/2026 09:00 wib';
+    final String rawWaktu = widget.detail['waktu'] ?? widget.detail['tanggal'] ?? '20/05/2026';
+    final String waktu = rawWaktu.replaceAll(RegExp(r'\s*\d{1,2}:\d{2}.*', caseSensitive: false), '').trim();
     final String mode = widget.detail['mode'] ?? '[Offline]';
     final String honorAsesmen = widget.detail['honor'] ?? 'Rp 2.250.000';
     final bool isSelesai = _currentStatus == 'Pembayaran Selesai';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
-      body: Column(
-        children: [
-          SizedBox(height: statusBarHeight + 8),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
 
           // Header Bar
           CustomAppBar(
@@ -313,6 +313,7 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
 
           Expanded(
             child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -696,7 +697,8 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildRincianRow(String title, String amount) {

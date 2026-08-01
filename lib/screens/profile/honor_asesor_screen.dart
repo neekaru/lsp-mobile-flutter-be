@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../services/asesor_service.dart';
@@ -15,6 +16,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
   int _selectedTabIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _debounce;
   static const List<String> _monthNames = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
@@ -40,6 +42,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -293,14 +296,14 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.paddingOf(context).top;
     final filteredList = _getFilteredItems();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
-      body: Column(
-        children: [
-          SizedBox(height: statusBarHeight + 8),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
 
           // Header
           CustomAppBar(
@@ -387,7 +390,8 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildPillTabs() {
@@ -456,8 +460,13 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
               child: TextField(
                 controller: _searchController,
                 onChanged: (val) {
-                  setState(() {
-                    _searchQuery = val;
+                  _debounce?.cancel();
+                  _debounce = Timer(const Duration(milliseconds: 400), () {
+                    if (mounted) {
+                      setState(() {
+                        _searchQuery = val;
+                      });
+                    }
                   });
                 },
                 style: const TextStyle(fontSize: 12),

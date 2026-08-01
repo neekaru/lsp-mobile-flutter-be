@@ -101,8 +101,6 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.paddingOf(context).top;
-    
     final String namaAsesor = widget.asesorData['nama_asesor'] ?? 'Asesor';
     final String tipeAsesor = widget.asesorData['tipe_asesor'] ?? 'Asesor Internal';
     final String totalHonor = widget.asesorData['honor'] ?? widget.asesorData['total_honor'] ?? 'Rp 0';
@@ -121,9 +119,10 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
-      body: Column(
-        children: [
-          SizedBox(height: statusBarHeight + 8),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
 
           // Header
           CustomAppBar(
@@ -287,7 +286,7 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
                         ),
 
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10),
 
                         // Tasks List
                         if (currentTasks.isEmpty)
@@ -301,13 +300,17 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
                             ),
                           )
                         else
-                          Column(
-                            children: [
-                              for (final task in currentTasks) ...[
-                                _buildTaskCard(task),
-                                if (task != currentTasks.last) const SizedBox(height: 10),
-                              ],
-                            ],
+                          ListView.separated(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            addAutomaticKeepAlives: false,
+                            addRepaintBoundaries: true,
+                            itemCount: currentTasks.length,
+                            separatorBuilder: (_, _) => const SizedBox(height: 10),
+                            itemBuilder: (context, index) {
+                              return _buildTaskCard(currentTasks[index]);
+                            },
                           ),
                       ],
                     ),
@@ -318,7 +321,8 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildUnderlineTab({
@@ -390,7 +394,8 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
   Widget _buildTaskCard(Map<String, dynamic> task) {
     final String judul = task['judul'] ?? '';
     final String tuk = task['tuk'] ?? '';
-    final String waktu = task['waktu'] ?? '';
+    final String rawWaktu = task['waktu'] ?? '';
+    final String waktu = rawWaktu.replaceAll(RegExp(r'\s*\d{1,2}:\d{2}.*', caseSensitive: false), '').trim();
     final String mode = task['mode'] ?? '(Offline)';
     final String honor = task['honor'] ?? 'Rp 0';
     final String status = task['status'] ?? 'Selesai';
