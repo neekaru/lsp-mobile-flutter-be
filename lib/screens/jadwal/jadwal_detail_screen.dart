@@ -1254,16 +1254,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                               _buildInfoRow(
                                 icon: LucideIcons.clock,
                                 iconColor: const Color(0xFF2F80ED),
-                                iconBgColor: const Color(0xFFE5F1FC),
+                                iconBgColor: const Color(0xFFE5F5FC),
                                 label: 'Durasi Pelaksanaan',
                                 value: _getDurationString(),
-                              ),
-                              _buildInfoRow(
-                                icon: LucideIcons.user,
-                                iconColor: const Color(0xFF2F80ED),
-                                iconBgColor: const Color(0xFFE5F1FC),
-                                label: 'Asesor',
-                                value: '', // dikosongkan (admin)
                               ),
                               _buildInfoRow(
                                 icon: LucideIcons.users,
@@ -1343,7 +1336,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Daftar Asesor Tugas',
+                                  'Asesor Kompetensi',
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
