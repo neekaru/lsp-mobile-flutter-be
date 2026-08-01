@@ -185,6 +185,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         }
       }
     });
+  }
 
   @override
   void dispose() {
@@ -262,6 +263,11 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
       if (perangkatInt != null) updateData['id_perangkat'] = perangkatInt;
     }
     if (_idAsesor != null) updateData['id_asesor'] = _idAsesor;
+    if (_asesorShortName.isNotEmpty) updateData['asesor_short_name'] = _asesorShortName;
+    if (_asesorEmail.isNotEmpty) updateData['asesor_email'] = _asesorEmail;
+    if (_asesorUserCategory.isNotEmpty) updateData['asesor_user_category'] = _asesorUserCategory;
+    if (_namaPerangkatAsesmen.isNotEmpty) updateData['nama_perangkat_asesmen'] = _namaPerangkatAsesmen;
+    if (_kodePerangkatAsesmen.isNotEmpty) updateData['kode_perangkat_asesmen'] = _kodePerangkatAsesmen;
 
     if (updateData.isEmpty) {
       debugPrint('⚠️ updateData is empty');

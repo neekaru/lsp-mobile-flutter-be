@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../services/asesor_service.dart';
-import 'detail_honor_screen.dart';
+import 'detail_tugas_asesor_screen.dart';
+
 
 class HonorAsesorScreen extends StatefulWidget {
   const HonorAsesorScreen({super.key});
@@ -272,23 +273,11 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen>
   }
 
   void _navigateToHonorDetail(Map<String, dynamic> item) {
-    final String status = item['status'] ?? 'Selesai';
-    final String metodePembayaran = item['metode_pembayaran'] ?? 'Transfer Bank';
-    final String tanggalPembayaran =
-        item['tanggal_pembayaran'] ?? item['tanggal'] ?? '20 Juli 2026';
-    final String noTransfer = item['no_transfer'] ?? 'PAY-20260720-001';
-    final int jumlahAsesmen = item['jumlah_asesi'] ?? item['jumlah_asesmen'] ?? 4;
-
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DetailHonorScreen(
-          detail: item,
-          status: status,
-          metodePembayaran: metodePembayaran,
-          tanggalPembayaran: tanggalPembayaran,
-          noTransfer: noTransfer,
-          jumlahAsesmen: jumlahAsesmen,
+        builder: (context) => DetailTugasAsesorScreen(
+          asesorData: item,
         ),
       ),
     );
