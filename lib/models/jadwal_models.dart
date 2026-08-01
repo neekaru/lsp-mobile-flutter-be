@@ -48,6 +48,7 @@ class JadwalItem {
   final int jumlahKompeten;
   final int jumlahBelumKompeten;
   final bool needsAcc;
+  final int? kuota;
 
   const JadwalItem({
     required this.id,
@@ -67,6 +68,7 @@ class JadwalItem {
     this.jumlahKompeten = 0,
     this.jumlahBelumKompeten = 0,
     this.needsAcc = false,
+    this.kuota,
   });
 
   bool get isDraft =>
@@ -150,6 +152,7 @@ class JadwalItem {
           ? jumlahBelumKompeten
           : int.tryParse('$jumlahBelumKompeten') ?? 0,
       needsAcc: needsAcc,
+      kuota: json['kuota'] == null ? null : (json['kuota'] is int ? json['kuota'] : int.tryParse('${json['kuota']}')),
     );
   }
 }

@@ -86,12 +86,9 @@ class JadwalListItem extends StatelessWidget {
   }
 
   String _getDisplayAsesi() {
-    // Backend sudah return jumlah_asesi
-    // Jika 0, kemungkinan memang belum ada peserta
-    if (item.jumlahAsesi == 0) {
-      return '0 Asesi';
-    }
-    return '${item.jumlahAsesi} Asesi';
+    final kuota = item.kuota;
+    if (kuota == null) return '-';
+    return '$kuota Kuota';
   }
 
   bool _shouldShowWarning() {

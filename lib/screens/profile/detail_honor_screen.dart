@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../widgets/custom_app_bar.dart';
 
-class DetailHonorScreen extends StatelessWidget {
+class DetailHonorScreen extends StatefulWidget {
   final Map<String, dynamic> detail;
   final String status;
   final String metodePembayaran;
@@ -20,271 +21,712 @@ class DetailHonorScreen extends StatelessWidget {
   });
 
   @override
+  State<DetailHonorScreen> createState() => _DetailHonorScreenState();
+}
+
+class _DetailHonorScreenState extends State<DetailHonorScreen> {
+  late String _currentStatus;
+  late TextEditingController _catatanController;
+  String _buktiPembayaranFile = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _currentStatus = widget.status;
+    if (_currentStatus.toLowerCase() == 'selesai' || _currentStatus.toLowerCase() == 'complete') {
+      _currentStatus = 'Pembayaran Selesai';
+      _buktiPembayaranFile = 'bukti_pembayaran.jpg';
+    } else {
+      _currentStatus = 'Menunggu Pembayaran';
+      _buktiPembayaranFile = '';
+    }
+    _catatanController = TextEditingController(text: '-');
+  }
+
+  @override
+  void dispose() {
+    _catatanController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
+        allowMultiple: false,
+      );
+      if (result != null && result.files.isNotEmpty) {
+        final name = result.files.single.name;
+        if (name.isNotEmpty) {
+          setState(() {
+            _buktiPembayaranFile = name;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking file: $e');
+    }
+  }
+
+  void _showStatusPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Material(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Pilih Status Pembayaran',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 20, color: Color(0xFF64748B)),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    leading: const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981)),
+                    title: const Text(
+                      'Pembayaran Selesai',
+                      style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+                    ),
+                    trailing: _currentStatus == 'Pembayaran Selesai'
+                        ? const Icon(Icons.check, color: Color(0xFF10B981))
+                        : null,
+                    onTap: () {
+                      setState(() {
+                        _currentStatus = 'Pembayaran Selesai';
+                        if (_buktiPembayaranFile.isEmpty) {
+                          _buktiPembayaranFile = 'bukti_pembayaran.jpg';
+                        }
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.error_outline_rounded, color: Color(0xFFF59E0B)),
+                    title: const Text(
+                      'Menunggu Pembayaran',
+                      style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                    ),
+                    trailing: _currentStatus == 'Menunggu Pembayaran'
+                        ? const Icon(Icons.check, color: Color(0xFFD97706))
+                        : null,
+                    onTap: () {
+                      setState(() {
+                        _currentStatus = 'Menunggu Pembayaran';
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _simpanPerubahan() {
+    _showSuccessDialog();
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Green success check icon with soft background and decorative dots
+                // NO top-left back arrow and NO top-right X close icon as requested
+                SizedBox(
+                  width: 130,
+                  height: 120,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Outer soft green circle background
+                      Container(
+                        width: 90,
+                        height: 90,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFDCFCE7),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      // Decorative dots around icon
+                      Positioned(
+                        top: 10, right: 14,
+                        child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFBBF7D0), shape: BoxShape.circle)),
+                      ),
+                      Positioned(
+                        top: 6, left: 24,
+                        child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFF86EFAC), shape: BoxShape.circle)),
+                      ),
+                      Positioned(
+                        top: 26, left: 8,
+                        child: Container(width: 12, height: 12, decoration: const BoxDecoration(color: Color(0xFFDCFCE7), shape: BoxShape.circle)),
+                      ),
+                      Positioned(
+                        bottom: 18, left: 16,
+                        child: Container(width: 7, height: 7, decoration: const BoxDecoration(color: Color(0xFFBBF7D0), shape: BoxShape.circle)),
+                      ),
+                      Positioned(
+                        bottom: 12, right: 22,
+                        child: Container(width: 9, height: 9, decoration: const BoxDecoration(color: Color(0xFF86EFAC), shape: BoxShape.circle)),
+                      ),
+                      Positioned(
+                        top: 16, right: 26,
+                        child: Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFFDCFCE7), shape: BoxShape.circle)),
+                      ),
+                      // Inner vivid green scalloped check badge icon
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF4ADE80),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 38,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Title Text
+                const Text(
+                  'Pembayaran Honor Asessor Telah Di Simpan',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 22),
+
+                // Uniform Blue OK Button
+                SizedBox(
+                  width: 140,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext); // Close dialog
+                      Navigator.pop(context, true); // Pop detail screen
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3B82F6),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
-    final String title = detail['judul_asesmen'] ?? '';
-    final String honorAmount = detail['honor'] ?? 'Rp. 0';
-    final String tanggalAsesmen = detail['tanggal'] ?? '20 Juli 2026';
-    final String tuk = detail['tuk'] ?? '-';
-    
-    // Parse/fallback fields based on user design:
-    final String jumlahAsessi = detail['jumlah_asesi'] != null 
-        ? '${detail['jumlah_asesi']} Orang' 
-        : '15 Orang';
-    final String jenisAsesmen = detail['jenis_asesmen'] ?? 'Asessmen Online';
 
-    // Format successful payment description
-    String datePart = '18 Juli';
-    try {
-      final parts = tanggalPembayaran.split(' ');
-      if (parts.length >= 2) {
-        datePart = '${parts[0]} ${parts[1]}';
-      }
-    } catch (_) {}
+    final String judul = widget.detail['judul_asesmen'] ?? widget.detail['judul'] ?? 'Junior Web Developer';
+    final String tuk = widget.detail['tuk'] ?? 'SMA 5 Semarang';
+    final String waktu = widget.detail['waktu'] ?? widget.detail['tanggal'] ?? '20/05/2026 09:00 wib';
+    final String mode = widget.detail['mode'] ?? '[Offline]';
+    final String honorAsesmen = widget.detail['honor'] ?? 'Rp 2.250.000';
+    final bool isSelesai = _currentStatus == 'Pembayaran Selesai';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFF5F6F8),
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          const CustomAppBar(title: 'Detail Honor'),
+
+          // Header Bar
+          CustomAppBar(
+            title: 'Detail Honor Asessor',
+            onBack: () => Navigator.of(context).pop(),
+            rightWidget: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_horiz_rounded, color: Colors.black, size: 24),
+              onSelected: (val) {},
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'refresh',
+                  child: Row(
+                    children: [
+                      Icon(Icons.refresh_rounded, size: 18, color: Color(0xFF0F172A)),
+                      SizedBox(width: 8),
+                      Text('Refresh Data', style: TextStyle(fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           Expanded(
             child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Top Card: Scheme Header
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color(0xFFE2E8F0),
-                          width: 1.0,
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF), // Soft blue
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(
-                              Icons.account_balance_wallet_rounded,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Task Header Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDBEAFE),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.description_rounded,
                               color: Color(0xFF3B82F6),
                               size: 20,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                judul,
+                                style: const TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'TUK : $tuk',
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  color: Color(0xFF475569),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '$waktu ${mode.startsWith('[') ? mode : '[$mode]'}',
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  color: mode.contains('Online') ? const Color(0xFF10B981) : const Color(0xFF3B82F6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: isSelesai ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            isSelesai ? 'Selesai' : 'Menunggu',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: isSelesai ? const Color(0xFF10B981) : const Color(0xFFD97706),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 2. Rincian Honor Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Rincian Honor',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                        const SizedBox(height: 10),
+                        _buildRincianRow('Honor Asesmen', honorAsesmen),
+                        const SizedBox(height: 6),
+                        _buildRincianRow('Uang Kendaraan', 'Rp 100.000'),
+                        const SizedBox(height: 6),
+                        _buildRincianRow('Uang Makan', 'Rp 0'),
+                        const SizedBox(height: 6),
+                        _buildRincianRow('Lainnya', 'Rp 0'),
+                        const SizedBox(height: 10),
+                        const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: const [
+                            Text(
+                              'Total Honor :',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF3B82F6),
+                              ),
+                            ),
+                            Text(
+                              'Rp 4.000.000',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF3B82F6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 3. Status Pembayaran Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Status Pembayaran',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        GestureDetector(
+                          onTap: _showStatusPicker,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelesai ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSelesai ? const Color(0xFF86EFAC) : const Color(0xFFFDE68A),
+                              ),
+                            ),
+                            child: Row(
                               children: [
-                                Text(
-                                  title,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
+                                Icon(
+                                  isSelesai ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+                                  color: isSelesai ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _currentStatus,
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelesai ? const Color(0xFF10B981) : const Color(0xFFD97706),
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Pembayaran telah berhasil dilakukan pada $datePart',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: Color(0xFF64748B),
-                                  ),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: isSelesai ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                                  size: 20,
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 4. Lampiran Bukti Pembayaran Card (With File Picker)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Lampiran Bukti Pembayaran',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        GestureDetector(
+                          onTap: _pickFile,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFDCFCE7),
-                              borderRadius: BorderRadius.circular(4),
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _buktiPembayaranFile.isNotEmpty
+                                      ? Icons.description_rounded
+                                      : Icons.cloud_upload_outlined,
+                                  color: _buktiPembayaranFile.isNotEmpty
+                                      ? const Color(0xFF3B82F6)
+                                      : const Color(0xFF94A3B8),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _buktiPembayaranFile.isNotEmpty
+                                        ? _buktiPembayaranFile
+                                        : 'Bukti pembayaran (Klik untuk unggah)',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: _buktiPembayaranFile.isNotEmpty
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFF94A3B8),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (_buktiPembayaranFile.isNotEmpty)
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _buktiPembayaranFile = '';
+                                      });
+                                    },
+                                    child: const Icon(
+                                      Icons.close_rounded,
+                                      size: 18,
+                                      color: Color(0xFF94A3B8),
+                                    ),
+                                  )
+                                else
+                                  const Icon(
+                                    Icons.attach_file_rounded,
+                                    size: 18,
+                                    color: Color(0xFF94A3B8),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 5. Catatan Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Catatan',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFCBD5E1)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              TextField(
+                                controller: _catatanController,
+                                maxLines: 3,
+                                maxLength: 200,
+                                style: const TextStyle(fontSize: 12.5, color: Color(0xFF0F172A)),
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                  border: InputBorder.none,
+                                  counterText: '',
+                                ),
+                              ),
+                              const Text(
+                                '0/200',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Bottom Action Buttons (Standardized Color)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 42,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFCBD5E1),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                             child: const Text(
-                              'Complete',
+                              'Batal',
                               style: TextStyle(
-                                fontSize: 9,
+                                fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF15803D),
+                                color: Color(0xFF475569),
                               ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // 2. Heading: Rincian Pembayaran
-                    const Text(
-                      'Rincian Pembayaran',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // 3. Card 2: Rincian Pembayaran Grid
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Left Column
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Jumlah',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF94A3B8),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  honorAmount,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'Tanggal Pembayaran',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF94A3B8),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  tanggalPembayaran,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                              ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 42,
+                          child: ElevatedButton(
+                            onPressed: _simpanPerubahan,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF3B82F6),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Simpan Perubahan',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          // Right Column
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: 32,
-                                      height: 32,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFEFF6FF),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: const Icon(
-                                        Icons.museum_rounded,
-                                        color: Color(0xFF3B82F6),
-                                        size: 18,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            'Metode Pembayaran',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF94A3B8),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            metodePembayaran,
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF1E293B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'Nomor Resi',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF94A3B8),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  noTransfer,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // 4. Heading: Informasi Asessmen
-                    const Text(
-                      'Informasi Asessmen',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // 5. Four Info Rows
-                    _buildInfoRow(Icons.calendar_today_outlined, 'Tanggal Asessmen', tanggalAsesmen),
-                    const SizedBox(height: 10),
-                    _buildInfoRow(Icons.location_on_outlined, 'Tempat Uji Kompetensi', tuk),
-                    const SizedBox(height: 10),
-                    _buildInfoRow(Icons.people_alt_outlined, 'Jumlah Asessi', jumlahAsessi),
-                    const SizedBox(height: 10),
-                    _buildInfoRow(Icons.assignment_turned_in_outlined, 'Jenis Asessmen', jenisAsesmen),
-                  ],
-                ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
             ),
           ),
@@ -293,49 +735,26 @@ class DetailHonorScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: const Color(0xFF3B82F6),
-            size: 20,
+  Widget _buildRincianRow(String title, String amount) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFF475569),
           ),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF1E293B),
-              fontWeight: FontWeight.w500,
-            ),
+        ),
+        Text(
+          amount,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF0F172A),
           ),
-          const Spacer(),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
-
-
