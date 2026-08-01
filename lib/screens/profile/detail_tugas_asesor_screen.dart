@@ -395,7 +395,9 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
     final String judul = task['judul'] ?? '';
     final String tuk = task['tuk'] ?? '';
     final String rawWaktu = task['waktu'] ?? '';
-    final String waktu = rawWaktu.replaceAll(RegExp(r'\s*\d{1,2}:\d{2}.*', caseSensitive: false), '').trim();
+    String sWaktu = rawWaktu.replaceAll(RegExp(r'\s*wib', caseSensitive: false), '').trim();
+    sWaktu = sWaktu.replaceAll(RegExp(r'\s+\d{1,2}(?::\d{2})*.*$'), '').trim();
+    final String waktu = sWaktu == '0' ? '' : sWaktu;
     final String mode = task['mode'] ?? '(Offline)';
     final String honor = task['honor'] ?? 'Rp 0';
     final String status = task['status'] ?? 'Selesai';
@@ -456,14 +458,16 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
                           color: Color(0xFF475569),
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        waktu,
-                        style: const TextStyle(
-                          fontSize: 10.5,
-                          color: Color(0xFF64748B),
+                      if (waktu.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          waktu,
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            color: Color(0xFF64748B),
+                          ),
                         ),
-                      ),
+                      ],
                       const SizedBox(height: 2),
                       Text(
                         mode,

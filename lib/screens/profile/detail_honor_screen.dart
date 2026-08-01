@@ -277,7 +277,9 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
     final String judul = widget.detail['judul_asesmen'] ?? widget.detail['judul'] ?? 'Junior Web Developer';
     final String tuk = widget.detail['tuk'] ?? 'SMA 5 Semarang';
     final String rawWaktu = widget.detail['waktu'] ?? widget.detail['tanggal'] ?? '20/05/2026';
-    final String waktu = rawWaktu.replaceAll(RegExp(r'\s*\d{1,2}:\d{2}.*', caseSensitive: false), '').trim();
+    String sWaktu = rawWaktu.replaceAll(RegExp(r'\s*wib', caseSensitive: false), '').trim();
+    sWaktu = sWaktu.replaceAll(RegExp(r'\s+\d{1,2}(?::\d{2})*.*$'), '').trim();
+    final String waktu = sWaktu == '0' ? '' : sWaktu;
     final String mode = widget.detail['mode'] ?? '[Offline]';
     final String honorAsesmen = widget.detail['honor'] ?? 'Rp 2.250.000';
     final bool isSelesai = _currentStatus == 'Pembayaran Selesai';
@@ -368,7 +370,7 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '$waktu ${mode.startsWith('[') ? mode : '[$mode]'}',
+                                waktu.isNotEmpty ? '$waktu ${mode.startsWith('[') ? mode : '[$mode]'}' : (mode.startsWith('[') ? mode : '[$mode]'),
                                 style: TextStyle(
                                   fontSize: 10.5,
                                   color: mode.contains('Online') ? const Color(0xFF10B981) : const Color(0xFF3B82F6),
