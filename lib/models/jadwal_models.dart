@@ -456,6 +456,7 @@ class JadwalAsesorDetailData {
   final String alamatTuk;
   final String jenisTuk;
   final List<AsesorDetailItem> asesor;
+  final List<AsesiItem> asesi;
   final String? waktuAsesmen;
   final String? leadAsesor;
   final int? jumlahPeserta;
@@ -472,6 +473,7 @@ class JadwalAsesorDetailData {
     required this.alamatTuk,
     required this.jenisTuk,
     required this.asesor,
+    this.asesi = const [],
     this.waktuAsesmen,
     this.leadAsesor,
     this.jumlahPeserta,
@@ -498,6 +500,11 @@ class JadwalAsesorDetailData {
                 (item) =>
                     AsesorDetailItem.fromJson(item as Map<String, dynamic>),
               )
+              .toList() ??
+          [],
+      asesi:
+          (json['asesi'] as List<dynamic>?)
+              ?.map((item) => AsesiItem.fromJson(item as Map<String, dynamic>))
               .toList() ??
           [],
     );

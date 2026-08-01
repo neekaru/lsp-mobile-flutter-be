@@ -392,11 +392,10 @@ class _JadwalScreenState extends State<JadwalScreen>
       final bool isAsesi = currentUser.role == 'asesi';
       final bool isAsesor = currentUser.role == 'asesor';
 
-      String status = isAsesi ? '1' : '1,4';
+      String status = isAsesor ? '1,4' : '1'; // Selesai; asesor = Selesai & Pelaporan
       String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalCompleted;
 
       if (isAsesor) {
-        status = '1,4'; // Selesai & Pelaporan
         path = ApiRoutes.asesorJadwal;
       }
 

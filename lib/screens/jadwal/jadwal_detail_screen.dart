@@ -1266,6 +1266,60 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                 value: '${widget.jadwal.jumlahAsesi} Asesi',
                               ),
 
+                              if (_detailData != null &&
+                                  _detailData!.asesi.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AsesiListScreen(
+                                          jadwalId: widget.jadwal.id,
+                                          jadwalTitle: widget.jadwal.skema,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE5F1FC),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        Icon(
+                                          Icons.group_outlined,
+                                          color: Color(0xFF2C6C9C),
+                                          size: 16,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Cek Detail Asesi',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF2C6C9C),
+                                            ),
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.chevron_right,
+                                          color: Color(0xFF2C6C9C),
+                                          size: 16,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+
                               const SizedBox(height: 12),
                               const Divider(
                                 height: 1,
