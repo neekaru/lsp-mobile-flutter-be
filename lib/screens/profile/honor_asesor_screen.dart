@@ -10,16 +10,126 @@ class HonorAsesorScreen extends StatefulWidget {
   State<HonorAsesorScreen> createState() => _HonorAsesorScreenState();
 }
 
-class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
-  String _selectedMonth = 'Semua';
-  bool _isLoading = true;
-  Map<String, dynamic>? _honorData;
-  List<String> _availableMonths = ['Semua']; // Will be populated from API
+class _HonorAsesorScreenState extends State<HonorAsesorScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String _selectedMonth = 'Juli 2026';
+  bool _isLoading = false;
+  final List<String> _availableMonths = ['Semua', 'Juli 2026', 'Juni 2026', 'Mei 2026'];
+  List<Map<String, dynamic>> _honorItems = [];
+
+  // Default Mock Data matching user reference design
+  final List<Map<String, dynamic>> _defaultHonorItems = [
+    {
+      'id': 1,
+      'nama_asesor': 'Karina',
+      'tipe_asesor': 'Asessor Internal',
+      'judul_asesmen': 'Sertifikasi Software Development',
+      'skema': 'Skema Programmer',
+      'honor': 'Rp 2.250.000',
+      'status': 'Selesai',
+      'tanggal': '20 Juli 2026',
+      'tuk': 'TUK Sewaktu',
+      'jumlah_asesi': 15,
+      'metode_pembayaran': 'Transfer Bank',
+      'tanggal_pembayaran': '20 Juli 2026',
+      'no_transfer': 'PAY-20260720-001',
+    },
+    {
+      'id': 2,
+      'nama_asesor': 'Eko Setiabudi',
+      'tipe_asesor': 'Asessor Internal',
+      'judul_asesmen': 'Sertifikasi Data Science',
+      'skema': 'Skema Data Science',
+      'honor': 'Rp 2.250.000',
+      'status': 'Selesai',
+      'tanggal': '19 Juli 2026',
+      'tuk': 'TUK Sewaktu',
+      'jumlah_asesi': 12,
+      'metode_pembayaran': 'Transfer Bank',
+      'tanggal_pembayaran': '19 Juli 2026',
+      'no_transfer': 'PAY-20260719-002',
+    },
+    {
+      'id': 3,
+      'nama_asesor': 'Sintia Alia',
+      'tipe_asesor': 'Asessor Eksternal',
+      'judul_asesmen': 'Sertifikasi Cyber Security',
+      'skema': 'Skema Cyber Security',
+      'honor': 'Rp 2.250.000',
+      'status': 'Selesai',
+      'tanggal': '18 Juli 2026',
+      'tuk': 'TUK Tempat Kerja',
+      'jumlah_asesi': 10,
+      'metode_pembayaran': 'Transfer Bank',
+      'tanggal_pembayaran': '18 Juli 2026',
+      'no_transfer': 'PAY-20260718-003',
+    },
+    {
+      'id': 4,
+      'nama_asesor': 'Santirya',
+      'tipe_asesor': 'Asessor Eksternal',
+      'judul_asesmen': 'Sertifikasi Network Administrator',
+      'skema': 'Skema Network Administrator',
+      'honor': 'Rp 2.250.000',
+      'status': 'Selesai',
+      'tanggal': '17 Juli 2026',
+      'tuk': 'TUK Tempat Kerja',
+      'jumlah_asesi': 14,
+      'metode_pembayaran': 'Transfer Bank',
+      'tanggal_pembayaran': '17 Juli 2026',
+      'no_transfer': 'PAY-20260717-004',
+    },
+    {
+      'id': 5,
+      'nama_asesor': 'Ahmad Hidayat',
+      'tipe_asesor': 'Asessor Internal',
+      'judul_asesmen': 'Sertifikasi Digital Marketing',
+      'skema': 'Skema Digital Marketing',
+      'honor': 'Rp 1.800.000',
+      'status': 'Menunggu',
+      'tanggal': '22 Juli 2026',
+      'tuk': 'TUK Mandiri',
+      'jumlah_asesi': 8,
+      'metode_pembayaran': 'Transfer Bank',
+      'tanggal_pembayaran': 'Pending',
+      'no_transfer': '-',
+    },
+    {
+      'id': 6,
+      'nama_asesor': 'Dewi Lestari',
+      'tipe_asesor': 'Asessor Eksternal',
+      'judul_asesmen': 'Sertifikasi UI/UX Designer',
+      'skema': 'Skema UI/UX Designer',
+      'honor': 'Rp 2.500.000',
+      'status': 'Menunggu',
+      'tanggal': '23 Juli 2026',
+      'tuk': 'TUK Pusat',
+      'jumlah_asesi': 16,
+      'metode_pembayaran': 'Transfer Bank',
+      'tanggal_pembayaran': 'Pending',
+      'no_transfer': '-',
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _honorItems = List.from(_defaultHonorItems);
     _fetchHonorData();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchHonorData() async {
@@ -27,24 +137,25 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       _isLoading = true;
     });
     try {
-      // If _selectedMonth is 'Semua', fetch without periode parameter
       final res = _selectedMonth == 'Semua'
           ? await AsesorService.getHonorList()
           : await AsesorService.getHonorList(_selectedMonth);
-      if (mounted) {
-        setState(() {
-          _honorData = res;
-
-          // Populate available months from API response (only when fetching all)
-          if (_selectedMonth == 'Semua' &&
-              res != null &&
-              res['available_months'] != null) {
-            final apiMonths = (res['available_months'] as List<dynamic>)
-                .map((e) => e.toString())
-                .toList();
-            _availableMonths = ['Semua', ...apiMonths];
-          }
-        });
+      if (mounted && res != null && res['rincian'] != null) {
+        final List<dynamic> list = res['rincian'];
+        if (list.isNotEmpty) {
+          setState(() {
+            _honorItems = list.map((item) {
+              final Map<String, dynamic> map = Map<String, dynamic>.from(item as Map);
+              return {
+                ...map,
+                'nama_asesor': map['nama_asesor'] ?? map['judul_asesmen'] ?? 'Asesor',
+                'tipe_asesor': map['tipe_asesor'] ?? map['skema'] ?? 'Asessor Internal',
+                'honor': map['honor'] ?? 'Rp 0',
+                'status': map['status'] ?? 'Selesai',
+              };
+            }).toList();
+          });
+        }
       }
     } catch (_) {}
     if (mounted) {
@@ -61,47 +172,55 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       builder: (context) {
         return Material(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Pilih Periode Bulan',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Pilih Periode Bulan',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 20, color: Color(0xFF64748B)),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
+                  const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                  const SizedBox(height: 8),
                   ..._availableMonths.map((monthName) {
                     final isSelected = monthName == _selectedMonth;
                     return ListTile(
+                      dense: true,
                       leading: Icon(
                         Icons.calendar_today_rounded,
-                        color: isSelected
-                            ? const Color(0xFF378CE7)
-                            : const Color(0xFF64748B),
+                        size: 18,
+                        color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF64748B),
                       ),
                       title: Text(
                         monthName,
                         style: TextStyle(
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: isSelected
-                              ? const Color(0xFF378CE7)
-                              : const Color(0xFF1E293B),
+                          fontSize: 13.5,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF0F172A),
                         ),
                       ),
                       trailing: isSelected
                           ? const Icon(
                               Icons.check_circle_rounded,
-                              color: Color(0xFF378CE7),
+                              color: Color(0xFF3B82F6),
+                              size: 18,
                             )
                           : null,
                       onTap: () {
@@ -122,402 +241,284 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
     );
   }
 
+  List<Map<String, dynamic>> _getFilteredItems() {
+    List<Map<String, dynamic>> result = List.from(_honorItems);
+
+    // Filter by tab index (0: Semua, 1: Menunggu, 2: Selesai)
+    if (_tabController.index == 1) {
+      result = result.where((item) {
+        final st = (item['status'] ?? '').toString().toLowerCase();
+        return st == 'menunggu' || st == 'pending';
+      }).toList();
+    } else if (_tabController.index == 2) {
+      result = result.where((item) {
+        final st = (item['status'] ?? '').toString().toLowerCase();
+        return st == 'selesai' || st == 'complete';
+      }).toList();
+    }
+
+    // Filter by search query
+    if (_searchQuery.trim().isNotEmpty) {
+      final q = _searchQuery.trim().toLowerCase();
+      result = result.where((item) {
+        final nama = (item['nama_asesor'] ?? '').toString().toLowerCase();
+        final tipe = (item['tipe_asesor'] ?? '').toString().toLowerCase();
+        final skema = (item['skema'] ?? item['judul_asesmen'] ?? '').toString().toLowerCase();
+        return nama.contains(q) || tipe.contains(q) || skema.contains(q);
+      }).toList();
+    }
+
+    return result;
+  }
+
+  void _navigateToHonorDetail(Map<String, dynamic> item) {
+    final String status = item['status'] ?? 'Selesai';
+    final String metodePembayaran = item['metode_pembayaran'] ?? 'Transfer Bank';
+    final String tanggalPembayaran =
+        item['tanggal_pembayaran'] ?? item['tanggal'] ?? '20 Juli 2026';
+    final String noTransfer = item['no_transfer'] ?? 'PAY-20260720-001';
+    final int jumlahAsesmen = item['jumlah_asesi'] ?? item['jumlah_asesmen'] ?? 4;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailHonorScreen(
+          detail: item,
+          status: status,
+          metodePembayaran: metodePembayaran,
+          tanggalPembayaran: tanggalPembayaran,
+          noTransfer: noTransfer,
+          jumlahAsesmen: jumlahAsesmen,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.paddingOf(context).top;
-
-    final String totalHonor = _honorData?['total_honor'] ?? 'Rp. 0';
-    final String countText =
-        _honorData?['jumlah_asesmen_selesai'] ?? '0 Asesmen selesai';
-    final List<dynamic> details = _honorData?['rincian'] ?? [];
+    final filteredList = _getFilteredItems();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          const CustomAppBar(title: 'Honor Saya'),
+
+          // Header
+          CustomAppBar(
+            title: 'Honor Asessor',
+            onBack: () => Navigator.of(context).pop(),
+            rightWidget: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_horiz_rounded, color: Colors.black, size: 24),
+              onSelected: (val) {
+                if (val == 'refresh') {
+                  _fetchHonorData();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'refresh',
+                  child: Row(
+                    children: [
+                      Icon(Icons.refresh_rounded, size: 18, color: Color(0xFF0F172A)),
+                      SizedBox(width: 8),
+                      Text('Refresh Data', style: TextStyle(fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Tabs Row (Matching Jadwal Pill Style)
+          _buildPillTabs(),
+
+          // Search & Date Filter Row
+          _buildSearchAndFilterRow(),
+          const SizedBox(height: 12),
+
+          // Loading bar or List Content
           if (_isLoading)
             const LinearProgressIndicator(
               minHeight: 2,
               backgroundColor: Colors.transparent,
               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF378CE7)),
             ),
+
           Expanded(
             child: RefreshIndicator(
               onRefresh: _fetchHonorData,
               color: const Color(0xFF378CE7),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 16.0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Month Picker Button
-                    GestureDetector(
-                      onTap: () => _showMonthPicker(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.calendar_today_outlined,
-                              color: Color(0xFF378CE7),
-                              size: 14,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              _selectedMonth,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_drop_down,
-                              color: Color(0xFF378CE7),
-                              size: 18,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Highlight Total Honor Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Total Honor',
-                                  style: TextStyle(
-                                    color: Color(0xFF64748B),
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  totalHonor,
-                                  style: const TextStyle(
-                                    color: Color(0xFF1E293B),
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  countText,
-                                  style: const TextStyle(
-                                    color: Color(0xFF64748B),
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Premium Vector Illustration of smartphone & transaction details
-                          _buildIllustration(),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Riwayat Section Title
-                    const Text(
-                      'Riwayat',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    if (details.isEmpty)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
+              child: filteredList.isEmpty
+                  ? SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.5,
                         child: const Center(
-                          child: Text(
-                            'Tidak ada riwayat honor untuk periode ini',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF64748B),
-                            ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.account_balance_wallet_outlined,
+                                size: 48,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                'Data honor tidak ditemukan',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      )
-                    else
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                        itemCount: details.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final detail = details[index] as Map<String, dynamic>;
-                          
-                          // Extract fields
-                          final String title = detail['judul_asesmen'] ?? '';
-                          final String honorAmount = detail['honor'] ?? 'Rp. 0';
-                          
-                          // Determine values based on user's design screenshot:
-                          final String status = detail['status'] ?? (title.toLowerCase().contains('marketing') ? 'Menunggu' : 'Complete');
-                          final int jumlahAsesmen = detail['jumlah_asesmen'] ?? (title.toLowerCase().contains('ui/ux') ? 4 : 2);
-                          final String metodePembayaran = detail['metode_pembayaran'] ?? 'Transfer Bank';
-                          final String tanggalPembayaran = detail['tanggal_pembayaran'] ?? detail['tanggal'] ?? '20 Juli 2026';
-                          final String noTransfer = detail['no_transfer'] ?? 'PAY-20262007-002';
-                          
-                          return Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFEFF6FF), // Soft blue background
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Icon(
-                                        Icons.qr_code,
-                                        color: Color(0xFF2563EB),
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            title,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF1E293B),
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 2),
-                                          const Text(
-                                            'Skema sertifikasi',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            '$jumlahAsesmen Asesmen',
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          honorAmount,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF22C55E), // Green text
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: status == 'Complete'
-                                                ? const Color(0xFFDCFCE7) // Light green
-                                                : const Color(0xFFFFEDD5), // Light orange
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Text(
-                                            status,
-                                            style: TextStyle(
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                              color: status == 'Complete'
-                                                  ? const Color(0xFF15803D)
-                                                  : const Color(0xFFD97706),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const Divider(
-                                  height: 24,
-                                  thickness: 1,
-                                  color: Color(0xFFF1F5F9),
-                                ),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 5,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            'Metode Pembayaran',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 12),
-                                          const Text(
-                                            'Tanggal Pembayaran',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            tanggalPembayaran,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w500,
-                                              color: Color(0xFF1E293B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 5,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            metodePembayaran,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF1E293B),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 12),
-                                          const Text(
-                                            'No.Transfer',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            noTransfer,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w500,
-                                              color: Color(0xFF1E293B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: GestureDetector(
-                                    onTap: () => _navigateToHonorDetail(
-                                      context: context,
-                                      detail: detail,
-                                      status: status,
-                                      metodePembayaran: metodePembayaran,
-                                      tanggalPembayaran: tanggalPembayaran,
-                                      noTransfer: noTransfer,
-                                      jumlahAsesmen: jumlahAsesmen,
-                                    ),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFEFF6FF),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: const Color(0xFF3B82F6),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: const Text(
-                                        'Lihat Detail',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF2563EB),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
                       ),
-                  ],
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: filteredList.length,
+                      itemBuilder: (context, index) {
+                        final item = filteredList[index];
+                        return _buildHonorCard(item);
+                      },
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPillTabs() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          _buildPillTab(index: 0, label: 'Semua'),
+          const SizedBox(width: 8),
+          _buildPillTab(index: 1, label: 'Menunggu'),
+          const SizedBox(width: 8),
+          _buildPillTab(index: 2, label: 'Selesai'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPillTab({required int index, required String label}) {
+    final isSelected = _tabController.index == index;
+    final containerColor = isSelected ? const Color(0xFF6C8BB4) : const Color(0xFFD2E3F4);
+    final textColor = isSelected ? Colors.white : const Color(0xFF5A7EAA);
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _tabController.animateTo(index);
+          });
+        },
+        child: Container(
+          height: 38,
+          decoration: BoxDecoration(
+            color: containerColor,
+            borderRadius: BorderRadius.circular(100),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 12.5,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchAndFilterRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          // Search TextField
+          Expanded(
+            child: SizedBox(
+              height: 38,
+              child: TextField(
+                controller: _searchController,
+                onChanged: (val) {
+                  setState(() {
+                    _searchQuery = val;
+                  });
+                },
+                style: const TextStyle(fontSize: 12),
+                decoration: InputDecoration(
+                  hintText: 'Cari nama asesor/skema',
+                  hintStyle: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
+                  prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Color(0xFF94A3B8)),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, size: 16, color: Color(0xFF94A3B8)),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  isDense: true,
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF3B82F6)),
+                  ),
                 ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Month Picker Button
+          GestureDetector(
+            onTap: () => _showMonthPicker(context),
+            child: Container(
+              height: 38,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    color: Color(0xFF475569),
+                    size: 15,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _selectedMonth,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -526,245 +527,114 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
     );
   }
 
-  Widget _buildIllustration() {
+  Widget _buildHonorCard(Map<String, dynamic> item) {
+    final String nama = item['nama_asesor'] ?? item['judul_asesmen'] ?? 'Asesor';
+    final String tipe = item['tipe_asesor'] ?? item['skema'] ?? 'Asessor Internal';
+    final String honor = item['honor'] ?? 'Rp 0';
+    final String status = item['status'] ?? 'Selesai';
+    final bool isSelesai = status.toLowerCase() == 'selesai' || status.toLowerCase() == 'complete';
+
     return Container(
-      width: 90,
-      height: 90,
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: const Color(
-          0xFFBFDBFE,
-        ).withValues(alpha: 0.6), // Light blue background box
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      child: ClipRect(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Green Money Note (rotated)
-            Positioned(
-              left: 10,
-              bottom: 12,
-              child: Transform.rotate(
-                angle: -0.25,
-                child: Container(
-                  width: 50,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4ADE80), // Green bill
-                    borderRadius: BorderRadius.circular(4),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black12, blurRadius: 2),
-                    ],
-                  ),
-                  child: Center(
-                    child: Container(
-                      width: 14,
-                      height: 14,
-                      decoration: const BoxDecoration(
-                        color: Colors.white24,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            // Smartphone body
-            Positioned(
-              right: 15,
-              top: 10,
-              child: Container(
-                width: 42,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E3A8A), // Dark blue phone
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.white, width: 1.5),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 4),
-                    // Speaker line
-                    Center(
-                      child: Container(
-                        width: 10,
-                        height: 1.5,
-                        color: Colors.white24,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    // Screen content with a tiny credit card
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 2,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF3B82F6), // Blue screen
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Tiny credit card
-                            Positioned(
-                              top: 4,
-                              child: Container(
-                                width: 30,
-                                height: 18,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFFF97316),
-                                      Color(0xFFEA580C),
-                                    ], // Orange card
-                                  ),
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            ),
-                            // Mini receipt/check lines
-                            Positioned(
-                              bottom: 4,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: 25,
-                                    height: 2,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Container(
-                                    width: 18,
-                                    height: 2,
-                                    color: Colors.white70,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // White receipt in front of the phone
-            Positioned(
-              right: 5,
-              bottom: 12,
-              child: Transform.rotate(
-                angle: 0.15,
-                child: Container(
-                  width: 32,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () => _navigateToHonorDetail(item),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // Avatar Box
+                Container(
+                  width: 40,
                   height: 40,
-                  decoration: const BoxDecoration(
-                    color: Colors.white, // White receipt paper
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 2,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDBEAFE),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: const EdgeInsets.all(3),
+                  child: const Center(
+                    child: Icon(
+                      Icons.person_rounded,
+                      color: Color(0xFF3B82F6),
+                      size: 22,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Name & Type
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(width: 20, height: 2, color: Colors.grey[400]),
-                      const SizedBox(height: 2),
-                      Container(
-                        width: 15,
-                        height: 1.5,
-                        color: Colors.grey[300],
+                      Text(
+                        nama,
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
-                      Container(
-                        width: 18,
-                        height: 1.5,
-                        color: Colors.grey[300],
-                      ),
-                      const SizedBox(height: 2),
-                      Container(
-                        width: 10,
-                        height: 1.5,
-                        color: Colors.grey[300],
+                      Text(
+                        tipe,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: Color(0xFF64748B),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
-            // Gold Coin
-            Positioned(
-              left: 14,
-              bottom: 8,
-              child: Container(
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFBBF24), // Gold color
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFD97706),
-                    width: 1.5,
-                  ),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black12, blurRadius: 1),
-                  ],
-                ),
-                child: Center(
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFFD97706).withValues(alpha: 0.5),
-                        width: 1,
+                const SizedBox(width: 8),
+                // Honor Amount & Badge
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      honor,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isSelesai ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        isSelesai ? 'Selesai' : 'Menunggu',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: isSelesai ? const Color(0xFF10B981) : const Color(0xFFD97706),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFF94A3B8),
+                  size: 20,
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _navigateToHonorDetail({
-    required BuildContext context,
-    required Map<String, dynamic> detail,
-    required String status,
-    required String metodePembayaran,
-    required String tanggalPembayaran,
-    required String noTransfer,
-    required int jumlahAsesmen,
-  }) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DetailHonorScreen(
-          detail: detail,
-          status: status,
-          metodePembayaran: metodePembayaran,
-          tanggalPembayaran: tanggalPembayaran,
-          noTransfer: noTransfer,
-          jumlahAsesmen: jumlahAsesmen,
+          ),
         ),
       ),
     );

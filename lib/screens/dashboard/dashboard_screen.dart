@@ -18,6 +18,7 @@ import '../auth/login_screen.dart';
 import '../../widgets/public_sertifikat_card.dart';
 import '../../widgets/tentang_kami_section.dart';
 import '../../widgets/admin_bantuan_pengumuman.dart';
+import '../profile/honor_asesor_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -640,11 +641,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             title: 'Honor',
             subtitle: '$honorCount Honor asessor belum dibayar',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Halaman Honor Asesor sedang dikembangkan'),
-                  duration: Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HonorAsesorScreen(),
                 ),
               );
             },

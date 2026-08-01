@@ -212,4 +212,58 @@ class PermohonanService {
       };
     }
   }
+
+  /// GET /api/permohonan/master/skema
+  static Future<List<Map<String, dynamic>>> getMasterSkema() async {
+    try {
+      final response = await _dio.get('/api/permohonan/master/skema');
+      if (response.statusCode == 200 && response.data != null) {
+        final List data = response.data['data'] ?? [];
+        return data.map((e) => {'id': e['id'], 'skema': e['skema']?.toString() ?? ''}).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getMasterSkema: $e');
+      return [];
+    }
+  }
+
+  /// GET /api/permohonan/master/asesor
+  static Future<List<Map<String, dynamic>>> getMasterAsesor() async {
+    try {
+      final response = await _dio.get('/api/permohonan/master/asesor');
+      if (response.statusCode == 200 && response.data != null) {
+        final List data = response.data['data'] ?? [];
+        return data.map((e) => {
+          'id': e['id'],
+          'short_name': e['short_name']?.toString() ?? '',
+          'email': e['email']?.toString() ?? '',
+          'user_category': e['user_category']?.toString() ?? '',
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getMasterAsesor: $e');
+      return [];
+    }
+  }
+
+  /// GET /api/permohonan/master/perangkat
+  static Future<List<Map<String, dynamic>>> getMasterPerangkat() async {
+    try {
+      final response = await _dio.get('/api/permohonan/master/perangkat');
+      if (response.statusCode == 200 && response.data != null) {
+        final List data = response.data['data'] ?? [];
+        return data.map((e) => {
+          'id': e['id'],
+          'nama_perangkat': e['nama_perangkat']?.toString() ?? '',
+          'no_perangkat': e['no_perangkat']?.toString() ?? '',
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getMasterPerangkat: $e');
+      return [];
+    }
+  }
 }

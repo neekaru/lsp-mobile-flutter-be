@@ -52,13 +52,6 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   String _tuk = '';
   String _praAsesmenChecked = '';
   String _perangkatAsesmen = '';
-  // Asesor info
-  String _asesorShortName = '';
-  String _asesorEmail = '';
-  String _asesorUserCategory = '';
-  // Perangkat asesmen info
-  String _namaPerangkatAsesmen = '';
-  String _kodePerangkatAsesmen = '';
 
   // Raw IDs from backend (for PUT-back)
   int? _idProvinsi;
@@ -67,6 +60,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   int? _idPendidikan;
   int? _idPekerjaan;
   String _idPerangkat = '';
+  int? _idAsesor;
 
   @override
   void initState() {
@@ -147,11 +141,6 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         }
 
         if (realData['perangkat_asesmen'] != null) _perangkatAsesmen = realData['perangkat_asesmen']!;
-        if (realData['asesor_short_name'] != null) _asesorShortName = realData['asesor_short_name']!;
-        if (realData['asesor_email'] != null) _asesorEmail = realData['asesor_email']!;
-        if (realData['asesor_user_category'] != null) _asesorUserCategory = realData['asesor_user_category']!;
-        if (realData['nama_perangkat_asesmen'] != null) _namaPerangkatAsesmen = realData['nama_perangkat_asesmen']!;
-        if (realData['kode_perangkat_asesmen'] != null) _kodePerangkatAsesmen = realData['kode_perangkat_asesmen']!;
 
         // Raw IDs for PUT-back
         if (realData['id_provinsi'] != null) _idProvinsi = int.tryParse(realData['id_provinsi']!);
@@ -228,8 +217,6 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     if (_jabatanController.text.isNotEmpty) updateData['jabatan'] = _jabatanController.text;
     if (_alamatPerusahaanController.text.isNotEmpty) updateData['alamat_company'] = _alamatPerusahaanController.text;
     if (_noKontakPerusahaanController.text.isNotEmpty) updateData['telp_company'] = _noKontakPerusahaanController.text;
-    if (_tuk.isNotEmpty) updateData['tuk'] = _tuk;
-    if (_perangkatAsesmen.isNotEmpty) updateData['perangkat_asesmen'] = _perangkatAsesmen;
 
     // ID-based fields (pass raw IDs back to backend)
     if (_idProvinsi != null) updateData['id_provinsi'] = _idProvinsi;
@@ -241,10 +228,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
       final perangkatInt = int.tryParse(_idPerangkat);
       if (perangkatInt != null) updateData['id_perangkat'] = perangkatInt;
     }
-    // pra_asesmen: convert display 'Ya'/'Tidak' back to '1'/'0'
-    if (_praAsesmenChecked.isNotEmpty) {
-      updateData['pra_asesmen'] = _praAsesmenChecked == 'Ya' ? '1' : '0';
-    }
+    if (_idAsesor != null) updateData['id_asesor'] = _idAsesor;
 
     if (updateData.isEmpty) {
       debugPrint('⚠️ updateData is empty');
@@ -341,15 +325,15 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
 
   // Selection Handler: Skema Sertifikasi
   void _selectSkemaSertifikasi() {
-    _showModalSelect<MasterSkema>(
+    _showModalSelect<Map<String, dynamic>>(
       title: 'Pilih Skema Sertifikasi',
-      fetchItems: () => MasterService.getMasterSkemaList(),
-      labelOf: (item) => item.displayName,
+      fetchItems: () => PermohonanService.getMasterSkema(),
+      labelOf: (item) => item['skema'] as String,
       currentSelectedLabel: _skemaSertifikasi,
       showSearch: true,
       onSelected: (val) {
         setState(() {
-          _skemaSertifikasi = val.namaSkema;
+          _skemaSertifikasi = val['skema'] as String;
         });
       },
     );
@@ -500,6 +484,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
       },
       labelOf: (item) => item.displayName,
       currentSelectedLabel: _pendidikanTerakhir,
+      showSearch: true,
       onSelected: (val) {
         setState(() {
           _pendidikanTerakhir = val.displayName;
@@ -554,6 +539,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
       items: defaultOptions,
       labelOf: (item) => item,
       currentSelectedLabel: _tuk,
+      showSearch: true,
       onSelected: (val) {
         setState(() {
           _tuk = val;
@@ -562,41 +548,49 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     );
   }
 
-  // 8. Selection Handler: Pra Asesmen Checked
+  // 8. Selection Handler: Pra Asesmen Checked → Asesor dari API
   void _selectPraAsesmenChecked() {
-    _showModalSelect<String>(
-      title: 'Pilih Status Pra Asesmen',
-      items: ['Ya', 'Tidak'],
-      labelOf: (item) => item,
-      currentSelectedLabel: _praAsesmenChecked,
+    _showModalSelect<Map<String, dynamic>>(
+      title: 'Pilih Asesor',
+      fetchItems: () => PermohonanService.getMasterAsesor(),
+      labelOf: (item) {
+        final name = item['short_name'] as String;
+        final email = item['email'] as String;
+        return email.isNotEmpty ? '$name ($email)' : name;
+      },
+      currentSelectedLabel: _asesorShortName,
+      showSearch: true,
       onSelected: (val) {
         setState(() {
-          _praAsesmenChecked = val;
+          _asesorShortName = val['short_name'] as String;
+          _asesorEmail = val['email'] as String;
+          _asesorUserCategory = val['user_category']?.toString() ?? '';
+          final id = val['id'];
+          _idAsesor = id is int ? id : int.tryParse(id.toString());
         });
       },
     );
   }
 
-  // 9. Selection Handler: Perangkat Asesmen
+  // 9. Selection Handler: Perangkat Asesmen → dari API
   void _selectPerangkatAsesmen() {
-    final options = [
-      {'id': '1', 'name': 'Perangkat Asesmen Standar'},
-      {'id': '2', 'name': 'Perangkat Asesmen Khusus'},
-      {'id': '3', 'name': 'MUK / Perangkat Uji Kompetensi'},
-      {'id': '4', 'name': 'Portofolio / VOP'},
-    ];
-    if (_perangkatAsesmen.isNotEmpty && !options.any((e) => e['name'] == _perangkatAsesmen)) {
-      options.insert(0, {'id': _idPerangkat.isNotEmpty ? _idPerangkat : '0', 'name': _perangkatAsesmen});
-    }
-    _showModalSelect<Map<String, String>>(
+    _showModalSelect<Map<String, dynamic>>(
       title: 'Pilih Perangkat Asesmen',
-      items: options,
-      labelOf: (item) => item['name']!,
-      currentSelectedLabel: _perangkatAsesmen,
+      fetchItems: () => PermohonanService.getMasterPerangkat(),
+      labelOf: (item) {
+        final nama = item['nama_perangkat'] as String;
+        final kode = item['no_perangkat'] as String;
+        return kode.isNotEmpty ? '$nama [$kode]' : nama;
+      },
+      currentSelectedLabel: _namaPerangkatAsesmen,
+      showSearch: true,
       onSelected: (val) {
         setState(() {
-          _perangkatAsesmen = val['name']!;
-          _idPerangkat = val['id']!;
+          _namaPerangkatAsesmen = val['nama_perangkat'] as String;
+          _kodePerangkatAsesmen = val['no_perangkat'] as String;
+          final id = val['id'];
+          final idInt = id is int ? id : int.tryParse(id.toString());
+          if (idInt != null) _idPerangkat = idInt.toString();
         });
       },
     );
@@ -970,13 +964,13 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         ),
         _buildSelectField(
           label: 'Pra Asessmen Checked',
-          value: _praAsesmenChecked,
-          hint: 'Pilih Status',
+          value: _asesorShortName,
+          hint: 'Pilih Asesor',
           onTap: _selectPraAsesmenChecked,
         ),
         _buildSelectField(
           label: 'Perangkat Asesmen',
-          value: _perangkatAsesmen,
+          value: _namaPerangkatAsesmen,
           hint: 'Pilih Perangkat',
           onTap: _selectPerangkatAsesmen,
           isLast: true,
@@ -1311,6 +1305,11 @@ class _ModalSelectSheetState<T> extends State<_ModalSelectSheet<T>> {
     try {
       final res = await widget.fetchItems!();
       if (!mounted) return;
+      // Auto-select jika hanya 1 item
+      if (res.length == 1) {
+        widget.onSelected(res.first);
+        return;
+      }
       setState(() {
         _allItems = res;
         _filteredItems = List.from(res);
