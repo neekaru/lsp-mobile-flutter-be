@@ -1,6 +1,8 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../models/master_models.dart';
+import '../../../services/master_service.dart';
 import '../../../services/permohonan_service.dart';
 
 class Step4BiodataPeserta extends StatefulWidget {
@@ -27,7 +29,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   late TextEditingController _nikController;
   late TextEditingController _namaLengkapController;
   String _jenisKelamin = '';
-  String _tempatLahir = '';
+  late TextEditingController _tempatLahirController;
   late TextEditingController _tanggalLahirController;
   late TextEditingController _alamatController;
   String _provinsi = '';
@@ -50,6 +52,13 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   String _tuk = '';
   String _praAsesmenChecked = '';
   String _perangkatAsesmen = '';
+  // Asesor info
+  String _asesorShortName = '';
+  String _asesorEmail = '';
+  String _asesorUserCategory = '';
+  // Perangkat asesmen info
+  String _namaPerangkatAsesmen = '';
+  String _kodePerangkatAsesmen = '';
 
   // Raw IDs from backend (for PUT-back)
   int? _idProvinsi;
@@ -65,6 +74,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     _idController = TextEditingController();
     _nikController = TextEditingController();
     _namaLengkapController = TextEditingController();
+    _tempatLahirController = TextEditingController();
     _tanggalLahirController = TextEditingController();
     _alamatController = TextEditingController();
     _kontakController = TextEditingController();
@@ -91,8 +101,20 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         if (realData['nik'] != null) _nikController.text = realData['nik']!;
         if (realData['nama_pemohon'] != null) _namaLengkapController.text = realData['nama_pemohon']!;
         if (realData['skema_sertifikasi'] != null) _skemaSertifikasi = realData['skema_sertifikasi']!;
-        if (realData['jenis_kelamin'] != null) _jenisKelamin = realData['jenis_kelamin']!;
-        if (realData['tempat_lahir'] != null) _tempatLahir = realData['tempat_lahir']!;
+
+        // Normalisasi Jenis Kelamin
+        if (realData['jenis_kelamin'] != null) {
+          final jk = realData['jenis_kelamin']!;
+          if (jk == '1' || jk.toLowerCase() == 'laki-laki' || jk.toLowerCase() == 'l') {
+            _jenisKelamin = 'Laki-laki';
+          } else if (jk == '2' || jk.toLowerCase() == 'perempuan' || jk.toLowerCase() == 'p') {
+            _jenisKelamin = 'Perempuan';
+          } else {
+            _jenisKelamin = jk;
+          }
+        }
+
+        if (realData['tempat_lahir'] != null) _tempatLahirController.text = realData['tempat_lahir']!;
         if (realData['tanggal_lahir'] != null) _tanggalLahirController.text = realData['tanggal_lahir']!;
         if (realData['alamat'] != null) _alamatController.text = realData['alamat']!;
         if (realData['provinsi'] != null) _provinsi = realData['provinsi']!;
@@ -111,8 +133,25 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         if (realData['alamat_perusahaan'] != null) _alamatPerusahaanController.text = realData['alamat_perusahaan']!;
         if (realData['no_kontak_perusahaan'] != null) _noKontakPerusahaanController.text = realData['no_kontak_perusahaan']!;
         if (realData['tuk'] != null) _tuk = realData['tuk']!;
-        if (realData['pra_asesmen_checked'] != null) _praAsesmenChecked = realData['pra_asesmen_checked']!;
+
+        // Normalisasi Pra Asesmen Checked
+        if (realData['pra_asesmen_checked'] != null) {
+          final pra = realData['pra_asesmen_checked']!;
+          if (pra == '1' || pra.toLowerCase() == 'ya' || pra.toLowerCase() == 'true') {
+            _praAsesmenChecked = 'Ya';
+          } else if (pra == '0' || pra.toLowerCase() == 'tidak' || pra.toLowerCase() == 'false') {
+            _praAsesmenChecked = 'Tidak';
+          } else {
+            _praAsesmenChecked = pra;
+          }
+        }
+
         if (realData['perangkat_asesmen'] != null) _perangkatAsesmen = realData['perangkat_asesmen']!;
+        if (realData['asesor_short_name'] != null) _asesorShortName = realData['asesor_short_name']!;
+        if (realData['asesor_email'] != null) _asesorEmail = realData['asesor_email']!;
+        if (realData['asesor_user_category'] != null) _asesorUserCategory = realData['asesor_user_category']!;
+        if (realData['nama_perangkat_asesmen'] != null) _namaPerangkatAsesmen = realData['nama_perangkat_asesmen']!;
+        if (realData['kode_perangkat_asesmen'] != null) _kodePerangkatAsesmen = realData['kode_perangkat_asesmen']!;
 
         // Raw IDs for PUT-back
         if (realData['id_provinsi'] != null) _idProvinsi = int.tryParse(realData['id_provinsi']!);
@@ -130,6 +169,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     _idController.dispose();
     _nikController.dispose();
     _namaLengkapController.dispose();
+    _tempatLahirController.dispose();
     _tanggalLahirController.dispose();
     _alamatController.dispose();
     _kontakController.dispose();
@@ -143,12 +183,8 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     super.dispose();
   }
 
-  Future<void> _saveData() async {
-    await saveData();
-  }
-
   Future<void> saveData() async {
-    debugPrint('🔵 _saveData called, permohonanId: ${widget.permohonanId}');
+    debugPrint('🔵 saveData called, permohonanId: ${widget.permohonanId}');
     
     if (widget.permohonanId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -164,26 +200,36 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     final Map<String, dynamic> updateData = {};
 
     // Data Peserta
+    if (_skemaSertifikasi.isNotEmpty) updateData['skema_sertifikasi'] = _skemaSertifikasi;
     if (_nikController.text.isNotEmpty) updateData['nik'] = _nikController.text;
     if (_namaLengkapController.text.isNotEmpty) updateData['nama_lengkap'] = _namaLengkapController.text;
     if (_jenisKelamin.isNotEmpty) {
       updateData['jenis_kelamin'] = _jenisKelamin == 'Laki-laki' ? '1' : '2';
     }
-    if (_tempatLahir.isNotEmpty) updateData['tempat_lahir'] = _tempatLahir;
+    if (_tempatLahirController.text.isNotEmpty) updateData['tempat_lahir'] = _tempatLahirController.text;
     if (_tanggalLahirController.text.isNotEmpty) updateData['tgl_lahir'] = _tanggalLahirController.text;
     if (_alamatController.text.isNotEmpty) updateData['alamat'] = _alamatController.text;
     if (_kontakController.text.isNotEmpty) updateData['telp'] = _kontakController.text;
     if (_emailController.text.isNotEmpty) updateData['email'] = _emailController.text;
 
+    // Label fallback string fields
+    if (_provinsi.isNotEmpty) updateData['provinsi'] = _provinsi;
+    if (_kabupaten.isNotEmpty) updateData['kabupaten'] = _kabupaten;
+    if (_kecamatan.isNotEmpty) updateData['kecamatan'] = _kecamatan;
+
     // Data Pendidikan
+    if (_pendidikanTerakhir.isNotEmpty) updateData['pendidikan_terakhir'] = _pendidikanTerakhir;
     if (_namaSekolahController.text.isNotEmpty) updateData['perg_tinggi'] = _namaSekolahController.text;
     if (_jurusanController.text.isNotEmpty) updateData['jurusan'] = _jurusanController.text;
 
     // Data Pekerjaan
+    if (_pekerjaan.isNotEmpty) updateData['pekerjaan'] = _pekerjaan;
     if (_perusahaanController.text.isNotEmpty) updateData['organisasi'] = _perusahaanController.text;
     if (_jabatanController.text.isNotEmpty) updateData['jabatan'] = _jabatanController.text;
     if (_alamatPerusahaanController.text.isNotEmpty) updateData['alamat_company'] = _alamatPerusahaanController.text;
     if (_noKontakPerusahaanController.text.isNotEmpty) updateData['telp_company'] = _noKontakPerusahaanController.text;
+    if (_tuk.isNotEmpty) updateData['tuk'] = _tuk;
+    if (_perangkatAsesmen.isNotEmpty) updateData['perangkat_asesmen'] = _perangkatAsesmen;
 
     // ID-based fields (pass raw IDs back to backend)
     if (_idProvinsi != null) updateData['id_provinsi'] = _idProvinsi;
@@ -260,6 +306,300 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         ),
       );
     }
+  }
+
+  // Helper Modal Selector
+  void _showModalSelect<T>({
+    required String title,
+    List<T>? items,
+    Future<List<T>> Function()? fetchItems,
+    required String Function(T item) labelOf,
+    required String currentSelectedLabel,
+    required ValueChanged<T> onSelected,
+    bool showSearch = false,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return _ModalSelectSheet<T>(
+          title: title,
+          items: items,
+          fetchItems: fetchItems,
+          labelOf: labelOf,
+          currentSelectedLabel: currentSelectedLabel,
+          onSelected: (val) {
+            onSelected(val);
+            Navigator.pop(context);
+          },
+          showSearch: showSearch,
+        );
+      },
+    );
+  }
+
+  // Selection Handler: Skema Sertifikasi
+  void _selectSkemaSertifikasi() {
+    _showModalSelect<MasterSkema>(
+      title: 'Pilih Skema Sertifikasi',
+      fetchItems: () => MasterService.getMasterSkemaList(),
+      labelOf: (item) => item.displayName,
+      currentSelectedLabel: _skemaSertifikasi,
+      showSearch: true,
+      onSelected: (val) {
+        setState(() {
+          _skemaSertifikasi = val.namaSkema;
+        });
+      },
+    );
+  }
+
+  // 1. Selection Handler: Jenis Kelamin
+  void _selectJenisKelamin() {
+    _showModalSelect<String>(
+      title: 'Pilih Jenis Kelamin',
+      items: ['Laki-laki', 'Perempuan'],
+      labelOf: (item) => item,
+      currentSelectedLabel: _jenisKelamin,
+      onSelected: (val) {
+        setState(() {
+          _jenisKelamin = val;
+        });
+      },
+    );
+  }
+
+  // 2. Selection Handler: Provinsi
+  void _selectProvinsi() {
+    _showModalSelect<MasterItem>(
+      title: 'Pilih Provinsi',
+      fetchItems: () => MasterService.getProvinsiList(),
+      labelOf: (item) => item.name,
+      currentSelectedLabel: _provinsi,
+      showSearch: true,
+      onSelected: (val) {
+        setState(() {
+          _provinsi = val.name;
+          _idProvinsi = int.tryParse(val.id);
+          _kabupaten = '';
+          _idKabupaten = null;
+          _kecamatan = '';
+          _idKecamatan = '';
+        });
+      },
+    );
+  }
+
+  // 3. Selection Handler: Kabupaten/Kota
+  void _selectKabupaten() {
+    if (_idProvinsi == null && _provinsi.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan pilih Provinsi terlebih dahulu'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    _showModalSelect<MasterItem>(
+      title: 'Pilih Kabupaten/Kota',
+      fetchItems: () async {
+        if (_idProvinsi == null && _provinsi.isNotEmpty) {
+          final provs = await MasterService.getProvinsiList();
+          final match = provs.firstWhere(
+            (e) => e.name.toLowerCase() == _provinsi.toLowerCase(),
+            orElse: () => const MasterItem(id: '', name: ''),
+          );
+          if (match.id.isNotEmpty) {
+            _idProvinsi = int.tryParse(match.id);
+          }
+        }
+        return MasterService.getKabupatenList(_idProvinsi?.toString() ?? '');
+      },
+      labelOf: (item) => item.name,
+      currentSelectedLabel: _kabupaten,
+      showSearch: true,
+      onSelected: (val) {
+        setState(() {
+          _kabupaten = val.name;
+          _idKabupaten = int.tryParse(val.id);
+          _kecamatan = '';
+          _idKecamatan = '';
+        });
+      },
+    );
+  }
+
+  // 4. Selection Handler: Kecamatan
+  void _selectKecamatan() {
+    if (_idKabupaten == null && _kabupaten.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan pilih Kabupaten/Kota terlebih dahulu'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    _showModalSelect<MasterItem>(
+      title: 'Pilih Kecamatan',
+      fetchItems: () async {
+        if (_idKabupaten == null && _kabupaten.isNotEmpty) {
+          if (_idProvinsi == null && _provinsi.isNotEmpty) {
+            final provs = await MasterService.getProvinsiList();
+            final match = provs.firstWhere(
+              (e) => e.name.toLowerCase() == _provinsi.toLowerCase(),
+              orElse: () => const MasterItem(id: '', name: ''),
+            );
+            if (match.id.isNotEmpty) {
+              _idProvinsi = int.tryParse(match.id);
+            }
+          }
+          if (_idProvinsi != null) {
+            final kabs = await MasterService.getKabupatenList(_idProvinsi.toString());
+            final matchKab = kabs.firstWhere(
+              (e) => e.name.toLowerCase() == _kabupaten.toLowerCase(),
+              orElse: () => const MasterItem(id: '', name: ''),
+            );
+            if (matchKab.id.isNotEmpty) {
+              _idKabupaten = int.tryParse(matchKab.id);
+            }
+          }
+        }
+        return MasterService.getKecamatanList(_idKabupaten?.toString() ?? '');
+      },
+      labelOf: (item) => item.name,
+      currentSelectedLabel: _kecamatan,
+      showSearch: true,
+      onSelected: (val) {
+        setState(() {
+          _kecamatan = val.name;
+          _idKecamatan = val.id;
+        });
+      },
+    );
+  }
+
+  // 5. Selection Handler: Pendidikan Terakhir
+  void _selectPendidikanTerakhir() {
+    _showModalSelect<MasterPendidikan>(
+      title: 'Pilih Pendidikan Terakhir',
+      fetchItems: () async {
+        final list = await MasterService.getMasterPendidikanList();
+        if (list.isNotEmpty) return list;
+        return const [
+          MasterPendidikan(id: 1, namaPendidikan: 'SD / Sederajat'),
+          MasterPendidikan(id: 2, namaPendidikan: 'SMP / Sederajat'),
+          MasterPendidikan(id: 3, namaPendidikan: 'SMA / SMK / Sederajat'),
+          MasterPendidikan(id: 4, namaPendidikan: 'D3 / Sederajat'),
+          MasterPendidikan(id: 5, namaPendidikan: 'D4 / S1'),
+          MasterPendidikan(id: 6, namaPendidikan: 'S2'),
+          MasterPendidikan(id: 7, namaPendidikan: 'S3'),
+        ];
+      },
+      labelOf: (item) => item.displayName,
+      currentSelectedLabel: _pendidikanTerakhir,
+      onSelected: (val) {
+        setState(() {
+          _pendidikanTerakhir = val.displayName;
+          _idPendidikan = val.id;
+        });
+      },
+    );
+  }
+
+  // 6. Selection Handler: Pekerjaan
+  void _selectPekerjaan() {
+    _showModalSelect<MasterPekerjaan>(
+      title: 'Pilih Pekerjaan',
+      fetchItems: () async {
+        final list = await MasterService.getMasterPekerjaanList();
+        if (list.isNotEmpty) return list;
+        return const [
+          MasterPekerjaan(id: 1, namaPekerjaan: 'Siswa / Mahasiswa'),
+          MasterPekerjaan(id: 2, namaPekerjaan: 'Karyawan Swasta'),
+          MasterPekerjaan(id: 3, namaPekerjaan: 'PNS / ASN'),
+          MasterPekerjaan(id: 4, namaPekerjaan: 'Wiraswasta / Pengusaha'),
+          MasterPekerjaan(id: 5, namaPekerjaan: 'BUMN / BUMD'),
+          MasterPekerjaan(id: 6, namaPekerjaan: 'Dosen / Pengajar'),
+          MasterPekerjaan(id: 7, namaPekerjaan: 'Lainnya'),
+        ];
+      },
+      labelOf: (item) => item.displayName,
+      currentSelectedLabel: _pekerjaan,
+      showSearch: true,
+      onSelected: (val) {
+        setState(() {
+          _pekerjaan = val.displayName;
+          _idPekerjaan = val.id;
+        });
+      },
+    );
+  }
+
+  // 7. Selection Handler: TUK
+  void _selectTUK() {
+    final defaultOptions = [
+      'TUK Sewaktu',
+      'TUK Tempat Kerja',
+      'TUK Mandiri',
+      'TUK Pusat',
+    ];
+    if (_tuk.isNotEmpty && !defaultOptions.contains(_tuk)) {
+      defaultOptions.insert(0, _tuk);
+    }
+    _showModalSelect<String>(
+      title: 'Pilih TUK',
+      items: defaultOptions,
+      labelOf: (item) => item,
+      currentSelectedLabel: _tuk,
+      onSelected: (val) {
+        setState(() {
+          _tuk = val;
+        });
+      },
+    );
+  }
+
+  // 8. Selection Handler: Pra Asesmen Checked
+  void _selectPraAsesmenChecked() {
+    _showModalSelect<String>(
+      title: 'Pilih Status Pra Asesmen',
+      items: ['Ya', 'Tidak'],
+      labelOf: (item) => item,
+      currentSelectedLabel: _praAsesmenChecked,
+      onSelected: (val) {
+        setState(() {
+          _praAsesmenChecked = val;
+        });
+      },
+    );
+  }
+
+  // 9. Selection Handler: Perangkat Asesmen
+  void _selectPerangkatAsesmen() {
+    final options = [
+      {'id': '1', 'name': 'Perangkat Asesmen Standar'},
+      {'id': '2', 'name': 'Perangkat Asesmen Khusus'},
+      {'id': '3', 'name': 'MUK / Perangkat Uji Kompetensi'},
+      {'id': '4', 'name': 'Portofolio / VOP'},
+    ];
+    if (_perangkatAsesmen.isNotEmpty && !options.any((e) => e['name'] == _perangkatAsesmen)) {
+      options.insert(0, {'id': _idPerangkat.isNotEmpty ? _idPerangkat : '0', 'name': _perangkatAsesmen});
+    }
+    _showModalSelect<Map<String, String>>(
+      title: 'Pilih Perangkat Asesmen',
+      items: options,
+      labelOf: (item) => item['name']!,
+      currentSelectedLabel: _perangkatAsesmen,
+      onSelected: (val) {
+        setState(() {
+          _perangkatAsesmen = val['name']!;
+          _idPerangkat = val['id']!;
+        });
+      },
+    );
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -471,7 +811,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           label: 'Skema Sertifikasi',
           value: _skemaSertifikasi,
           hint: 'Pilih Skema Sertifikasi',
-          onTap: () {},
+          onTap: _selectSkemaSertifikasi,
         ),
         _buildInputField(
           label: 'ID',
@@ -515,13 +855,12 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           label: 'Jenis Kelamin',
           value: _jenisKelamin,
           hint: 'Pilih Jenis Kelamin',
-          onTap: () {},
+          onTap: _selectJenisKelamin,
         ),
-        _buildSelectField(
+        _buildInputField(
           label: 'Tempat Lahir',
-          value: _tempatLahir,
-          hint: 'Pilih Tempat Lahir',
-          onTap: () {},
+          controller: _tempatLahirController,
+          hint: 'Masukkan Tempat Lahir',
         ),
         _buildDatePickerField(
           label: 'Tanggal Lahir',
@@ -539,19 +878,19 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           label: 'Provinsi',
           value: _provinsi,
           hint: 'Pilih Provinsi',
-          onTap: () {},
+          onTap: _selectProvinsi,
         ),
         _buildSelectField(
           label: 'Kabupaten/Kota',
           value: _kabupaten,
           hint: 'Pilih Kabupaten/Kota',
-          onTap: () {},
+          onTap: _selectKabupaten,
         ),
         _buildSelectField(
           label: 'Kecamatan',
           value: _kecamatan,
           hint: 'Pilih Kecamatan',
-          onTap: () {},
+          onTap: _selectKecamatan,
         ),
         _buildPhoneField(
           label: 'No.Kontak',
@@ -576,7 +915,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           label: 'Pendidikan Terakhir',
           value: _pendidikanTerakhir,
           hint: 'Pilih Pendidikan',
-          onTap: () {},
+          onTap: _selectPendidikanTerakhir,
         ),
         _buildInputField(
           label: 'Nama Sekolah/Perguruan Tinggi',
@@ -600,7 +939,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           label: 'Pekerjaan',
           value: _pekerjaan,
           hint: 'Pilih Pekerjaan',
-          onTap: () {},
+          onTap: _selectPekerjaan,
         ),
         _buildInputField(
           label: 'Perusahaan',
@@ -627,19 +966,19 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           label: 'TUK',
           value: _tuk,
           hint: 'Pilih TUK',
-          onTap: () {},
+          onTap: _selectTUK,
         ),
         _buildSelectField(
-          label: 'Pra Asesmen Checked',
+          label: 'Pra Asessmen Checked',
           value: _praAsesmenChecked,
           hint: 'Pilih Status',
-          onTap: () {},
+          onTap: _selectPraAsesmenChecked,
         ),
         _buildSelectField(
           label: 'Perangkat Asesmen',
           value: _perangkatAsesmen,
           hint: 'Pilih Perangkat',
-          onTap: () {},
+          onTap: _selectPerangkatAsesmen,
           isLast: true,
         ),
       ],
@@ -753,7 +1092,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                  border: Border.all(color: Color(0xFFCBD5E1)),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 child: Row(
@@ -771,9 +1110,9 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
                       ),
                     ),
                     const Icon(
-                      Icons.chevron_right_rounded,
+                      Icons.arrow_drop_down_rounded,
                       color: Color(0xFF64748B),
-                      size: 16,
+                      size: 20,
                     ),
                   ],
                 ),
@@ -918,6 +1257,264 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ModalSelectSheet<T> extends StatefulWidget {
+  final String title;
+  final List<T>? items;
+  final Future<List<T>> Function()? fetchItems;
+  final String Function(T item) labelOf;
+  final String currentSelectedLabel;
+  final ValueChanged<T> onSelected;
+  final bool showSearch;
+
+  const _ModalSelectSheet({
+    super.key,
+    required this.title,
+    this.items,
+    this.fetchItems,
+    required this.labelOf,
+    required this.currentSelectedLabel,
+    required this.onSelected,
+    this.showSearch = false,
+  });
+
+  @override
+  State<_ModalSelectSheet<T>> createState() => _ModalSelectSheetState<T>();
+}
+
+class _ModalSelectSheetState<T> extends State<_ModalSelectSheet<T>> {
+  List<T> _allItems = [];
+  List<T> _filteredItems = [];
+  bool _isLoading = false;
+  String _errorMessage = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.items != null) {
+      _allItems = List.from(widget.items!);
+      _filteredItems = List.from(_allItems);
+    } else if (widget.fetchItems != null) {
+      _loadData();
+    }
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    try {
+      final res = await widget.fetchItems!();
+      if (!mounted) return;
+      setState(() {
+        _allItems = res;
+        _filteredItems = List.from(res);
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Gagal memuat data: $e';
+      });
+    }
+  }
+
+  void _onSearchChanged(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _filteredItems = List.from(_allItems);
+      });
+    } else {
+      final q = query.toLowerCase();
+      setState(() {
+        _filteredItems = _allItems.where((item) {
+          final label = widget.labelOf(item).toLowerCase();
+          return label.contains(q);
+        }).toList();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.3,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) {
+        final mediaQuery = MediaQuery.of(context);
+        final double keyboardHeight = mediaQuery.viewInsets.bottom;
+
+        return Container(
+          padding: EdgeInsets.only(bottom: keyboardHeight),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag Handle Indicator
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 8, bottom: 4),
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+
+              // Header Bar
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 8, top: 4, bottom: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Color(0xFF64748B), size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: Color(0xFFE2E8F0)),
+
+              // Search field if requested or if item count > 8
+              if (widget.showSearch || _allItems.length > 8)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _onSearchChanged,
+                    style: const TextStyle(fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'Cari...',
+                      prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF94A3B8)),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 16, color: Color(0xFF94A3B8)),
+                              onPressed: () {
+                                _searchController.clear();
+                                _onSearchChanged('');
+                              },
+                            )
+                          : null,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFF3B82F6)),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Content body
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _errorMessage.isNotEmpty
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _errorMessage,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: Colors.red, fontSize: 13),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed: _loadData,
+                                    child: const Text('Coba Lagi'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : _filteredItems.isEmpty
+                            ? const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(20.0),
+                                  child: Text(
+                                    'Data tidak ditemukan',
+                                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                  ),
+                                ),
+                              )
+                            : ListView.separated(
+                                controller: scrollController,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                itemCount: _filteredItems.length,
+                                separatorBuilder: (context, index) =>
+                                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                                itemBuilder: (context, index) {
+                                  final item = _filteredItems[index];
+                                  final label = widget.labelOf(item);
+                                  final isSelected =
+                                      label.toLowerCase() == widget.currentSelectedLabel.toLowerCase();
+
+                                  return Material(
+                                    color: Colors.transparent,
+                                    child: ListTile(
+                                      dense: true,
+                                      title: Text(
+                                        label,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                          color: isSelected ? const Color(0xFF3B82F6) : const Color(0xFF0F172A),
+                                        ),
+                                      ),
+                                      trailing: isSelected
+                                          ? const Icon(Icons.check_rounded, color: Color(0xFF3B82F6), size: 18)
+                                          : null,
+                                      onTap: () => widget.onSelected(item),
+                                    ),
+                                  );
+                                },
+                              ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

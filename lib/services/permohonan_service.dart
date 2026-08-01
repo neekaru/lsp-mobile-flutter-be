@@ -157,6 +157,13 @@ class PermohonanService {
           'tuk': data['tuk']?.toString() ?? '',
           'pra_asesmen_checked': data['pra_asesmen_checked']?.toString() ?? '',
           'perangkat_asesmen': data['perangkat_asesmen']?.toString() ?? '',
+          // Asesor info
+          'asesor_short_name': data['asesor_short_name']?.toString() ?? '',
+          'asesor_email': data['asesor_email']?.toString() ?? '',
+          'asesor_user_category': data['asesor_user_category']?.toString() ?? '',
+          // Perangkat asesmen info
+          'nama_perangkat_asesmen': data['nama_perangkat_asesmen']?.toString() ?? '',
+          'kode_perangkat_asesmen': data['kode_perangkat_asesmen']?.toString() ?? '',
           // Raw IDs for PUT-back
           'id_provinsi': data['id_provinsi']?.toString() ?? '',
           'id_kabupaten': data['id_kabupaten']?.toString() ?? '',

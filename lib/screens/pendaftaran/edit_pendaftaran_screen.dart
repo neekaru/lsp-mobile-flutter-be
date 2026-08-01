@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/status_notification_dialog.dart';
-import '../../services/permohonan_service.dart';
 import 'widgets/step1_persyaratan_asessi.dart';
 import 'widgets/step2_data_peserta.dart';
 import 'widgets/step3_jadwal.dart';
@@ -35,6 +34,7 @@ class _EditPendaftaranScreenState extends State<EditPendaftaranScreen> {
     } else {
       // Step 4: save biodata via PUT then show success
       _step4Key.currentState?.saveData().then((_) {
+        if (!mounted) return;
         StatusNotificationDialog.showSuccess(
           context: context,
           title: 'Perubahan Telah Tersimpan',
