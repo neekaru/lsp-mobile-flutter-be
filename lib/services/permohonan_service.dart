@@ -171,6 +171,7 @@ class PermohonanService {
           'id_pendidikan': data['id_pendidikan']?.toString() ?? '',
           'id_pekerjaan': data['id_pekerjaan']?.toString() ?? '',
           'id_perangkat': data['id_perangkat']?.toString() ?? '',
+          'id_asesor': data['id_asesor']?.toString() ?? '',
         };
       }
       return null;

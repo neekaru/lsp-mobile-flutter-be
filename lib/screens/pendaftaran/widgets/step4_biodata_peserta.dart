@@ -142,9 +142,49 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
         if (realData['id_pendidikan'] != null) _idPendidikan = int.tryParse(realData['id_pendidikan']!);
         if (realData['id_pekerjaan'] != null) _idPekerjaan = int.tryParse(realData['id_pekerjaan']!);
         if (realData['id_perangkat'] != null) _idPerangkat = realData['id_perangkat']!;
+        if (realData['id_asesor'] != null) _idAsesor = int.tryParse(realData['id_asesor']!);
       });
+
+      // Auto-resolve display names dari master list berdasarkan ID
+      await _resolveAsesorAndPerangkat();
     }
   }
+
+  Future<void> _resolveAsesorAndPerangkat() async {
+    final futures = await Future.wait([
+      if (_idAsesor != null) PermohonanService.getMasterAsesor() else Future.value(<Map<String, dynamic>>[]),
+      if (_idPerangkat.isNotEmpty) PermohonanService.getMasterPerangkat() else Future.value(<Map<String, dynamic>>[]),
+    ]);
+
+    if (!mounted) return;
+
+    final asesorList = futures[0];
+    final perangkatList = futures[1];
+
+    setState(() {
+      if (_idAsesor != null && asesorList.isNotEmpty) {
+        final match = asesorList.where((e) {
+          final id = e['id'];
+          return (id is int ? id : int.tryParse(id.toString())) == _idAsesor;
+        }).toList();
+        if (match.isNotEmpty) {
+          _asesorShortName = match.first['short_name'] as String? ?? '';
+          _asesorEmail = match.first['email'] as String? ?? '';
+          _asesorUserCategory = match.first['user_category']?.toString() ?? '';
+        }
+      }
+      if (_idPerangkat.isNotEmpty && perangkatList.isNotEmpty) {
+        final idInt = int.tryParse(_idPerangkat);
+        final match = perangkatList.where((e) {
+          final id = e['id'];
+          return (id is int ? id : int.tryParse(id.toString())) == idInt;
+        }).toList();
+        if (match.isNotEmpty) {
+          _namaPerangkatAsesmen = match.first['nama_perangkat'] as String? ?? '';
+          _kodePerangkatAsesmen = match.first['no_perangkat'] as String? ?? '';
+        }
+      }
+    });
 
   @override
   void dispose() {
