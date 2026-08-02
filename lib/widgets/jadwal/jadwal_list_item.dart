@@ -47,23 +47,20 @@ class JadwalListItem extends StatelessWidget {
     }
   }
 
+  /// Rentang tanggal di card admin. Tab Draft tampil "tanggal asesmen -
+  /// tanggal dibuat (created_when)"; tab lain tetap "tanggal asesmen -
+  /// tanggal selesai".
+  String _formatAdminDateRange() {
+    if (showCreatedDate) {
+      return '${_formatIndonesianDate(item.tanggalMulai)} - ${_formatIndonesianDateOnly(item.createdWhen)}';
+    }
+    return '${_formatIndonesianDate(item.tanggalMulai)} - ${_formatIndonesianDate(item.tanggalSelesai)}';
+  }
+
   String _formatIndonesianDateOnly(String value) {
     final datePart = value.split(' ').first;
     if (datePart.isEmpty) return '';
     return _formatIndonesianDate(datePart);
-  }
-
-  /// Rentang tanggal di card admin. Di tab Draft admin tampil
-  /// "tanggal dibuat - tanggal asesmen"; di tab lain tetap
-  /// "tanggal asesmen - tanggal selesai".
-  String _formatAdminDateRange() {
-    if (showCreatedDate && item.createdWhen.isNotEmpty) {
-      final created = _formatIndonesianDateOnly(item.createdWhen);
-      if (created.isNotEmpty) {
-        return '$created - ${_formatIndonesianDate(item.tanggalMulai)}';
-      }
-    }
-    return '${_formatIndonesianDate(item.tanggalMulai)} - ${_formatIndonesianDate(item.tanggalSelesai)}';
   }
 
   Color _getStatusColor() {
