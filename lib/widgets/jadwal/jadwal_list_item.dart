@@ -53,15 +53,17 @@ class JadwalListItem extends StatelessWidget {
     return _formatIndonesianDate(datePart);
   }
 
-  /// Tanggal dibuat jadwal (created_when). Hanya dipakai di tab Draft admin.
-  /// Fallback ke tanggal selesai bila showCreatedDate=false atau backend
-  /// tidak mengirim created_when.
-  String _getAdminCreatedDate() {
+  /// Rentang tanggal di card admin. Di tab Draft admin tampil
+  /// "tanggal dibuat - tanggal asesmen"; di tab lain tetap
+  /// "tanggal asesmen - tanggal selesai".
+  String _formatAdminDateRange() {
     if (showCreatedDate && item.createdWhen.isNotEmpty) {
-      final formatted = _formatIndonesianDateOnly(item.createdWhen);
-      if (formatted.isNotEmpty) return formatted;
+      final created = _formatIndonesianDateOnly(item.createdWhen);
+      if (created.isNotEmpty) {
+        return '$created - ${_formatIndonesianDate(item.tanggalMulai)}';
+      }
     }
-    return _formatIndonesianDate(item.tanggalSelesai);
+    return '${_formatIndonesianDate(item.tanggalMulai)} - ${_formatIndonesianDate(item.tanggalSelesai)}';
   }
 
   Color _getStatusColor() {
@@ -857,7 +859,7 @@ class JadwalListItem extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${_formatIndonesianDate(item.tanggalMulai)} - ${_getAdminCreatedDate()}',
+                              _formatAdminDateRange(),
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey,
