@@ -509,6 +509,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                         'draft',
                         _scrollControllerDraft,
                         _hasMoreDraft,
+                        showCreatedDate: true,
                       ),
                     ),
 
@@ -726,8 +727,9 @@ class _JadwalScreenState extends State<JadwalScreen>
     List<JadwalItem> items,
     String status,
     ScrollController controller,
-    bool hasMore,
-  ) {
+    bool hasMore, {
+    bool showCreatedDate = false,
+  }) {
     if (items.isEmpty && !_isLoading) {
       return RefreshIndicator(
         onRefresh: _handleRefresh,
@@ -806,7 +808,7 @@ class _JadwalScreenState extends State<JadwalScreen>
             child: JadwalListItem(
               key: ValueKey(item.id),
               item: item,
-              showCreatedDate: status == 'draft',
+              showCreatedDate: showCreatedDate,
               onTap: () async {
                 final result = await Navigator.push(
                   context,
