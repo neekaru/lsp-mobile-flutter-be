@@ -28,6 +28,7 @@ class JadwalItem {
   final String tuk;
   final String tanggalMulai;
   final String tanggalSelesai;
+  final String createdWhen;
 
   /// Canonical internal status:
   /// draft(0) | completed(1) | canceled(2) | running(3) | pelaporan(4)
@@ -56,6 +57,7 @@ class JadwalItem {
     required this.tuk,
     required this.tanggalMulai,
     required this.tanggalSelesai,
+    this.createdWhen = '',
     required this.status,
     this.statusJadwal = '0',
     this.statusLabel = '',
@@ -130,6 +132,7 @@ class JadwalItem {
       tuk: json['tuk'] ?? '',
       tanggalMulai: json['tanggal'] ?? json['tanggal_mulai'] ?? '',
       tanggalSelesai: json['tanggal_akhir'] ?? json['tanggal_selesai'] ?? '',
+      createdWhen: (json['created_when'] ?? '').toString(),
       status: mapStatusCode(statusJadwal),
       statusJadwal: statusJadwal,
       statusLabel: statusLabel,

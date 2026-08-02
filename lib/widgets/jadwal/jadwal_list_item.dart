@@ -7,7 +7,16 @@ class JadwalListItem extends StatelessWidget {
   final JadwalItem item;
   final VoidCallback onTap;
 
-  const JadwalListItem({super.key, required this.item, required this.onTap});
+  /// Tampilkan tanggal dibuat (created_when) sebagai pengganti tanggal
+  /// selesai. Hanya dipakai di tab Draft admin.
+  final bool showCreatedDate;
+
+  const JadwalListItem({
+    super.key,
+    required this.item,
+    required this.onTap,
+    this.showCreatedDate = false,
+  });
 
   String _formatIndonesianDate(String yyyymmdd) {
     try {
@@ -38,6 +47,23 @@ class JadwalListItem extends StatelessWidget {
     }
   }
 
+  String _formatIndonesianDateOnly(String value) {
+    final datePart = value.split(' ').first;
+    if (datePart.isEmpty) return '';
+    return _formatIndonesianDate(datePart);
+  }
+
+  /// Tanggal dibuat jadwal (created_when). Hanya dipakai di tab Draft admin.
+  /// Fallback ke tanggal selesai bila showCreatedDate=false atau backend
+  /// tidak mengirim created_when.
+  String _getAdminCreatedDate() {
+    if (showCreatedDate && item.createdWhen.isNotEmpty) {
+      final formatted = _formatIndonesianDateOnly(item.createdWhen);
+      if (formatted.isNotEmpty) return formatted;
+    }
+    return _formatIndonesianDate(item.tanggalSelesai);
+  }
+
   Color _getStatusColor() {
     switch (item.status) {
       case 'draft':
@@ -60,7 +86,7 @@ class JadwalListItem extends StatelessWidget {
     switch (item.status) {
       case 'draft':
       case 'waiting':
-        return item.displayStatusLabel;
+        return ''; // Hidden - label sudah tampil di status badge (atas)
       case 'completed':
         return ''; // Hidden - no bottom status text for completed
       case 'canceled':
@@ -831,7 +857,7 @@ class JadwalListItem extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${_formatIndonesianDate(item.tanggalMulai)} - ${_formatIndonesianDate(item.tanggalSelesai)}',
+                              '${_formatIndonesianDate(item.tanggalMulai)} - ${_getAdminCreatedDate()}',
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey,

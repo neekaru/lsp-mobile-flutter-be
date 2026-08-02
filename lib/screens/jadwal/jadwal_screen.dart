@@ -806,6 +806,7 @@ class _JadwalScreenState extends State<JadwalScreen>
             child: JadwalListItem(
               key: ValueKey(item.id),
               item: item,
+              showCreatedDate: status == 'draft',
               onTap: () async {
                 final result = await Navigator.push(
                   context,
