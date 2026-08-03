@@ -94,6 +94,9 @@ class JadwalListItem extends StatelessWidget {
         }
         return '${item.sisaHari} Hari Lagi';
       case 'pelaporan':
+        if (item.daysLate != null && item.daysLate! > 0) {
+          return 'Lewat ${item.daysLate} Hari';
+        }
         return item.displayStatusLabel;
       default:
         return item.displayStatusLabel;
