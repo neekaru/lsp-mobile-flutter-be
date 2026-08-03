@@ -47,12 +47,12 @@ class JadwalListItem extends StatelessWidget {
     }
   }
 
-  /// Rentang tanggal di card admin. Tab Draft tampil "tanggal asesmen -
-  /// tanggal dibuat (created_when)"; tab lain tetap "tanggal asesmen -
+  /// Rentang tanggal di card admin. Tab Draft tampil "tanggal dibuat
+  /// (created_when) - tanggal asesmen"; tab lain tetap "tanggal asesmen -
   /// tanggal selesai".
   String _formatAdminDateRange() {
     if (showCreatedDate) {
-      return '${_formatIndonesianDate(item.tanggalMulai)} - ${_formatIndonesianDateOnly(item.createdWhen)}';
+      return '${_formatIndonesianDateOnly(item.createdWhen)} - ${_formatIndonesianDate(item.tanggalMulai)}';
     }
     return '${_formatIndonesianDate(item.tanggalMulai)} - ${_formatIndonesianDate(item.tanggalSelesai)}';
   }
