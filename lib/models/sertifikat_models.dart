@@ -17,6 +17,8 @@ class SertifikatItem {
   final String nomorSeri;
   final String tempatUji;
   final String namaAsesor;
+  final String namaJadwal;
+  final String tanggalAsesmen;
 
   const SertifikatItem({
     required this.id,
@@ -33,6 +35,8 @@ class SertifikatItem {
     this.nomorSeri = '',
     this.tempatUji = '',
     this.namaAsesor = '',
+    this.namaJadwal = '',
+    this.tanggalAsesmen = '',
   });
 
   factory SertifikatItem.fromJson(Map<String, dynamic> json) {
@@ -57,6 +61,8 @@ class SertifikatItem {
       nomorSeri: json['nomor_seri'] ?? '',
       tempatUji: json['tempat_uji'] ?? '',
       namaAsesor: asesorMap['nama'] ?? json['nama_asesor'] ?? '',
+      namaJadwal: json['nama_jadwal'] ?? '',
+      tanggalAsesmen: json['tanggal_asesmen'] ?? '',
     );
   }
 }

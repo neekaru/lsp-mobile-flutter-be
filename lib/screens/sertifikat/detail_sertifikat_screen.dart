@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/sertifikat_models.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../services/api_service.dart';
+import '../../helpers/date_format_helper.dart';
 
 class DetailSertifikatScreen extends StatefulWidget {
   final SertifikatItem item;
@@ -188,20 +189,24 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
                   _buildHeaderCard(),
                   const SizedBox(height: 20),
 
-                  _buildSectionHeader('Informasi Skema & Pemegang'),
+                  _buildSectionHeader('Profil Sertifikasi'),
                   const SizedBox(height: 8),
                   _buildInfoCard([
-                    _buildInfoRow('Nama Pemegang', widget.item.pemegang, Icons.person_outline_rounded),
+                    _buildInfoRow('Nama Pemegang Sertifikat', widget.item.pemegang, Icons.person_outline_rounded),
                     _buildInfoDivider(),
-                    _buildInfoRow('Skema Sertifikasi', widget.item.skema, Icons.assignment_outlined),
+                    _buildInfoRow('Nama Skema', widget.item.skema, Icons.assignment_outlined),
                     _buildInfoDivider(),
                     _buildInfoRow('Tempat Uji (TUK)', widget.item.tempatUji, Icons.business_outlined),
                     _buildInfoDivider(),
                     _buildInfoRow('Asesor', widget.item.namaAsesor, Icons.record_voice_over_outlined),
+                    _buildInfoDivider(),
+                    _buildInfoRow('Nama Jadwal Asesmen', widget.item.namaJadwal, Icons.event_note_outlined),
+                    _buildInfoDivider(),
+                    _buildInfoRow('Tanggal Asesmen', widget.item.tanggalAsesmen, Icons.event_available_outlined),
                   ]),
                   const SizedBox(height: 20),
 
-                  _buildSectionHeader('Nomor & Dokumen'),
+                  _buildSectionHeader('Kodifikasi'),
                   const SizedBox(height: 8),
                   _buildInfoCard([
                     _buildInfoRow('No. Registrasi', widget.item.nomorRegistrasi, Icons.badge_outlined),
@@ -209,17 +214,15 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
                     _buildInfoRow('No. Sertifikat', widget.item.nomorSertifikat, Icons.workspace_premium_outlined),
                     _buildInfoDivider(),
                     _buildInfoRow('No. Blanko', widget.item.nomorBlanko, Icons.description_outlined),
-                    _buildInfoDivider(),
-                    _buildInfoRow('No. Seri', widget.item.nomorSeri, Icons.tag_rounded),
                   ]),
                   const SizedBox(height: 20),
 
                   _buildSectionHeader('Masa Berlaku'),
                   const SizedBox(height: 8),
                   _buildInfoCard([
-                    _buildInfoRow('Diterbitkan Kapan', widget.item.tanggalTerbit, Icons.calendar_today_outlined),
+                    _buildInfoRow('Tanggal Terbit', widget.item.tanggalTerbit, Icons.calendar_today_outlined),
                     _buildInfoDivider(),
-                    _buildInfoRow('Berlaku Sampai', widget.item.tanggalBerlaku, Icons.event_busy_outlined),
+                    _buildInfoRow('Berlaku Sampai', _sisaHariText(widget.item.tanggalBerlaku), Icons.event_busy_outlined),
                   ]),
                   const SizedBox(height: 24),
 
@@ -304,7 +307,7 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            widget.item.skema,
+            widget.item.pemegang,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -314,7 +317,7 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'No. Regis: ${widget.item.nomorRegistrasi}',
+            'Nama Skema: ${widget.item.skema}',
             style: const TextStyle(
               fontSize: 13,
               color: Color(0xFF64748B),
@@ -392,6 +395,12 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
     return const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9));
   }
 
+  String _sisaHariText(String tanggal) {
+    final int days = DateFormatHelper.daysFromNow(tanggal);
+    if (days <= 0) return 'Tidak berlaku lagi';
+    return '$days hari';
+  }
+
   Widget _buildFootnoteCard() {
     return Container(
       width: double.infinity,
@@ -412,7 +421,7 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Keterangan: Sertifikat ini akan berakhir pada ${widget.item.tanggalBerlaku}',
+              'Keterangan: Sertifikat ini akan berakhir dalam ${_sisaHariText(widget.item.tanggalBerlaku)}',
               style: const TextStyle(
                 fontSize: 12,
                 color: Color(0xFF92400E),
