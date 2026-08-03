@@ -516,3 +516,53 @@ Modul ini digunakan oleh pengguna berhak akses `admin` untuk mengelola honorariu
 }
 ```
 
+---
+
+## 9. Perbaikan Rumus Perhitungan Status Hari Jadwal (`days_remaining` & `days_late`)
+
+Modul ini memerlukan penyesuaian pada backend (`internal/usecase/jadwal_usecase.go`) untuk menghitung selisih hari berdasarkan tanggal kalender (Midnight `00:00:00`), bukan presisi jam/menit/detik runtime saat ini (`time.Now()`).
+
+### 9.1. Latar Belakang Masalah
+Rumus backend sebelumnya:
+```go
+daysRemaining := int(time.Until(effectiveEndDate).Hours() / 24)
+daysPastEndDate := int(time.Since(effectiveEndDate).Hours() / 24)
+```
+- **Bug Presisi Jam**: `time.Until()` / `time.Since()` menghitung jam riil. Misal jadwal berakhir besok (4 Agt `00:00:00`), tetapi API dipanggil malam ini (3 Agt jam 23:00), `time.Until()` menghasilkan `1 jam`. `1 / 24` menghasilkan `0` (jadwal berakhir besok salah terhitung sebagai `0` / Hari Ini).
+- **Format Label UI yang Diharapkan**:
+  - `days_remaining == 0` -> **"Hari Ini"** (TIDAK BOLEH tampil "Sisa 0 hari")
+  - `days_remaining == 1` -> **"Besok"**
+  - `days_remaining > 1` -> **"{N} Hari Lagi"** (contoh: *30 Hari Lagi*)
+  - `days_late > 0` -> **"Lewat {N} Hari"** (contoh: *Lewat 30 Hari*)
+
+### 9.2. Perbaikan Rumus di Backend Go (`jadwal_usecase.go`)
+
+Harap perbarui fungsi `mapToJadwalItem` dan `mapToJadwalOutOfDateItem` agar menormalisasi jam kedua tanggal ke `00:00:00`:
+
+```go
+// 1. Normalisasi tanggal hari ini ke Midnight (00:00:00)
+now := time.Now()
+today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+// 2. Normalisasi effectiveEndDate ke Midnight (00:00:00)
+endDate := time.Date(effectiveEndDate.Year(), effectiveEndDate.Month(), effectiveEndDate.Day(), 0, 0, 0, 0, now.Location())
+
+// 3. Hitung selisih hari kalender
+diffDays := int(endDate.Sub(today).Hours() / 24)
+
+var daysRemaining int
+var daysLate *int
+
+if diffDays >= 0 {
+    // Belum lewat / Hari H
+    daysRemaining = diffDays // 0 = Hari Ini, 1 = Besok, >1 = X Hari Lagi
+    daysLate = nil
+} else {
+    // Sudah lewat
+    daysRemaining = 0
+    late := -diffDays // Misal diffDays = -1 -> late = 1 (Lewat 1 Hari)
+    daysLate = &late
+}
+```
+
+
