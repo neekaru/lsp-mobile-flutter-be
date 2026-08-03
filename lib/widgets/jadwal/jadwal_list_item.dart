@@ -83,11 +83,16 @@ class JadwalListItem extends StatelessWidget {
       case 'canceled':
         return item.displayStatusLabel;
       case 'running':
-        // Jika ada days_late (terlambat), tampilkan badge terlambat
         if (item.daysLate != null && item.daysLate! > 0) {
-          return 'Telat ${item.daysLate} hari';
+          return 'Lewat ${item.daysLate} Hari';
         }
-        return 'Sisa ${item.sisaHari} hari';
+        if (item.sisaHari == 0) {
+          return 'Hari Ini';
+        }
+        if (item.sisaHari == 1) {
+          return 'Besok';
+        }
+        return '${item.sisaHari} Hari Lagi';
       case 'pelaporan':
         return item.displayStatusLabel;
       default:
