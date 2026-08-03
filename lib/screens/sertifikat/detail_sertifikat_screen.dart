@@ -222,7 +222,7 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
                   _buildInfoCard([
                     _buildInfoRow('Tanggal Terbit', widget.item.tanggalTerbit, Icons.calendar_today_outlined),
                     _buildInfoDivider(),
-                    _buildInfoRow('Berlaku Sampai', _sisaHariText(widget.item.tanggalBerlaku), Icons.event_busy_outlined),
+                    _buildInfoRow('Berlaku Sampai', widget.item.tanggalBerlaku, Icons.event_busy_outlined),
                   ]),
                   const SizedBox(height: 24),
 
