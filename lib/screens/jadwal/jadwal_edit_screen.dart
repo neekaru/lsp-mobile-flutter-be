@@ -127,6 +127,16 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
     if (from == '1' && to == '3') return 'completed_to_running';
     if (from == '2' && to == '3') return 'canceled_to_running';
     if (from == '3' && to == '4') return 'running_to_pelaporan';
+    if (from == '4' && to == '2') return 'pelaporan_to_canceled';
+    if (from == '4' && to == '3') return 'pelaporan_to_running';
+    if (from == '4' && to == '1') return 'pelaporan_to_completed';
+    if (from == '4' && to == '0') return 'pelaporan_to_draft';
+    if (from == '3' && to == '0') return 'running_to_draft';
+    if (from == '1' && to == '0') return 'completed_to_draft';
+    if (from == '2' && to == '0') return 'canceled_to_draft';
+    if (from == '0' && to == '4') return 'draft_to_pelaporan';
+    if (from == '1' && to == '4') return 'completed_to_pelaporan';
+    if (from == '2' && to == '4') return 'canceled_to_pelaporan';
 
     // Rollbacks
     if (from == '2' && to == '1') return 'canceled_to_completed';
