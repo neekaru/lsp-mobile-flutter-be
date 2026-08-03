@@ -55,18 +55,25 @@ class ApiService {
       DashboardService.getAsesiSummary();
   static Future<AsesorDashboardData> getAsesorDashboard({String? tanggal}) =>
       DashboardService.getAsesorDashboard(tanggal: tanggal);
-  static Future<List<MonthlyAssessment>> getMonthlyAssessments() => DashboardService.getMonthlyAssessments();
-  static Future<List<MonthlyAssessment>> getAssessmentGraph({int months = 12}) =>
-      DashboardService.getAssessmentGraph(months: months);
-  static Future<StatistikOverview> getStatistikOverview() => DashboardService.getStatistikOverview();
-  static Future<List<SectorDistribution>> getSectorDistribution() => DashboardService.getSectorDistribution();
-  static Future<List<RegionalDistribution>> getPenyebaranRegional() => DashboardService.getPenyebaranRegional();
+  static Future<List<MonthlyAssessment>> getMonthlyAssessments() =>
+      DashboardService.getMonthlyAssessments();
+  static Future<List<MonthlyAssessment>> getAssessmentGraph({
+    int months = 12,
+  }) => DashboardService.getAssessmentGraph(months: months);
+  static Future<StatistikOverview> getStatistikOverview() =>
+      DashboardService.getStatistikOverview();
+  static Future<List<SectorDistribution>> getSectorDistribution() =>
+      DashboardService.getSectorDistribution();
+  static Future<List<RegionalDistribution>> getPenyebaranRegional() =>
+      DashboardService.getPenyebaranRegional();
   static Future<List<TUKKabupaten>> getTUKKabupaten(String provinceId) =>
       DashboardService.getTUKKabupaten(provinceId);
 
   // ── Jadwal ──────────────────────────────────────────────────────────────────
-  static Future<List<JadwalBaru>> getJadwalBaru() => JadwalService.getJadwalBaru();
-  static Future<List<JadwalOverdue>> getJadwalOutOfDate() => JadwalService.getJadwalOutOfDate();
+  static Future<List<JadwalBaru>> getJadwalBaru() =>
+      JadwalService.getJadwalBaru();
+  static Future<List<JadwalOverdue>> getJadwalOutOfDate() =>
+      JadwalService.getJadwalOutOfDate();
   static Future<JadwalStatistik> getJadwalStatistics() =>
       JadwalService.getJadwalStatistics();
   static Future<List<JadwalItem>> getJadwalList({
@@ -75,66 +82,83 @@ class ApiService {
     String? statusJadwal,
     int? idTuk,
     String? idLsp,
+    String? search,
     String? sortBy,
     String? sortOrder,
     String? customRoutePath,
-  }) =>
-      JadwalService.getJadwalList(
-        limit: limit,
-        offset: offset,
-        statusJadwal: statusJadwal,
-        idTuk: idTuk,
-        idLsp: idLsp,
-        sortBy: sortBy,
-        sortOrder: sortOrder,
-        customRoutePath: customRoutePath,
-      );
+  }) => JadwalService.getJadwalList(
+    limit: limit,
+    offset: offset,
+    statusJadwal: statusJadwal,
+    idTuk: idTuk,
+    idLsp: idLsp,
+    search: search,
+    sortBy: sortBy,
+    sortOrder: sortOrder,
+    customRoutePath: customRoutePath,
+  );
   static Future<Map<String, dynamic>> updateJadwalStatus({
     required int jadwalId,
     required String rule,
     String? catatan,
-  }) =>
-      JadwalService.updateJadwalStatus(jadwalId: jadwalId, rule: rule, catatan: catatan);
-  static Future<AsesiListResponse> getAsesiList(int jadwalId) => JadwalService.getAsesiList(jadwalId);
-  static Future<ParticipantDetailResponse?> getParticipantDetail(int jadwalId, int pesertaId) =>
-      JadwalService.getParticipantDetail(jadwalId, pesertaId);
-  static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(int jadwalId) =>
-      JadwalService.getJadwalAsesorDetail(jadwalId);
-  static Future<String?> getSuratTugas(int jadwalId) => JadwalService.getSuratTugas(jadwalId);
-  static Future<int> getNotificationCount() => JadwalService.getNotificationCount();
+  }) => JadwalService.updateJadwalStatus(
+    jadwalId: jadwalId,
+    rule: rule,
+    catatan: catatan,
+  );
+  static Future<AsesiListResponse> getAsesiList(int jadwalId) =>
+      JadwalService.getAsesiList(jadwalId);
+  static Future<ParticipantDetailResponse?> getParticipantDetail(
+    int jadwalId,
+    int pesertaId,
+  ) => JadwalService.getParticipantDetail(jadwalId, pesertaId);
+  static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(
+    int jadwalId,
+  ) => JadwalService.getJadwalAsesorDetail(jadwalId);
+  static Future<String?> getSuratTugas(int jadwalId) =>
+      JadwalService.getSuratTugas(jadwalId);
+  static Future<int> getNotificationCount() =>
+      JadwalService.getNotificationCount();
   static Future<WaitingScheduleResponse> getWaitingSchedules({
     int limit = 20,
     String? idLsp,
     int? idTuk,
     String sortBy = 'tanggal',
     String sortOrder = 'desc',
-  }) =>
-      JadwalService.getWaitingSchedules(
-        limit: limit,
-        idLsp: idLsp,
-        idTuk: idTuk,
-        sortBy: sortBy,
-        sortOrder: sortOrder,
-      );
+  }) => JadwalService.getWaitingSchedules(
+    limit: limit,
+    idLsp: idLsp,
+    idTuk: idTuk,
+    sortBy: sortBy,
+    sortOrder: sortOrder,
+  );
 
   // ── Asesor ──────────────────────────────────────────────────────────────────
   static Future<AsesorStats> getAsesorStats() => AsesorService.getAsesorStats();
-  static Future<List<SebaranSkemaAsesorItem>> getSebaranSkemaAsesor() => AsesorService.getSebaranSkemaAsesor();
-  static Future<List<TopProvinsi>> getTopProvinces() => AsesorService.getTopProvinces();
+  static Future<List<SebaranSkemaAsesorItem>> getSebaranSkemaAsesor() =>
+      AsesorService.getSebaranSkemaAsesor();
+  static Future<List<TopProvinsi>> getTopProvinces() =>
+      AsesorService.getTopProvinces();
   static Future<List<TopMitra>> getTopMitras() => AsesorService.getTopMitras();
   static Future<SkemaStats> getSkemaStats() => AsesorService.getSkemaStats();
-  static Future<List<AsesorHomebase>> getAsesorHomebase() => AsesorService.getAsesorHomebase();
+  static Future<List<AsesorHomebase>> getAsesorHomebase() =>
+      AsesorService.getAsesorHomebase();
 
   // ── Sertifikat ──────────────────────────────────────────────────────────────
-  static Future<SertifikatValidationResult> validateSertifikat(String noDokumen) =>
-      SertifikatService.validateSertifikat(noDokumen);
-  static Future<SertifikatSummary> getSertifikatSummary() => SertifikatService.getSertifikatSummary();
+  static Future<SertifikatValidationResult> validateSertifikat(
+    String noDokumen,
+  ) => SertifikatService.validateSertifikat(noDokumen);
+  static Future<SertifikatSummary> getSertifikatSummary() =>
+      SertifikatService.getSertifikatSummary();
   static Future<SertifikatApiResponse> getSertifikatPerSkema({
     int limit = 10,
     int? tahun,
     String sort = 'desc',
-  }) =>
-      SertifikatService.getSertifikatPerSkema(limit: limit, tahun: tahun, sort: sort);
+  }) => SertifikatService.getSertifikatPerSkema(
+    limit: limit,
+    tahun: tahun,
+    sort: sort,
+  );
   static Future<List<SertifikatItem>> searchSertifikat({
     required String query,
     String? skema,
@@ -142,31 +166,33 @@ class ApiService {
     String? status,
     int limit = 20,
     int offset = 0,
-  }) =>
-      SertifikatService.searchSertifikat(
-        query: query,
-        skema: skema,
-        kategori: kategori,
-        status: status,
-        limit: limit,
-        offset: offset,
-      );
+  }) => SertifikatService.searchSertifikat(
+    query: query,
+    skema: skema,
+    kategori: kategori,
+    status: status,
+    limit: limit,
+    offset: offset,
+  );
 
   // ── Master ──────────────────────────────────────────────────────────────────
-  static Future<List<MasterItem>> getProvinsiList() => MasterService.getProvinsiList();
+  static Future<List<MasterItem>> getProvinsiList() =>
+      MasterService.getProvinsiList();
   static Future<List<MasterItem>> getKabupatenList(String provinceId) =>
       MasterService.getKabupatenList(provinceId);
   static Future<List<MasterItem>> getKecamatanList(String kabupatenId) =>
       MasterService.getKecamatanList(kabupatenId);
-  static Future<List<MasterSkema>> getMasterSkemaList() => MasterService.getMasterSkemaList();
+  static Future<List<MasterSkema>> getMasterSkemaList() =>
+      MasterService.getMasterSkemaList();
   static Future<List<MasterJadwal>> getMasterJadwalList(int idSkema) =>
       MasterService.getMasterJadwalList(idSkema);
   static Future<List<MasterSumberAnggaran>> getMasterSumberAnggaranList() =>
       MasterService.getMasterSumberAnggaranList();
   static Future<List<MasterPemberiAnggaran>> getMasterPemberiAnggaranList({
     int? idSumberAnggaran,
-  }) =>
-      MasterService.getMasterPemberiAnggaranList(idSumberAnggaran: idSumberAnggaran);
+  }) => MasterService.getMasterPemberiAnggaranList(
+    idSumberAnggaran: idSumberAnggaran,
+  );
   static Future<List<MasterPendidikan>> getMasterPendidikanList() =>
       MasterService.getMasterPendidikanList();
   static Future<List<MasterPekerjaan>> getMasterPekerjaanList() =>
@@ -175,11 +201,14 @@ class ApiService {
       MasterService.getSkemaUnitPersyaratan(idSkema);
 
   // ── Sessions ─────────────────────────────────────────────────────────────────
-  static Future<List<LoginSession>> getActiveSessions() => AuthSessionService.getActiveSessions();
-  static Future<bool> deleteSession(int id) => AuthSessionService.deleteSession(id);
+  static Future<List<LoginSession>> getActiveSessions() =>
+      AuthSessionService.getActiveSessions();
+  static Future<bool> deleteSession(int id) =>
+      AuthSessionService.deleteSession(id);
 
   // ── Berita ───────────────────────────────────────────────────────────────────
   static Future<List<BeritaItem>> getBerita({int page = 1, int size = 10}) =>
       BeritaService.getBerita(page: page, size: size);
-  static Future<BeritaDetail?> getBeritaDetail(int id) => BeritaService.getBeritaDetail(id);
+  static Future<BeritaDetail?> getBeritaDetail(int id) =>
+      BeritaService.getBeritaDetail(id);
 }

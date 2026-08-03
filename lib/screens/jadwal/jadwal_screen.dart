@@ -55,6 +55,7 @@ class _JadwalScreenState extends State<JadwalScreen>
   int get _draftBadgeCount => _statistik?.draft ?? draftList.length;
   int get _runningBadgeCount =>
       _statistik?.sedangBerjalan ?? runningList.length;
+  int get _pelaporanBadgeCount => _statistik?.pelaporan ?? pelaporanList.length;
   int get _selesaiBadgeCount => _statistik?.selesai ?? selesaiList.length;
 
   // Scroll controllers for pagination
@@ -62,6 +63,10 @@ class _JadwalScreenState extends State<JadwalScreen>
   final ScrollController _scrollControllerRunning = ScrollController();
   final ScrollController _scrollControllerPelaporan = ScrollController();
   final ScrollController _scrollControllerSelesai = ScrollController();
+
+  // Search state
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -89,7 +94,15 @@ class _JadwalScreenState extends State<JadwalScreen>
     _scrollControllerRunning.dispose();
     _scrollControllerPelaporan.dispose();
     _scrollControllerSelesai.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    final query = value.trim();
+    if (query == _searchQuery) return;
+    _searchQuery = query;
+    _loadJadwalData();
   }
 
   // Scroll listeners for pagination
@@ -168,6 +181,7 @@ class _JadwalScreenState extends State<JadwalScreen>
           ApiService.getJadwalList(
             limit: _pageSize,
             statusJadwal: '0', // Draft only
+            search: _searchQuery,
             sortBy: 'tanggal',
             sortOrder: 'desc',
             customRoutePath: ApiRoutes.jadwalDraft,
@@ -176,6 +190,7 @@ class _JadwalScreenState extends State<JadwalScreen>
           limit: _pageSize,
           // Admin/default: status 3 Running via /api/jadwal/active
           statusJadwal: status1,
+          search: _searchQuery,
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: path1,
@@ -183,6 +198,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: status2,
+          search: _searchQuery,
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: path2,
@@ -190,6 +206,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: status3,
+          search: _searchQuery,
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: path3,
@@ -265,6 +282,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         limit: _pageSize,
         offset: draftList.length,
         statusJadwal: '0',
+        search: _searchQuery,
         sortBy: 'tanggal',
         sortOrder: 'desc',
         customRoutePath: ApiRoutes.jadwalDraft,
@@ -314,6 +332,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         limit: _pageSize,
         offset: runningList.length,
         statusJadwal: status,
+        search: _searchQuery,
         sortBy: sortBy,
         sortOrder: 'desc',
         customRoutePath: path,
@@ -361,6 +380,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         limit: _pageSize,
         offset: pelaporanList.length,
         statusJadwal: status,
+        search: _searchQuery,
         sortBy: 'tanggal',
         sortOrder: 'desc',
         customRoutePath: path,
@@ -392,7 +412,9 @@ class _JadwalScreenState extends State<JadwalScreen>
       final bool isAsesi = currentUser.role == 'asesi';
       final bool isAsesor = currentUser.role == 'asesor';
 
-      String status = isAsesor ? '1,4' : '1'; // Selesai; asesor = Selesai & Pelaporan
+      String status = isAsesor
+          ? '1,4'
+          : '1'; // Selesai; asesor = Selesai & Pelaporan
       String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalCompleted;
 
       if (isAsesor) {
@@ -403,6 +425,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         limit: _pageSize,
         offset: selesaiList.length,
         statusJadwal: status,
+        search: _searchQuery,
         sortBy: 'tanggal',
         sortOrder: 'desc',
         customRoutePath: path,
@@ -437,7 +460,6 @@ class _JadwalScreenState extends State<JadwalScreen>
     return sorted;
   }
 
-
   Future<void> _handleRefresh() async {
     await _loadJadwalData();
 
@@ -467,6 +489,38 @@ class _JadwalScreenState extends State<JadwalScreen>
           // Header dengan style dari statistik_screen
           _buildAppBar(),
 
+          // Search field
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _onSearchChanged,
+              decoration: InputDecoration(
+                hintText: 'Cari nama jadwal, tanggal, atau TUK',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          _onSearchChanged('');
+                        },
+                      ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 8,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+
           // Loading indicator
           if (_isLoading)
             const Expanded(child: Center(child: CircularProgressIndicator()))
@@ -478,7 +532,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                 controller: _tabController,
                 draftCount: _draftBadgeCount,
                 runningCount: _runningBadgeCount,
-                pelaporanCount: pelaporanList.length,
+                pelaporanCount: _pelaporanBadgeCount,
                 selesaiCount: _selesaiBadgeCount,
               ),
             ),
@@ -544,7 +598,6 @@ class _JadwalScreenState extends State<JadwalScreen>
       ),
     );
   }
-
 
   Widget _buildJadwalList(
     List<JadwalItem> items,

@@ -155,7 +155,11 @@ class JadwalItem {
           ? jumlahBelumKompeten
           : int.tryParse('$jumlahBelumKompeten') ?? 0,
       needsAcc: needsAcc,
-      kuota: json['kuota'] == null ? null : (json['kuota'] is int ? json['kuota'] : int.tryParse('${json['kuota']}')),
+      kuota: json['kuota'] == null
+          ? null
+          : (json['kuota'] is int
+                ? json['kuota']
+                : int.tryParse('${json['kuota']}')),
     );
   }
 }
@@ -166,6 +170,7 @@ class JadwalStatistik {
   final int akanBerakhir;
   final int sedangBerjalan;
   final int selesai;
+  final int pelaporan;
   final int terlambat;
   final String trendPercentage;
 
@@ -175,6 +180,7 @@ class JadwalStatistik {
     required this.akanBerakhir,
     required this.sedangBerjalan,
     required this.selesai,
+    this.pelaporan = 0,
     this.terlambat = 0,
     this.trendPercentage = '+0%',
   });
@@ -199,6 +205,7 @@ class JadwalStatistik {
       akanBerakhir: readInt(data['akan_berakhir']),
       sedangBerjalan: readInt(data['sedang_berjalan']),
       selesai: readInt(data['selesai']),
+      pelaporan: readInt(data['pelaporan']),
       terlambat: readInt(data['terlambat']),
       trendPercentage: _normalizeTrend(
         meta['trend_percentage']?.toString() ??
@@ -224,6 +231,7 @@ class JadwalStatistik {
       akanBerakhir: 0,
       sedangBerjalan: 0,
       selesai: 0,
+      pelaporan: 0,
       terlambat: 0,
       trendPercentage: '+0%',
     );
@@ -372,7 +380,8 @@ class AsesiItem {
   });
 
   factory AsesiItem.fromJson(Map<String, dynamic> json) {
-    final rawKota = json['kota'] ??
+    final rawKota =
+        json['kota'] ??
         json['kabupaten_kota'] ??
         json['tempat_lahir'] ??
         json['alamat'];

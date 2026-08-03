@@ -54,7 +54,8 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
     final role = AuthRepository.currentUserInstance?.role;
     final bool isAsesi = role == 'asesi';
     final bool isAsesor = role == 'asesor';
-    final bool isAdmin = role == 'admin' || (role != 'asesi' && role != 'asesor');
+    final bool isAdmin =
+        role == 'admin' || (role != 'asesi' && role != 'asesor');
 
     if (isAsesor) {
       return Row(
@@ -72,7 +73,9 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
           Expanded(
             child: TabItem(
               label: 'Dibatalkan',
-              badgeCount: widget.pelaporanCount > 0 ? widget.pelaporanCount : null,
+              badgeCount: widget.pelaporanCount > 0
+                  ? widget.pelaporanCount
+                  : null,
               isSelected: widget.controller.index == 1,
               onTap: () => widget.controller.animateTo(1),
               usePillStyle: true,
@@ -108,7 +111,9 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
           Expanded(
             child: TabItem(
               label: 'Berjalan',
-              badgeCount: widget.pelaporanCount > 0 ? widget.pelaporanCount : null,
+              badgeCount: widget.pelaporanCount > 0
+                  ? widget.pelaporanCount
+                  : null,
               isSelected: widget.controller.index == 1,
               onTap: () => widget.controller.animateTo(1),
               usePillStyle: true,
@@ -150,7 +155,9 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
             width: 100,
             child: TabItem(
               label: isAsesi ? 'Berjalan' : 'Pelaporan',
-              badgeCount: isAsesi && widget.pelaporanCount > 0 ? widget.pelaporanCount : null,
+              badgeCount: widget.pelaporanCount > 0
+                  ? widget.pelaporanCount
+                  : null,
               isSelected: widget.controller.index == (isAdmin ? 2 : 1),
               onTap: () => widget.controller.animateTo(isAdmin ? 2 : 1),
               usePillStyle: isAsesi,
@@ -162,7 +169,9 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
               width: 100,
               child: TabItem(
                 label: 'Selesai',
-                badgeCount: widget.selesaiCount > 0 ? widget.selesaiCount : null,
+                badgeCount: widget.selesaiCount > 0
+                    ? widget.selesaiCount
+                    : null,
                 isSelected: widget.controller.index == (isAdmin ? 3 : 2),
                 onTap: () => widget.controller.animateTo(isAdmin ? 3 : 2),
                 usePillStyle: isAsesi,
@@ -231,7 +240,7 @@ class TabItem extends StatelessWidget {
                     color: Color(0x0A000000),
                     blurRadius: 6,
                     offset: Offset(0, 2),
-                  )
+                  ),
                 ]
               : null,
         ),
@@ -259,10 +268,7 @@ class TabItem extends StatelessWidget {
                   color: badgeBgColor,
                   shape: BoxShape.circle,
                 ),
-                constraints: const BoxConstraints(
-                  minWidth: 18,
-                  minHeight: 18,
-                ),
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                 child: Center(
                   child: Text(
                     '$badgeCount',

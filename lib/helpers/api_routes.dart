@@ -56,7 +56,8 @@ class ApiRoutes {
   static const String jadwalCompleted = '/api/jadwal/completed';
   static const String jadwalStatistics = '/api/jadwal/statistics';
   static const String jadwalUpdateStatus = '/api/jadwal/update-status';
-  static const String jadwalUpdateStatusApply = '/api/jadwal/update-status/apply';
+  static const String jadwalUpdateStatusApply =
+      '/api/jadwal/update-status/apply';
   static const String jadwalNotificationsCount =
       '/api/jadwal/notifications/count';
   static const String jadwalWaiting = '/api/jadwal/waiting';
@@ -118,6 +119,7 @@ class ApiRoutes {
   static const String authCurrent = '/api/auth/current';
   static const String authRefresh = '/api/auth/refresh';
   static const String authLogout = '/api/auth/logout';
+
   /// Public: create asesi (NIM/NIK + default password 123456) if missing, return tokens
   static const String authEnsureAsesi = '/api/auth/ensure-asesi';
 
@@ -292,6 +294,7 @@ class ApiRoutes {
     String? statusJadwal,
     int? idTuk,
     String? idLsp,
+    String? search,
     String? sortBy,
     String? sortOrder,
   }) {
@@ -301,6 +304,9 @@ class ApiRoutes {
     if (statusJadwal != null) params.add('status_jadwal=$statusJadwal');
     if (idTuk != null) params.add('id_tuk=$idTuk');
     if (idLsp != null) params.add('id_lsp=$idLsp');
+    if (search != null && search.trim().isNotEmpty) {
+      params.add('search=${Uri.encodeQueryComponent(search.trim())}');
+    }
     if (sortBy != null) params.add('sort_by=$sortBy');
     if (sortOrder != null) params.add('sort_order=$sortOrder');
 
