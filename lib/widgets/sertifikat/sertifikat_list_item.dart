@@ -79,7 +79,7 @@ class SertifikatListItem extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'SKEMA : ${item.nomorSertifikat}',
+                        'SKEMA : ${item.skema.isNotEmpty ? item.skema : item.nomorSertifikat}',
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
