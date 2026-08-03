@@ -108,15 +108,10 @@ class JadwalListItem extends StatelessWidget {
   }
 
   bool _shouldShowWarning() {
-    // Tampilkan warning jika:
-    // 1. Status running dan sisa hari <= 3
-    // 2. Status running dan ada days_late (terlambat)
+    // Tampilkan warning jika status running dan ada days_late (terlambat)
     if (item.status == 'running') {
       if (item.daysLate != null && item.daysLate! > 0) {
         return true; // Terlambat
-      }
-      if (item.sisaHari <= 3) {
-        return true; // Segera berakhir
       }
     }
     return false;
@@ -945,11 +940,9 @@ class JadwalListItem extends StatelessWidget {
                                 color: const Color(0xFFFF6B6B),
                               ),
                               const SizedBox(width: 4),
-                              Text(
-                                item.daysLate != null && item.daysLate! > 0
-                                    ? 'Terlambat'
-                                    : 'Segera Berakhir',
-                                style: const TextStyle(
+                              const Text(
+                                'Terlambat',
+                                style: TextStyle(
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFFFF6B6B),

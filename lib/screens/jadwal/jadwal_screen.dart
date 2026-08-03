@@ -437,16 +437,6 @@ class _JadwalScreenState extends State<JadwalScreen>
     return sorted;
   }
 
-  bool _isValidTrend(String value) {
-    final v = value.trim();
-    if (v.isEmpty) return false;
-    if (v == '+0%' || v == '0%' || v == '-0%') return false;
-    final upper = v.toUpperCase();
-    if (upper == 'N/A' || upper == 'NA' || upper == '-' || upper == 'NULL') {
-      return false;
-    }
-    return true;
-  }
 
   Future<void> _handleRefresh() async {
     await _loadJadwalData();
@@ -516,7 +506,12 @@ class _JadwalScreenState extends State<JadwalScreen>
                   // Tab 1: Sedang Berjalan (Mendatang for Asesi)
                   _JadwalTabContent(
                     key: const PageStorageKey('sedang_berjalan_tab'),
-                    child: _buildSedangBerjalanTab(),
+                    child: _buildJadwalList(
+                      runningList,
+                      'running',
+                      _scrollControllerRunning,
+                      _hasMoreRunning,
+                    ),
                   ),
 
                   // Tab 2: Berjalan (Pelaporan for Admin/Asesor)
@@ -550,178 +545,6 @@ class _JadwalScreenState extends State<JadwalScreen>
     );
   }
 
-  Widget _buildSedangBerjalanTab() {
-    final bool isAsesi = currentUser.role == 'asesi';
-    final bool isAsesor = currentUser.role == 'asesor';
-    final bool hideHeader = isAsesi || isAsesor;
-
-    return RefreshIndicator(
-      onRefresh: _handleRefresh,
-      child: ListView.builder(
-        controller: _scrollControllerRunning,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: hideHeader
-            ? runningList.length +
-                  1 // +1 for loading indicator at the end
-            : runningList.length + 2, // +2 for header and loading indicator
-        itemBuilder: (context, index) {
-          if (!hideHeader && index == 0) {
-            // Header without chart (only statistics text)
-            return Column(
-              children: [
-                const SizedBox(height: 16),
-                // Statistik Card tanpa chart
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x0A000000),
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE5F1FC),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.calendar_month_rounded,
-                          color: Color(0xFF2C6C9C),
-                          size: 26,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Total Jadwal',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  totalAsesmen.toString(),
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                    height: 1,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                if (_isValidTrend(trendPercentage))
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFE8F5E9),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      trendPercentage,
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF4CAF50),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${runningList.length} sedang berjalan, ${pelaporanList.length} pelaporan',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-            );
-          }
-
-          final int itemIndex = hideHeader ? index : index - 1;
-
-          // Loading indicator at the end
-          if (index ==
-              (hideHeader ? runningList.length : runningList.length + 1)) {
-            if (_isLoadingMore) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            } else if (!_hasMoreRunning) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: Text(
-                    'Tidak ada data lagi',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                ),
-              );
-            } else {
-              return const SizedBox(height: 80);
-            }
-          }
-
-          // List items
-          final item = runningList[itemIndex];
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: itemIndex < runningList.length - 1 ? 8 : 0,
-            ),
-            child: JadwalListItem(
-              key: ValueKey(item.id),
-              item: item,
-              onTap: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        JadwalDetailScreen(jadwal: item, userRole: currentUser),
-                  ),
-                );
-
-                // Refresh data if status was updated
-                if (result == true) {
-                  _loadJadwalData();
-                }
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _buildJadwalList(
     List<JadwalItem> items,
