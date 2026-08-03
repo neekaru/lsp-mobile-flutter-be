@@ -47,16 +47,8 @@ class JadwalListItem extends StatelessWidget {
     }
   }
 
-  /// Rentang tanggal di card admin. Tab Draft tampil "tanggal dibuat
-  /// (created_when) - tanggal asesmen"; tab lain tetap "tanggal asesmen -
-  /// tanggal selesai".
-  String _formatAdminDateRange() {
-    if (showCreatedDate) {
-      return '${_formatIndonesianDateOnly(item.createdWhen)} - ${_formatIndonesianDate(item.tanggalMulai)}';
-    }
-    return '${_formatIndonesianDate(item.tanggalMulai)} - ${_formatIndonesianDate(item.tanggalSelesai)}';
-  }
-
+  /// Format tanggal dibuat (created_when) untuk baris "Tanggal dibuat:".
+  /// Ambil bagian tanggal saja (buang jam bila ada).
   String _formatIndonesianDateOnly(String value) {
     final datePart = value.split(' ').first;
     if (datePart.isEmpty) return '';
@@ -856,7 +848,7 @@ class JadwalListItem extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              _formatAdminDateRange(),
+                              '${_formatIndonesianDate(item.tanggalMulai)} - ${_formatIndonesianDate(item.tanggalSelesai)}',
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey,
@@ -864,6 +856,27 @@ class JadwalListItem extends StatelessWidget {
                             ),
                           ],
                         ),
+                        // Tanggal dibuat (created_when) - hanya tampil di tab Draft admin
+                        if (showCreatedDate) ...[
+                          const SizedBox(height: 3),
+                          Row(
+                            children: [
+                              Icon(
+                                LucideIcons.calendar,
+                                size: 12,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Tanggal dibuat: ${_formatIndonesianDateOnly(item.createdWhen)}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 6),
                         Row(
                           children: [
