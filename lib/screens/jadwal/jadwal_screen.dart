@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
@@ -64,20 +65,44 @@ class _JadwalScreenState extends State<JadwalScreen>
   final ScrollController _scrollControllerPelaporan = ScrollController();
   final ScrollController _scrollControllerSelesai = ScrollController();
 
-  // Search state
+  // Search state — hanya tab Selesai (request Roy: biar gak berat)
+  // Kriteria: tanggal asesmen + TUK
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _searchDebounce;
+  bool _isSearchingSelesai = false;
+
+  bool get _isAsesiRole => currentUser.role == 'asesi';
+  bool get _isAsesorRole => currentUser.role == 'asesor';
+  bool get _isAdminRole =>
+      currentUser.role == 'admin' || (!_isAsesiRole && !_isAsesorRole);
+
+  /// Index tab Selesai per role. Asesi tidak punya tab Selesai.
+  int get _selesaiTabIndex {
+    if (_isAsesiRole) return -1;
+    if (_isAsesorRole) return 2; // Menunggu, Dibatalkan, Selesai
+    return 3; // Admin: Draft, Running, Pelaporan, Selesai
+  }
+
+  bool get _isOnSelesaiTab =>
+      _selesaiTabIndex >= 0 && _tabController.index == _selesaiTabIndex;
+
+  /// Query search hanya dipakai untuk fetch tab Selesai.
+  String? get _selesaiSearchParam {
+    final q = _searchQuery.trim();
+    return q.isEmpty ? null : q;
+  }
 
   @override
   void initState() {
     super.initState();
-    final bool isAsesi = currentUser.role == 'asesi';
-    final bool isAsesor = currentUser.role == 'asesor';
-    final bool isAdmin = currentUser.role == 'admin' || (!isAsesi && !isAsesor);
+    final bool isAsesi = _isAsesiRole;
+    final bool isAdmin = _isAdminRole;
     _tabController = TabController(
       length: isAsesi ? 2 : (isAdmin ? 4 : 3),
       vsync: this,
     );
+    _tabController.addListener(_onTabChanged);
     _loadJadwalData();
 
     // Setup scroll listeners for pagination
@@ -87,8 +112,15 @@ class _JadwalScreenState extends State<JadwalScreen>
     _scrollControllerSelesai.addListener(_onScrollSelesai);
   }
 
+  void _onTabChanged() {
+    if (!mounted || _tabController.indexIsChanging) return;
+    setState(() {}); // show/hide search bar when switching tabs
+  }
+
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _scrollControllerDraft.dispose();
     _scrollControllerRunning.dispose();
@@ -99,10 +131,77 @@ class _JadwalScreenState extends State<JadwalScreen>
   }
 
   void _onSearchChanged(String value) {
-    final query = value.trim();
-    if (query == _searchQuery) return;
-    _searchQuery = query;
-    _loadJadwalData();
+    // Debounce biar gak nembak API tiap ketik
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      final query = value.trim();
+      if (query == _searchQuery) return;
+      setState(() {
+        _searchQuery = query;
+      });
+      // Hanya reload tab Selesai — tab lain tidak ikut di-query ulang
+      _reloadSelesaiOnly();
+    });
+  }
+
+  /// Filter client-side: hanya tanggal asesmen + TUK (bukan nama jadwal).
+  List<JadwalItem> _filterSelesaiByTanggalDanTuk(List<JadwalItem> items) {
+    final q = _searchQuery.trim().toLowerCase();
+    if (q.isEmpty) return items;
+    return items.where((item) {
+      final tanggalMulai = item.tanggalMulai.toLowerCase();
+      final tanggalSelesai = item.tanggalSelesai.toLowerCase();
+      final tuk = item.tuk.toLowerCase();
+      return tanggalMulai.contains(q) ||
+          tanggalSelesai.contains(q) ||
+          tuk.contains(q);
+    }).toList();
+  }
+
+  Future<void> _reloadSelesaiOnly() async {
+    if (_selesaiTabIndex < 0) return;
+    if (!mounted) return;
+
+    setState(() {
+      _isSearchingSelesai = true;
+      _hasMoreSelesai = true;
+    });
+
+    try {
+      final bool isAsesi = _isAsesiRole;
+      final bool isAsesor = _isAsesorRole;
+
+      String status3 = '1';
+      String path3 = isAsesi
+          ? ApiRoutes.asesiJadwal
+          : ApiRoutes.jadwalCompleted;
+      if (isAsesor) {
+        status3 = '1,4'; // Selesai & Pelaporan
+        path3 = ApiRoutes.asesorJadwal;
+      }
+
+      final raw = await ApiService.getJadwalList(
+        limit: _pageSize,
+        statusJadwal: status3,
+        search: _selesaiSearchParam,
+        sortBy: 'tanggal',
+        sortOrder: 'desc',
+        customRoutePath: path3,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        selesaiList = _sortJadwalList(_filterSelesaiByTanggalDanTuk(raw));
+        _hasMoreSelesai = raw.length >= _pageSize;
+        _isSearchingSelesai = false;
+      });
+    } catch (e) {
+      debugPrint('🔴 Error reloading selesai search: $e');
+      if (!mounted) return;
+      setState(() {
+        _isSearchingSelesai = false;
+      });
+    }
   }
 
   // Scroll listeners for pagination
@@ -181,7 +280,7 @@ class _JadwalScreenState extends State<JadwalScreen>
           ApiService.getJadwalList(
             limit: _pageSize,
             statusJadwal: '0', // Draft only
-            search: _searchQuery,
+            // search hanya di tab Selesai
             sortBy: 'tanggal',
             sortOrder: 'desc',
             customRoutePath: ApiRoutes.jadwalDraft,
@@ -190,7 +289,7 @@ class _JadwalScreenState extends State<JadwalScreen>
           limit: _pageSize,
           // Admin/default: status 3 Running via /api/jadwal/active
           statusJadwal: status1,
-          search: _searchQuery,
+          // search hanya di tab Selesai
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: path1,
@@ -198,7 +297,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: status2,
-          search: _searchQuery,
+          // search hanya di tab Selesai
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: path2,
@@ -206,7 +305,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: status3,
-          search: _searchQuery,
+          search: _selesaiSearchParam, // tanggal asesmen + TUK
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: path3,
@@ -247,8 +346,11 @@ class _JadwalScreenState extends State<JadwalScreen>
         _hasMorePelaporan = lists[resultIndex].length >= _pageSize;
         resultIndex++;
 
-        selesaiList = _sortJadwalList(lists[resultIndex]);
-        _hasMoreSelesai = lists[resultIndex].length >= _pageSize;
+        final rawSelesai = lists[resultIndex];
+        selesaiList = _sortJadwalList(
+          _filterSelesaiByTanggalDanTuk(rawSelesai),
+        );
+        _hasMoreSelesai = rawSelesai.length >= _pageSize;
 
         _statistik = stats;
         totalAsesmen =
@@ -282,7 +384,6 @@ class _JadwalScreenState extends State<JadwalScreen>
         limit: _pageSize,
         offset: draftList.length,
         statusJadwal: '0',
-        search: _searchQuery,
         sortBy: 'tanggal',
         sortOrder: 'desc',
         customRoutePath: ApiRoutes.jadwalDraft,
@@ -332,7 +433,6 @@ class _JadwalScreenState extends State<JadwalScreen>
         limit: _pageSize,
         offset: runningList.length,
         statusJadwal: status,
-        search: _searchQuery,
         sortBy: sortBy,
         sortOrder: 'desc',
         customRoutePath: path,
@@ -380,7 +480,6 @@ class _JadwalScreenState extends State<JadwalScreen>
         limit: _pageSize,
         offset: pelaporanList.length,
         statusJadwal: status,
-        search: _searchQuery,
         sortBy: 'tanggal',
         sortOrder: 'desc',
         customRoutePath: path,
@@ -425,7 +524,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         limit: _pageSize,
         offset: selesaiList.length,
         statusJadwal: status,
-        search: _searchQuery,
+        search: _selesaiSearchParam, // tanggal asesmen + TUK
         sortBy: 'tanggal',
         sortOrder: 'desc',
         customRoutePath: path,
@@ -435,7 +534,9 @@ class _JadwalScreenState extends State<JadwalScreen>
         if (newData.length < _pageSize) {
           _hasMoreSelesai = false;
         }
-        selesaiList.addAll(_sortJadwalList(newData));
+        selesaiList.addAll(
+          _sortJadwalList(_filterSelesaiByTanggalDanTuk(newData)),
+        );
         _isLoadingMore = false;
       });
     } catch (e) {
@@ -489,37 +590,52 @@ class _JadwalScreenState extends State<JadwalScreen>
           // Header dengan style dari statistik_screen
           _buildAppBar(),
 
-          // Search field
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: 'Cari nama jadwal, tanggal, atau TUK',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          _onSearchChanged('');
-                        },
-                      ),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 8,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+          // Search field — hanya tab Selesai (tanggal asesmen + TUK)
+          if (_isOnSelesaiTab)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: TextField(
+                controller: _searchController,
+                onChanged: _onSearchChanged,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: 'Cari tanggal asesmen atau TUK',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _isSearchingSelesai
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : (_searchQuery.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchDebounce?.cancel();
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                });
+                                _reloadSelesaiOnly();
+                              },
+                            )),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 8,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
             ),
-          ),
 
           // Loading indicator
           if (_isLoading)
