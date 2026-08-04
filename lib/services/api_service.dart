@@ -160,10 +160,12 @@ class ApiService {
     sort: sort,
   );
   static Future<List<SertifikatItem>> searchSertifikat({
-    required String query,
+    String? query,
     String? skema,
     String? kategori,
     String? status,
+    String? tanggalAsesmen,
+    String? tuk,
     int limit = 20,
     int offset = 0,
   }) => SertifikatService.searchSertifikat(
@@ -171,6 +173,8 @@ class ApiService {
     skema: skema,
     kategori: kategori,
     status: status,
+    tanggalAsesmen: tanggalAsesmen,
+    tuk: tuk,
     limit: limit,
     offset: offset,
   );

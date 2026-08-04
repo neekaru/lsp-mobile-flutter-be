@@ -97,18 +97,22 @@ class SertifikatService {
     }
   }
 
-  /// Search Sertifikat by query
+  /// Search Sertifikat with query, date, and TUK filters
   static Future<List<SertifikatItem>> searchSertifikat({
-    required String query,
+    String? query,
     String? skema,
     String? kategori,
     String? status,
+    String? tanggalAsesmen,
+    String? tuk,
     int limit = 20,
     int offset = 0,
   }) async {
     try {
       final params = <String>[];
-      params.add('q=$query');
+      if (query != null && query.isNotEmpty) {
+        params.add('q=$query');
+      }
       if (skema != null && skema.isNotEmpty) {
         params.add('skema=$skema');
       }
@@ -117,6 +121,12 @@ class SertifikatService {
       }
       if (status != null && status.isNotEmpty) {
         params.add('status=$status');
+      }
+      if (tanggalAsesmen != null && tanggalAsesmen.isNotEmpty) {
+        params.add('tanggal_asesmen=$tanggalAsesmen');
+      }
+      if (tuk != null && tuk.isNotEmpty) {
+        params.add('tuk=$tuk');
       }
       params.add('limit=$limit');
       params.add('offset=$offset');

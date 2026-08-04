@@ -47,20 +47,24 @@ class SertifikatItem {
 
     return SertifikatItem(
       id: json['id'] ?? 0,
-      skema: skemaMap['nama_skema'] ?? json['skema'] ?? '',
+      skema: json['skema'] is String
+          ? json['skema']
+          : (skemaMap['nama_skema'] ?? ''),
       pemegang: json['pemegang'] ?? '',
       nomorSertifikat: json['no_sertifikat'] ?? json['nomor_sertifikat'] ?? '',
       tanggalTerbit: json['tanggal_terbit'] ?? '',
       tanggalBerlaku:
           json['tanggal_kadaluarsa'] ?? json['tanggal_berlaku'] ?? '',
       status: json['status_sertifikat'] ?? json['status'] ?? 'aktif',
-      kategori: skemaMap['kategori'] ?? json['kategori'] ?? '',
+      kategori: json['kategori'] is String
+          ? json['kategori']
+          : (skemaMap['kategori'] ?? ''),
       institusi: json['institusi'],
       nomorRegistrasi: json['nomor_registrasi'] ?? '',
       nomorBlanko: json['nomor_blanko'] ?? '',
       nomorSeri: json['nomor_seri'] ?? '',
-      tempatUji: json['tempat_uji'] ?? '',
-      namaAsesor: asesorMap['nama'] ?? json['nama_asesor'] ?? '',
+      tempatUji: json['tempat_uji'] ?? json['tuk'] ?? '',
+      namaAsesor: json['nama_asesor'] ?? asesorMap['nama'] ?? '',
       namaJadwal: json['nama_jadwal'] ?? '',
       tanggalAsesmen: json['tanggal_asesmen'] ?? '',
     );

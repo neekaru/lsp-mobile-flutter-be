@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/api_service.dart';
@@ -7,6 +8,7 @@ import '../../widgets/jadwal/jadwal_list_item.dart';
 import '../../widgets/jadwal/custom_tab_bar.dart';
 import '../../services/auth_repository.dart';
 import '../../helpers/api_routes.dart';
+import '../../helpers/date_format_helper.dart';
 import 'jadwal_detail_screen.dart';
 
 class JadwalScreen extends StatefulWidget {
@@ -71,6 +73,7 @@ class _JadwalScreenState extends State<JadwalScreen>
   String _searchQuery = '';
   Timer? _searchDebounce;
   bool _isSearchingSelesai = false;
+  DateTime? _selectedDate;
 
   bool get _isAsesiRole => currentUser.role == 'asesi';
   bool get _isAsesorRole => currentUser.role == 'asesor';
@@ -136,12 +139,25 @@ class _JadwalScreenState extends State<JadwalScreen>
     _searchDebounce = Timer(const Duration(milliseconds: 400), () {
       final query = value.trim();
       if (query == _searchQuery) return;
+      if (!mounted) return;
       setState(() {
         _searchQuery = query;
       });
       // Hanya reload tab Selesai — tab lain tidak ikut di-query ulang
       _reloadSelesaiOnly();
     });
+  }
+
+  /// Reset pencarian tab Selesai secara bersih
+  void _resetSelesaiSearch() {
+    _searchDebounce?.cancel();
+    _searchController.clear();
+    if (!mounted) return;
+    setState(() {
+      _searchQuery = '';
+      _selectedDate = null;
+    });
+    _reloadSelesaiOnly();
   }
 
   /// Filter client-side: hanya tanggal asesmen + TUK (bukan nama jadwal).
@@ -152,9 +168,16 @@ class _JadwalScreenState extends State<JadwalScreen>
       final tanggalMulai = item.tanggalMulai.toLowerCase();
       final tanggalSelesai = item.tanggalSelesai.toLowerCase();
       final tuk = item.tuk.toLowerCase();
+      final formattedMulaiShort =
+          DateFormatHelper.formatToShort(item.tanggalMulai).toLowerCase();
+      final formattedMulaiIndo =
+          DateFormatHelper.formatToIndonesian(item.tanggalMulai).toLowerCase();
+
       return tanggalMulai.contains(q) ||
           tanggalSelesai.contains(q) ||
-          tuk.contains(q);
+          tuk.contains(q) ||
+          formattedMulaiShort.contains(q) ||
+          formattedMulaiIndo.contains(q);
     }).toList();
   }
 
@@ -234,6 +257,7 @@ class _JadwalScreenState extends State<JadwalScreen>
   }
 
   Future<void> _loadJadwalData() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _hasMoreDraft = true;
@@ -280,16 +304,13 @@ class _JadwalScreenState extends State<JadwalScreen>
           ApiService.getJadwalList(
             limit: _pageSize,
             statusJadwal: '0', // Draft only
-            // search hanya di tab Selesai
             sortBy: 'tanggal',
             sortOrder: 'desc',
             customRoutePath: ApiRoutes.jadwalDraft,
           ),
         ApiService.getJadwalList(
           limit: _pageSize,
-          // Admin/default: status 3 Running via /api/jadwal/active
           statusJadwal: status1,
-          // search hanya di tab Selesai
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: path1,
@@ -297,7 +318,6 @@ class _JadwalScreenState extends State<JadwalScreen>
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: status2,
-          // search hanya di tab Selesai
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: path2,
@@ -305,7 +325,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: status3,
-          search: _selesaiSearchParam, // tanggal asesmen + TUK
+          search: _selesaiSearchParam,
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: path3,
@@ -317,13 +337,14 @@ class _JadwalScreenState extends State<JadwalScreen>
         if (isAdmin) ApiService.getJadwalStatistics(),
       ]);
 
+      if (!mounted) return;
+
       final lists = results[0] as List<List<JadwalItem>>;
       final stats = isAdmin ? results[1] as JadwalStatistik : null;
 
       setState(() {
         int resultIndex = 0;
         if (isAdmin) {
-          // Draft tab: hanya status 0 / draft
           final rawDraft = lists[resultIndex];
           draftList = _sortJadwalList(
             rawDraft.where((item) => item.isDraft).toList(),
@@ -332,7 +353,6 @@ class _JadwalScreenState extends State<JadwalScreen>
           resultIndex++;
         }
 
-        // Running tab: hanya status 3 / running (jangan campur draft)
         final rawRunning = lists[resultIndex];
         runningList = _sortJadwalList(
           (isAdmin || (!isAsesi && !isAsesor))
@@ -342,8 +362,9 @@ class _JadwalScreenState extends State<JadwalScreen>
         _hasMoreRunning = rawRunning.length >= _pageSize;
         resultIndex++;
 
-        pelaporanList = _sortJadwalList(lists[resultIndex]);
-        _hasMorePelaporan = lists[resultIndex].length >= _pageSize;
+        final rawPelaporan = lists[resultIndex];
+        pelaporanList = _sortJadwalList(rawPelaporan);
+        _hasMorePelaporan = rawPelaporan.length >= _pageSize;
         resultIndex++;
 
         final rawSelesai = lists[resultIndex];
@@ -365,6 +386,7 @@ class _JadwalScreenState extends State<JadwalScreen>
       });
     } catch (e) {
       debugPrint('🔴 Error loading jadwal data: $e');
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -389,6 +411,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         customRoutePath: ApiRoutes.jadwalDraft,
       );
 
+      if (!mounted) return;
+
       setState(() {
         if (newData.length < _pageSize) {
           _hasMoreDraft = false;
@@ -399,7 +423,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         _isLoadingMore = false;
       });
     } catch (e) {
-      debugPrint('🔴 Error loading more data: $e');
+      debugPrint('🔴 Error loading more draft data: $e');
+      if (!mounted) return;
       setState(() {
         _isLoadingMore = false;
       });
@@ -419,7 +444,6 @@ class _JadwalScreenState extends State<JadwalScreen>
       final bool isAdmin =
           currentUser.role == 'admin' || (!isAsesi && !isAsesor);
 
-      // Samakan dengan load awal: admin/running = status 3 + /api/jadwal/active
       String status = isAsesi ? '0' : '3';
       String sortBy = 'tanggal';
       String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalActive;
@@ -438,6 +462,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         customRoutePath: path,
       );
 
+      if (!mounted) return;
+
       final filtered = isAdmin
           ? newData.where((item) => item.isRunning).toList()
           : newData;
@@ -450,7 +476,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         _isLoadingMore = false;
       });
     } catch (e) {
-      debugPrint('🔴 Error loading more data: $e');
+      debugPrint('🔴 Error loading more running data: $e');
+      if (!mounted) return;
       setState(() {
         _isLoadingMore = false;
       });
@@ -485,6 +512,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         customRoutePath: path,
       );
 
+      if (!mounted) return;
+
       setState(() {
         if (newData.length < _pageSize) {
           _hasMorePelaporan = false;
@@ -493,7 +522,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         _isLoadingMore = false;
       });
     } catch (e) {
-      debugPrint('🔴 Error loading more data: $e');
+      debugPrint('🔴 Error loading more pelaporan data: $e');
+      if (!mounted) return;
       setState(() {
         _isLoadingMore = false;
       });
@@ -524,11 +554,13 @@ class _JadwalScreenState extends State<JadwalScreen>
         limit: _pageSize,
         offset: selesaiList.length,
         statusJadwal: status,
-        search: _selesaiSearchParam, // tanggal asesmen + TUK
+        search: _selesaiSearchParam,
         sortBy: 'tanggal',
         sortOrder: 'desc',
         customRoutePath: path,
       );
+
+      if (!mounted) return;
 
       setState(() {
         if (newData.length < _pageSize) {
@@ -540,7 +572,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         _isLoadingMore = false;
       });
     } catch (e) {
-      debugPrint('🔴 Error loading more data: $e');
+      debugPrint('🔴 Error loading more selesai data: $e');
+      if (!mounted) return;
       setState(() {
         _isLoadingMore = false;
       });
@@ -561,6 +594,203 @@ class _JadwalScreenState extends State<JadwalScreen>
     return sorted;
   }
 
+  Future<void> _selectDateFilter() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF1E3A8A),
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF1E293B),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final formattedDate = DateFormat('yyyy-MM-dd').format(picked);
+      setState(() {
+        _selectedDate = picked;
+        _searchQuery = formattedDate;
+      });
+      _searchController.text = formattedDate;
+      _searchDebounce?.cancel();
+      _reloadSelesaiOnly();
+    }
+  }
+
+  Widget _buildSearchAndDateRow() {
+    final bool hasSelectedDate = _selectedDate != null;
+    final String dateLabel = hasSelectedDate
+        ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
+        : 'Tanggal';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Row(
+        children: [
+          // Search TextField container
+          Expanded(
+            child: Container(
+              height: 42,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: const Color(0xFFCBD5E1),
+                  width: 1,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x05000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 12),
+                  const Icon(
+                    Icons.search_rounded,
+                    color: Color(0xFF94A3B8),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (val) {
+                        if (_selectedDate != null) {
+                          setState(() {
+                            _selectedDate = null;
+                          });
+                        }
+                        _onSearchChanged(val);
+                      },
+                      textInputAction: TextInputAction.search,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Cari tanggal asesmen atau TUK',
+                        hintStyle: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 12.5,
+                        ),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
+                  if (_isSearchingSelesai) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                    ),
+                  ] else if (_searchQuery.isNotEmpty) ...[
+                    GestureDetector(
+                      onTap: _resetSelesaiSearch,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // Date filter button
+          GestureDetector(
+            onTap: _selectDateFilter,
+            child: Container(
+              height: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: hasSelectedDate
+                    ? const Color(0xFFEFF6FF)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: hasSelectedDate
+                      ? const Color(0xFF3B82F6)
+                      : const Color(0xFFCBD5E1),
+                  width: hasSelectedDate ? 1.5 : 1.0,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x05000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: 16,
+                    color: hasSelectedDate
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFF64748B),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    dateLabel,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: hasSelectedDate
+                          ? FontWeight.bold
+                          : FontWeight.w500,
+                      color: hasSelectedDate
+                          ? const Color(0xFF1E40AF)
+                          : const Color(0xFF475569),
+                    ),
+                  ),
+                  if (hasSelectedDate) ...[
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: _resetSelesaiSearch,
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 14,
+                        color: Color(0xFF2563EB),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleRefresh() async {
     await _loadJadwalData();
 
@@ -579,7 +809,6 @@ class _JadwalScreenState extends State<JadwalScreen>
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-    final bool isAsesi = currentUser.role == 'asesi';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -590,52 +819,8 @@ class _JadwalScreenState extends State<JadwalScreen>
           // Header dengan style dari statistik_screen
           _buildAppBar(),
 
-          // Search field — hanya tab Selesai (tanggal asesmen + TUK)
-          if (_isOnSelesaiTab)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  hintText: 'Cari tanggal asesmen atau TUK',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _isSearchingSelesai
-                      ? const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        )
-                      : (_searchQuery.isEmpty
-                          ? null
-                          : IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchDebounce?.cancel();
-                                _searchController.clear();
-                                setState(() {
-                                  _searchQuery = '';
-                                });
-                                _reloadSelesaiOnly();
-                              },
-                            )),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 8,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
+          // Search field & Date filter — hanya tab Selesai (tanggal asesmen + TUK)
+          if (_isOnSelesaiTab) _buildSearchAndDateRow(),
 
           // Loading indicator
           if (_isLoading)
@@ -696,7 +881,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                   ),
 
                   // Tab 3: Selesai (Only for non-Asesi)
-                  if (!isAsesi)
+                  if (!_isAsesiRole)
                     _JadwalTabContent(
                       key: const PageStorageKey('selesai_tab'),
                       child: _buildJadwalList(
