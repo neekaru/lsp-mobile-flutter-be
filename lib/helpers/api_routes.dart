@@ -295,6 +295,8 @@ class ApiRoutes {
     int? idTuk,
     String? idLsp,
     String? search,
+    String? tanggalAsesmen,
+    String? tuk,
     String? sortBy,
     String? sortOrder,
   }) {
@@ -306,6 +308,12 @@ class ApiRoutes {
     if (idLsp != null) params.add('id_lsp=$idLsp');
     if (search != null && search.trim().isNotEmpty) {
       params.add('search=${Uri.encodeQueryComponent(search.trim())}');
+    }
+    if (tanggalAsesmen != null && tanggalAsesmen.trim().isNotEmpty) {
+      params.add('tanggal_asesmen=${Uri.encodeQueryComponent(tanggalAsesmen.trim())}');
+    }
+    if (tuk != null && tuk.trim().isNotEmpty) {
+      params.add('tuk=${Uri.encodeQueryComponent(tuk.trim())}');
     }
     if (sortBy != null) params.add('sort_by=$sortBy');
     if (sortOrder != null) params.add('sort_order=$sortOrder');

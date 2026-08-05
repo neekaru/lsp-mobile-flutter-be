@@ -90,15 +90,16 @@ class _JadwalScreenState extends State<JadwalScreen>
   bool get _isOnSelesaiTab =>
       _selesaiTabIndex >= 0 && _tabController.index == _selesaiTabIndex;
 
-  /// Gabungan tanggal (dari date picker) + TUK (dari search bar) untuk fetch
-  /// tab Selesai. Keduanya terpisah — pilih tanggal tidak mengisi search bar.
-  String? get _selesaiSearchParam {
+  /// Tanggal asesmen dari date picker untuk query param terpisah
+  String? get _selesaiTanggalParam {
+    if (_selectedDate == null) return null;
+    return DateFormat('yyyy-MM-dd').format(_selectedDate!);
+  }
+
+  /// TUK dari search bar untuk query param terpisah
+  String? get _selesaiTukParam {
     final q = _searchQuery.trim();
-    final dateStr = _selectedDate != null
-        ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-        : '';
-    final combined = [dateStr, q].where((s) => s.isNotEmpty).join(' ').trim();
-    return combined.isEmpty ? null : combined;
+    return q.isEmpty ? null : q;
   }
 
   @override
@@ -226,7 +227,8 @@ class _JadwalScreenState extends State<JadwalScreen>
       final raw = await ApiService.getJadwalList(
         limit: _pageSize,
         statusJadwal: status3,
-        search: _selesaiSearchParam,
+        tanggalAsesmen: _selesaiTanggalParam,
+        tuk: _selesaiTukParam,
         sortBy: 'tanggal',
         sortOrder: 'desc',
         customRoutePath: path3,
@@ -345,7 +347,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         ApiService.getJadwalList(
           limit: _pageSize,
           statusJadwal: status3,
-          search: _selesaiSearchParam,
+          tanggalAsesmen: _selesaiTanggalParam,
+          tuk: _selesaiTukParam,
           sortBy: 'tanggal',
           sortOrder: 'desc',
           customRoutePath: path3,
@@ -574,7 +577,8 @@ class _JadwalScreenState extends State<JadwalScreen>
         limit: _pageSize,
         offset: selesaiList.length,
         statusJadwal: status,
-        search: _selesaiSearchParam,
+        tanggalAsesmen: _selesaiTanggalParam,
+        tuk: _selesaiTukParam,
         sortBy: 'tanggal',
         sortOrder: 'desc',
         customRoutePath: path,
