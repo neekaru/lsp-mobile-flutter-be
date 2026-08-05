@@ -90,6 +90,8 @@ class JadwalService {
     int? idTuk,
     String? idLsp,
     String? search,
+    String? tanggalAsesmen,
+    String? tuk,
     String? sortBy,
     String? sortOrder,
     String? customRoutePath,
@@ -122,6 +124,8 @@ class JadwalService {
         idTuk: idTuk,
         idLsp: idLsp,
         search: search,
+        tanggalAsesmen: tanggalAsesmen,
+        tuk: tuk,
         sortBy: sortBy,
         sortOrder: sortOrder,
       );
