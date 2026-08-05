@@ -90,10 +90,15 @@ class _JadwalScreenState extends State<JadwalScreen>
   bool get _isOnSelesaiTab =>
       _selesaiTabIndex >= 0 && _tabController.index == _selesaiTabIndex;
 
-  /// Query search hanya dipakai untuk fetch tab Selesai.
+  /// Gabungan tanggal (dari date picker) + TUK (dari search bar) untuk fetch
+  /// tab Selesai. Keduanya terpisah — pilih tanggal tidak mengisi search bar.
   String? get _selesaiSearchParam {
     final q = _searchQuery.trim();
-    return q.isEmpty ? null : q;
+    final dateStr = _selectedDate != null
+        ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+        : '';
+    final combined = [dateStr, q].where((s) => s.isNotEmpty).join(' ').trim();
+    return combined.isEmpty ? null : combined;
   }
 
   @override
@@ -160,10 +165,14 @@ class _JadwalScreenState extends State<JadwalScreen>
     _reloadSelesaiOnly();
   }
 
-  /// Filter client-side: hanya tanggal asesmen + TUK (bukan nama jadwal).
+  /// Filter client-side: tanggal (dari date picker) + TUK (dari search bar).
+  /// Keduanya filter bersamaan (AND) — tidak saling timpa.
   List<JadwalItem> _filterSelesaiByTanggalDanTuk(List<JadwalItem> items) {
     final q = _searchQuery.trim().toLowerCase();
-    if (q.isEmpty) return items;
+    final dateStr = _selectedDate != null
+        ? DateFormat('yyyy-MM-dd').format(_selectedDate!).toLowerCase()
+        : '';
+    if (q.isEmpty && dateStr.isEmpty) return items;
     return items.where((item) {
       final tanggalMulai = item.tanggalMulai.toLowerCase();
       final tanggalSelesai = item.tanggalSelesai.toLowerCase();
@@ -173,11 +182,22 @@ class _JadwalScreenState extends State<JadwalScreen>
       final formattedMulaiIndo =
           DateFormatHelper.formatToIndonesian(item.tanggalMulai).toLowerCase();
 
-      return tanggalMulai.contains(q) ||
-          tanggalSelesai.contains(q) ||
+      // Filter TUK: jika search bar diisi, item harus cocok
+      final tukMatch = q.isEmpty ||
           tuk.contains(q) ||
+          tanggalMulai.contains(q) ||
+          tanggalSelesai.contains(q) ||
           formattedMulaiShort.contains(q) ||
           formattedMulaiIndo.contains(q);
+
+      // Filter tanggal: jika date picker dipilih, item harus cocok
+      final dateMatch = dateStr.isEmpty ||
+          tanggalMulai.contains(dateStr) ||
+          tanggalSelesai.contains(dateStr) ||
+          formattedMulaiShort.contains(dateStr) ||
+          formattedMulaiIndo.contains(dateStr);
+
+      return tukMatch && dateMatch;
     }).toList();
   }
 
@@ -615,13 +635,9 @@ class _JadwalScreenState extends State<JadwalScreen>
     );
 
     if (picked != null) {
-      final formattedDate = DateFormat('yyyy-MM-dd').format(picked);
       setState(() {
         _selectedDate = picked;
-        _searchQuery = formattedDate;
       });
-      _searchController.text = formattedDate;
-      _searchDebounce?.cancel();
       _reloadSelesaiOnly();
     }
   }
@@ -668,11 +684,6 @@ class _JadwalScreenState extends State<JadwalScreen>
                     child: TextField(
                       controller: _searchController,
                       onChanged: (val) {
-                        if (_selectedDate != null) {
-                          setState(() {
-                            _selectedDate = null;
-                          });
-                        }
                         _onSearchChanged(val);
                       },
                       textInputAction: TextInputAction.search,
