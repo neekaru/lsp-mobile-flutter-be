@@ -682,7 +682,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
                     Expanded(
                       child: Text(item.skema, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     ),
-                    Text('${item.totalSertifikat} Kompeten', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF16A34A))),
+                    Text('${item.totalPemegang} Kompeten', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF16A34A))),
                   ],
                 ),
               )),
