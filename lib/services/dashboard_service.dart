@@ -366,4 +366,18 @@ class DashboardService {
       return [];
     }
   }
+
+  /// Fetch Surat Tugas / SPT Asesor 2026
+  static Future<SptAsesorData?> getSptAsesor2026({int tahun = 2026}) async {
+    try {
+      final response = await _dio.get('${ApiRoutes.dashboardSptAsesor2026}?tahun=$tahun');
+      if (response.statusCode == 200 && response.data != null) {
+        return SptAsesorData.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching SPT Asesor 2026: $e');
+      return null;
+    }
+  }
 }

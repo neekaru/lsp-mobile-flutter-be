@@ -45,6 +45,8 @@ class ApiRoutes {
       '/api/dashboard/jenis-skema';
   static const String dashboardMukDistribusi =
       '/api/dashboard/muk-distribusi';
+  static const String dashboardSptAsesor2026 =
+      '/api/dashboard/spt-asesor-2026';
 
   // ============================================================================
   // Admin Honor Asesor Routes

@@ -8,7 +8,6 @@ import 'island_data.dart';
 import 'detail_breakdown_card.dart';
 import '../../screens/dashboard/asesor_homebase_screen.dart';
 import '../../screens/dashboard/distribusi_asesor_sertifikasi_screen.dart';
-import '../../screens/sertifikat/skema_sertifikasi_screen.dart';
 import '../../screens/dashboard/statistik_detail_screen.dart';
 import 'statistics_menu_accordion.dart';
 

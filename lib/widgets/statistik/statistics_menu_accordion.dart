@@ -37,6 +37,11 @@ class _StatisticsMenuAccordionState extends State<StatisticsMenuAccordion> {
               label: 'Masa Berlaku',
               icon: Icons.event_outlined,
             ),
+            _buildMenuItem(
+              value: 'spt_2026',
+              label: 'SPT 2026',
+              icon: Icons.assignment_ind_outlined,
+            ),
           ],
         ),
         const Divider(height: 1, color: Color(0xFFF1F5F9)),

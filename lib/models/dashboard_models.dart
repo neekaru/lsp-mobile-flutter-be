@@ -874,3 +874,63 @@ class MUKDistribusiItem {
   }
 }
 
+class SptAsesorItem {
+  final String namaAsesor;
+  final String tglExpired;
+  final String statusMasaBerlaku;
+  final int total;
+  final Map<String, int> bulanan;
+
+  const SptAsesorItem({
+    required this.namaAsesor,
+    required this.tglExpired,
+    required this.statusMasaBerlaku,
+    required this.total,
+    required this.bulanan,
+  });
+
+  factory SptAsesorItem.fromJson(Map<String, dynamic> json) {
+    final bulananRaw = json['bulanan'] as Map<String, dynamic>? ?? {};
+    final mapBulanan = <String, int>{};
+    bulananRaw.forEach((key, value) {
+      mapBulanan[key] = (value as num?)?.toInt() ?? 0;
+    });
+
+    return SptAsesorItem(
+      namaAsesor: json['nama_asesor']?.toString() ?? '',
+      tglExpired: json['tgl_expired']?.toString() ?? '',
+      statusMasaBerlaku: json['status_masa_berlaku']?.toString() ?? 'Tidak Diketahui',
+      total: json['total'] ?? 0,
+      bulanan: mapBulanan,
+    );
+  }
+}
+
+class SptAsesorData {
+  final List<SptAsesorItem> items;
+  final int totalAsesor;
+  final int totalJadwal;
+  final int tahun;
+
+  const SptAsesorData({
+    required this.items,
+    required this.totalAsesor,
+    required this.totalJadwal,
+    required this.tahun,
+  });
+
+  factory SptAsesorData.fromJson(Map<String, dynamic> json) {
+    final list = (json['data'] as List?)
+            ?.map((e) => SptAsesorItem.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+    final meta = json['meta'] ?? {};
+    return SptAsesorData(
+      items: list,
+      totalAsesor: meta['total_asesor'] ?? list.length,
+      totalJadwal: meta['total_jadwal'] ?? 0,
+      tahun: meta['tahun'] ?? 2026,
+    );
+  }
+}
+
