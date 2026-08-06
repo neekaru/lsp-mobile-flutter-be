@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../custom_app_bar.dart';
 import 'statistics_menu_accordion.dart';
+import '../../screens/dashboard/statistik_detail_screen.dart';
 
 class StatistikAppBar extends StatelessWidget {
   final String title;
@@ -40,16 +41,12 @@ class StatistikAppBar extends StatelessWidget {
           color: Colors.white,
           elevation: 3,
           onSelected: (String value) {
-            if (value == currentView) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Anda sudah berada di halaman ini'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            } else {
-              onSwitchView(value);
-            }
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => StatistikDetailScreen(menuKey: value),
+              ),
+            );
           },
           itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
             PopupMenuItem<String>(
@@ -59,16 +56,13 @@ class StatistikAppBar extends StatelessWidget {
                 width: 280,
                 child: StatisticsMenuAccordion(
                   onSelected: (String value) {
-                    if (value == currentView) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Anda sudah berada di halaman ini'),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    } else {
-                      onSwitchView(value);
-                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            StatistikDetailScreen(menuKey: value),
+                      ),
+                    );
                   },
                 ),
               ),

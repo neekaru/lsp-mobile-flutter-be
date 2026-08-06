@@ -294,4 +294,76 @@ class DashboardService {
     }
   }
 
+  /// Fetch Domisili Asesor (Internal vs External per Provinsi)
+  static Future<DomisiliAsesorData?> getDomisiliAsesor() async {
+    try {
+      final response = await _dio.get(ApiRoutes.dashboardDomisiliAsesor);
+      if (response.statusCode == 200 && response.data != null) {
+        return DomisiliAsesorData.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching domisili asesor: $e');
+      return null;
+    }
+  }
+
+  /// Fetch Kompetensi Teknis Asesor by Skema ID
+  static Future<List<KompetensiTeknisItem>> getKompetensiTeknis() async {
+    try {
+      final response = await _dio.get(ApiRoutes.dashboardKompetensiTeknis);
+      if (response.statusCode == 200 && response.data != null) {
+        final List list = response.data['data'] ?? [];
+        return list.map((e) => KompetensiTeknisItem.fromJson(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching kompetensi teknis: $e');
+      return [];
+    }
+  }
+
+  /// Fetch Masa Berlaku Asesor (Aktif, Tenggang, Expired)
+  static Future<MasaBerlakuAsesorData?> getMasaBerlakuAsesor() async {
+    try {
+      final response = await _dio.get(ApiRoutes.dashboardMasaBerlakuAsesor);
+      if (response.statusCode == 200 && response.data != null) {
+        return MasaBerlakuAsesorData.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching masa berlaku asesor: $e');
+      return null;
+    }
+  }
+
+  /// Fetch Jenis Skema by Category
+  static Future<List<JenisSkemaItem>> getJenisSkema() async {
+    try {
+      final response = await _dio.get(ApiRoutes.dashboardJenisSkema);
+      if (response.statusCode == 200 && response.data != null) {
+        final List list = response.data['data'] ?? [];
+        return list.map((e) => JenisSkemaItem.fromJson(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching jenis skema: $e');
+      return [];
+    }
+  }
+
+  /// Fetch MUK/MAPA Distribution by Skema
+  static Future<List<MUKDistribusiItem>> getMUKDistribusi() async {
+    try {
+      final response = await _dio.get(ApiRoutes.dashboardMukDistribusi);
+      if (response.statusCode == 200 && response.data != null) {
+        final List list = response.data['data'] ?? [];
+        return list.map((e) => MUKDistribusiItem.fromJson(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching MUK distribusi: $e');
+      return [];
+    }
+  }
 }

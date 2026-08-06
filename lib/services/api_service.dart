@@ -68,6 +68,16 @@ class ApiService {
       DashboardService.getPenyebaranRegional();
   static Future<List<TUKKabupaten>> getTUKKabupaten(String provinceId) =>
       DashboardService.getTUKKabupaten(provinceId);
+  static Future<DomisiliAsesorData?> getDomisiliAsesor() =>
+      DashboardService.getDomisiliAsesor();
+  static Future<List<KompetensiTeknisItem>> getKompetensiTeknis() =>
+      DashboardService.getKompetensiTeknis();
+  static Future<MasaBerlakuAsesorData?> getMasaBerlakuAsesor() =>
+      DashboardService.getMasaBerlakuAsesor();
+  static Future<List<JenisSkemaItem>> getJenisSkema() =>
+      DashboardService.getJenisSkema();
+  static Future<List<MUKDistribusiItem>> getMUKDistribusi() =>
+      DashboardService.getMUKDistribusi();
 
   // ── Jadwal ──────────────────────────────────────────────────────────────────
   static Future<List<JadwalBaru>> getJadwalBaru() =>

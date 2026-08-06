@@ -35,6 +35,16 @@ class ApiRoutes {
       '/api/dashboard/sebaran-skema-asesor';
   static const String dashboardAsesorHomebase =
       '/api/dashboard/asesor-homebase';
+  static const String dashboardDomisiliAsesor =
+      '/api/dashboard/domisili-asesor';
+  static const String dashboardKompetensiTeknis =
+      '/api/dashboard/kompetensi-teknis';
+  static const String dashboardMasaBerlakuAsesor =
+      '/api/dashboard/masa-berlaku-asesor';
+  static const String dashboardJenisSkema =
+      '/api/dashboard/jenis-skema';
+  static const String dashboardMukDistribusi =
+      '/api/dashboard/muk-distribusi';
 
   // ============================================================================
   // Admin Honor Asesor Routes

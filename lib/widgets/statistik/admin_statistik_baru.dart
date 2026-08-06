@@ -9,6 +9,7 @@ import 'detail_breakdown_card.dart';
 import '../../screens/dashboard/asesor_homebase_screen.dart';
 import '../../screens/dashboard/distribusi_asesor_sertifikasi_screen.dart';
 import '../../screens/sertifikat/skema_sertifikasi_screen.dart';
+import '../../screens/dashboard/statistik_detail_screen.dart';
 import 'statistics_menu_accordion.dart';
 
 class AdminStatistikBaru extends StatefulWidget {
@@ -210,47 +211,12 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   }
 
   void _handleStatisticsMenuSelection(String value) {
-    if (value == 'domisili_asesor' || value == 'distribusi') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const AsesorHomebaseScreen(),
-        ),
-      );
-    } else if (value == 'jenis_skema') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SkemaSertifikasiScreen(),
-        ),
-      );
-    } else if (value == 'sertifikat' ||
-        value == 'tahun_2026' ||
-        value == '3_tahun' ||
-        value == 'kompetensi') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const DistribusiAsesorSertifikasiScreen(
-            initialShowSebaranSkema: true,
-          ),
-        ),
-      );
-    } else {
-      final titleMap = {
-        'kompetensi_teknis': 'Kompetensi Teknis',
-        'masa_berlaku': 'Masa Berlaku',
-        'muk': 'MUK',
-        'praktisi': 'Praktisi',
-      };
-      final displayTitle = titleMap[value] ?? value.replaceAll('_', ' ');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Menu "$displayTitle" dipilih'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StatistikDetailScreen(menuKey: value),
+      ),
+    );
   }
 
   Widget _buildLoadingState() {

@@ -720,3 +720,157 @@ class AsesorHomebase {
   }
 }
 
+// ============================================================================
+// Detailed Admin Statistics Models (Items #1-5)
+// ============================================================================
+
+class DomisiliAsesorProvinsiItem {
+  final String provinsiId;
+  final String provinsiKode;
+  final String provinsiNama;
+  final int totalAsesor;
+  final int asesorInternal;
+  final int asesorExternal;
+  final double persentaseInternal;
+
+  const DomisiliAsesorProvinsiItem({
+    required this.provinsiId,
+    required this.provinsiKode,
+    required this.provinsiNama,
+    required this.totalAsesor,
+    required this.asesorInternal,
+    required this.asesorExternal,
+    required this.persentaseInternal,
+  });
+
+  factory DomisiliAsesorProvinsiItem.fromJson(Map<String, dynamic> json) {
+    return DomisiliAsesorProvinsiItem(
+      provinsiId: json['provinsi_id']?.toString() ?? '',
+      provinsiKode: json['provinsi_kode']?.toString() ?? '',
+      provinsiNama: json['provinsi_nama']?.toString() ?? 'Lainnya',
+      totalAsesor: json['total_asesor'] ?? 0,
+      asesorInternal: json['asesor_internal'] ?? 0,
+      asesorExternal: json['asesor_external'] ?? 0,
+      persentaseInternal:
+          (json['persentase_internal'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+class DomisiliAsesorData {
+  final List<DomisiliAsesorProvinsiItem> items;
+  final int totalAsesor;
+  final int totalInternal;
+  final int totalExternal;
+
+  const DomisiliAsesorData({
+    required this.items,
+    required this.totalAsesor,
+    required this.totalInternal,
+    required this.totalExternal,
+  });
+
+  factory DomisiliAsesorData.fromJson(Map<String, dynamic> json) {
+    final list = (json['data'] as List?)
+            ?.map((e) =>
+                DomisiliAsesorProvinsiItem.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+    final meta = json['meta'] ?? {};
+    return DomisiliAsesorData(
+      items: list,
+      totalAsesor: meta['total_asesor'] ?? 0,
+      totalInternal: meta['total_internal'] ?? 0,
+      totalExternal: meta['total_external'] ?? 0,
+    );
+  }
+}
+
+class KompetensiTeknisItem {
+  final int skemaId;
+  final String kodeSkema;
+  final String namaSkema;
+  final int jumlahAsesor;
+
+  const KompetensiTeknisItem({
+    required this.skemaId,
+    required this.kodeSkema,
+    required this.namaSkema,
+    required this.jumlahAsesor,
+  });
+
+  factory KompetensiTeknisItem.fromJson(Map<String, dynamic> json) {
+    return KompetensiTeknisItem(
+      skemaId: json['skema_id'] ?? 0,
+      kodeSkema: json['kode_skema']?.toString() ?? '',
+      namaSkema: json['nama_skema']?.toString() ?? '',
+      jumlahAsesor: json['jumlah_asesor'] ?? 0,
+    );
+  }
+}
+
+class MasaBerlakuAsesorData {
+  final int aktif;
+  final int tenggang;
+  final int expired;
+  final int totalAsesor;
+
+  const MasaBerlakuAsesorData({
+    required this.aktif,
+    required this.tenggang,
+    required this.expired,
+    required this.totalAsesor,
+  });
+
+  factory MasaBerlakuAsesorData.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] ?? {};
+    final meta = json['meta'] ?? {};
+    return MasaBerlakuAsesorData(
+      aktif: data['aktif'] ?? 0,
+      tenggang: data['tenggang'] ?? 0,
+      expired: data['expired'] ?? 0,
+      totalAsesor: meta['total_asesor'] ?? 0,
+    );
+  }
+}
+
+class JenisSkemaItem {
+  final String kategori;
+  final int jumlahSkema;
+
+  const JenisSkemaItem({
+    required this.kategori,
+    required this.jumlahSkema,
+  });
+
+  factory JenisSkemaItem.fromJson(Map<String, dynamic> json) {
+    return JenisSkemaItem(
+      kategori: json['kategori']?.toString() ?? 'Umum',
+      jumlahSkema: json['jumlah_skema'] ?? 0,
+    );
+  }
+}
+
+class MUKDistribusiItem {
+  final int skemaId;
+  final String kodeSkema;
+  final String namaSkema;
+  final int jumlahMuk;
+
+  const MUKDistribusiItem({
+    required this.skemaId,
+    required this.kodeSkema,
+    required this.namaSkema,
+    required this.jumlahMuk,
+  });
+
+  factory MUKDistribusiItem.fromJson(Map<String, dynamic> json) {
+    return MUKDistribusiItem(
+      skemaId: json['skema_id'] ?? 0,
+      kodeSkema: json['kode_skema']?.toString() ?? '',
+      namaSkema: json['nama_skema']?.toString() ?? '',
+      jumlahMuk: json['jumlah_muk'] ?? 0,
+    );
+  }
+}
+
