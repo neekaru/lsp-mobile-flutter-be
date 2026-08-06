@@ -290,7 +290,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         _buildKpiCardGroup(
           items: [
             _KpiItem('Total Skema', '${_kompetensiList.length}', Colors.blue),
-            _KpiItem('Total Asesor', '${_kompetensiList.fold(0, (sum, i) => sum + i.jumlahAsesor)}', Colors.indigo),
+            _KpiItem('Total Asesor', '${_kompetensiList.fold<int>(0, (sum, i) => sum + i.jumlahAsesor)}', Colors.indigo),
           ],
         ),
         const SizedBox(height: 16),
@@ -434,7 +434,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         _buildKpiCardGroup(
           items: [
             _KpiItem('Total Kategori', '${_jenisSkemaList.length}', Colors.blue),
-            _KpiItem('Total Skema', '${_jenisSkemaList.fold(0, (sum, i) => sum + i.jumlahSkema)}', Colors.indigo),
+            _KpiItem('Total Skema', '${_jenisSkemaList.fold<int>(0, (sum, i) => sum + i.jumlahSkema)}', Colors.indigo),
           ],
         ),
         const SizedBox(height: 16),
@@ -492,7 +492,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         _buildKpiCardGroup(
           items: [
             _KpiItem('Total Skema', '${_mukList.length}', Colors.blue),
-            _KpiItem('Total MUK/MAPA', '${_mukList.fold(0, (sum, i) => sum + i.jumlahMuk)}', Colors.teal),
+            _KpiItem('Total MUK/MAPA', '${_mukList.fold<int>(0, (sum, i) => sum + i.jumlahMuk)}', Colors.teal),
           ],
         ),
         const SizedBox(height: 16),
@@ -741,7 +741,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         _buildKpiCardGroup(
           items: [
             _KpiItem('Total Asesor', '${data?.totalAsesor ?? items.length}', Colors.blue),
-            _KpiItem('Total Penugasan', '${data?.totalJadwal ?? items.fold(0, (sum, i) => sum + i.total)}', Colors.indigo),
+            _KpiItem('Total Penugasan', '${data?.totalJadwal ?? items.fold<int>(0, (sum, i) => sum + i.total)}', Colors.indigo),
           ],
         ),
         const SizedBox(height: 16),
