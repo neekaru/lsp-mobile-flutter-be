@@ -8,6 +8,8 @@ import 'island_data.dart';
 import 'detail_breakdown_card.dart';
 import '../../screens/dashboard/asesor_homebase_screen.dart';
 import '../../screens/dashboard/distribusi_asesor_sertifikasi_screen.dart';
+import '../../screens/sertifikat/skema_sertifikasi_screen.dart';
+import 'statistics_menu_accordion.dart';
 
 class AdminStatistikBaru extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -18,138 +20,7 @@ class AdminStatistikBaru extends StatefulWidget {
   State<AdminStatistikBaru> createState() => _AdminStatistikBaruState();
 }
 
-class _StatisticsMenuAccordion extends StatefulWidget {
-  final ValueChanged<String> onSelected;
 
-  const _StatisticsMenuAccordion({required this.onSelected});
-
-  @override
-  State<_StatisticsMenuAccordion> createState() =>
-      _StatisticsMenuAccordionState();
-}
-
-class _StatisticsMenuAccordionState extends State<_StatisticsMenuAccordion> {
-  int? _expandedGroup;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildGroup(
-          group: 1,
-          title: 'GROUP 1',
-          children: [
-            _buildMenuItem(
-              value: 'sertifikat',
-              label: 'Skema Pemegang Sertifikat',
-              icon: Icons.assignment_turned_in_rounded,
-            ),
-            _buildMenuItem(value: 'menu_2', label: 'Menu 2'),
-            _buildMenuItem(value: 'menu_3', label: 'Menu 3'),
-          ],
-        ),
-        const Divider(height: 1, color: Color(0xFFF1F5F9)),
-        _buildGroup(
-          group: 2,
-          title: 'GROUP 2',
-          children: [
-            _buildMenuItem(
-              value: 'distribusi',
-              label: 'Distribusi Asesor & Skema',
-              icon: Icons.map_rounded,
-            ),
-            _buildMenuItem(value: 'menu_5', label: 'Menu 5'),
-            _buildMenuItem(value: 'menu_6', label: 'Menu 6'),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGroup({
-    required int group,
-    required String title,
-    required List<Widget> children,
-  }) {
-    final isExpanded = _expandedGroup == group;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        InkWell(
-          onTap: () => setState(() {
-            _expandedGroup = isExpanded ? null : group;
-          }),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                AnimatedRotation(
-                  turns: isExpanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 180),
-                  child: const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 180),
-          child: isExpanded
-              ? Column(mainAxisSize: MainAxisSize.min, children: children)
-              : const SizedBox.shrink(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMenuItem({
-    required String value,
-    required String label,
-    IconData? icon,
-  }) {
-    return InkWell(
-      onTap: () {
-        Navigator.of(context).pop();
-        widget.onSelected(value);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Icon(
-              icon ?? Icons.chevron_right_rounded,
-              size: 18,
-              color: const Color(0xFF64748B),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   bool _isLoading = true;
@@ -262,7 +133,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                         padding: EdgeInsets.zero,
                         child: SizedBox(
                           width: 280,
-                          child: _StatisticsMenuAccordion(
+                          child: StatisticsMenuAccordion(
                             onSelected: _handleStatisticsMenuSelection,
                           ),
                         ),
@@ -339,7 +210,24 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   }
 
   void _handleStatisticsMenuSelection(String value) {
-    if (value == 'sertifikat') {
+    if (value == 'domisili_asesor' || value == 'distribusi') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const AsesorHomebaseScreen(),
+        ),
+      );
+    } else if (value == 'jenis_skema') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SkemaSertifikasiScreen(),
+        ),
+      );
+    } else if (value == 'sertifikat' ||
+        value == 'tahun_2026' ||
+        value == '3_tahun' ||
+        value == 'kompetensi') {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -348,13 +236,18 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
           ),
         ),
       );
-    } else if (value == 'distribusi') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const DistribusiAsesorSertifikasiScreen(
-            initialShowSebaranSkema: false,
-          ),
+    } else {
+      final titleMap = {
+        'kompetensi_teknis': 'Kompetensi Teknis',
+        'masa_berlaku': 'Masa Berlaku',
+        'muk': 'MUK',
+        'praktisi': 'Praktisi',
+      };
+      final displayTitle = titleMap[value] ?? value.replaceAll('_', ' ');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Menu "$displayTitle" dipilih'),
+          duration: const Duration(seconds: 2),
         ),
       );
     }

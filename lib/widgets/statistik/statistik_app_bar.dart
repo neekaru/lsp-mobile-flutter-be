@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../custom_app_bar.dart';
+import 'statistics_menu_accordion.dart';
 
 class StatistikAppBar extends StatelessWidget {
   final String title;
@@ -51,39 +52,25 @@ class StatistikAppBar extends StatelessWidget {
             }
           },
           itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-            const PopupMenuItem<String>(
-              value: 'sertifikat',
-              child: Row(
-                children: [
-                  Icon(Icons.assignment_turned_in_rounded, size: 18, color: Color(0xFF2C6C9C)),
-                  SizedBox(width: 8),
-                  Text(
-                    'Skema Pemegang Sertifikat',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            const PopupMenuItem<String>(
-              value: 'distribusi',
-              child: Row(
-                children: [
-                  Icon(Icons.map_rounded, size: 18, color: Color(0xFF64748B)),
-                  SizedBox(width: 8),
-                  Text(
-                    'Distribusi Asesor & Skema',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
+            PopupMenuItem<String>(
+              enabled: false,
+              padding: EdgeInsets.zero,
+              child: SizedBox(
+                width: 280,
+                child: StatisticsMenuAccordion(
+                  onSelected: (String value) {
+                    if (value == currentView) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Anda sudah berada di halaman ini'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    } else {
+                      onSwitchView(value);
+                    }
+                  },
+                ),
               ),
             ),
           ],
