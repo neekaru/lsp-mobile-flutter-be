@@ -161,11 +161,13 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
                   )
                 : RefreshIndicator(
                     onRefresh: () => _loadData(forceRefresh: true),
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16.0),
-                      child: _buildBodyContent(),
-                    ),
+                    child: widget.menuKey == 'spt_2026'
+                        ? _buildSpt2026Content()
+                        : SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.all(16.0),
+                            child: _buildBodyContent(),
+                          ),
                   ),
           ),
         ],
@@ -761,7 +763,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     );
   }
 
-  // SPT 2026 Content
+  // SPT 2026 Content — CustomScrollView + SliverList for virtualization
   Widget _buildSpt2026Content() {
     final data = _sptData;
     final items = data?.items ?? [];
@@ -771,25 +773,68 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
             i.namaAsesor.toLowerCase().contains(_searchQuery.toLowerCase()))
         .toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildKpiCardGroup(
-          items: [
-            _KpiItem('Total Asesor', '${data?.totalAsesor ?? items.length}', Colors.blue),
-            _KpiItem('Total Penugasan', '${data?.totalJadwal ?? items.fold<int>(0, (sum, i) => sum + i.total)}', Colors.indigo),
-          ],
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        // ── Header: KPI + search (non-virtualized, small) ───────────────────
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildKpiCardGroup(
+                  items: [
+                    _KpiItem('Total Asesor', '${data?.totalAsesor ?? items.length}', Colors.blue),
+                    _KpiItem('Total Penugasan', '${data?.totalJadwal ?? items.fold<int>(0, (sum, i) => sum + i.total)}', Colors.indigo),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildSearchField('Cari Nama Asesor...'),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
         ),
-        const SizedBox(height: 16),
-        _buildSearchField('Cari Nama Asesor...'),
-        const SizedBox(height: 12),
+        // ── Virtualized list: only builds visible cards ─────────────────────
         if (filtered.isEmpty)
-          _buildEmptyState('Belum ada data penugasan asesor (SPT) 2026.')
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.inbox_outlined, size: 40, color: Color(0xFF94A3B8)),
+                    SizedBox(height: 8),
+                    Text('Belum ada data penugasan asesor (SPT) 2026.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                  ],
+                ),
+              ),
+            ),
+          )
         else
-          ...filtered.map((item) => _buildSptAsesorCard(item)),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildSptAsesorCard(filtered[index]),
+                ),
+                childCount: filtered.length,
+              ),
+            ),
+          ),
       ],
     );
   }
+
+  // Pre-allocated month labels — avoid re-creating list on every card build
+  static const List<String> _monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
   Widget _buildSptAsesorCard(SptAsesorItem item) {
     Color statusColor;
@@ -801,9 +846,8 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
       statusColor = const Color(0xFFDC2626);
     }
 
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
-    return Container(
+    return RepaintBoundary(
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -879,7 +923,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children: months.map((m) {
+            children: _monthLabels.map((m) {
               final count = item.bulanan[m] ?? 0;
               final isAssigned = count > 0;
               return Container(
@@ -903,6 +947,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
