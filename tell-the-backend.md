@@ -1,568 +1,151 @@
-# Kontrak Backend LSP Mobile: Pendaftaran Publik dan Asesi
+# Kontrak Backend LSP Mobile: Detail Domisili Asesor (Daftar Nama-Nama Asesor per Provinsi)
 
-Dokumen ini **menggantikan seluruh isi kontrak sebelumnya**. Fokus kontrak adalah pendaftaran publik calon Asesi, pembuatan akun otomatis, login memakai NIK, serta pembatasan pemilihan skema berdasarkan riwayat asesmen.
+Dokumen ini **menggantikan secara total (override)** seluruh isi kontrak sebelumnya. Dokumen ini khusus mengatur spesifikasi backend untuk fitur **Detail Domisili Asesor** di mana pengguna menekan salah satu card provinsi domisili pada Dashboard / Statistik, kemudian menampilkan screen berisi daftar nama-nama Asesor berdomisili di provinsi tersebut lengkap dengan Searchbar di bagian atas.
 
-## Aturan Bisnis Utama
+---
+
+## 1. Aturan Bisnis & Alur Kerja
 
 | ID | Aturan |
 |---|---|
-| BR-01 | Pengunjung publik dapat membuka informasi umum, mencari/validasi sertifikat, dan mengirim pendaftaran calon Asesi tanpa login. |
-| BR-02 | Pendaftaran publik yang berhasil wajib membuat akun pengguna berperan `asesi` secara otomatis. |
-| BR-03 | Username/identity akun Asesi adalah **NIK** dari pendaftaran. Password awal adalah **`123456`**. Password hanya diinformasikan di UI, tidak boleh dikembalikan dalam response API maupun log. |
-| BR-04 | NIK harus unik. Satu NIK tidak boleh membuat lebih dari satu akun atau pendaftaran identitas yang sama. |
-| BR-05 | Profil Asesi, pemilihan skema, pendaftaran asesmen, pra-asesmen, portofolio, jadwal, dan sertifikat privat hanya boleh diakses oleh akun Asesi yang sudah login. |
-| BR-06 | Asesi hanya dapat memilih dan mendaftar pada skema yang **belum pernah diuji** oleh Asesi tersebut. Skema pernah diuji tidak boleh ditampilkan sebagai pilihan dan backend tetap wajib menolak request yang dimanipulasi. |
-| BR-07 | Status apa pun yang membuktikan Asesi sudah pernah masuk proses uji pada suatu `skema_id` dianggap sebagai riwayat uji, termasuk pendaftaran aktif, selesai, kompeten, atau belum kompeten. Backend harus memakai satu definisi yang konsisten pada endpoint daftar skema dan endpoint pendaftaran. |
+| BR-01 | Pengguna (Admin / Pengelola / User Dashboard) dapat melihat statistik sebaran domisili asesor per provinsi. |
+| BR-02 | Ketika pengguna memilih/menekan salah satu card provinsi domisili, sistem membuka screen tambahan (**Detail Domisili Asesor**). |
+| BR-03 | Screen detail wajib menyediakan fitur **Searchbar di bagian atas** untuk mencari nama asesor, nomor MET/Registrasi, skema keahlian, atau kota/kabupaten secara real-time. |
+| BR-04 | Backend wajib menyediakan endpoint khusus untuk mengambil daftar nama-nama asesor berdasarkan `provinsi_id` beserta filter pencarian (`search`) dan tipe asesor (`tipe`: `semua`, `internal`, `external`). |
+| BR-05 | Setiap item asesor wajib mengembalikan data lengkap: Nama lengkap, Nomor MET/Reg, Tipe Asesor (Internal/External), Kota/Kabupaten, Provinsi, Email, No. HP/WA, Skema Keahlian, dan Status Keaktifan. |
 
-## Autentikasi dan Otorisasi
+---
 
-Semua endpoint privat wajib memakai header berikut:
+## 2. Autentikasi dan Header Request
+
+Endpoint ini membutuhkan autentikasi pengguna:
 
 ```http
 Authorization: Bearer <access_token>
 Accept: application/json
 ```
 
-| Area | Akses |
-|---|---|
-| Informasi publik, pencarian sertifikat, validasi sertifikat, pendaftaran publik | Tanpa token |
-| Data pribadi dan proses sertifikasi Asesi | JWT dengan role `asesi` |
-| Data Admin/Asesor | Mengikuti role masing-masing; token Asesi tidak boleh mengaksesnya |
+---
 
-## Endpoint
+## 3. Spesifikasi Endpoint API
 
-### 1. Pendaftaran Publik dan Akun Otomatis
+### 3.1. Daftar Asesor per Provinsi Domisili
 
 | Metode | Endpoint | Auth | Fungsi |
 |---|---|---|---|
-| `POST` | `/api/public/registrasi` | Publik | Menyimpan pendaftaran calon Asesi dan membuat akun Asesi otomatis |
+| `GET` | `/api/dashboard/domisili-asesor/:provinsi_id/asesor` | Bearer Token | Mengambil daftar nama-nama asesor berdomisili di provinsi tertentu |
 
-#### Request
+#### Path Parameter:
+| Parameter | Tipe | Contoh | Keterangan |
+|---|---|---|---|
+| `provinsi_id` | String / Integer | `31` | ID unik provinsi domisili |
 
-```json
-{
-  "nik": "6201010101010001",
-  "nama_lengkap": "Nama Calon Asesi",
-  "email": "calon.asesi@example.com",
-  "no_telepon": "081234567890",
-  "alamat": "Alamat domisili calon Asesi"
-}
-```
+#### Query Parameters (Opsional):
+| Parameter | Tipe | Contoh | Keterangan |
+|---|---|---|---|
+| `search` | String | `Budi` / `MET.2024` | Filter pencarian berdasarkan nama asesor, nomor MET, skema keahlian, atau kota/kabupaten |
+| `tipe` | String | `semua` / `internal` / `external` | Filter tipe keanggotaan asesor (default: `semua`) |
+| `limit` | Integer | `50` | Batas jumlah data per halaman (default: `50`) |
+| `offset` | Integer | `0` | Posisi offset pagination (default: `0`) |
 
-| Field | Wajib | Validasi |
-|---|---:|---|
-| `nik` | Ya | String numerik 16 digit dan belum terdaftar sebagai akun/identitas Asesi |
-| `nama_lengkap` | Ya | Tidak kosong |
-| `email` | Ya | Format email valid |
-| `no_telepon` | Ya | Nomor telepon valid |
-| `alamat` | Ya | Tidak kosong |
+---
 
-#### Proses Backend Wajib
-
-1. Validasi seluruh field dan normalisasi NIK sebagai string.
-2. Pastikan NIK belum ada pada akun pengguna maupun data Asesi.
-3. Buat akun pengguna dengan `role: "asesi"`, identity/username berupa NIK, dan password awal `123456` yang disimpan sebagai hash.
-4. Buat record Asesi yang terhubung ke akun tersebut dalam satu transaksi database.
-5. Jika salah satu proses gagal, rollback seluruh transaksi agar tidak ada akun atau Asesi yatim.
-6. Jangan mengirim password, hash password, token, atau detail internal melalui response maupun log.
-
-#### Response Berhasil: `201 Created`
+### 3.2. Contoh Response Berhasil (`200 OK`)
 
 ```json
 {
   "status": "success",
-  "message": "Pendaftaran berhasil. Akun Asesi telah dibuat.",
+  "message": "Data asesor domisili berhasil diambil",
   "data": {
-    "asesi_id": 451,
-    "identity": "6201010101010001",
-    "role": "asesi",
-    "login_instruction": "Masuk menggunakan NIK dan password awal 123456."
-  }
-}
-```
-
-#### Respons Gagal
-
-| Kondisi | HTTP | Pesan minimum |
-|---|---:|---|
-| Field tidak valid | `422` | Menjelaskan field yang harus diperbaiki |
-| NIK telah terdaftar | `409` | `NIK sudah terdaftar. Silakan login menggunakan NIK Anda.` |
-| Gangguan transaksi | `500` | Pesan aman tanpa detail internal |
-
-### 2. Login Asesi
-
-| Metode | Endpoint | Auth | Fungsi |
-|---|---|---|---|
-| `POST` | `/api/auth/login` | Publik | Login akun yang dibuat otomatis maupun akun lain |
-
-#### Request login Asesi
-
-```json
-{
-  "identity": "6201010101010001",
-  "password": "123456",
-  "role": "asesi"
-}
-```
-
-#### Response Berhasil: `200 OK`
-
-```json
-{
-  "status": "success",
-  "data": {
-    "token": "<access_token>",
-    "refresh_token": "<refresh_token>",
-    "user": {
-      "id": 1,
-      "name": "Nama Calon Asesi",
-      "identity": "6201010101010001",
-      "role": "asesi",
-      "roles": ["asesi"]
-    }
-  }
-}
-```
-
-### 3. Daftar Skema yang Bisa Dipilih Asesi
-
-| Metode | Endpoint | Auth | Fungsi |
-|---|---|---|---|
-| `GET` | `/api/sertifikat/skema` | Role `asesi` | Mengambil hanya skema yang belum pernah diuji oleh Asesi login |
-| `GET` | `/api/sertifikat/skema/bidang` | Role `asesi` | Mengambil bidang/filter skema yang masih dapat dipilih |
-| `GET` | `/api/sertifikat/skema/:id` | Role `asesi` | Mengambil detail skema yang dapat dipilih |
-| `GET` | `/api/sertifikat/skema/:id/asesor` | Role `asesi` | Mengambil rekomendasi asesor untuk skema yang dapat dipilih |
-
-#### Query opsional
-
-| Parameter | Contoh | Fungsi |
-|---|---|---|
-| `search` | `digital marketing` | Cari nama atau kode skema |
-| `bidang_id` | `2` | Filter bidang skema |
-| `limit` | `20` | Batas jumlah data |
-| `offset` | `0` | Posisi pagination |
-
-#### Ketentuan Filter Wajib
-
-Backend harus menentukan daftar `skema_id` riwayat Asesi dari akun JWT, lalu mengecualikannya dari hasil. Frontend tidak boleh menjadi satu-satunya pengaman.
-
-```text
-eligible_schemes = all_schemes MINUS schemes_ever_tested_by_current_asesi
-```
-
-#### Response Berhasil: `200 OK`
-
-```json
-{
-  "status": "success",
-  "data": [
-    {
-      "id_skema": 8,
-      "kode_skema": "SKM-UI-008",
-      "skema": "Junior Web Developer",
-      "kategori": "Informatika",
-      "is_eligible": true
-    }
-  ],
+    "provinsi_id": "31",
+    "provinsi_nama": "DKI Jakarta",
+    "total_asesor": 15,
+    "total_internal": 10,
+    "total_external": 5,
+    "asesor_list": [
+      {
+        "id": "1",
+        "nama_asesor": "Dr. Ir. Budi Santoso, M.Kom",
+        "no_met": "MET.2024.000192",
+        "tipe_asesor": "Internal",
+        "provinsi": "DKI Jakarta",
+        "kabupaten_kota": "Kota Jakarta Selatan",
+        "email": "budi.santoso@lsp.or.id",
+        "no_hp": "081234567890",
+        "skema_keahlian": "Software Development / Web Programmer",
+        "status": "Aktif"
+      },
+      {
+        "id": "2",
+        "nama_asesor": "Siti Rahmawati, S.T., M.T.",
+        "no_met": "MET.2023.005112",
+        "tipe_asesor": "External",
+        "provinsi": "DKI Jakarta",
+        "kabupaten_kota": "Kota Jakarta Barat",
+        "email": "siti.rahma@gmail.com",
+        "no_hp": "081987654321",
+        "skema_keahlian": "Digital Marketing Specialist",
+        "status": "Aktif"
+      }
+    ]
+  },
   "meta": {
-    "excluded_previously_tested_count": 2,
-    "limit": 20,
+    "total_count": 15,
+    "filtered_count": 2,
+    "limit": 50,
     "offset": 0
   }
 }
 ```
 
-Jika seluruh skema sudah pernah diuji, endpoint tetap mengembalikan `200 OK` dengan `data: []` dan metadata yang benar.
+---
 
-### 4. Detail Status Sertifikasi
+### 3.3. Deskripsi Schema Fields
 
-| Metode | Endpoint | Auth | Fungsi |
-|---|---|---|---|
-| `GET` | `/api/sertifikasi/status?skema_id=:id` | Role `asesi` | Menampilkan status pendaftaran Asesi untuk skema tertentu |
+| Field Data | Tipe | Keterangan |
+|---|---|---|
+| `provinsi_id` | String | ID Provinsi |
+| `provinsi_nama` | String | Nama resmi Provinsi |
+| `total_asesor` | Integer | Total jumlah asesor di provinsi tersebut |
+| `total_internal` | Integer | Jumlah asesor bertipe Internal |
+| `total_external` | Integer | Jumlah asesor bertipe External/Eksternal |
+| `asesor_list[].id` | String | Unique ID record asesor |
+| `asesor_list[].nama_asesor` | String | Nama lengkap asesor beserta gelar |
+| `asesor_list[].no_met` | String | Nomor MET / Nomor Registrasi Asesor |
+| `asesor_list[].tipe_asesor` | String | Tipe asesor: `"Internal"` atau `"External"` |
+| `asesor_list[].provinsi` | String | Nama provinsi domisili |
+| `asesor_list[].kabupaten_kota` | String | Nama kota/kabupaten domisili |
+| `asesor_list[].email` | String | Email aktif asesor |
+| `asesor_list[].no_hp` | String | Nomor HP/Whatsapp aktif asesor |
+| `asesor_list[].skema_keahlian` | String | Bidang / Skema kompetensi keahlian asesor |
+| `asesor_list[].status` | String | Status keaktifan asesor (`"Aktif"` / `"Inaktif"`) |
 
-Response harus membedakan skema yang belum pernah diuji dan yang pernah diuji:
+---
 
-```json
-{
-  "status": "success",
-  "data": {
-    "skema_id": 1,
-    "is_eligible": false,
-    "has_been_tested": true,
-    "status_pendaftaran": "selesai",
-    "message": "Anda sudah pernah diuji pada skema ini dan tidak dapat mendaftar kembali."
-  }
-}
-```
-
-### 5. Pendaftaran Asesmen
-
-| Metode | Endpoint | Auth | Fungsi |
-|---|---|---|---|
-| `POST` | `/api/sertifikasi/daftar` | Role `asesi` | Mendaftarkan Asesi ke skema yang belum pernah diuji |
-
-#### Request
-
-```json
-{
-  "skema_id": 8,
-  "tuk_id": 2,
-  "tanggal_rencana": "2026-08-10"
-}
-```
-
-#### Validasi Server Wajib
-
-1. Identitas Asesi berasal dari JWT, bukan dari request body.
-2. `skema_id` harus ada dan tersedia.
-3. `skema_id` tidak boleh berada dalam riwayat skema yang pernah diuji oleh Asesi.
-4. TUK dan tanggal rencana harus valid untuk skema tersebut.
-5. Gunakan transaksi dan constraint/locking yang tepat agar dua request paralel tidak membuat pendaftaran ganda.
-
-#### Response Berhasil: `201 Created`
-
-```json
-{
-  "status": "success",
-  "message": "Pendaftaran berhasil disimpan",
-  "data": {
-    "sertifikasi_id": 451,
-    "status": "terdaftar",
-    "skema_id": 8
-  }
-}
-```
-
-#### Response Skema Pernah Diuji: `422 Unprocessable Entity`
+## 4. Format Error Standard
 
 ```json
 {
   "status": "error",
-  "code": "SCHEME_ALREADY_TESTED",
-  "message": "Anda sudah pernah diuji pada skema ini dan tidak dapat mendaftar kembali."
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "Data provinsi atau asesor tidak ditemukan.",
+  "errors": null
 }
 ```
 
-### 6. Endpoint Privat Asesi Lainnya
-
-Endpoint berikut tetap diperlukan untuk proses setelah akun dibuat dan login. Semua wajib memverifikasi role `asesi` serta kepemilikan sumber daya dari JWT.
-
-| Metode | Endpoint | Fungsi |
-|---|---|---|
-| `GET` | `/api/asesi/dashboard` | Ringkasan skema, sertifikat, banner, dan berita Asesi |
-| `GET` | `/api/asesi/jadwal` | Jadwal milik Asesi login |
-| `GET` | `/api/pra-asesmen/skema/:id/info` | Informasi pra-asesmen milik Asesi |
-| `GET` | `/api/pra-asesmen/skema/:id/kompetensi` | Unit kompetensi dan KUK |
-| `POST` | `/api/pra-asesmen/skema/:id/submit` | Simpan jawaban pra-asesmen |
-| `GET` | `/api/sertifikasi/:id/portofolio` | Daftar portofolio pendaftaran milik Asesi |
-| `POST` | `/api/sertifikasi/:id/portofolio/upload` | Unggah portofolio multipart |
-| `GET` | `/api/asesor/profile` | Data diri bersama untuk Asesor/Asesi |
-| `PUT` | `/api/asesor/profile` | Ubah data diri yang diizinkan |
-| `GET` | `/api/asesi/instansi` | Data instansi Asesi |
-| `PUT` | `/api/asesi/instansi` | Ubah data instansi Asesi |
-| `GET` | `/api/asesi/sertifikat` | Sertifikat terbit milik Asesi |
-| `GET` | `/api/asesi/sertifikat/:id` | Detail sertifikat milik Asesi |
-| `POST` | `/api/asesi/sertifikat/:id/upload-ttd` | Unggah foto/TTD sertifikat |
-| `GET` | `/api/asesi/sertifikat/:id/download` | URL unduh sertifikat milik Asesi |
-
-### 7. Endpoint Publik Tetap
-
-| Metode | Endpoint | Fungsi |
-|---|---|---|
-| `GET` | `/api/berita` | Daftar berita publik |
-| `GET` | `/api/berita/:id` | Detail berita publik |
-| `GET` | `/api/sertifikat/search` | Pencarian sertifikat publik |
-| `POST` | `/api/sertifikat/validate` | Validasi nomor sertifikat publik |
-
-## Format Error Global
-
-```json
-{
-  "status": "error",
-  "code": "MACHINE_READABLE_CODE",
-  "message": "Pesan yang aman dan dapat ditampilkan ke pengguna.",
-  "errors": {
-    "field": ["Pesan validasi field"]
-  }
-}
-```
-
-| HTTP | Penggunaan |
+| HTTP Status | Keterangan |
 |---:|---|
-| `401` | Token tidak ada, tidak valid, atau kedaluwarsa |
-| `403` | Role tidak memiliki akses |
-| `404` | Sumber daya tidak ada atau bukan milik pengguna |
-| `409` | NIK sudah memiliki akun/pendaftaran identitas yang sama |
-| `422` | Validasi request gagal atau Asesi memilih skema yang pernah diuji |
-| `500` | Kegagalan internal tanpa membocorkan detail sistem |
+| `401` | Unauthorized - Token JWT tidak valid atau expired |
+| `404` | Not Found - `provinsi_id` tidak ditemukan |
+| `500` | Internal Server Error - Server gagal memproses request |
 
-## Kriteria Penerimaan Backend
+---
+
+## 5. Kriteria Penerimaan Backend (Acceptance Criteria)
 
 | ID | Kriteria |
 |---|---|
-| AC-01 | Pendaftaran publik dengan NIK baru membuat tepat satu akun `asesi` dan tepat satu record Asesi secara atomik. |
-| AC-02 | NIK yang sama tidak dapat membuat akun kedua dan menghasilkan `409`. |
-| AC-03 | Akun hasil pendaftaran dapat login menggunakan NIK serta password awal `123456`. |
-| AC-04 | Tanpa JWT, pengguna tidak dapat membuka profil atau memulai proses asesmen. |
-| AC-05 | Endpoint daftar skema tidak mengembalikan skema yang pernah diuji oleh Asesi login. |
-| AC-06 | `POST /api/sertifikasi/daftar` menolak skema pernah diuji dengan `422` dan kode `SCHEME_ALREADY_TESTED`, termasuk bila request dibuat di luar aplikasi. |
-| AC-07 | Asesi tidak dapat membaca, mengubah, atau mengunduh sumber daya milik Asesi lain. |
-
-### 8. Endpoint Admin Honor Asesor
-
-Modul ini digunakan oleh pengguna berhak akses `admin` untuk mengelola honorarium Asesor, melihat daftar tugas per Asesor, serta memperbarui status pembayaran dan bukti transfer.
-
-#### 8.1. Daftar Honor Asesor (`HonorAsesorScreen`)
-
-| Metode | Endpoint | Auth | Fungsi |
-|---|---|---|---|
-| `GET` | `/api/admin/honor-asesor` | Role `admin` | Mengambil daftar summary honor per Asesor |
-
-##### Query Parameters:
-| Parameter | Contoh | Keterangan |
-|---|---|---|
-| `status` | `semua` / `menunggu` / `selesai` | Filter status pembayaran honor (default: `semua`) |
-| `bulan` | `2026-07` / `semua` | Filter periode bulan (default: bulan berjalan) |
-| `search` | `Karina` / `Programmer` | Pencarian nama asesor, tipe, atau judul skema |
-| `limit` | `20` | Batas jumlah data per halaman |
-| `offset` | `0` | Offset pagination |
-
-##### Response Berhasil: `200 OK`
-
-```json
-{
-  "status": "success",
-  "data": [
-    {
-      "id": 1,
-      "nama_asesor": "Karina",
-      "tipe_asesor": "Asessor Internal",
-      "judul_asesmen": "Sertifikasi Software Development",
-      "skema": "Skema Programmer",
-      "honor": "Rp 4.000.000",
-      "total_honor_numeric": 4000000,
-      "status": "Selesai",
-      "tanggal": "20 Juli 2026",
-      "avatar_url": null
-    },
-    {
-      "id": 2,
-      "nama_asesor": "Budi Santoso",
-      "tipe_asesor": "Asessor Eksternal",
-      "judul_asesmen": "Uji Kompetensi Digital Marketing",
-      "skema": "Digital Marketing",
-      "honor": "Rp 2.250.000",
-      "total_honor_numeric": 2250000,
-      "status": "Menunggu",
-      "tanggal": "18 Juli 2026",
-      "avatar_url": null
-    }
-  ],
-  "meta": {
-    "total_count": 2,
-    "menunggu_count": 1,
-    "selesai_count": 1,
-    "selected_month": "Juli 2026"
-  }
-}
-```
-
----
-
-#### 8.2. Detail Tugas Asesor (`DetailTugasAsesorScreen`)
-
-| Metode | Endpoint | Auth | Fungsi |
-|---|---|---|---|
-| `GET` | `/api/admin/honor-asesor/:asesor_id/tugas` | Role `admin` | Mengambil info Asesor dan daftar seluruh tugas honor milik Asesor tersebut |
-
-##### Query Parameters:
-| Parameter | Contoh | Keterangan |
-|---|---|---|
-| `status` | `semua` / `selesai` / `menunggu` | Filter status tugas honor Asesor |
-
-##### Response Berhasil: `200 OK`
-
-```json
-{
-  "status": "success",
-  "data": {
-    "asesor_info": {
-      "id": 1,
-      "nama_asesor": "Karina",
-      "tipe_asesor": "Asessor Internal",
-      "status_keaktifan": "Aktif",
-      "total_honor": "Rp 4.000.000",
-      "total_honor_numeric": 4000000,
-      "avatar_url": null
-    },
-    "counts": {
-      "semua": 3,
-      "selesai": 2,
-      "menunggu": 1
-    },
-    "tugas": [
-      {
-        "id": 101,
-        "judul": "Junior Grafik Desain",
-        "tuk": "TUK : SMK 2 Jakarta",
-        "waktu": "07/05/2026 09:00 wib",
-        "mode": "Offline",
-        "honor": "Rp 2.250.000",
-        "status": "Selesai"
-      },
-      {
-        "id": 102,
-        "judul": "Junior Web Developer",
-        "tuk": "TUK : SMA 5 Semarang",
-        "waktu": "20/05/2026 09:00 wib",
-        "mode": "Offline",
-        "honor": "Rp 2.250.000",
-        "status": "Selesai"
-      },
-      {
-        "id": 103,
-        "judul": "Conten Creator",
-        "tuk": "TUK : LPP Tenggerang",
-        "waktu": "20/06/2026 09:00 wib",
-        "mode": "Offline",
-        "honor": "Rp 2.150.000",
-        "status": "Menunggu"
-      }
-    ]
-  }
-}
-```
-
----
-
-#### 8.3. Detail Honor Asesor (`DetailHonorScreen`)
-
-| Metode | Endpoint | Auth | Fungsi |
-|---|---|---|---|
-| `GET` | `/api/admin/honor-asesor/tugas/:tugas_id` | Role `admin` | Mengambil detail komprehensif rincian honor tugas tertentu |
-
-##### Response Berhasil: `200 OK`
-
-```json
-{
-  "status": "success",
-  "data": {
-    "tugas_id": 102,
-    "judul_asesmen": "Junior Web Developer",
-    "tuk": "SMA 5 Semarang",
-    "waktu": "20/05/2026 09:00 wib",
-    "mode": "Offline",
-    "status_pembayaran": "Pembayaran Selesai",
-    "rincian_honor": {
-      "honor_asesmen": 2250000,
-      "uang_kendaraan": 100000,
-      "uang_makan": 0,
-      "lainnya": 0,
-      "total_honor": 4000000
-    },
-    "lampiran_bukti": {
-      "file_name": "bukti_pembayaran.jpg",
-      "file_url": "https://api.lsp.id/uploads/bukti_pembayaran_102.jpg"
-    },
-    "catatan": "-"
-  }
-}
-```
-
----
-
-#### 8.4. Update Status & Upload Bukti Honor (`DetailHonorScreen`)
-
-| Metode | Endpoint | Auth | Content-Type | Fungsi |
-|---|---|---|---|---|
-| `POST` / `PUT` | `/api/admin/honor-asesor/tugas/:tugas_id` | Role `admin` | `multipart/form-data` | Memperbarui status pembayaran, catatan, dan mengunggah berkas bukti pembayaran |
-
-##### Form Data Body (Multipart):
-| Key | Tipe | Wajib | Keterangan |
-|---|---|---:|---|
-| `status` | String | Ya | `"Pembayaran Selesai"` atau `"Menunggu Pembayaran"` |
-| `catatan` | String | Tidak | Teks catatan/keterangan tambahan (maks 200 karakter) |
-| `bukti_pembayaran` | File | Tidak | Berkas lampiran bukti transfer (`.jpg`, `.jpeg`, `.png`, `.pdf`) |
-
-##### Response Berhasil: `200 OK`
-
-```json
-{
-  "status": "success",
-  "message": "Pembayaran Honor Asessor Telah Di Simpan",
-  "data": {
-    "tugas_id": 102,
-    "status": "Pembayaran Selesai",
-    "catatan": "-",
-    "bukti_pembayaran": {
-      "file_name": "bukti_pembayaran.jpg",
-      "file_url": "https://api.lsp.id/uploads/bukti_pembayaran_102.jpg"
-    },
-    "updated_at": "2026-08-01T10:15:00Z"
-  }
-}
-```
-
-##### Respons Gagal Validasi: `422 Unprocessable Entity`
-
-```json
-{
-  "status": "error",
-  "code": "VALIDATION_ERROR",
-  "message": "Format file bukti pembayaran tidak didukung atau ukuran file melebihi batas.",
-  "errors": {
-    "bukti_pembayaran": ["File harus berupa JPG, PNG, atau PDF."]
-  }
-}
-```
-
----
-
-## 9. Perbaikan Rumus Perhitungan Status Hari Jadwal (`days_remaining` & `days_late`)
-
-Modul ini memerlukan penyesuaian pada backend (`internal/usecase/jadwal_usecase.go`) untuk menghitung selisih hari berdasarkan tanggal kalender (Midnight `00:00:00`), bukan presisi jam/menit/detik runtime saat ini (`time.Now()`).
-
-### 9.1. Latar Belakang Masalah
-Rumus backend sebelumnya:
-```go
-daysRemaining := int(time.Until(effectiveEndDate).Hours() / 24)
-daysPastEndDate := int(time.Since(effectiveEndDate).Hours() / 24)
-```
-- **Bug Presisi Jam**: `time.Until()` / `time.Since()` menghitung jam riil. Misal jadwal berakhir besok (4 Agt `00:00:00`), tetapi API dipanggil malam ini (3 Agt jam 23:00), `time.Until()` menghasilkan `1 jam`. `1 / 24` menghasilkan `0` (jadwal berakhir besok salah terhitung sebagai `0` / Hari Ini).
-- **Format Label UI yang Diharapkan**:
-  - `days_remaining == 0` -> **"Hari Ini"** (TIDAK BOLEH tampil "Sisa 0 hari")
-  - `days_remaining == 1` -> **"Besok"**
-  - `days_remaining > 1` -> **"{N} Hari Lagi"** (contoh: *30 Hari Lagi*)
-  - `days_late > 0` -> **"Lewat {N} Hari"** (contoh: *Lewat 30 Hari*)
-
-### 9.2. Perbaikan Rumus di Backend Go (`jadwal_usecase.go`)
-
-Harap perbarui fungsi `mapToJadwalItem` dan `mapToJadwalOutOfDateItem` agar menormalisasi jam kedua tanggal ke `00:00:00`:
-
-```go
-// 1. Normalisasi tanggal hari ini ke Midnight (00:00:00)
-now := time.Now()
-today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-
-// 2. Normalisasi effectiveEndDate ke Midnight (00:00:00)
-endDate := time.Date(effectiveEndDate.Year(), effectiveEndDate.Month(), effectiveEndDate.Day(), 0, 0, 0, 0, now.Location())
-
-// 3. Hitung selisih hari kalender
-diffDays := int(endDate.Sub(today).Hours() / 24)
-
-var daysRemaining int
-var daysLate *int
-
-if diffDays >= 0 {
-    // Belum lewat / Hari H
-    daysRemaining = diffDays // 0 = Hari Ini, 1 = Besok, >1 = X Hari Lagi
-    daysLate = nil
-} else {
-    // Sudah lewat
-    daysRemaining = 0
-    late := -diffDays // Misal diffDays = -1 -> late = 1 (Lewat 1 Hari)
-    daysLate = &late
-}
-```
-
-
+| AC-01 | Endpoint `GET /api/dashboard/domisili-asesor/:provinsi_id/asesor` mengembalikan daftar nama-nama asesor secara akurat berdasarkan `provinsi_id`. |
+| AC-02 | Query parameter `search` mampu melakukan pencarian (case-insensitive) pada field `nama_asesor`, `no_met`, `skema_keahlian`, dan `kabupaten_kota`. |
+| AC-03 | Query parameter `tipe` mampu menyaring asesor berdasarkan tipe `internal` atau `external`. |
+| AC-04 | Response menyertakan ringkasan `total_asesor`, `total_internal`, dan `total_external` untuk kebutuhan tampilan KPI pada header screen. |

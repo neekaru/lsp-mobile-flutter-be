@@ -724,6 +724,107 @@ class AsesorHomebase {
 // Detailed Admin Statistics Models (Items #1-5)
 // ============================================================================
 
+class AsesorDomisiliItem {
+  final String id;
+  final String namaAsesor;
+  final String noMet;
+  final String tipeAsesor;
+  final String provinsi;
+  final String kabupatenKota;
+  final String email;
+  final String noHp;
+  final String skemaKeahlian;
+  final String status;
+
+  const AsesorDomisiliItem({
+    required this.id,
+    required this.namaAsesor,
+    required this.noMet,
+    required this.tipeAsesor,
+    required this.provinsi,
+    required this.kabupatenKota,
+    required this.email,
+    required this.noHp,
+    required this.skemaKeahlian,
+    required this.status,
+  });
+
+  factory AsesorDomisiliItem.fromJson(Map<String, dynamic> json) {
+    return AsesorDomisiliItem(
+      id: json['id']?.toString() ?? '',
+      namaAsesor: json['nama_asesor']?.toString() ?? json['nama']?.toString() ?? '',
+      noMet: json['no_met']?.toString() ?? json['no_reg']?.toString() ?? '-',
+      tipeAsesor: json['tipe_asesor']?.toString() ?? json['tipe']?.toString() ?? 'Internal',
+      provinsi: json['provinsi']?.toString() ?? '',
+      kabupatenKota: json['kabupaten_kota']?.toString() ?? json['kota']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      noHp: json['no_hp']?.toString() ?? json['telepon']?.toString() ?? '',
+      skemaKeahlian: json['skema_keahlian']?.toString() ?? json['skema']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'Aktif',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'nama_asesor': namaAsesor,
+      'no_met': noMet,
+      'tipe_asesor': tipeAsesor,
+      'provinsi': provinsi,
+      'kabupaten_kota': kabupatenKota,
+      'email': email,
+      'no_hp': noHp,
+      'skema_keahlian': skemaKeahlian,
+      'status': status,
+    };
+  }
+}
+
+class DomisiliAsesorDetailData {
+  final String provinsiId;
+  final String provinsiNama;
+  final int totalAsesor;
+  final int totalInternal;
+  final int totalExternal;
+  final List<AsesorDomisiliItem> asesorList;
+  final int totalCount;
+  final int filteredCount;
+
+  const DomisiliAsesorDetailData({
+    required this.provinsiId,
+    required this.provinsiNama,
+    required this.totalAsesor,
+    required this.totalInternal,
+    required this.totalExternal,
+    required this.asesorList,
+    required this.totalCount,
+    required this.filteredCount,
+  });
+
+  factory DomisiliAsesorDetailData.fromJson(Map<String, dynamic> json) {
+    final rawData = json['data'];
+    final data = rawData is Map<String, dynamic> ? rawData : <String, dynamic>{};
+    final rawMeta = json['meta'];
+    final meta = rawMeta is Map<String, dynamic> ? rawMeta : <String, dynamic>{};
+
+    final list = (data['asesor_list'] as List?)
+            ?.map((e) => AsesorDomisiliItem.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
+    return DomisiliAsesorDetailData(
+      provinsiId: data['provinsi_id']?.toString() ?? '',
+      provinsiNama: data['provinsi_nama']?.toString() ?? '',
+      totalAsesor: data['total_asesor'] ?? meta['total_count'] ?? 0,
+      totalInternal: data['total_internal'] ?? 0,
+      totalExternal: data['total_external'] ?? 0,
+      asesorList: list,
+      totalCount: meta['total_count'] ?? 0,
+      filteredCount: meta['filtered_count'] ?? list.length,
+    );
+  }
+}
+
 class DomisiliAsesorProvinsiItem {
   final String provinsiId;
   final String provinsiKode;
@@ -732,6 +833,7 @@ class DomisiliAsesorProvinsiItem {
   final int asesorInternal;
   final int asesorExternal;
   final double persentaseInternal;
+  final List<AsesorDomisiliItem> daftarAsesor;
 
   const DomisiliAsesorProvinsiItem({
     required this.provinsiId,
@@ -741,9 +843,17 @@ class DomisiliAsesorProvinsiItem {
     required this.asesorInternal,
     required this.asesorExternal,
     required this.persentaseInternal,
+    this.daftarAsesor = const [],
   });
 
   factory DomisiliAsesorProvinsiItem.fromJson(Map<String, dynamic> json) {
+    final rawAsesor = json['asesor_list'] ?? json['asesor'];
+    final listAsesor = (rawAsesor is List)
+        ? rawAsesor
+            .map((e) => AsesorDomisiliItem.fromJson(e as Map<String, dynamic>))
+            .toList()
+        : <AsesorDomisiliItem>[];
+
     return DomisiliAsesorProvinsiItem(
       provinsiId: json['provinsi_id']?.toString() ?? '',
       provinsiKode: json['provinsi_kode']?.toString() ?? '',
@@ -753,6 +863,7 @@ class DomisiliAsesorProvinsiItem {
       asesorExternal: json['asesor_external'] ?? 0,
       persentaseInternal:
           (json['persentase_internal'] as num?)?.toDouble() ?? 0.0,
+      daftarAsesor: listAsesor,
     );
   }
 }

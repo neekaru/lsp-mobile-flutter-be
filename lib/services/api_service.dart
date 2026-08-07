@@ -70,6 +70,20 @@ class ApiService {
       DashboardService.getTUKKabupaten(provinceId);
   static Future<DomisiliAsesorData?> getDomisiliAsesor() =>
       DashboardService.getDomisiliAsesor();
+  static Future<DomisiliAsesorDetailData?> getDomisiliAsesorDetail({
+    required String provinsiId,
+    String? search,
+    String? tipe,
+    int limit = 50,
+    int offset = 0,
+  }) =>
+      DashboardService.getDomisiliAsesorDetail(
+        provinsiId: provinsiId,
+        search: search,
+        tipe: tipe,
+        limit: limit,
+        offset: offset,
+      );
   static Future<List<KompetensiTeknisItem>> getKompetensiTeknis() =>
       DashboardService.getKompetensiTeknis();
   static Future<MasaBerlakuAsesorData?> getMasaBerlakuAsesor() =>

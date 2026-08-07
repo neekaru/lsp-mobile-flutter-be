@@ -1,271 +1,189 @@
-# Admin Honor Asesor API — Contract & Notes for Frontend
+# API Changes — Frontend Notes
 
-Semua endpoint Admin Honor Asesor wajib Bearer token + role `admin`. Jika role bukan `admin` → `403`.
+**Last Updated:** 2026-08-07
+
+---
+
+## 🆕 NEW: Detail Domisili Asesor — Daftar Nama-Nama Asesor per Provinsi
+
+**Added:** 2026-08-07
+
+### Endpoint: `GET /api/dashboard/domisili-asesor/:provinsi_id/asesor`
+
+Endpoint ini mengembalikan daftar nama-nama lengkap Asesor yang berdomisili di suatu provinsi tertentu. Digunakan ketika user menekan salah satu card provinsi di Dashboard Domisili Asesor.
+
+#### Path Parameter
+
+| Parameter | Type | Required | Example | Description |
+|---|---|---|---|---|
+| `provinsi_id` | String | Ya | `31` | ID provinsi (dari `master_provinsi.id`) |
+
+#### Query Parameters
+
+| Parameter | Type | Example | Default | Description |
+|---|---|---|---|---|
+| `search` | String | `Budi` / `MET.2024` | - | Pencarian nama asesor, nomor MET, skema keahlian, atau kota/kabupaten (case-insensitive) |
+| `tipe` | String | `semua` / `internal` / `external` | `semua` | Filter tipe asesor |
+| `limit` | Integer | `50` | `50` | Batas jumlah data per halaman (max: 200) |
+| `offset` | Integer | `0` | `0` | Posisi offset pagination |
+
+#### Example Request
 
 ```http
-Authorization: Bearer <access_token>
-Accept: application/json
+GET /api/dashboard/domisili-asesor/31/asesor?search=Budi&tipe=internal&limit=50&offset=0
+Authorization: Bearer {{token}}
 ```
 
----
-
-## Status Implementasi Endpoint
-
-| # | Metode | Endpoint | Status | Catatan |
-|---|--------|----------|--------|---------|
-| 1 | GET | `/api/admin/honor-asesor` | 🆕 BARU | Summary honor per Asesor |
-| 2 | GET | `/api/admin/honor-asesor/:asesor_id/tugas` | 🆕 BARU | Info Asesor + daftar tugas honor |
-| 3 | GET | `/api/admin/honor-asesor/tugas/:tugas_id` | 🆕 BARU | Detail rincian honor tugas |
-| 4 | POST | `/api/admin/honor-asesor/tugas/:tugas_id` | 🆕 BARU | Update status & link bukti |
-| 5 | PUT | `/api/admin/honor-asesor/tugas/:tugas_id` | 🆕 BARU | Alias POST (sama) |
-
-> ⚠️ **Urutan route penting**: `/honor-asesor/tugas/:tugas_id` didaftarkan **sebelum** `/honor-asesor/:asesor_id/tugas` agar segment literal `tugas` tidak tertangkap sebagai `:asesor_id`.
-
----
-
-## 1. Daftar Honor Asesor — `GET /api/admin/honor-asesor`
-
-**🆕 BARU**
-
-### Query Parameters
-
-| Parameter | Contoh | Keterangan |
-|---|---|---|
-| `status` | `semua` / `menunggu` / `selesai` | Filter status pembayaran honor (default: `semua`) |
-| `bulan` | `2026-07` / `semua` | Filter periode dari `tanggal` jadwal (default: **bulan berjalan**, `YYYY-MM`) |
-| `search` | `Masriah` / `Auditor IT` / `Eduwork` | Pencarian `u.users`, `s.skema`, atau `j.jadual` |
-| `limit` | `20` | Batas data per halaman (default 20, max 100) |
-| `offset` | `0` | Offset pagination |
-
-### Response `200 OK`
+#### Response `200 OK`
 
 ```json
 {
   "status": "success",
-  "data": [
-    {
-      "id": 1428,
-      "nama_asesor": "Asesor Demo LSP",
-      "tipe_asesor": "Asesor Internal",
-      "judul_asesmen": "Sertifikasi Desainer Multimedia Muda",
-      "skema": "Desainer Multimedia Madya",
-      "honor": "Rp. 8.250.000",
-      "total_honor_numeric": 8250000,
-      "status": "Menunggu",
-      "tanggal": "14 Juli 2026",
-      "avatar_url": null
-    }
-  ],
-  "meta": {
-    "total_count": 1,
-    "menunggu_count": 1,
-    "selesai_count": 0,
-    "selected_month": "Juli 2026"
-  }
-}
-```
-
-Backend notes:
-- **1 baris = 1 Asesor** — agregasi `lsp275_mapping_asesor` (GROUP BY `id_asesor`).
-- `honor` & `total_honor_numeric` = total honor seluruh tugas valid Asesor (parse teks → angka). Nilai non-numerik (`Langsung Dipotong Oleh TUK`) dan `0` **tidak dihitung**.
-- `status` Asesor = `Menunggu` jika **ada minimal satu** tugas berstatus `0`, else `Selesai`.
-- `judul_asesmen` & `skema` = dari tugas **terbaru** Asesor.
-- `meta.menunggu_count` / `meta.selesai_count` dihitung dari set **tanpa** filter `status` (untuk badge tab), tapi tetap mengikuti filter `bulan` + `search`.
-- `meta.selected_month` = `"Bulan Tahun"` dari param `bulan` (e.g. `2026-07` → `Juli 2026`), atau `"Semua Periode"` bila `bulan=semua`.
-- `avatar_url` sering `null` (kolom `foto_user` banyak kosong).
-- Hanya tugas pada jadwal valid: `status_jadwal IN ('1','4')`, `status_delete='1'`, `status_aktif='Y'`.
-
----
-
-## 2. Detail Tugas Asesor — `GET /api/admin/honor-asesor/:asesor_id/tugas`
-
-**🆕 BARU**
-
-`:asesor_id` = `lsp275_users.id` (id asesor, dari `data[].id` pada endpoint 1).
-
-### Query Parameters
-
-| Parameter | Contoh | Keterangan |
-|---|---|---|
-| `status` | `semua` / `selesai` / `menunggu` | Filter daftar tugas (default: `semua`) |
-
-### Response `200 OK`
-
-```json
-{
-  "status": "success",
+  "message": "Data asesor domisili berhasil diambil",
   "data": {
-    "asesor_info": {
-      "id": 1428,
-      "nama_asesor": "Asesor Demo LSP",
-      "tipe_asesor": "Asesor Internal",
-      "status_keaktifan": "Aktif",
-      "total_honor": "Rp. 8.250.000",
-      "total_honor_numeric": 8250000,
-      "avatar_url": null
-    },
-    "counts": {
-      "semua": 4,
-      "selesai": 0,
-      "menunggu": 4
-    },
-    "tugas": [
+    "provinsi_id": "31",
+    "provinsi_nama": "DKI Jakarta",
+    "total_asesor": 60,
+    "total_internal": 44,
+    "total_external": 16,
+    "asesor_list": [
       {
-        "id": 28375,
-        "judul": "Sertifikasi Desainer Multimedia Muda",
-        "tuk": "ITNY",
-        "waktu": "14/07/2026 09:00 - 15:00 wib",
-        "mode": "Offline",
-        "honor": "Rp. 2.750.000",
-        "status": "Menunggu"
+        "id": "9",
+        "nama_asesor": "Toto Parwono",
+        "no_met": "MET.000.003871.2018",
+        "tipe_asesor": "Internal",
+        "provinsi": "DKI Jakarta",
+        "kabupaten_kota": "Kota Jakarta Timur",
+        "email": "totoparwono@gmail.com",
+        "no_hp": "081802728279",
+        "skema_keahlian": "-",
+        "status": "Aktif"
+      },
+      {
+        "id": "25",
+        "nama_asesor": "Suroso",
+        "no_met": "MET.000.0008690.2016",
+        "tipe_asesor": "External",
+        "provinsi": "DKI Jakarta",
+        "kabupaten_kota": "Kota Jakarta Selatan",
+        "email": "asesorsuroso@gmail.com",
+        "no_hp": "0817-0200-777",
+        "skema_keahlian": "-",
+        "status": "Aktif"
       }
     ]
+  },
+  "meta": {
+    "total_count": 60,
+    "filtered_count": 2,
+    "limit": 50,
+    "offset": 0
   }
 }
 ```
 
-Backend notes:
-- `asesor_info.total_honor` dihitung dari **seluruh tugas valid** (tidak terpengaruh filter `status` pada daftar).
-- `counts` = per-status seluruh tugas (tidak terpengaruh filter).
-- `waktu` = `tanggal` (DD/MM/YYYY) + `waktu` jadwal + ` wib`.
-- `mode` = `jw.jenis_uji`: `1`→`Online`, `2`→`Offline`.
-- Asesor tidak ditemukan → `404`.
+#### Response Fields
 
----
+| Field | Type | Description |
+|---|---|---|
+| `data.provinsi_id` | String | ID provinsi |
+| `data.provinsi_nama` | String | Nama provinsi |
+| `data.total_asesor` | Integer | Total asesor di provinsi (tanpa filter search/tipe) |
+| `data.total_internal` | Integer | Total asesor Internal di provinsi |
+| `data.total_external` | Integer | Total asesor External di provinsi |
+| `data.asesor_list` | Array | Daftar asesor (dipengaruhi filter search & tipe) |
+| `asesor_list[].id` | String | ID unik asesor |
+| `asesor_list[].nama_asesor` | String | Nama lengkap asesor beserta gelar |
+| `asesor_list[].no_met` | String | Nomor MET/Registrasi asesor |
+| `asesor_list[].tipe_asesor` | String | `"Internal"` atau `"External"` |
+| `asesor_list[].provinsi` | String | Nama provinsi domisili |
+| `asesor_list[].kabupaten_kota` | String | Nama kota/kabupaten domisili |
+| `asesor_list[].email` | String | Email asesor (atau `"-"` jika kosong) |
+| `asesor_list[].no_hp` | String | Nomor HP/WA asesor (atau `"-"` jika kosong) |
+| `asesor_list[].skema_keahlian` | String | Bidang/skema kompetensi asesor (atau `"-"` jika kosong) |
+| `asesor_list[].status` | String | `"Aktif"` atau `"Inaktif"` |
+| `meta.total_count` | Integer | Total asesor di provinsi (tanpa filter) |
+| `meta.filtered_count` | Integer | Jumlah hasil setelah filter search & tipe |
+| `meta.limit` | Integer | Limit yang diterapkan |
+| `meta.offset` | Integer | Offset yang diterapkan |
 
-## 3. Detail Honor Asesor — `GET /api/admin/honor-asesor/tugas/:tugas_id`
+#### Backend Implementation Notes
 
-**🆕 BARU**
+- **Tipe Asesor** ditentukan dari field `instansi_asesor_external`:
+  - `Internal`: jika `instansi_asesor_external` kosong, NULL, atau mengandung `"LSP Teknologi Digital"` / `"LSP TD"` / `"LSPTD"` / `"Teknologi Digital"`
+  - `External`: selain kondisi di atas
+- **Search** berlaku pada: `users` (nama asesor), `no_reg` (no MET), `kompetensi_teknis` (skema keahlian), `kabupaten.name` (nama kota/kabupaten)
+- **Filter tipe**: `semua` (tanpa filter), `internal`, atau `external`
+- **Aggregasi** (`total_asesor`, `total_internal`, `total_external`) dihitung dari seluruh asesor di provinsi tanpa terpengaruh filter search/tipe
+- **Pagination** diterapkan pada `asesor_list`
+- Hanya asesor dengan `status_aktif='Y'`, `status_delete='1'`, dan `status_asesor='1'` yang ditampilkan
 
-`:tugas_id` = `lsp275_mapping_asesor.id` (`data[].tugas[].id` pada endpoint 2).
-
-### Response `200 OK`
-
-```json
-{
-  "status": "success",
-  "data": {
-    "tugas_id": 28372,
-    "judul_asesmen": "Sertifikasi Pemasaran Digital - ITNY",
-    "tuk": "ITNY",
-    "waktu": "28/05/2026 09:00 - 16:00 wib",
-    "mode": "Online",
-    "status_pembayaran": "Menunggu Pembayaran",
-    "rincian_honor": {
-      "honor_asesmen": 2000000,
-      "akomodasi": 0,
-      "potongan_pph": 100000,
-      "biaya_admin_transfer": 0,
-      "total_honor": 1900000
-    },
-    "lampiran_bukti": {
-      "file_name": "bukti_transfer",
-      "file_url": "https://cloud.lspdigital.id/s/..."
-    },
-    "catatan": "-"
-  }
-}
-```
-
-Backend notes:
-- `rincian_honor.total_honor` = `honor_asesmen − potongan_pph − biaya_admin_transfer` (**dihitung**, tidak tersimpan di DB). Jika negatif → `0`.
-- `honor_asesmen` / `akomodasi` / `potongan_pph` adalah hasil parse teks → angka (`Rp. 100.000` → `100000`). Nilai non-numerik (mis. `Transport & Penginapan`) → `0`.
-- `lampiran_bukti.file_url` = **satu URL teks** dari `ma.link_bukti_pembayaran` (Cloud/Drive), bukan file upload.
-- `catatan` **selalu `"-"`** — tidak ada kolom catatan pembayaran di DB (lihat Catatan Keterbatasan).
-- `status_pembayaran`: `"1"`→`Pembayaran Selesai`, `"0"`→`Menunggu Pembayaran`.
-- Tugas tidak ditemukan → `404`.
-
----
-
-## 4. Update Status & Bukti Honor — `POST /api/admin/honor-asesor/tugas/:tugas_id`
-
-**🆕 BARU** — Content-Type: `application/json` (bukan multipart).
-
-### Request Body
+#### Error Responses
 
 ```json
 {
-  "status": "1",
-  "link_bukti_pembayaran": "https://cloud.lspdigital.id/s/cRsd6FwsrJxnQiP"
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "provinsi_id is required"
 }
 ```
-
-| Key | Tipe | Wajib | Keterangan |
-|---|---|---|---|
-| `status` | String | Ya | Nilai enum DB: `"1"` (Pembayaran Selesai) atau `"0"` (Menunggu Pembayaran) — **bukan label** |
-| `link_bukti_pembayaran` | String | Tidak | URL bukti transfer (Cloud/Drive) |
-
-### Response `200 OK`
 
 ```json
 {
-  "status": "success",
-  "message": "Pembayaran Honor Asesor Telah Disimpan",
-  "data": {
-    "tugas_id": 28372,
-    "status": "1",
-    "link_bukti_pembayaran": "https://cloud.lspdigital.id/s/cRsd6FwsrJxnQiP",
-    "updated_at": "2026-08-01T10:15:00Z"
-  }
+  "status": "error",
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "Data provinsi atau asesor tidak ditemukan."
 }
-```
-
-Backend notes:
-- Tulis ke `lsp275_mapping_asesor`: `status_pembayaran_honor`, `link_bukti_pembayaran` (bila dikirim), `updated_when = NOW()`.
-- `status` selain `"0"`/`"1"` → `400`.
-- Tugas tidak ditemukan → `404` (tidak ada baris ter-update).
-
----
-
-## Catatan Keterbatasan Database (Penting untuk FE/Backend)
-
-1. **`honor` bertipe teks** (`VARCHAR`) dengan format tidak konsisten: `400000`, `750.000`, `1.000.000`, `Rp. 2.750.000`, `0`, bahkan `Langsung Dipotong Oleh TUK`. Backend mem-parse teks → angka (buang titik/koma/`Rp`) dan mengecualikan nilai non-numerik saat menghitung total.
-2. **Bukti transfer = satu URL teks** (`link_bukti_pembayaran`), bukan penyimpanan file biner. Tidak ada kolom `file_name` terpisah.
-3. **`tipe_asesor` (Internal/Eksternal) tidak tersimpan langsung** — diturunkan dari `instansi_asesor_external`: kosong/NULL atau mengandung `LSP TD`/`LSP Teknologi Digital` (atau `-`) → `Asesor Internal`; selain itu → `Asesor Eksternal`.
-4. **Tidak ada kolom `catatan`** pembayaran honor pada tabel manapun yang terkait → field `catatan` selalu `"-"`.
-5. **Nama skema hanya bisa diperoleh via `lsp275_mapping_skema → lsp275_skema`**, karena `lsp275_jadual_asesmen.id_skema` kosong pada data.
-6. **`avatar_url` (`foto_user`) banyak NULL** → sering `null`.
-7. **Filter `bulan` dihitung dari `tanggal` jadwal pelaksanaan**, bukan dari kolom pembayaran.
-8. **Pembayaran mengikuti `status_pembayaran_honor`** (`0`/`1`). Jadwal yang dipakai hanya `status_jadwal` = `1` (Selesai) atau `4` (Pelaporan), `status_delete='1'`, `status_aktif='Y'`.
-9. Field draft lama `uang_kendaraan`, `uang_makan`, `lainnya`, `file_name` **tidak ada** di DB. Yang tersedia: `honor`, `akomodasi`, `potongan_pph`, `biaya_admin_transfer`, `link_bukti_pembayaran`.
-
----
-
-## Error Response (semua endpoint)
-
-```json
-{ "status": "error", "message": "Pesan deskripsi kesalahan" }
 ```
 
 | Status | Penyebab |
 |--------|----------|
-| 400 | Param `status` tidak valid / bukan `0`/`1`, atau payload tidak lengkap |
-| 401 | Token JWT tidak valid / kedaluwarsa |
-| 403 | Role bukan `admin` |
-| 404 | Asesor / tugas honor tidak ditemukan |
+| 400 | `provinsi_id` tidak ada atau parameter tidak valid |
+| 401 | Token JWT tidak valid / expired |
+| 404 | Provinsi tidak ditemukan |
 | 500 | Kegagalan database/server |
+
+#### Use Case
+
+Frontend dapat mengimplementasikan:
+1. **Detail Screen** setelah user tap card provinsi di Dashboard Domisili Asesor
+2. **Searchbar** di bagian atas untuk real-time search nama/MET/skema/kota
+3. **Tab Filter** untuk memilih tipe asesor (Semua / Internal / External)
+4. **Header KPI** menampilkan `total_asesor`, `total_internal`, `total_external`
+5. **List Items** menampilkan detail lengkap setiap asesor
 
 ---
 
-## HTTP Client Examples
+## HTTP Client Example
 
 ```http
-### Daftar Honor Asesor
-GET /api/admin/honor-asesor?status=semua&bulan=2026-07
+### Get asesor list in DKI Jakarta (provinsi_id=31)
+GET /api/dashboard/domisili-asesor/31/asesor
 Authorization: Bearer {{token}}
 
-### Detail Tugas Asesor
-GET /api/admin/honor-asesor/1428/tugas?status=menunggu
+### Search asesor with name containing "Budi"
+GET /api/dashboard/domisili-asesor/31/asesor?search=Budi
 Authorization: Bearer {{token}}
 
-### Detail Honor Tugas
-GET /api/admin/honor-asesor/tugas/28372
+### Filter only external asesor
+GET /api/dashboard/domisili-asesor/31/asesor?tipe=external
 Authorization: Bearer {{token}}
 
-### Update Status & Bukti
-POST /api/admin/honor-asesor/tugas/28372
+### Combine search + filter + pagination
+GET /api/dashboard/domisili-asesor/31/asesor?search=MET.2024&tipe=internal&limit=20&offset=0
 Authorization: Bearer {{token}}
-Content-Type: application/json
-
-{ "status": "1", "link_bukti_pembayaran": "https://cloud.lspdigital.id/s/cRsd6FwsrJxnQiP" }
 ```
+
+---
+
+## Integration Checklist untuk Frontend
+
+- [ ] Implement `DomisiliAsesorDetailScreen` dengan Searchbar di bagian atas
+- [ ] Integrate API call `GET /api/dashboard/domisili-asesor/:provinsi_id/asesor`
+- [ ] Handle query params: `search`, `tipe`, `limit`, `offset`
+- [ ] Display header summary: `total_asesor`, `total_internal`, `total_external`
+- [ ] Implement tab filter tipe asesor (Semua / Internal / External)
+- [ ] Render list items dengan seluruh field asesor
+- [ ] Handle pagination (load more / infinite scroll)
+- [ ] Handle empty state ketika `filtered_count = 0`
+- [ ] Handle error responses (400, 401, 404, 500)

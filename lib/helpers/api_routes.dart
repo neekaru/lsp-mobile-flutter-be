@@ -37,6 +37,8 @@ class ApiRoutes {
       '/api/dashboard/asesor-homebase';
   static const String dashboardDomisiliAsesor =
       '/api/dashboard/domisili-asesor';
+  static String dashboardDomisiliAsesorDetail(String provinsiId) =>
+      '/api/dashboard/domisili-asesor/$provinsiId/asesor';
   static const String dashboardKompetensiTeknis =
       '/api/dashboard/kompetensi-teknis';
   static const String dashboardMasaBerlakuAsesor =

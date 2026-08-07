@@ -308,6 +308,43 @@ class DashboardService {
     }
   }
 
+  /// Fetch detail list of assessors for a specific provinsi domisili from Backend API
+  static Future<DomisiliAsesorDetailData?> getDomisiliAsesorDetail({
+    required String provinsiId,
+    String? search,
+    String? tipe,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      final Map<String, dynamic> queryParams = {
+        'limit': limit,
+        'offset': offset,
+      };
+      if (search != null && search.trim().isNotEmpty) {
+        queryParams['search'] = search.trim();
+      }
+      if (tipe != null &&
+          tipe.trim().isNotEmpty &&
+          tipe.trim().toLowerCase() != 'semua') {
+        queryParams['tipe'] = tipe.trim().toLowerCase();
+      }
+
+      final response = await _dio.get(
+        ApiRoutes.dashboardDomisiliAsesorDetail(provinsiId),
+        queryParameters: queryParams,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return DomisiliAsesorDetailData.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching detail domisili asesor: $e');
+      return null;
+    }
+  }
+
   /// Fetch Kompetensi Teknis Asesor by Skema ID
   static Future<List<KompetensiTeknisItem>> getKompetensiTeknis() async {
     try {
