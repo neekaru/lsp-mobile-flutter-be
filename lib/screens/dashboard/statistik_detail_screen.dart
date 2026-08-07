@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../models/sertifikat_models.dart';
+import '../../helpers/date_format_helper.dart';
 import '../../widgets/custom_app_bar.dart';
 
 class StatistikDetailScreen extends StatefulWidget {
@@ -16,6 +18,14 @@ class StatistikDetailScreen extends StatefulWidget {
 class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
   bool _isLoading = true;
   String _searchQuery = '';
+
+  // ── Cache state: avoid re-fetching on search/rebuild ──────────────────────
+  bool _hasCachedData = false;
+  DateTime? _lastFetchTime;
+  static const Duration _cacheValidDuration = Duration(minutes: 5);
+
+  // Debounce for search field
+  Timer? _debounceTimer;
 
   // Data state
   DomisiliAsesorData? _domisiliData;
@@ -33,8 +43,24 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     _loadData();
   }
 
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  bool get _isCacheValid =>
+      _hasCachedData &&
+      _lastFetchTime != null &&
+      DateTime.now().difference(_lastFetchTime!) < _cacheValidDuration;
+
+  Future<void> _loadData({bool forceRefresh = false}) async {
+    // Use cache if valid and not a pull-to-refresh
+    if (!forceRefresh && _isCacheValid) {
+      return;
+    }
+
+    if (mounted) setState(() => _isLoading = true);
 
     try {
       switch (widget.menuKey) {
@@ -67,6 +93,8 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           _sertifikatPerSkema = response.data;
           break;
       }
+      _hasCachedData = true;
+      _lastFetchTime = DateTime.now();
     } catch (e) {
       debugPrint('Error loading statistik detail data: $e');
     }
@@ -74,6 +102,14 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
     }
+  }
+
+  /// Debounced search — avoids re-rendering the whole list on every keystroke
+  void _onSearchChanged(String value) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
+      if (mounted) setState(() => _searchQuery = value);
+    });
   }
 
   String get _screenTitle {
@@ -124,7 +160,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
                     ),
                   )
                 : RefreshIndicator(
-                    onRefresh: _loadData,
+                    onRefresh: () => _loadData(forceRefresh: true),
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(16.0),
@@ -806,7 +842,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
                     ),
                     if (item.tglExpired.isNotEmpty)
                       Text(
-                        'Expired: ${item.tglExpired}',
+                        'Expired: ${DateFormatHelper.formatToIndonesian(item.tglExpired)}',
                         style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                       ),
                   ],
@@ -872,7 +908,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
 
   Widget _buildSearchField(String hint) {
     return TextField(
-      onChanged: (val) => setState(() => _searchQuery = val),
+      onChanged: _onSearchChanged,
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF94A3B8)),
