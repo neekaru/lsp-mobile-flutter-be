@@ -139,6 +139,102 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     }
   }
 
+  // ── Contextual dropdown: menu dalam group yang sama ──────────────────────
+  static const Map<String, List<Map<String, String>>> _menuGroups = {
+    'asesor_kompetensi': [
+      {'value': 'domisili_asesor', 'label': 'Domisili Asesor'},
+      {'value': 'kompetensi_teknis', 'label': 'Kompetensi Teknis'},
+      {'value': 'masa_berlaku', 'label': 'Masa Berlaku'},
+      {'value': 'spt_2026', 'label': 'SPT 2026'},
+    ],
+    'skema_sertifikasi': [
+      {'value': 'jenis_skema', 'label': 'Jenis Skema'},
+      {'value': 'muk', 'label': 'MUK'},
+      {'value': 'praktisi', 'label': 'Praktisi'},
+    ],
+    'pemegang_sertifikat': [
+      {'value': 'tahun_2026', 'label': 'Tahun 2026'},
+      {'value': '3_tahun', 'label': '3 Tahun'},
+      {'value': 'kompetensi', 'label': 'Kompetensi'},
+    ],
+  };
+
+  String get _menuGroup {
+    for (final entry in _menuGroups.entries) {
+      if (entry.value.any((m) => m['value'] == widget.menuKey)) {
+        return entry.key;
+      }
+    }
+    return '';
+  }
+
+  List<Map<String, String>> get _siblingMenus {
+    return _menuGroups[_menuGroup] ?? [];
+  }
+
+  String _menuLabel(String value) {
+    final all = _menuGroups.values.expand((g) => g).toList();
+    return all.firstWhere((m) => m['value'] == value,
+        orElse: () => {'value': value, 'label': value})['label']!;
+  }
+
+  Widget _buildContextualDropdown() {
+    final siblings = _siblingMenus;
+    if (siblings.length <= 1) return const SizedBox.shrink();
+
+    final currentLabel = _menuLabel(widget.menuKey);
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: widget.menuKey,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: Color(0xFF64748B)),
+          style: const TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+          dropdownColor: Colors.white,
+          items: siblings
+              .map((m) => DropdownMenuItem<String>(
+                    value: m['value'],
+                    child: Text(m['label']!),
+                  ))
+              .toList(),
+          onChanged: (value) {
+            if (value != null && value != widget.menuKey) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      StatistikDetailScreen(menuKey: value),
+                ),
+              );
+            }
+          },
+          selectedItemBuilder: (_) => [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.swap_horiz_rounded,
+                      size: 16, color: Color(0xFF2563EB)),
+                  const SizedBox(width: 6),
+                  Text(currentLabel),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
@@ -152,6 +248,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
             title: _screenTitle,
             onBack: () => Navigator.of(context).pop(),
           ),
+          _buildContextualDropdown(),
           Expanded(
             child: _isLoading
                 ? const Center(
