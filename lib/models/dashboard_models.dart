@@ -945,6 +945,82 @@ class MasaBerlakuAsesorData {
   }
 }
 
+class MasaBerlakuAsesorDetailItem {
+  final String id;
+  final String namaAsesor;
+  final String noMet;
+  final String statusMasaBerlaku;
+  final String tanggalExpired;
+  final int sisaHari;
+  final String skemaKeahlian;
+  final String provinsi;
+  final String kabupatenKota;
+  final String email;
+  final String noHp;
+
+  const MasaBerlakuAsesorDetailItem({
+    required this.id,
+    required this.namaAsesor,
+    required this.noMet,
+    required this.statusMasaBerlaku,
+    required this.tanggalExpired,
+    required this.sisaHari,
+    required this.skemaKeahlian,
+    required this.provinsi,
+    required this.kabupatenKota,
+    required this.email,
+    required this.noHp,
+  });
+
+  factory MasaBerlakuAsesorDetailItem.fromJson(Map<String, dynamic> json) {
+    return MasaBerlakuAsesorDetailItem(
+      id: json['id']?.toString() ?? '',
+      namaAsesor: json['nama_asesor']?.toString() ?? json['nama']?.toString() ?? '',
+      noMet: json['no_met']?.toString() ?? json['no_reg']?.toString() ?? '-',
+      statusMasaBerlaku: json['status_masa_berlaku']?.toString() ?? json['status']?.toString() ?? 'Tenggang',
+      tanggalExpired: json['tanggal_expired']?.toString() ?? json['tgl_expired']?.toString() ?? '-',
+      sisaHari: (json['sisa_hari'] as num?)?.toInt() ?? (json['days_remaining'] as num?)?.toInt() ?? 0,
+      skemaKeahlian: json['skema_keahlian']?.toString() ?? json['skema']?.toString() ?? '-',
+      provinsi: json['provinsi']?.toString() ?? '',
+      kabupatenKota: json['kabupaten_kota']?.toString() ?? json['kota']?.toString() ?? '',
+      email: json['email']?.toString() ?? '-',
+      noHp: json['no_hp']?.toString() ?? json['telepon']?.toString() ?? '-',
+    );
+  }
+}
+
+class MasaBerlakuAsesorDetailData {
+  final String statusFilter;
+  final int totalCount;
+  final List<MasaBerlakuAsesorDetailItem> asesorList;
+
+  const MasaBerlakuAsesorDetailData({
+    required this.statusFilter,
+    required this.totalCount,
+    required this.asesorList,
+  });
+
+  factory MasaBerlakuAsesorDetailData.fromJson(Map<String, dynamic> json) {
+    final rawData = json['data'];
+    final data = rawData is Map<String, dynamic> ? rawData : <String, dynamic>{};
+    final rawMeta = json['meta'];
+    final meta = rawMeta is Map<String, dynamic> ? rawMeta : <String, dynamic>{};
+
+    final rawList = data['asesor_list'] ?? data['items'] ?? (json['data'] is List ? json['data'] : null);
+    final list = (rawList is List)
+        ? rawList
+            .map((e) => MasaBerlakuAsesorDetailItem.fromJson(e as Map<String, dynamic>))
+            .toList()
+        : <MasaBerlakuAsesorDetailItem>[];
+
+    return MasaBerlakuAsesorDetailData(
+      statusFilter: data['status_filter']?.toString() ?? '',
+      totalCount: meta['total_count'] ?? data['total_count'] ?? list.length,
+      asesorList: list,
+    );
+  }
+}
+
 class JenisSkemaItem {
   final String kategori;
   final int jumlahSkema;

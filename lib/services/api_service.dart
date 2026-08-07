@@ -88,6 +88,18 @@ class ApiService {
       DashboardService.getKompetensiTeknis();
   static Future<MasaBerlakuAsesorData?> getMasaBerlakuAsesor() =>
       DashboardService.getMasaBerlakuAsesor();
+  static Future<MasaBerlakuAsesorDetailData?> getMasaBerlakuAsesorDetail({
+    required String status,
+    String? search,
+    int limit = 50,
+    int offset = 0,
+  }) =>
+      DashboardService.getMasaBerlakuAsesorDetail(
+        status: status,
+        search: search,
+        limit: limit,
+        offset: offset,
+      );
   static Future<List<JenisSkemaItem>> getJenisSkema() =>
       DashboardService.getJenisSkema();
   static Future<List<MUKDistribusiItem>> getMUKDistribusi() =>

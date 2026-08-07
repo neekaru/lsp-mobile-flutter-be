@@ -374,6 +374,38 @@ class DashboardService {
     }
   }
 
+  /// Fetch detail list of assessors by status masa berlaku (tenggang or expired)
+  static Future<MasaBerlakuAsesorDetailData?> getMasaBerlakuAsesorDetail({
+    required String status,
+    String? search,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      final Map<String, dynamic> queryParams = {
+        'status': status.trim().toLowerCase(),
+        'limit': limit,
+        'offset': offset,
+      };
+      if (search != null && search.trim().isNotEmpty) {
+        queryParams['search'] = search.trim();
+      }
+
+      final response = await _dio.get(
+        ApiRoutes.dashboardMasaBerlakuAsesorDetail,
+        queryParameters: queryParams,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return MasaBerlakuAsesorDetailData.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching detail masa berlaku asesor: $e');
+      return null;
+    }
+  }
+
   /// Fetch Jenis Skema by Category
   static Future<List<JenisSkemaItem>> getJenisSkema() async {
     try {

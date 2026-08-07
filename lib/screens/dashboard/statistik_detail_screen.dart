@@ -6,6 +6,7 @@ import '../../models/sertifikat_models.dart';
 import '../../helpers/date_format_helper.dart';
 import '../../widgets/custom_app_bar.dart';
 import 'domisili_asesor_detail_screen.dart';
+import 'masa_berlaku_asesor_detail_screen.dart';
 
 class StatistikDetailScreen extends StatefulWidget {
   final String menuKey;
@@ -562,46 +563,153 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildStatusCard('Sertifikat Aktif', '${data?.aktif ?? 0}', 'Masa berlaku masih aktif', Colors.green, Icons.check_circle_outline),
+        _buildStatusCard(
+          title: 'Sertifikat Aktif',
+          count: '${data?.aktif ?? 0}',
+          desc: 'Masa berlaku masih aktif',
+          color: Colors.green,
+          icon: Icons.check_circle_outline,
+        ),
         const SizedBox(height: 10),
-        _buildStatusCard('Masa Tenggang', '${data?.tenggang ?? 0}', 'Kurang dari 3 bulan menuju expired', Colors.orange, Icons.warning_amber_rounded),
+        _buildStatusCard(
+          title: 'Masa Tenggang',
+          count: '${data?.tenggang ?? 0}',
+          desc: 'Kurang dari 3 bulan menuju expired',
+          color: Colors.orange,
+          icon: Icons.warning_amber_rounded,
+          statusKey: 'tenggang',
+          numericCount: data?.tenggang ?? 0,
+        ),
         const SizedBox(height: 10),
-        _buildStatusCard('Expired / Kadaluarsa', '${data?.expired ?? 0}', 'Sertifikat sudah habis masa berlaku', Colors.red, Icons.cancel_outlined),
+        _buildStatusCard(
+          title: 'Expired / Kadaluarsa',
+          count: '${data?.expired ?? 0}',
+          desc: 'Sertifikat sudah habis masa berlaku',
+          color: Colors.red,
+          icon: Icons.cancel_outlined,
+          statusKey: 'expired',
+          numericCount: data?.expired ?? 0,
+        ),
       ],
     );
   }
 
-  Widget _buildStatusCard(String title, String count, String desc, Color color, IconData icon) {
-    return Container(
+  Widget _buildStatusCard({
+    required String title,
+    required String count,
+    required String desc,
+    required Color color,
+    required IconData icon,
+    String? statusKey,
+    int numericCount = 0,
+  }) {
+    final bool isClickable = statusKey != null;
+
+    Widget cardContent = Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withAlpha(50)),
+        boxShadow: isClickable
+            ? [
+                BoxShadow(
+                  color: color.withAlpha(15),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                )
+              ]
+            : null,
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withAlpha(20),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 24),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withAlpha(20),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: color)),
+                    const SizedBox(height: 2),
+                    Text(desc,
+                        style: const TextStyle(
+                            fontSize: 11, color: Color(0xFF64748B))),
+                  ],
+                ),
+              ),
+              Text(count,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: color)),
+              if (isClickable) ...[
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: color,
+                ),
+              ],
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          if (isClickable) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color)),
-                const SizedBox(height: 2),
-                Text(desc, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                Text(
+                  'Lihat Daftar Asesor',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 12,
+                  color: color,
+                ),
               ],
             ),
-          ),
-          Text(count, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: color)),
+          ],
         ],
+      ),
+    );
+
+    if (!isClickable) return cardContent;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MasaBerlakuAsesorDetailScreen(
+                statusFilter: statusKey,
+                count: numericCount,
+              ),
+            ),
+          );
+        },
+        child: cardContent,
       ),
     );
   }

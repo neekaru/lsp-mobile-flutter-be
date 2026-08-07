@@ -43,6 +43,8 @@ class ApiRoutes {
       '/api/dashboard/kompetensi-teknis';
   static const String dashboardMasaBerlakuAsesor =
       '/api/dashboard/masa-berlaku-asesor';
+  static const String dashboardMasaBerlakuAsesorDetail =
+      '/api/dashboard/masa-berlaku-asesor/detail';
   static const String dashboardJenisSkema =
       '/api/dashboard/jenis-skema';
   static const String dashboardMukDistribusi =
