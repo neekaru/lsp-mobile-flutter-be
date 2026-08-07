@@ -178,60 +178,60 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         orElse: () => {'value': value, 'label': value})['label']!;
   }
 
-  Widget _buildContextualDropdown() {
+  Widget _buildMenuButton() {
     final siblings = _siblingMenus;
     if (siblings.length <= 1) return const SizedBox.shrink();
 
-    final currentLabel = _menuLabel(widget.menuKey);
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.menu_rounded, color: Colors.black87, size: 22),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: widget.menuKey,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded,
-              color: Color(0xFF64748B)),
-          style: const TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
-          dropdownColor: Colors.white,
-          items: siblings
-              .map((m) => DropdownMenuItem<String>(
-                    value: m['value'],
-                    child: Text(m['label']!),
-                  ))
-              .toList(),
-          onChanged: (value) {
-            if (value != null && value != widget.menuKey) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      StatistikDetailScreen(menuKey: value),
-                ),
-              );
-            }
-          },
-          selectedItemBuilder: (_) => [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  const Icon(Icons.swap_horiz_rounded,
-                      size: 16, color: Color(0xFF2563EB)),
-                  const SizedBox(width: 6),
-                  Text(currentLabel),
-                ],
-              ),
+      elevation: 4,
+      offset: const Offset(0, 40),
+      onSelected: (value) {
+        if (value != widget.menuKey) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => StatistikDetailScreen(menuKey: value),
             ),
-          ],
-        ),
-      ),
+          );
+        }
+      },
+      itemBuilder: (context) => [
+        for (final m in siblings)
+          PopupMenuItem<String>(
+            value: m['value'],
+            child: Row(
+              children: [
+                Icon(
+                  m['value'] == widget.menuKey
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  size: 16,
+                  color: m['value'] == widget.menuKey
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF94A3B8),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  m['label']!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: m['value'] == widget.menuKey
+                        ? FontWeight.bold
+                        : FontWeight.w500,
+                    color: m['value'] == widget.menuKey
+                        ? const Color(0xFF2563EB)
+                        : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -247,8 +247,8 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           CustomAppBar(
             title: _screenTitle,
             onBack: () => Navigator.of(context).pop(),
+            rightWidget: _buildMenuButton(),
           ),
-          _buildContextualDropdown(),
           Expanded(
             child: _isLoading
                 ? const Center(
