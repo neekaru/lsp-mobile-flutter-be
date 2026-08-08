@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/berita_model.dart';
 import '../../services/api_service.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/berita/admin_berita_dialog.dart';
 import 'berita_detail_screen.dart';
 
 class BeritaScreen extends StatefulWidget {
@@ -190,6 +191,24 @@ class _BeritaScreenState extends State<BeritaScreen> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          showAdminBeritaFormDialog(
+            context: context,
+            onSuccess: () => _loadBerita(isRefresh: true),
+          );
+        },
+        backgroundColor: const Color(0xFF2563EB),
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text(
+          'Tambah Berita',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+      ),
     );
   }
 
@@ -298,13 +317,74 @@ class _BeritaScreenState extends State<BeritaScreen> {
                             ),
                           ),
                         ),
-                        Text(
-                          _formatDate(item.tanggalBuat),
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              _formatDate(item.tanggalBuat),
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert_rounded,
+                                  color: Color(0xFF64748B), size: 18),
+                              onSelected: (val) {
+                                if (val == 'edit') {
+                                  showAdminBeritaFormDialog(
+                                    context: context,
+                                    beritaId: item.id,
+                                    initialJudul: item.judul,
+                                    initialHeadline: item.headline,
+                                    initialKategori: item.idKategori ??
+                                        kategoriNameToId(item.kategori),
+                                    initialFoto: item.foto,
+                                    initialShowImage: item.showImage,
+                                    onSuccess: () =>
+                                        _loadBerita(isRefresh: true),
+                                  );
+                                } else if (val == 'delete') {
+                                  confirmDeleteAdminBerita(
+                                    context: context,
+                                    beritaId: item.id,
+                                    beritaTitle: item.judul,
+                                    onSuccess: () =>
+                                        _loadBerita(isRefresh: true),
+                                  );
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit_outlined,
+                                          size: 16, color: Color(0xFF2563EB)),
+                                      SizedBox(width: 8),
+                                      Text('Edit Berita',
+                                          style: TextStyle(fontSize: 12)),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete_outline_rounded,
+                                          size: 16, color: Color(0xFFDC2626)),
+                                      SizedBox(width: 8),
+                                      Text('Hapus Berita',
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              color: Color(0xFFDC2626))),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),

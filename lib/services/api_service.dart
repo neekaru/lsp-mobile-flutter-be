@@ -271,4 +271,40 @@ class ApiService {
       BeritaService.getBerita(page: page, size: size);
   static Future<BeritaDetail?> getBeritaDetail(int id) =>
       BeritaService.getBeritaDetail(id);
+  static Future<Map<String, dynamic>?> createAdminBerita({
+    required String judul,
+    required String headline,
+    required String isi,
+    required int idKategori,
+    String? foto,
+    String showImage = '1',
+  }) =>
+      BeritaService.createAdminBerita(
+        judul: judul,
+        headline: headline,
+        isi: isi,
+        idKategori: idKategori,
+        foto: foto,
+        showImage: showImage,
+      );
+  static Future<Map<String, dynamic>?> updateAdminBerita(
+    int id, {
+    String? judul,
+    String? headline,
+    String? isi,
+    int? idKategori,
+    String? foto,
+    String? showImage,
+  }) =>
+      BeritaService.updateAdminBerita(
+        id,
+        judul: judul,
+        headline: headline,
+        isi: isi,
+        idKategori: idKategori,
+        foto: foto,
+        showImage: showImage,
+      );
+  static Future<bool> deleteAdminBerita(int id) =>
+      BeritaService.deleteAdminBerita(id);
 }

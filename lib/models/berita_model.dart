@@ -3,7 +3,9 @@ class BeritaItem {
   final String judul;
   final String headline;
   final String kategori;
+  final int? idKategori;
   final String? foto;
+  final String showImage;
   final String tanggalBuat;
 
   const BeritaItem({
@@ -11,7 +13,9 @@ class BeritaItem {
     required this.judul,
     required this.headline,
     required this.kategori,
+    this.idKategori,
     this.foto,
+    this.showImage = '1',
     required this.tanggalBuat,
   });
 
@@ -21,7 +25,11 @@ class BeritaItem {
       judul: json['judul'] ?? '',
       headline: json['headline'] ?? '',
       kategori: json['kategori'] ?? '',
+      idKategori: json['id_kategori'] is int
+          ? json['id_kategori']
+          : int.tryParse(json['id_kategori']?.toString() ?? ''),
       foto: json['foto'],
+      showImage: json['show_image']?.toString() ?? '1',
       tanggalBuat: json['tanggal_buat'] ?? '',
     );
   }
@@ -33,7 +41,9 @@ class BeritaDetail {
   final String headline;
   final String isi;
   final String kategori;
+  final int? idKategori;
   final String? foto;
+  final String showImage;
   final String tanggalBuat;
 
   const BeritaDetail({
@@ -42,7 +52,9 @@ class BeritaDetail {
     required this.headline,
     required this.isi,
     required this.kategori,
+    this.idKategori,
     this.foto,
+    this.showImage = '1',
     required this.tanggalBuat,
   });
 
@@ -53,7 +65,11 @@ class BeritaDetail {
       headline: json['headline'] ?? '',
       isi: json['isi'] ?? '',
       kategori: json['kategori'] ?? '',
+      idKategori: json['id_kategori'] is int
+          ? json['id_kategori']
+          : int.tryParse(json['id_kategori']?.toString() ?? ''),
       foto: json['foto'],
+      showImage: json['show_image']?.toString() ?? '1',
       tanggalBuat: json['tanggal_buat'] ?? '',
     );
   }

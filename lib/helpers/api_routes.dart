@@ -217,6 +217,8 @@ class ApiRoutes {
 
   static const String berita = '/api/berita';
   static String beritaDetail(int id) => '/api/berita/$id';
+  static const String adminBerita = '/api/admin/berita';
+  static String adminBeritaDetail(int id) => '/api/admin/berita/$id';
 
   // ============================================================================
   // Health Routes

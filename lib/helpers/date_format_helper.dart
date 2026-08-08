@@ -6,47 +6,86 @@
 import 'package:intl/intl.dart';
 
 class DateFormatHelper {
-  /// Format tanggal ke format Indonesia (dd MMM yyyy)
-  /// Input: "2026-05-30" atau "2026-05-30 10:30:00"
-  /// Output: "30 Mei 2026"
-  static String formatToIndonesian(String dateString) {
+  /// Pre-clean and parse date string regardless of ISO format, DD-MM-YYYY, trailing Z, or time components.
+  static DateTime? parseDate(String input) {
+    if (input.trim().isEmpty) return null;
     try {
-      // Parse string ke DateTime
-      DateTime date = DateTime.parse(dateString);
-      
-      // Format ke Indonesia
-      final formatter = DateFormat('dd MMM yyyy', 'id_ID');
-      return formatter.format(date);
-    } catch (e) {
-      // Jika gagal parse, return string asli
-      return dateString;
+      String clean = input.trim();
+      // Remove trailing Z or z
+      if (clean.toLowerCase().endsWith('z')) {
+        clean = clean.substring(0, clean.length - 1).trim();
+      }
+      // Remove time component if T or space separator exists
+      if (clean.contains('T')) {
+        clean = clean.split('T')[0].trim();
+      } else if (clean.contains(' ')) {
+        clean = clean.split(' ')[0].trim();
+      }
+
+      // Check if format is DD-MM-YYYY or DD/MM/YYYY
+      final dmYMatch = RegExp(r'^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$').firstMatch(clean);
+      if (dmYMatch != null) {
+        final day = int.parse(dmYMatch.group(1)!);
+        final month = int.parse(dmYMatch.group(2)!);
+        final year = int.parse(dmYMatch.group(3)!);
+        return DateTime(year, month, day);
+      }
+
+      // Check if format is YYYY-MM-DD or YYYY/MM/DD
+      final yMDMatch = RegExp(r'^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$').firstMatch(clean);
+      if (yMDMatch != null) {
+        final year = int.parse(yMDMatch.group(1)!);
+        final month = int.parse(yMDMatch.group(2)!);
+        final day = int.parse(yMDMatch.group(3)!);
+        return DateTime(year, month, day);
+      }
+
+      return DateTime.tryParse(clean);
+    } catch (_) {
+      return null;
     }
   }
 
-  /// Format tanggal ke format pendek (dd/MM/yyyy)
-  /// Input: "2026-05-30"
-  /// Output: "30/05/2026"
-  static String formatToShort(String dateString) {
-    try {
-      DateTime date = DateTime.parse(dateString);
-      final formatter = DateFormat('dd/MM/yyyy');
-      return formatter.format(date);
-    } catch (e) {
-      return dateString;
+  /// Format tanggal ke format Indonesia (dd MMMM yyyy)
+  /// Input: "2028-03-08T00:00:00Z" atau "08-03-2028Z"
+  /// Output: "08 Maret 2028"
+  static String formatToIndonesian(String dateString) {
+    if (dateString.trim().isEmpty || dateString == '-') return '-';
+    final parsed = parseDate(dateString);
+    if (parsed != null) {
+      final formatter = DateFormat('dd MMMM yyyy', 'id_ID');
+      return formatter.format(parsed);
     }
+    // Fallback: strip Z and time if parse fails
+    String clean = dateString.replaceAll(RegExp(r'[Zz]'), '').trim();
+    if (clean.contains('T')) clean = clean.split('T')[0];
+    return clean;
+  }
+
+  /// Format tanggal ke format pendek (dd-MM-yyyy)
+  /// Input: "2028-03-08Z"
+  /// Output: "08-03-2028"
+  static String formatToShort(String dateString) {
+    if (dateString.trim().isEmpty || dateString == '-') return '-';
+    final parsed = parseDate(dateString);
+    if (parsed != null) {
+      final formatter = DateFormat('dd-MM-yyyy');
+      return formatter.format(parsed);
+    }
+    return dateString.replaceAll(RegExp(r'[Zz]'), '').trim();
   }
 
   /// Format tanggal ke format lengkap Indonesia
-  /// Input: "2026-05-30"
-  /// Output: "Jumat, 30 Mei 2026"
+  /// Input: "2028-03-08"
+  /// Output: "Rabu, 08 Maret 2028"
   static String formatToLong(String dateString) {
-    try {
-      DateTime date = DateTime.parse(dateString);
+    if (dateString.trim().isEmpty || dateString == '-') return '-';
+    final parsed = parseDate(dateString);
+    if (parsed != null) {
       final formatter = DateFormat('EEEE, dd MMMM yyyy', 'id_ID');
-      return formatter.format(date);
-    } catch (e) {
-      return dateString;
+      return formatter.format(parsed);
     }
+    return dateString.replaceAll(RegExp(r'[Zz]'), '').trim();
   }
 
   /// Hitung selisih hari dari sekarang
