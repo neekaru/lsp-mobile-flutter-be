@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/berita_model.dart';
 import '../../services/api_service.dart';
+import '../../services/auth_repository.dart';
 import '../../widgets/berita/admin_berita_dialog.dart';
 import '../../widgets/custom_app_bar.dart';
 
@@ -16,6 +17,15 @@ class BeritaDetailScreen extends StatefulWidget {
 class _BeritaDetailScreenState extends State<BeritaDetailScreen> {
   bool _isLoading = true;
   BeritaDetail? _detail;
+
+  bool get _isAdmin {
+    final role = AuthRepository.currentUserInstance?.role.toLowerCase();
+    if (role == 'admin' || role == 'pengelola') return true;
+    if (role != null && role != 'asesi' && role != 'asesor' && role.isNotEmpty) {
+      return true;
+    }
+    return false;
+  }
 
   @override
   void initState() {
@@ -218,7 +228,7 @@ class _BeritaDetailScreenState extends State<BeritaDetailScreen> {
   Widget _buildAppBar() {
     return CustomAppBar(
       title: 'Detail Berita',
-      rightWidget: _detail == null
+      rightWidget: (_detail == null || !_isAdmin)
           ? null
           : PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert_rounded,
