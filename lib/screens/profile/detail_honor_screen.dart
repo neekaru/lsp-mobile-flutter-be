@@ -281,7 +281,29 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
     sWaktu = sWaktu.replaceAll(RegExp(r'\s+\d{1,2}(?::\d{2})*.*$'), '').trim();
     final String waktu = sWaktu == '0' ? '' : sWaktu;
     final String mode = widget.detail['mode'] ?? '[Offline]';
-    final String honorAsesmen = widget.detail['honor'] ?? 'Rp 2.250.000';
+    final String honorAsesmen = _formatHonorValue(
+      widget.detail['honor'] ?? widget.detail['honor_asesmen'],
+      fallback: 'Rp 2.250.000',
+    );
+    final String biayaTransportasi = _formatHonorValue(
+      widget.detail['akomodasi'] ?? widget.detail['biaya_transportasi'] ?? widget.detail['transportasi'],
+      fallback: 'Rp 100.000',
+    );
+    final String potonganPph = _formatHonorValue(
+      widget.detail['potongan_pph'] ?? widget.detail['pajak'] ?? widget.detail['pph'],
+      fallback: 'Rp 50.000',
+    );
+    final dynamic rawBiayaAdmin = widget.detail['biaya_admin_transfer'];
+    final String? biayaAdmin = (rawBiayaAdmin != null &&
+            rawBiayaAdmin.toString().trim().isNotEmpty &&
+            rawBiayaAdmin.toString().trim() != '0')
+        ? _formatHonorValue(rawBiayaAdmin)
+        : null;
+
+    final String totalHonor = widget.detail['total_honor'] ??
+        widget.detail['total'] ??
+        widget.detail['honor'] ??
+        'Rp 2.300.000';
     final bool isSelesai = _currentStatus == 'Pembayaran Selesai';
 
     return Scaffold(
@@ -426,18 +448,20 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
                         const SizedBox(height: 10),
                         _buildRincianRow('Honor Asesmen', honorAsesmen),
                         const SizedBox(height: 6),
-                        _buildRincianRow('Uang Kendaraan', 'Rp 100.000'),
+                        _buildRincianRow('Biaya Transportasi', biayaTransportasi),
                         const SizedBox(height: 6),
-                        _buildRincianRow('Uang Makan', 'Rp 0'),
-                        const SizedBox(height: 6),
-                        _buildRincianRow('Lainnya', 'Rp 0'),
+                        _buildRincianRow('Potongan PPh', potonganPph, isDeduction: true),
+                        if (biayaAdmin != null && biayaAdmin.isNotEmpty && biayaAdmin != 'Rp 0') ...[
+                          const SizedBox(height: 6),
+                          _buildRincianRow('Biaya Admin Transfer', biayaAdmin),
+                        ],
                         const SizedBox(height: 10),
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: const [
-                            Text(
+                          children: [
+                            const Text(
                               'Total Honor :',
                               style: TextStyle(
                                 fontSize: 13,
@@ -446,8 +470,8 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
                               ),
                             ),
                             Text(
-                              'Rp 4.000.000',
-                              style: TextStyle(
+                              totalHonor,
+                              style: const TextStyle(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF3B82F6),
@@ -703,7 +727,20 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
   );
   }
 
-  Widget _buildRincianRow(String title, String amount) {
+  String _formatHonorValue(dynamic raw, {String fallback = 'Rp 0'}) {
+    if (raw == null) return fallback;
+    final s = raw.toString().trim();
+    if (s.isEmpty || s == '0' || s == '-') return fallback;
+    if (s.toLowerCase().startsWith('rp')) return s;
+    final numVal = double.tryParse(s.replaceAll(',', ''));
+    if (numVal != null) {
+      final intVal = numVal.toInt();
+      return 'Rp ${intVal.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+    }
+    return s;
+  }
+
+  Widget _buildRincianRow(String title, String amount, {bool isDeduction = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -716,10 +753,10 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
         ),
         Text(
           amount,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF0F172A),
+            color: isDeduction ? const Color(0xFFDC2626) : const Color(0xFF0F172A),
           ),
         ),
       ],

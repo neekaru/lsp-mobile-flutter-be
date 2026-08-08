@@ -82,10 +82,14 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
       MaterialPageRoute(
         builder: (context) => DetailHonorScreen(
           detail: {
+            ...task,
             'id': task['id'],
-            'judul_asesmen': task['judul'],
+            'judul_asesmen': task['judul'] ?? task['judul_asesmen'],
             'honor': task['honor'],
-            'tanggal': task['waktu'],
+            'akomodasi': task['akomodasi'] ?? task['biaya_transportasi'],
+            'potongan_pph': task['potongan_pph'] ?? task['pajak'] ?? task['pph'],
+            'biaya_admin_transfer': task['biaya_admin_transfer'],
+            'tanggal': task['waktu'] ?? task['tanggal'],
             'tuk': task['tuk'],
             'status': task['status'],
           },
