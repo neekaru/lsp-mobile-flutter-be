@@ -217,40 +217,44 @@ class _MasaBerlakuAsesorDetailScreenState
 
   Widget _buildSearchBar() {
     return Container(
+      height: 48,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x05000000),
+            color: Color(0x04000000),
             blurRadius: 6,
             offset: Offset(0, 2),
-          )
+          ),
         ],
       ),
-      child: TextField(
-        controller: _searchController,
-        style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
-        decoration: InputDecoration(
-          hintText: 'Cari nama asesor, MET, skema, atau kota...',
-          hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: _themeColor,
-            size: 22,
+      child: Row(
+        children: [
+          const SizedBox(width: 14),
+          const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                hintText: 'Cari nama asesor, MET, skema, atau kota...',
+                hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
+            ),
           ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.cancel, color: Color(0xFF94A3B8), size: 18),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        ),
+          if (_searchController.text.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
+              onPressed: () {
+                _searchController.clear();
+              },
+            ),
+        ],
       ),
     );
   }

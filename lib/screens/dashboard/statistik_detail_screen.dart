@@ -568,6 +568,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -594,15 +595,17 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           title: 'Sertifikat Aktif',
           count: '${data?.aktif ?? 0}',
           desc: 'Masa berlaku masih aktif',
-          color: Colors.green,
+          color: const Color(0xFF16A34A),
           icon: Icons.check_circle_outline,
+          statusKey: 'aktif',
+          numericCount: data?.aktif ?? 0,
         ),
         const SizedBox(height: 10),
         _buildStatusCard(
           title: 'Masa Tenggang',
           count: '${data?.tenggang ?? 0}',
           desc: 'Kurang dari 3 bulan menuju expired',
-          color: Colors.orange,
+          color: const Color(0xFFD97706),
           icon: Icons.warning_amber_rounded,
           statusKey: 'tenggang',
           numericCount: data?.tenggang ?? 0,
@@ -612,7 +615,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           title: 'Expired / Kadaluarsa',
           count: '${data?.expired ?? 0}',
           desc: 'Sertifikat sudah habis masa berlaku',
-          color: Colors.red,
+          color: const Color(0xFFDC2626),
           icon: Icons.cancel_outlined,
           statusKey: 'expired',
           numericCount: data?.expired ?? 0,
@@ -633,6 +636,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     final bool isClickable = statusKey != null;
 
     Widget cardContent = Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1229,22 +1233,47 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
   }
 
   Widget _buildSearchField(String hint) {
-    return TextField(
-      onChanged: _onSearchChanged,
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF94A3B8)),
-        contentPadding: const EdgeInsets.symmetric(vertical: 10),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-        ),
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x04000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 14),
+          const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              onChanged: _onSearchChanged,
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
+            ),
+          ),
+          if (_searchQuery.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
+              onPressed: () {
+                setState(() {
+                  _searchQuery = '';
+                });
+              },
+            ),
+        ],
       ),
     );
   }
