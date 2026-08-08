@@ -8,6 +8,7 @@ import '../../widgets/custom_app_bar.dart';
 import 'domisili_asesor_detail_screen.dart';
 import 'masa_berlaku_asesor_detail_screen.dart';
 import 'kompetensi_teknis_detail_screen.dart';
+import 'muk_detail_screen.dart';
 
 class StatistikDetailScreen extends StatefulWidget {
   final String menuKey;
@@ -301,6 +302,11 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
   Widget _buildDomisiliAsesorContent() {
     final data = _domisiliData;
     final items = data?.items ?? [];
+    final filtered = items
+        .where((i) =>
+            _searchQuery.isEmpty ||
+            i.provinsiNama.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,12 +323,15 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         const SizedBox(height: 12),
         if (items.isEmpty)
           _buildEmptyState('Belum ada data sebaran domisili asesor.')
+        else if (filtered.isEmpty)
+          _buildEmptyState('Tidak ada provinsi yang cocok dengan pencarian.')
         else
-          ...items
-              .where((i) =>
-                  _searchQuery.isEmpty ||
-                  i.provinsiNama.toLowerCase().contains(_searchQuery.toLowerCase()))
-              .map((item) => _buildDomisiliCard(item)),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: filtered.length,
+            itemBuilder: (context, index) => _buildDomisiliCard(filtered[index]),
+          ),
       ],
     );
   }
@@ -597,7 +606,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           desc: 'Masa berlaku masih aktif',
           color: const Color(0xFF16A34A),
           icon: Icons.check_circle_outline,
-          statusKey: 'aktif',
+          statusKey: null,
           numericCount: data?.aktif ?? 0,
         ),
         const SizedBox(height: 10),
@@ -822,28 +831,54 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         else
           ...filteredList.map((item) => Container(
                 margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
+                child: Material(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.folder_open_outlined, color: Color(0xFF0D9488), size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => MUKDetailScreen(
+                            skemaId: item.skemaId,
+                            kodeSkema: item.kodeSkema,
+                            namaSkema: item.namaSkema,
+                            totalMuk: item.jumlahMuk,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
                         children: [
-                          Text(item.namaSkema, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                          const SizedBox(height: 2),
-                          Text('Kode: ${item.kodeSkema}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                          const Icon(Icons.folder_open_outlined, color: Color(0xFF0D9488), size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(item.namaSkema, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                const SizedBox(height: 2),
+                                Text('Kode: ${item.kodeSkema}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                              ],
+                            ),
+                          ),
+                          Text('${item.jumlahMuk} MUK', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0D9488))),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFF94A3B8),
+                            size: 20,
+                          ),
                         ],
                       ),
                     ),
-                    Text('${item.jumlahMuk} MUK', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0D9488))),
-                  ],
+                  ),
                 ),
               )),
       ],

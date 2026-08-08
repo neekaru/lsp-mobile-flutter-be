@@ -471,6 +471,32 @@ class DashboardService {
     }
   }
 
+  /// Fetch detail list of MUK/MAPA perangkat for a specific Skema ID
+  static Future<MUKDetailData?> getMUKDistribusiDetail({
+    required dynamic skemaId,
+    String? search,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (search != null && search.trim().isNotEmpty) {
+        queryParams['search'] = search.trim();
+      }
+
+      final response = await _dio.get(
+        ApiRoutes.dashboardMukDistribusiDetail(skemaId),
+        queryParameters: queryParams,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return MUKDetailData.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching MUK distribusi detail: $e');
+      return null;
+    }
+  }
+
   /// Fetch Surat Tugas / SPT Asesor 2026
   static Future<SptAsesorData?> getSptAsesor2026({int tahun = 2026}) async {
     try {

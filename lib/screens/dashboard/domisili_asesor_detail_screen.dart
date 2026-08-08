@@ -115,33 +115,55 @@ class _DomisiliAsesorDetailScreenState
           Expanded(
             child: RefreshIndicator(
               onRefresh: _fetchData,
-              child: SingleChildScrollView(
+              child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildKpiCardGroup(),
-                    const SizedBox(height: 16),
-                    _buildSearchBar(),
-                    const SizedBox(height: 12),
-                    _buildFilterChips(),
-                    const SizedBox(height: 16),
-                    _buildListHeader(),
-                    const SizedBox(height: 10),
-                    if (_isLoading)
-                      const Center(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildKpiCardGroup(),
+                          const SizedBox(height: 16),
+                          _buildSearchBar(),
+                          const SizedBox(height: 12),
+                          _buildFilterChips(),
+                          const SizedBox(height: 16),
+                          _buildListHeader(),
+                          const SizedBox(height: 10),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_isLoading)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 40),
                           child: CircularProgressIndicator(),
                         ),
-                      )
-                    else if (_asesorList.isEmpty)
-                      _buildEmptyState()
-                    else
-                      ..._asesorList.map((item) => _buildAsesorCard(item)),
-                  ],
-                ),
+                      ),
+                    )
+                  else if (_asesorList.isEmpty)
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      sliver: SliverToBoxAdapter(
+                        child: _buildEmptyState(),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      sliver: SliverList.builder(
+                        itemCount: _asesorList.length,
+                        itemBuilder: (context, index) {
+                          return _buildAsesorCard(_asesorList[index]);
+                        },
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -259,13 +281,18 @@ class _DomisiliAsesorDetailScreenState
               style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
             ),
           ),
-          if (_searchController.text.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
-              onPressed: () {
-                _searchController.clear();
-              },
-            ),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _searchController,
+            builder: (context, value, child) {
+              if (value.text.isEmpty) return const SizedBox.shrink();
+              return IconButton(
+                icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
+                onPressed: () {
+                  _searchController.clear();
+                },
+              );
+            },
+          ),
         ],
       ),
     );

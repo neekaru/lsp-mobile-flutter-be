@@ -51,6 +51,8 @@ class ApiRoutes {
       '/api/dashboard/jenis-skema';
   static const String dashboardMukDistribusi =
       '/api/dashboard/muk-distribusi';
+  static String dashboardMukDistribusiDetail(dynamic skemaId) =>
+      '/api/dashboard/muk-distribusi/$skemaId/perangkat';
   static const String dashboardSptAsesor2026 =
       '/api/dashboard/spt-asesor-2026';
 

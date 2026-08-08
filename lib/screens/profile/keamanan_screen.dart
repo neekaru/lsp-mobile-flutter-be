@@ -182,8 +182,13 @@ class _KeamananScreenState extends State<KeamananScreen> {
     }
     try {
       final dateTime = DateTime.parse(utcString);
-      final formatter = DateFormat('dd MMM yyyy, HH:mm', 'id_ID');
-      return formatter.format(dateTime.toLocal());
+      try {
+        final formatter = DateFormat('dd MMM yyyy, HH:mm', 'id_ID');
+        return formatter.format(dateTime.toLocal());
+      } catch (_) {
+        final formatter = DateFormat('dd MMM yyyy, HH:mm');
+        return formatter.format(dateTime.toLocal());
+      }
     } catch (_) {
       return utcString;
     }

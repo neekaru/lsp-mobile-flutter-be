@@ -118,6 +118,14 @@ class ApiService {
       DashboardService.getJenisSkema();
   static Future<List<MUKDistribusiItem>> getMUKDistribusi() =>
       DashboardService.getMUKDistribusi();
+  static Future<MUKDetailData?> getMUKDistribusiDetail({
+    required dynamic skemaId,
+    String? search,
+  }) =>
+      DashboardService.getMUKDistribusiDetail(
+        skemaId: skemaId,
+        search: search,
+      );
   static Future<SptAsesorData?> getSptAsesor2026({int tahun = 2026}) =>
       DashboardService.getSptAsesor2026(tahun: tahun);
 

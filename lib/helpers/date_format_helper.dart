@@ -53,8 +53,13 @@ class DateFormatHelper {
     if (dateString.trim().isEmpty || dateString == '-') return '-';
     final parsed = parseDate(dateString);
     if (parsed != null) {
-      final formatter = DateFormat('dd MMMM yyyy', 'id_ID');
-      return formatter.format(parsed);
+      try {
+        final formatter = DateFormat('dd MMMM yyyy', 'id_ID');
+        return formatter.format(parsed);
+      } catch (_) {
+        final formatter = DateFormat('dd MMMM yyyy');
+        return formatter.format(parsed);
+      }
     }
     // Fallback: strip Z and time if parse fails
     String clean = dateString.replaceAll(RegExp(r'[Zz]'), '').trim();
@@ -82,8 +87,13 @@ class DateFormatHelper {
     if (dateString.trim().isEmpty || dateString == '-') return '-';
     final parsed = parseDate(dateString);
     if (parsed != null) {
-      final formatter = DateFormat('EEEE, dd MMMM yyyy', 'id_ID');
-      return formatter.format(parsed);
+      try {
+        final formatter = DateFormat('EEEE, dd MMMM yyyy', 'id_ID');
+        return formatter.format(parsed);
+      } catch (_) {
+        final formatter = DateFormat('EEEE, dd MMMM yyyy');
+        return formatter.format(parsed);
+      }
     }
     return dateString.replaceAll(RegExp(r'[Zz]'), '').trim();
   }

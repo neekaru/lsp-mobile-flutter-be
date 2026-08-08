@@ -1161,6 +1161,69 @@ class MUKDistribusiItem {
   }
 }
 
+class PerangkatMUKItem {
+  final int id;
+  final int skemaId;
+  final String namaPerangkat;
+  final String metode;
+  final String penyusun;
+  final String tanggalPembuatan;
+  final int jumlahDigunakan;
+
+  const PerangkatMUKItem({
+    required this.id,
+    required this.skemaId,
+    required this.namaPerangkat,
+    required this.metode,
+    required this.penyusun,
+    required this.tanggalPembuatan,
+    required this.jumlahDigunakan,
+  });
+
+  factory PerangkatMUKItem.fromJson(Map<String, dynamic> json) {
+    return PerangkatMUKItem(
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+      skemaId: json['skema_id'] is int ? json['skema_id'] : int.tryParse(json['skema_id'].toString()) ?? 0,
+      namaPerangkat: json['nama_perangkat']?.toString() ?? 'MUK / MAPA',
+      metode: json['metode']?.toString() ?? 'Observasi Langsung',
+      penyusun: json['penyusun']?.toString() ?? 'Administrator',
+      tanggalPembuatan: json['tanggal_pembuatan']?.toString() ?? '-',
+      jumlahDigunakan: json['jumlah_digunakan'] is int
+          ? json['jumlah_digunakan']
+          : int.tryParse(json['jumlah_digunakan'].toString()) ?? 0,
+    );
+  }
+}
+
+class MUKDetailData {
+  final int skemaId;
+  final String kodeSkema;
+  final String namaSkema;
+  final int totalMuk;
+  final List<PerangkatMUKItem> perangkatList;
+
+  const MUKDetailData({
+    required this.skemaId,
+    required this.kodeSkema,
+    required this.namaSkema,
+    required this.totalMuk,
+    required this.perangkatList,
+  });
+
+  factory MUKDetailData.fromJson(Map<String, dynamic> json) {
+    return MUKDetailData(
+      skemaId: json['skema_id'] is int ? json['skema_id'] : int.tryParse(json['skema_id'].toString()) ?? 0,
+      kodeSkema: json['kode_skema']?.toString() ?? '',
+      namaSkema: json['nama_skema']?.toString() ?? '',
+      totalMuk: json['total_muk'] is int ? json['total_muk'] : int.tryParse(json['total_muk'].toString()) ?? 0,
+      perangkatList: (json['perangkat_list'] as List<dynamic>?)
+              ?.map((e) => PerangkatMUKItem.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          <PerangkatMUKItem>[],
+    );
+  }
+}
+
 class SptAsesorItem {
   final String namaAsesor;
   final String tglExpired;

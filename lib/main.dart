@@ -11,6 +11,8 @@ import 'services/token_storage.dart';
 import 'services/auth_repository.dart';
 import 'services/geojson_manager.dart';
 
+import 'package:intl/date_symbol_data_local.dart';
+
 // Import screens
 import 'screens/auth/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -115,6 +117,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize date formatting locale data
+  try {
+    await initializeDateFormatting('id_ID', null);
+    if (kDebugMode) {
+      debugPrint('✅ Locale date formatting (id_ID) initialized successfully');
+    }
+  } catch (e) {
+    debugPrint('❌ ERROR initializing date formatting: $e');
+  }
 
   // Initialize Firebase
   try {
