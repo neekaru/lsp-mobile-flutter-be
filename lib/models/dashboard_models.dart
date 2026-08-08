@@ -920,6 +920,106 @@ class KompetensiTeknisItem {
   }
 }
 
+class KompetensiTeknisAsesorItem {
+  final String id;
+  final String namaAsesor;
+  final String noMet;
+  final String statusMasaBerlaku;
+  final String tanggalExpired;
+  final String provinsi;
+  final String kabupatenKota;
+  final String email;
+  final String noHp;
+  final String tipeAsesor;
+
+  const KompetensiTeknisAsesorItem({
+    required this.id,
+    required this.namaAsesor,
+    required this.noMet,
+    required this.statusMasaBerlaku,
+    required this.tanggalExpired,
+    required this.provinsi,
+    required this.kabupatenKota,
+    required this.email,
+    required this.noHp,
+    required this.tipeAsesor,
+  });
+
+  factory KompetensiTeknisAsesorItem.fromJson(Map<String, dynamic> json) {
+    return KompetensiTeknisAsesorItem(
+      id: json['id']?.toString() ?? '',
+      namaAsesor: json['nama_asesor']?.toString() ?? json['nama']?.toString() ?? '',
+      noMet: json['no_met']?.toString() ?? json['no_reg']?.toString() ?? '-',
+      statusMasaBerlaku: json['status_masa_berlaku']?.toString() ?? json['status']?.toString() ?? 'Aktif',
+      tanggalExpired: json['tanggal_expired']?.toString() ?? '',
+      provinsi: json['provinsi']?.toString() ?? '',
+      kabupatenKota: json['kabupaten_kota']?.toString() ?? json['kota']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      noHp: json['no_hp']?.toString() ?? json['telepon']?.toString() ?? '',
+      tipeAsesor: json['tipe_asesor']?.toString() ?? json['tipe']?.toString() ?? 'Internal',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'nama_asesor': namaAsesor,
+      'no_met': noMet,
+      'status_masa_berlaku': statusMasaBerlaku,
+      'tanggal_expired': tanggalExpired,
+      'provinsi': provinsi,
+      'kabupaten_kota': kabupatenKota,
+      'email': email,
+      'no_hp': noHp,
+      'tipe_asesor': tipeAsesor,
+    };
+  }
+}
+
+class KompetensiTeknisDetailData {
+  final dynamic skemaId;
+  final String kodeSkema;
+  final String namaSkema;
+  final int totalAsesor;
+  final List<KompetensiTeknisAsesorItem> asesorList;
+  final int totalCount;
+  final int filteredCount;
+
+  const KompetensiTeknisDetailData({
+    required this.skemaId,
+    required this.kodeSkema,
+    required this.namaSkema,
+    required this.totalAsesor,
+    required this.asesorList,
+    required this.totalCount,
+    required this.filteredCount,
+  });
+
+  factory KompetensiTeknisDetailData.fromJson(Map<String, dynamic> json) {
+    final rawData = json['data'];
+    final data = rawData is Map<String, dynamic> ? rawData : <String, dynamic>{};
+    final rawMeta = json['meta'];
+    final meta = rawMeta is Map<String, dynamic> ? rawMeta : <String, dynamic>{};
+
+    final rawList = data['asesor_list'] ?? data['items'] ?? (json['data'] is List ? json['data'] : null);
+    final list = (rawList is List)
+        ? rawList
+            .map((e) => KompetensiTeknisAsesorItem.fromJson(e as Map<String, dynamic>))
+            .toList()
+        : <KompetensiTeknisAsesorItem>[];
+
+    return KompetensiTeknisDetailData(
+      skemaId: data['skema_id'] ?? 0,
+      kodeSkema: data['kode_skema']?.toString() ?? '',
+      namaSkema: data['nama_skema']?.toString() ?? '',
+      totalAsesor: data['total_asesor'] ?? meta['total_count'] ?? list.length,
+      asesorList: list,
+      totalCount: meta['total_count'] ?? data['total_count'] ?? list.length,
+      filteredCount: meta['filtered_count'] ?? list.length,
+    );
+  }
+}
+
 class MasaBerlakuAsesorData {
   final int aktif;
   final int tenggang;

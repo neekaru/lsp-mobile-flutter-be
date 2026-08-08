@@ -41,6 +41,8 @@ class ApiRoutes {
       '/api/dashboard/domisili-asesor/$provinsiId/asesor';
   static const String dashboardKompetensiTeknis =
       '/api/dashboard/kompetensi-teknis';
+  static String dashboardKompetensiTeknisDetail(dynamic skemaId) =>
+      '/api/dashboard/kompetensi-teknis/$skemaId/asesor';
   static const String dashboardMasaBerlakuAsesor =
       '/api/dashboard/masa-berlaku-asesor';
   static const String dashboardMasaBerlakuAsesorDetail =

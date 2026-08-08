@@ -7,6 +7,7 @@ import '../../helpers/date_format_helper.dart';
 import '../../widgets/custom_app_bar.dart';
 import 'domisili_asesor_detail_screen.dart';
 import 'masa_berlaku_asesor_detail_screen.dart';
+import 'kompetensi_teknis_detail_screen.dart';
 
 class StatistikDetailScreen extends StatefulWidget {
   final String menuKey;
@@ -482,50 +483,76 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         else
           ...filteredList.map((item) => Container(
                 margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
+                child: Material(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.build_outlined, color: Color(0xFF2563EB), size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.namaSkema,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => KompetensiTeknisDetailScreen(
+                            skemaId: item.skemaId,
+                            kodeSkema: item.kodeSkema,
+                            namaSkema: item.namaSkema,
+                            jumlahAsesor: item.jumlahAsesor,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Kode: ${item.kodeSkema}',
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.build_outlined, color: Color(0xFF2563EB), size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.namaSkema,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Kode: ${item.kodeSkema}',
+                                  style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '${item.jumlahAsesor}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2563EB)),
+                              ),
+                              const Text('Asesor', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                            ],
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFF94A3B8),
+                            size: 20,
                           ),
                         ],
                       ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '${item.jumlahAsesor}',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2563EB)),
-                        ),
-                        const Text('Asesor', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
               )),
       ],

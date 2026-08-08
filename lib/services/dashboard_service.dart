@@ -345,7 +345,7 @@ class DashboardService {
     }
   }
 
-  /// Fetch Kompetensi Teknis Asesor by Skema ID
+  /// Fetch Kompetensi Teknis Asesor list by Skema ID
   static Future<List<KompetensiTeknisItem>> getKompetensiTeknis() async {
     try {
       final response = await _dio.get(ApiRoutes.dashboardKompetensiTeknis);
@@ -357,6 +357,41 @@ class DashboardService {
     } catch (e) {
       debugPrint('Error fetching kompetensi teknis: $e');
       return [];
+    }
+  }
+
+  /// Fetch detail list of assessors for a specific Kompetensi Teknis Skema
+  static Future<KompetensiTeknisDetailData?> getKompetensiTeknisDetail({
+    required dynamic skemaId,
+    String? search,
+    String? status,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      final Map<String, dynamic> queryParams = {
+        'limit': limit,
+        'offset': offset,
+      };
+      if (search != null && search.trim().isNotEmpty) {
+        queryParams['search'] = search.trim();
+      }
+      if (status != null && status.trim().isNotEmpty && status.trim().toLowerCase() != 'semua') {
+        queryParams['status'] = status.trim().toLowerCase();
+      }
+
+      final response = await _dio.get(
+        ApiRoutes.dashboardKompetensiTeknisDetail(skemaId),
+        queryParameters: queryParams,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return KompetensiTeknisDetailData.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching detail kompetensi teknis asesor: $e');
+      return null;
     }
   }
 

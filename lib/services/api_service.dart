@@ -86,6 +86,20 @@ class ApiService {
       );
   static Future<List<KompetensiTeknisItem>> getKompetensiTeknis() =>
       DashboardService.getKompetensiTeknis();
+  static Future<KompetensiTeknisDetailData?> getKompetensiTeknisDetail({
+    required dynamic skemaId,
+    String? search,
+    String? status,
+    int limit = 50,
+    int offset = 0,
+  }) =>
+      DashboardService.getKompetensiTeknisDetail(
+        skemaId: skemaId,
+        search: search,
+        status: status,
+        limit: limit,
+        offset: offset,
+      );
   static Future<MasaBerlakuAsesorData?> getMasaBerlakuAsesor() =>
       DashboardService.getMasaBerlakuAsesor();
   static Future<MasaBerlakuAsesorDetailData?> getMasaBerlakuAsesorDetail({
