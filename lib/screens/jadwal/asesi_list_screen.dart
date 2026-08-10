@@ -551,6 +551,29 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                     color: Colors.grey,
                   ),
                 ),
+                if (item.namaAsesor != null && item.namaAsesor!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.user_cog,
+                        size: 10,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 3),
+                      Flexible(
+                        child: Text(
+                          'Asesor: ${item.namaAsesor}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[600],
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
