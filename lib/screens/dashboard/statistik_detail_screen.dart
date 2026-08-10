@@ -22,6 +22,8 @@ class StatistikDetailScreen extends StatefulWidget {
 class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
   bool _isLoading = true;
   String _searchQuery = '';
+  String _statusFilterAsesi = 'Semua';
+  String _statusFilterSpt = 'Semua';
 
   // ── Cache state: avoid re-fetching on search/rebuild ──────────────────────
   bool _hasCachedData = false;
@@ -1094,16 +1096,26 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
   Widget _buildSpt2026Content() {
     final data = _sptData;
     final items = data?.items ?? [];
-    final filtered = items
-        .where((i) =>
-            _searchQuery.isEmpty ||
-            i.namaAsesor.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
+    final filtered = items.where((i) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          i.namaAsesor.toLowerCase().contains(_searchQuery.toLowerCase());
+      final statusLower = i.statusMasaBerlaku.toLowerCase();
+      final filterLower = _statusFilterSpt.toLowerCase();
+      bool matchesStatus = true;
+      if (filterLower == 'aktif') {
+        matchesStatus = statusLower == 'aktif';
+      } else if (filterLower == 'tenggang') {
+        matchesStatus = statusLower == 'tenggang';
+      } else if (filterLower == 'expired') {
+        matchesStatus = statusLower == 'expired' || statusLower == 'kadaluarsa';
+      }
+      return matchesSearch && matchesStatus;
+    }).toList();
 
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
-        // ── Header: KPI + search (non-virtualized, small) ───────────────────
+        // ── Header: KPI + search + status filter ───────────────────
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           sliver: SliverToBoxAdapter(
@@ -1118,6 +1130,19 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildSearchField('Cari Nama Asesor...'),
+                const SizedBox(height: 12),
+                _buildStatusFilterCards(
+                  totalAll: items.length,
+                  totalAktif: items.where((i) => i.statusMasaBerlaku.toLowerCase() == 'aktif').length,
+                  totalTenggang: items.where((i) => i.statusMasaBerlaku.toLowerCase() == 'tenggang').length,
+                  totalExpired: items.where((i) => i.statusMasaBerlaku.toLowerCase() == 'expired' || i.statusMasaBerlaku.toLowerCase() == 'kadaluarsa').length,
+                  selectedFilter: _statusFilterSpt,
+                  onSelectFilter: (newFilter) {
+                    setState(() {
+                      _statusFilterSpt = newFilter;
+                    });
+                  },
+                ),
                 const SizedBox(height: 12),
               ],
             ),
@@ -1282,16 +1307,26 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
   Widget _buildAsesi2026Content() {
     final data = _asesi2026Data;
     final items = data?.items ?? [];
-    final filtered = items
-        .where((i) =>
-            _searchQuery.isEmpty ||
-            i.namaAsesor.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
+    final filtered = items.where((i) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          i.namaAsesor.toLowerCase().contains(_searchQuery.toLowerCase());
+      final statusLower = i.statusMasaBerlaku.toLowerCase();
+      final filterLower = _statusFilterAsesi.toLowerCase();
+      bool matchesStatus = true;
+      if (filterLower == 'aktif') {
+        matchesStatus = statusLower == 'aktif';
+      } else if (filterLower == 'tenggang') {
+        matchesStatus = statusLower == 'tenggang';
+      } else if (filterLower == 'expired') {
+        matchesStatus = statusLower == 'expired' || statusLower == 'kadaluarsa';
+      }
+      return matchesSearch && matchesStatus;
+    }).toList();
 
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
-        // ── Header: KPI + search (non-virtualized, small) ───────────────────
+        // ── Header: KPI + search + status filter ───────────────────
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           sliver: SliverToBoxAdapter(
@@ -1307,6 +1342,19 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildSearchField('Cari Nama Asesor...'),
+                const SizedBox(height: 12),
+                _buildStatusFilterCards(
+                  totalAll: items.length,
+                  totalAktif: items.where((i) => i.statusMasaBerlaku.toLowerCase() == 'aktif').length,
+                  totalTenggang: items.where((i) => i.statusMasaBerlaku.toLowerCase() == 'tenggang').length,
+                  totalExpired: items.where((i) => i.statusMasaBerlaku.toLowerCase() == 'expired' || i.statusMasaBerlaku.toLowerCase() == 'kadaluarsa').length,
+                  selectedFilter: _statusFilterAsesi,
+                  onSelectFilter: (newFilter) {
+                    setState(() {
+                      _statusFilterAsesi = newFilter;
+                    });
+                  },
+                ),
                 const SizedBox(height: 12),
               ],
             ),
@@ -1346,6 +1394,104 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildStatusFilterCards({
+    required int totalAll,
+    required int totalAktif,
+    required int totalTenggang,
+    required int totalExpired,
+    required String selectedFilter,
+    required ValueChanged<String> onSelectFilter,
+  }) {
+    final filters = [
+      {'label': 'Semua', 'key': 'Semua', 'count': totalAll, 'color': const Color(0xFF2563EB), 'icon': Icons.apps_rounded},
+      {'label': 'Aktif', 'key': 'Aktif', 'count': totalAktif, 'color': const Color(0xFF16A34A), 'icon': Icons.check_circle_outline_rounded},
+      {'label': 'Tenggang', 'key': 'Tenggang', 'count': totalTenggang, 'color': const Color(0xFFD97706), 'icon': Icons.warning_amber_rounded},
+      {'label': 'Expired', 'key': 'Expired', 'count': totalExpired, 'color': const Color(0xFFDC2626), 'icon': Icons.cancel_outlined},
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: filters.map((f) {
+          final key = f['key'] as String;
+          final label = f['label'] as String;
+          final count = f['count'] as int;
+          final color = f['color'] as Color;
+          final icon = f['icon'] as IconData;
+          final isSelected = selectedFilter == key;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              onTap: () {
+                onSelectFilter(isSelected && key != 'Semua' ? 'Semua' : key);
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? color.withAlpha(20) : Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isSelected ? color : const Color(0xFFE2E8F0),
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: color.withAlpha(30),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          )
+                        ]
+                      : const [
+                          BoxShadow(
+                            color: Color(0x05000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          )
+                        ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, size: 16, color: color),
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                        color: isSelected ? color : const Color(0xFF475569),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isSelected ? color : color.withAlpha(20),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '$count',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? Colors.white : color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -1456,39 +1602,37 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
             ),
             const SizedBox(height: 8),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _monthLabels.map((m) {
-                  final count = item.bulanan[m] ?? 0;
-                  final isAssigned = count > 0;
-                  return Container(
-                    width: 48,
-                    margin: const EdgeInsets.only(right: 6),
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isAssigned ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          m,
-                          style: TextStyle(fontSize: 10, color: isAssigned ? Colors.white70 : const Color(0xFF64748B)),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: _monthLabels.map((m) {
+                final count = item.bulanan[m] ?? 0;
+                final isAssigned = count > 0;
+                return Container(
+                  width: 48,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isAssigned ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        m,
+                        style: TextStyle(fontSize: 10, color: isAssigned ? Colors.white70 : const Color(0xFF64748B)),
+                      ),
+                      Text(
+                        '$count',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: isAssigned ? Colors.white : Colors.black54,
                         ),
-                        Text(
-                          '$count',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: isAssigned ? Colors.white : Colors.black54,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),

@@ -576,7 +576,9 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
             color: Color(0xFF64748B),
           ),
         ),
+        const SizedBox(height: 8),
         GridView.builder(
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
