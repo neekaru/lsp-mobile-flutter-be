@@ -128,6 +128,9 @@ class ApiService {
       );
   static Future<SptAsesorData?> getSptAsesor2026({int tahun = 2026}) =>
       DashboardService.getSptAsesor2026(tahun: tahun);
+  static Future<Asesi2026Data?> getAsesi2026({int tahun = 2026}) =>
+      DashboardService.getAsesi2026(tahun: tahun);
+
 
   // ── Jadwal ──────────────────────────────────────────────────────────────────
   static Future<List<JadwalBaru>> getJadwalBaru() =>

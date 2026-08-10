@@ -26,8 +26,6 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   // Cached API Data
   StatistikOverview? _overview;
   AsesorStats? _asesorStats;
-  List<TopProvinsi> _topProvinces = [];
-  List<AsesorHomebase> _homebaseList = [];
   Map<String, IslandData> _islandDataMap = {};
   IslandData? _selectedIsland;
 
@@ -47,23 +45,15 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
       final results = await Future.wait([
         ApiService.getStatistikOverview(),
         ApiService.getAsesorStats(),
-        ApiService.getTopProvinces(),
-        ApiService.getAsesorHomebase(),
         ApiService.getPenyebaranRegional(),
       ]);
 
       if (mounted) {
-        final homebase = results[3] as List<AsesorHomebase>;
-        final regional = results[4] as List<RegionalDistribution>;
+        final regional = results[2] as List<RegionalDistribution>;
         final islandMap = islandDataFromApi(regional);
         setState(() {
           _overview = results[0] as StatistikOverview;
           _asesorStats = results[1] as AsesorStats;
-          _topProvinces = results[2] as List<TopProvinsi>;
-          // Preview only — full list lives on AsesorHomebaseScreen
-          _homebaseList = homebase.length > 4
-              ? homebase.sublist(0, 4)
-              : homebase;
           _islandDataMap = islandMap;
           if (_selectedIsland != null) {
             _selectedIsland = islandMap[_selectedIsland!.id];
@@ -545,7 +535,9 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
             _MenuItem('kompetensi_teknis', 'Kompetensi Teknis', Icons.build_outlined, const Color(0xFF7C3AED)),
             _MenuItem('masa_berlaku', 'Masa Berlaku', Icons.event_outlined, const Color(0xFF059669)),
             _MenuItem('spt_2026', 'SPT 2026', Icons.assignment_ind_outlined, const Color(0xFFD97706)),
+            _MenuItem('asesi_2026', 'Asesi 2026', Icons.groups_outlined, const Color(0xFF2563EB)),
           ],
+
         ),
         const SizedBox(height: 12),
         _buildMenuGroup(

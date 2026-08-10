@@ -42,7 +42,13 @@ class _StatisticsMenuAccordionState extends State<StatisticsMenuAccordion> {
               label: 'SPT 2026',
               icon: Icons.assignment_ind_outlined,
             ),
+            _buildMenuItem(
+              value: 'asesi_2026',
+              label: 'Asesi 2026',
+              icon: Icons.groups_outlined,
+            ),
           ],
+
         ),
         const Divider(height: 1, color: Color(0xFFF1F5F9)),
         _buildGroup(

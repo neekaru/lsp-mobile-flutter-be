@@ -38,6 +38,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
   List<JenisSkemaItem> _jenisSkemaList = [];
   List<MUKDistribusiItem> _mukList = [];
   SptAsesorData? _sptData;
+  Asesi2026Data? _asesi2026Data;
   List<MonthlyAssessment> _monthlyAssessments = [];
   List<SertifikatDistribusi> _sertifikatPerSkema = [];
 
@@ -86,6 +87,9 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         case 'spt_2026':
           _sptData = await ApiService.getSptAsesor2026();
           break;
+        case 'asesi_2026':
+          _asesi2026Data = await ApiService.getAsesi2026();
+          break;
         case 'tahun_2026':
           _monthlyAssessments = await ApiService.getMonthlyAssessments();
           break;
@@ -130,6 +134,8 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         return 'MUK (Materi Uji Kompetensi)';
       case 'spt_2026':
         return 'Penugasan Asesor (SPT 2026)';
+      case 'asesi_2026':
+        return 'Asesi 2026';
       case 'praktisi':
         return 'Praktisi Skema';
       case 'tahun_2026':
@@ -150,6 +156,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
       {'value': 'kompetensi_teknis', 'label': 'Kompetensi Teknis'},
       {'value': 'masa_berlaku', 'label': 'Masa Berlaku'},
       {'value': 'spt_2026', 'label': 'SPT 2026'},
+      {'value': 'asesi_2026', 'label': 'Asesi 2026'},
     ],
     'skema_sertifikasi': [
       {'value': 'jenis_skema', 'label': 'Jenis Skema'},
@@ -257,8 +264,10 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
                   )
                 : RefreshIndicator(
                     onRefresh: () => _loadData(forceRefresh: true),
-                    child: widget.menuKey == 'spt_2026'
-                        ? _buildSpt2026Content()
+                    child: (widget.menuKey == 'spt_2026' || widget.menuKey == 'asesi_2026')
+                        ? (widget.menuKey == 'spt_2026'
+                            ? _buildSpt2026Content()
+                            : _buildAsesi2026Content())
                         : SingleChildScrollView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.all(16.0),
@@ -285,6 +294,8 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         return _buildMUKContent();
       case 'spt_2026':
         return _buildSpt2026Content();
+      case 'asesi_2026':
+        return _buildAsesi2026Content();
       case 'praktisi':
         return _buildPraktisiContent();
       case 'tahun_2026':
@@ -1264,6 +1275,224 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         ],
       ),
     ),
+    );
+  }
+
+  // Asesi 2026 Content — CustomScrollView + SliverList for virtualization
+  Widget _buildAsesi2026Content() {
+    final data = _asesi2026Data;
+    final items = data?.items ?? [];
+    final filtered = items
+        .where((i) =>
+            _searchQuery.isEmpty ||
+            i.namaAsesor.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
+
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        // ── Header: KPI + search (non-virtualized, small) ───────────────────
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildKpiCardGroup(
+                  items: [
+                    _KpiItem('Total Asesor', '${data?.totalAsesor ?? items.length}', Colors.blue),
+                    _KpiItem('Total Asesi', '${data?.totalAsesi ?? items.fold<int>(0, (sum, i) => sum + i.totalAsesi)}', const Color(0xFF16A34A)),
+                    _KpiItem('Total Jadwal', '${data?.totalJadwal ?? items.fold<int>(0, (sum, i) => sum + i.totalJadwal)}', Colors.indigo),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildSearchField('Cari Nama Asesor...'),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        ),
+        // ── Virtualized list: only builds visible cards ─────────────────────
+        if (filtered.isEmpty)
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.inbox_outlined, size: 40, color: Color(0xFF94A3B8)),
+                    SizedBox(height: 8),
+                    Text('Belum ada data penugasan asesi 2026.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildAsesi2026Card(filtered[index]),
+                ),
+                childCount: filtered.length,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAsesi2026Card(Asesi2026Item item) {
+    Color statusBgColor;
+    Color statusTextColor;
+    if (item.statusMasaBerlaku == 'Aktif') {
+      statusBgColor = const Color(0xFFE8F5E9);
+      statusTextColor = const Color(0xFF16A34A);
+    } else if (item.statusMasaBerlaku == 'Tenggang') {
+      statusBgColor = const Color(0xFFFFF8E1);
+      statusTextColor = const Color(0xFFD97706);
+    } else {
+      statusBgColor = const Color(0xFFFFEBEE);
+      statusTextColor = const Color(0xFFDC2626);
+    }
+
+    return RepaintBoundary(
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x05000000),
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.person_outline, size: 20, color: Color(0xFF2563EB)),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.namaAsesor,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
+                      ),
+                      if (item.tglExpired.isNotEmpty)
+                        Text(
+                          'Expired: ${DateFormatHelper.formatToIndonesian(item.tglExpired)}',
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                        ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusBgColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    item.statusMasaBerlaku,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusTextColor),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${item.totalAsesi} Asesi',
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${item.totalJadwal} Jadwal',
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Jumlah Asesi per Bulan (2026):',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _monthLabels.map((m) {
+                  final count = item.bulanan[m] ?? 0;
+                  final isAssigned = count > 0;
+                  return Container(
+                    width: 48,
+                    margin: const EdgeInsets.only(right: 6),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isAssigned ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          m,
+                          style: TextStyle(fontSize: 10, color: isAssigned ? Colors.white70 : const Color(0xFF64748B)),
+                        ),
+                        Text(
+                          '$count',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isAssigned ? Colors.white : Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

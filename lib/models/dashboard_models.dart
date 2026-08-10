@@ -1284,3 +1284,70 @@ class SptAsesorData {
   }
 }
 
+class Asesi2026Item {
+  final String namaAsesor;
+  final String tglExpired;
+  final String statusMasaBerlaku;
+  final int totalAsesi;
+  final int totalJadwal;
+  final Map<String, int> bulanan;
+
+  const Asesi2026Item({
+    required this.namaAsesor,
+    required this.tglExpired,
+    required this.statusMasaBerlaku,
+    required this.totalAsesi,
+    required this.totalJadwal,
+    required this.bulanan,
+  });
+
+  factory Asesi2026Item.fromJson(Map<String, dynamic> json) {
+    final bulananRaw = json['bulanan'] as Map<String, dynamic>? ?? {};
+    final mapBulanan = <String, int>{};
+    bulananRaw.forEach((key, value) {
+      mapBulanan[key] = (value as num?)?.toInt() ?? 0;
+    });
+
+    return Asesi2026Item(
+      namaAsesor: json['nama_asesor']?.toString() ?? '',
+      tglExpired: json['tgl_expired']?.toString() ?? '',
+      statusMasaBerlaku: json['status_masa_berlaku']?.toString() ?? 'Tidak Diketahui',
+      totalAsesi: (json['total_asesi'] as num?)?.toInt() ?? 0,
+      totalJadwal: (json['total_jadwal'] as num?)?.toInt() ?? 0,
+      bulanan: mapBulanan,
+    );
+  }
+}
+
+class Asesi2026Data {
+  final List<Asesi2026Item> items;
+  final int totalAsesor;
+  final int totalAsesi;
+  final int totalJadwal;
+  final int tahun;
+
+  const Asesi2026Data({
+    required this.items,
+    required this.totalAsesor,
+    required this.totalAsesi,
+    required this.totalJadwal,
+    required this.tahun,
+  });
+
+  factory Asesi2026Data.fromJson(Map<String, dynamic> json) {
+    final list = (json['data'] as List?)
+            ?.map((e) => Asesi2026Item.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+    final meta = json['meta'] ?? {};
+    return Asesi2026Data(
+      items: list,
+      totalAsesor: (meta['total_asesor'] as num?)?.toInt() ?? list.length,
+      totalAsesi: (meta['total_asesi'] as num?)?.toInt() ?? 0,
+      totalJadwal: (meta['total_jadwal'] as num?)?.toInt() ?? 0,
+      tahun: (meta['tahun'] as num?)?.toInt() ?? 2026,
+    );
+  }
+}
+
+
