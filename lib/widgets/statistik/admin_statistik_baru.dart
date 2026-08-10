@@ -547,7 +547,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
             _MenuItem('spt_2026', 'SPT 2026', Icons.assignment_ind_outlined, const Color(0xFFD97706)),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
         _buildMenuGroup(
           title: 'Skema Sertifikasi',
           items: [
@@ -556,7 +556,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
             _MenuItem('praktisi', 'Praktisi', Icons.people_outline, const Color(0xFF0891B2)),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
         _buildMenuGroup(
           title: 'Pemegang Sertifikat',
           items: [
@@ -576,17 +576,15 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF64748B),
-            ),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF64748B),
           ),
         ),
+        const SizedBox(height: 4),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
