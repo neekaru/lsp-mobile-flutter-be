@@ -37,6 +37,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
   DomisiliAsesorData? _domisiliData;
   List<KompetensiTeknisItem> _kompetensiList = [];
   MasaBerlakuAsesorData? _masaBerlakuData;
+  MasaTenggangSertifikatData? _masaTenggangData;
   List<JenisSkemaItem> _jenisSkemaList = [];
   List<MUKDistribusiItem> _mukList = [];
   SptAsesorData? _sptData;
@@ -79,6 +80,9 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           break;
         case 'masa_berlaku':
           _masaBerlakuData = await ApiService.getMasaBerlakuAsesor();
+          break;
+        case 'masa_tenggang_sertifikat':
+          _masaTenggangData = await ApiService.getMasaTenggangSertifikat();
           break;
         case 'jenis_skema':
           _jenisSkemaList = await ApiService.getJenisSkema();
@@ -130,6 +134,8 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         return 'Kompetensi Teknis';
       case 'masa_berlaku':
         return 'Masa Berlaku Asesor';
+      case 'masa_tenggang_sertifikat':
+        return 'Masa Tenggang Sertifikat';
       case 'jenis_skema':
         return 'Jenis Skema';
       case 'muk':
@@ -166,6 +172,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
       {'value': 'praktisi', 'label': 'Praktisi'},
     ],
     'pemegang_sertifikat': [
+      {'value': 'masa_tenggang_sertifikat', 'label': 'Masa Tenggang'},
       {'value': 'tahun_2026', 'label': 'Tahun 2026'},
       {'value': '3_tahun', 'label': '3 Tahun'},
       {'value': 'kompetensi', 'label': 'Kompetensi'},
@@ -290,6 +297,8 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         return _buildKompetensiTeknisContent();
       case 'masa_berlaku':
         return _buildMasaBerlakuContent();
+      case 'masa_tenggang_sertifikat':
+        return _buildMasaTenggangSertifikatContent();
       case 'jenis_skema':
         return _buildJenisSkemaContent();
       case 'muk':
@@ -763,6 +772,120 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           );
         },
         child: cardContent,
+      ),
+    );
+  }
+
+  // 3b. Masa Tenggang Sertifikat Content
+  Widget _buildMasaTenggangSertifikatContent() {
+    final data = _masaTenggangData;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Sertifikat Akan Expired',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Total: ${data?.totalSertifikatAkanExpired ?? 0} sertifikat (${data?.periodeAwal ?? '-'} s/d ${data?.periodeAkhir ?? '-'})',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        ...?data?.data.map((bulanItem) => [
+          _buildBulanTenggangCard(bulanItem),
+          const SizedBox(height: 10),
+        ]),
+      ],
+    );
+  }
+
+  Widget _buildBulanTenggangCard(MasaTenggangSertifikatBulanItem item) {
+    final color = const Color(0xFFD97706);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withAlpha(50)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withAlpha(20),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.event_outlined, color: color, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.bulan.isEmpty ? item.tahunBulan : item.bulan,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${item.totalExpired} sertifikat expired',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...item.skemaDetail.map((skema) => Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    skema.namaSkema,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                Text(
+                  '${skema.jumlahAsesi} asesi',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ],
       ),
     );
   }

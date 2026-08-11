@@ -74,7 +74,79 @@ class DashboardSummary {
       tempatUjiKompetensi: '0 > 0',
     );
   }
-  
+}
+
+// ============= MASA TENGGANG SERTIFIKAT =============
+
+class MasaTenggangSertifikatSkemaItem {
+  final int skemaId;
+  final String namaSkema;
+  final int jumlahAsesi;
+
+  const MasaTenggangSertifikatSkemaItem({
+    required this.skemaId,
+    required this.namaSkema,
+    required this.jumlahAsesi,
+  });
+
+  factory MasaTenggangSertifikatSkemaItem.fromJson(Map<String, dynamic> json) {
+    return MasaTenggangSertifikatSkemaItem(
+      skemaId: json['skema_id'] ?? 0,
+      namaSkema: json['nama_skema']?.toString() ?? '',
+      jumlahAsesi: json['jumlah_asesi'] ?? 0,
+    );
+  }
+}
+
+class MasaTenggangSertifikatBulanItem {
+  final String bulan;
+  final String tahunBulan;
+  final int totalExpired;
+  final List<MasaTenggangSertifikatSkemaItem> skemaDetail;
+
+  const MasaTenggangSertifikatBulanItem({
+    required this.bulan,
+    required this.tahunBulan,
+    required this.totalExpired,
+    required this.skemaDetail,
+  });
+
+  factory MasaTenggangSertifikatBulanItem.fromJson(Map<String, dynamic> json) {
+    final List skemaList = json['skema_detail'] ?? [];
+    return MasaTenggangSertifikatBulanItem(
+      bulan: json['bulan']?.toString() ?? '',
+      tahunBulan: json['tahun_bulan']?.toString() ?? '',
+      totalExpired: json['total_expired'] ?? 0,
+      skemaDetail: skemaList.map((e) => MasaTenggangSertifikatSkemaItem.fromJson(e)).toList(),
+    );
+  }
+}
+
+class MasaTenggangSertifikatData {
+  final List<MasaTenggangSertifikatBulanItem> data;
+  final int totalSertifikatAkanExpired;
+  final String periodeAwal;
+  final String periodeAkhir;
+
+  const MasaTenggangSertifikatData({
+    required this.data,
+    required this.totalSertifikatAkanExpired,
+    required this.periodeAwal,
+    required this.periodeAkhir,
+  });
+
+  factory MasaTenggangSertifikatData.fromJson(Map<String, dynamic> json) {
+    final List dataList = json['data'] ?? [];
+    final meta = json['meta'] ?? {};
+    return MasaTenggangSertifikatData(
+      data: dataList.map((e) => MasaTenggangSertifikatBulanItem.fromJson(e)).toList(),
+      totalSertifikatAkanExpired: meta['total_sertifikat_akan_expired'] ?? 0,
+      periodeAwal: meta['periode_awal']?.toString() ?? '',
+      periodeAkhir: meta['periode_akhir']?.toString() ?? '',
+    );
+  }
+}
+
   // Helper method to parse "bulan_lalu > bulan_ini" format
   static Map<String, int> parseComparison(String value) {
     final parts = value.split('>');

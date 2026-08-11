@@ -47,6 +47,8 @@ class ApiRoutes {
       '/api/dashboard/masa-berlaku-asesor';
   static const String dashboardMasaBerlakuAsesorDetail =
       '/api/dashboard/masa-berlaku-asesor/detail';
+  static const String dashboardMasaTenggangSertifikat =
+      '/api/dashboard/masa-tenggang-sertifikat';
   static const String dashboardJenisSkema =
       '/api/dashboard/jenis-skema';
   static const String dashboardMukDistribusi =

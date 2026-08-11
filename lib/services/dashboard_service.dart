@@ -441,6 +441,20 @@ class DashboardService {
     }
   }
 
+  /// Fetch Masa Tenggang Sertifikat (certificates expiring in next 3 months)
+  static Future<MasaTenggangSertifikatData?> getMasaTenggangSertifikat() async {
+    try {
+      final response = await _dio.get(ApiRoutes.dashboardMasaTenggangSertifikat);
+      if (response.statusCode == 200 && response.data != null) {
+        return MasaTenggangSertifikatData.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching masa tenggang sertifikat: $e');
+      return null;
+    }
+  }
+
   /// Fetch Jenis Skema by Category
   static Future<List<JenisSkemaItem>> getJenisSkema() async {
     try {

@@ -102,6 +102,8 @@ class ApiService {
       );
   static Future<MasaBerlakuAsesorData?> getMasaBerlakuAsesor() =>
       DashboardService.getMasaBerlakuAsesor();
+  static Future<MasaTenggangSertifikatData?> getMasaTenggangSertifikat() =>
+      DashboardService.getMasaTenggangSertifikat();
   static Future<MasaBerlakuAsesorDetailData?> getMasaBerlakuAsesorDetail({
     required String status,
     String? search,

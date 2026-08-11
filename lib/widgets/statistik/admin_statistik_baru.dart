@@ -552,6 +552,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
         _buildMenuGroup(
           title: 'Pemegang Sertifikat',
           items: [
+            _MenuItem('masa_tenggang_sertifikat', 'Masa Tenggang', Icons.warning_amber_outlined, const Color(0xFFF59E0B)),
             _MenuItem('tahun_2026', 'Tahun 2026', Icons.calendar_today_outlined, const Color(0xFF16A34A)),
             _MenuItem('3_tahun', '3 Tahun', Icons.history_outlined, const Color(0xFF9333EA)),
             _MenuItem('kompetensi', 'Kompetensi', Icons.verified_outlined, const Color(0xFFEA580C)),
