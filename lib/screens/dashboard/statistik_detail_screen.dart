@@ -807,7 +807,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        ...?data?.data.map((bulanItem) => [
+        ...?data?.data.expand((bulanItem) => [
           _buildBulanTenggangCard(bulanItem),
           const SizedBox(height: 10),
         ]),
@@ -876,7 +876,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
                 ),
                 Text(
                   '${skema.jumlahAsesi} asesi',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: color,

@@ -145,7 +145,6 @@ class MasaTenggangSertifikatData {
       periodeAkhir: meta['periode_akhir']?.toString() ?? '',
     );
   }
-}
 
   // Helper method to parse "bulan_lalu > bulan_ini" format
   static Map<String, int> parseComparison(String value) {
