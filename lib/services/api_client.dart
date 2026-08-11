@@ -13,7 +13,10 @@ import 'auth_repository.dart';
 class ApiClient {
   ApiClient._();
 
-  static String get baseUrl => dotenv.env['BASE_URL'] ?? '';
+  static String get baseUrl {
+    final url = dotenv.env['BASE_URL'] ?? '';
+    return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+  }
 
   // Expose publicly for any repo that still needs raw Dio access
   static Dio get dio => _dio;
