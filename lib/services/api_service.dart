@@ -30,7 +30,6 @@ import 'api_client.dart';
 import 'dashboard_service.dart';
 import 'jadwal_service.dart';
 import 'asesor_service.dart';
-import 'asesi_service.dart';
 import 'sertifikat_service.dart';
 import 'master_service.dart';
 import 'misc_services.dart';

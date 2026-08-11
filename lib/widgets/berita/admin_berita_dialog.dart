@@ -192,41 +192,46 @@ Future<void> showAdminBeritaFormDialog({
                             ),
                             const SizedBox(width: 8),
                             InkWell(
-                              onTap: () async {
-                                try {
-                                  final result = await FilePicker.pickFiles(
-                                    type: FileType.image,
-                                    allowMultiple: false,
-                                  );
-                                  if (result != null && result.files.isNotEmpty) {
-                                    final file = result.files.single;
-                                    if (file.path == null) return;
-                                    setModalState(() => isUploadingFoto = true);
-                                    final uploaded = await ApiService.uploadBeritaFoto(file.path!);
-                                    if (uploaded != null && uploaded['filename'] != null) {
-                                      final serverName = uploaded['filename'].toString();
-                                      setModalState(() {
-                                        newFotoFileName = serverName;
-                                        fotoController.text = serverName;
-                                      });
-                                      ScaffoldMessenger.of(ctx).showSnackBar(
-                                        const SnackBar(content: Text('Foto berhasil diunggah')),
-                                      );
-                                    } else {
-                                      ScaffoldMessenger.of(ctx).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Gagal mengunggah foto'),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                    setModalState(() => isUploadingFoto = false);
-                                  }
-                                } catch (e) {
-                                  setModalState(() => isUploadingFoto = false);
-                                  debugPrint('Error picking file: $e');
-                                }
-                              },
+                              onTap: (isUploadingFoto
+                                  ? null
+                                  : () async {
+                                      try {
+                                        final result = await FilePicker.pickFiles(
+                                          type: FileType.image,
+                                          allowMultiple: false,
+                                        );
+                                        if (result != null && result.files.isNotEmpty) {
+                                          final file = result.files.single;
+                                          if (file.path == null) return;
+                                          setModalState(() => isUploadingFoto = true);
+                                          final uploaded = await ApiService.uploadBeritaFoto(file.path!);
+                                          if (!ctx.mounted) return;
+                                          if (uploaded != null && uploaded['filename'] != null) {
+                                            final serverName = uploaded['filename'].toString();
+                                            setModalState(() {
+                                              newFotoFileName = serverName;
+                                              fotoController.text = serverName;
+                                            });
+                                            ScaffoldMessenger.of(ctx).showSnackBar(
+                                              const SnackBar(content: Text('Foto berhasil diunggah')),
+                                            );
+                                          } else {
+                                            ScaffoldMessenger.of(ctx).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('Gagal mengunggah foto'),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                          setModalState(() => isUploadingFoto = false);
+                                        }
+                                      } catch (e) {
+                                        if (ctx.mounted) {
+                                          setModalState(() => isUploadingFoto = false);
+                                        }
+                                        debugPrint('Error picking file: $e');
+                                      }
+                                    }),
                               borderRadius: BorderRadius.circular(10),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
@@ -237,21 +242,30 @@ Future<void> showAdminBeritaFormDialog({
                                   border: Border.all(
                                       color: const Color(0xFF2563EB)),
                                 ),
-                                child: const Row(
-                                  children: [
-                                    Icon(Icons.photo_library_outlined,
-                                        size: 18, color: Color(0xFF2563EB)),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Pilih Foto',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2563EB),
+                                child: isUploadingFoto
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Color(0xFF2563EB)),
+                                      )
+                                    : const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.photo_library_outlined,
+                                              size: 18, color: Color(0xFF2563EB)),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            'Pilih Foto',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF2563EB),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
-                                ),
                               ),
                             ),
                           ],
