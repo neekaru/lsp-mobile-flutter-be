@@ -59,6 +59,25 @@ class AuthSessionService {
 class BeritaService {
   static Dio get _dio => ApiClient.dio;
 
+  static Future<Map<String, dynamic>?> uploadBeritaFoto(String filePath) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+      });
+      final response = await _dio.post(
+        ApiRoutes.adminBeritaUploadFoto,
+        data: formData,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['data'] as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error uploading berita foto: $e');
+      return null;
+    }
+  }
+
   /// Fetch Paginated News List
   static Future<List<BeritaItem>> getBerita({int page = 1, int size = 10}) async {
     try {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/berita_model.dart';
+import '../../services/api_client.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_repository.dart';
 import '../../widgets/berita/admin_berita_dialog.dart';
@@ -109,7 +110,7 @@ class _BeritaDetailScreenState extends State<BeritaDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final String? imageUrl = _detail?.foto != null && _detail!.foto!.isNotEmpty
-        ? 'https://mobile.lspdigital.id/upload/foto_berita/${_detail!.foto}'
+        ? '${ApiClient.baseUrl}/upload/foto_berita/${_detail!.foto}'
         : null;
 
     return Scaffold(

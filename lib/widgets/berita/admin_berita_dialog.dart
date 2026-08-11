@@ -26,6 +26,8 @@ Future<void> showAdminBeritaFormDialog({
   final headlineController = TextEditingController(text: initialHeadline ?? '');
   final isiController = TextEditingController(text: initialIsi ?? '');
   final fotoController = TextEditingController(text: initialFoto ?? '');
+  String? newFotoFileName;
+  bool isUploadingFoto = false;
 
   int selectedKategori = [2, 4, 9].contains(initialKategori) ? initialKategori : 2;
   bool showImage = initialShowImage != '0';
@@ -198,11 +200,30 @@ Future<void> showAdminBeritaFormDialog({
                                   );
                                   if (result != null && result.files.isNotEmpty) {
                                     final file = result.files.single;
-                                    setModalState(() {
-                                      fotoController.text = file.name;
-                                    });
+                                    if (file.path == null) return;
+                                    setModalState(() => isUploadingFoto = true);
+                                    final uploaded = await ApiService.uploadBeritaFoto(file.path!);
+                                    if (uploaded != null && uploaded['filename'] != null) {
+                                      final serverName = uploaded['filename'].toString();
+                                      setModalState(() {
+                                        newFotoFileName = serverName;
+                                        fotoController.text = serverName;
+                                      });
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        const SnackBar(content: Text('Foto berhasil diunggah')),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Gagal mengunggah foto'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                    setModalState(() => isUploadingFoto = false);
                                   }
                                 } catch (e) {
+                                  setModalState(() => isUploadingFoto = false);
                                   debugPrint('Error picking file: $e');
                                 }
                               },
@@ -281,7 +302,7 @@ Future<void> showAdminBeritaFormDialog({
                                         headline: headlineController.text.trim(),
                                         isi: isiController.text.trim(),
                                         idKategori: selectedKategori,
-                                        foto: fotoController.text.trim(),
+                                        foto: newFotoFileName,
                                         showImage: showImage ? '1' : '0',
                                       );
                                       success = res != null;

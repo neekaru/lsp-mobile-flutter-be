@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/berita_model.dart';
+import '../../services/api_client.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_repository.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -270,7 +271,7 @@ class _BeritaScreenState extends State<BeritaScreen> {
   Widget _buildBeritaCard(BeritaItem item) {
     // Construct dynamic image URL if present
     final String? imageUrl = item.foto != null && item.foto!.isNotEmpty
-        ? 'https://mobile.lspdigital.id/upload/foto_berita/${item.foto}'
+        ? '${ApiClient.baseUrl}/upload/foto_berita/${item.foto}'
         : null;
 
     return Container(

@@ -22,6 +22,7 @@ export 'asesi_service.dart';
 export 'sertifikat_service.dart';
 export 'master_service.dart';
 export 'misc_services.dart';
+export 'file_service.dart';
 
 import 'package:dio/dio.dart';
 
@@ -29,9 +30,11 @@ import 'api_client.dart';
 import 'dashboard_service.dart';
 import 'jadwal_service.dart';
 import 'asesor_service.dart';
+import 'asesi_service.dart';
 import 'sertifikat_service.dart';
 import 'master_service.dart';
 import 'misc_services.dart';
+import 'file_service.dart';
 import '../models/dashboard_models.dart';
 import '../models/sertifikat_models.dart';
 import '../models/jadwal_models.dart';
@@ -284,6 +287,10 @@ class ApiService {
       BeritaService.getBerita(page: page, size: size);
   static Future<BeritaDetail?> getBeritaDetail(int id) =>
       BeritaService.getBeritaDetail(id);
+  static Future<Map<String, dynamic>?> uploadBeritaFoto(String filePath) =>
+      BeritaService.uploadBeritaFoto(filePath);
+  static Future<Map<String, dynamic>?> getSignedUrl(String filePath) =>
+      FileService.getSignedUrl(filePath);
   static Future<Map<String, dynamic>?> createAdminBerita({
     required String judul,
     required String headline,

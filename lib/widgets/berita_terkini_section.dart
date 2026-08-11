@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_client.dart';
 import '../models/berita_model.dart';
 import '../screens/dashboard/berita_screen.dart';
 import '../screens/dashboard/berita_detail_screen.dart';
@@ -92,7 +93,7 @@ class BeritaTerkiniSection extends StatelessWidget {
 
   Widget _buildBeritaCard(BuildContext context, BeritaItem item) {
     final String? imageUrl = item.foto != null && item.foto!.isNotEmpty
-        ? 'https://mobile.lspdigital.id/upload/foto_berita/${item.foto}'
+        ? '${ApiClient.baseUrl}/upload/foto_berita/${item.foto}'
         : null;
 
     return Container(

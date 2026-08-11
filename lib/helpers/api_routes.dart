@@ -224,6 +224,8 @@ class ApiRoutes {
   static String beritaDetail(int id) => '/api/berita/$id';
   static const String adminBerita = '/api/admin/berita';
   static String adminBeritaDetail(int id) => '/api/admin/berita/$id';
+  static const String adminBeritaUploadFoto = '/api/admin/berita/upload-foto';
+  static const String fileSignedUrl = '/api/files/signed-url';
 
   // ============================================================================
   // Health Routes
