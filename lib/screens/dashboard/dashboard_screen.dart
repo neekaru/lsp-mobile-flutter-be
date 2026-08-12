@@ -17,7 +17,7 @@ import '../../widgets/berita_terkini_section.dart';
 import '../auth/login_screen.dart';
 import '../../widgets/public_sertifikat_card.dart';
 import '../../widgets/tentang_kami_section.dart';
-import '../../widgets/admin_bantuan_pengumuman.dart';
+import '../../widgets/bantuan_informasi_section.dart';
 import '../profile/honor_asesor_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -557,13 +557,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // 2.5. Tentang Kami Section - Hanya untuk Guest (Public Landing Page)
             if (isGuest) const TentangKamiSection(),
 
-            // 3. Bantuan & Informasi serta Pengumuman Baru Section - Tampil untuk semua role terautentikasi (Admin, Asesi, Asesor)
-            if (!isGuest)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0),
-                child: AdminBantuanPengumuman(
-                  showBantuan: !isAdmin,
-                ),
+            // 3. Bantuan & Informasi Section - Tampil untuk Asesi & Asesor
+            if (!isGuest && !isAdmin)
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 32.0),
+                child: BantuanInformasiSection(),
               )
             else
               const SizedBox(height: 32),

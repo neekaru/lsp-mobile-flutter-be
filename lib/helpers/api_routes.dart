@@ -203,14 +203,6 @@ class ApiRoutes {
   static String adminTiketStatus(int id) => '/api/admin/tiket/$id/status';
 
   // ============================================================================
-  // Pengumuman Routes
-  // ============================================================================
-
-  static const String pengumuman = '/api/pengumuman';
-  static const String adminPengumuman = '/api/admin/pengumuman';
-  static String adminPengumumanDetail(int id) => '/api/admin/pengumuman/$id';
-
-  // ============================================================================
   // Session Routes
   // ============================================================================
 
