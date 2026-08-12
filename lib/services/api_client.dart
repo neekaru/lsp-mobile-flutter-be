@@ -64,16 +64,26 @@ class ApiClient {
                   debugPrint('🔴 URL: ${error.requestOptions.uri}');
                 }
 
-                final isAuthPath = error.requestOptions.path.contains(ApiRoutes.authLogin) ||
+                final isAuthPath =
+                    error.requestOptions.path.contains(ApiRoutes.authLogin) ||
                     error.requestOptions.path.contains(ApiRoutes.authRefresh);
 
                 if (error.response?.statusCode == 401 && !isAuthPath) {
+                  // A request that was already retried after a refresh and still
+                  // got 401 means the session is truly gone. Stop the refresh
+                  // loop and force a clean re-login instead of hanging forever.
+                  if (error.requestOptions.headers['X-Refreshed'] == '1') {
+                    await TokenStorage.instance.clear();
+                    AuthRepository.notifyTokenExpired();
+                    return handler.next(error);
+                  }
                   if (_isRefreshing) {
                     return handler.next(error);
                   }
                   _isRefreshing = true;
                   try {
-                    final refreshToken = await TokenStorage.instance.getRefreshToken();
+                    final refreshToken = await TokenStorage.instance
+                        .getRefreshToken();
                     if (refreshToken != null && refreshToken.isNotEmpty) {
                       final refreshResponse =
                           await Dio(BaseOptions(baseUrl: baseUrl)).post(
@@ -91,6 +101,9 @@ class ApiClient {
 
                         error.requestOptions.headers['Authorization'] =
                             'Bearer $newAccessToken';
+                        // Mark the retried request so a second 401 does not
+                        // re-enter the refresh loop.
+                        error.requestOptions.headers['X-Refreshed'] = '1';
                         _isRefreshing = false;
 
                         if (kDebugMode) {
@@ -105,7 +118,8 @@ class ApiClient {
                         throw DioException(
                           requestOptions: refreshResponse.requestOptions,
                           response: refreshResponse,
-                          message: 'Token refresh returned non-200 status code: ${refreshResponse.statusCode}',
+                          message:
+                              'Token refresh returned non-200 status code: ${refreshResponse.statusCode}',
                         );
                       }
                     } else {
