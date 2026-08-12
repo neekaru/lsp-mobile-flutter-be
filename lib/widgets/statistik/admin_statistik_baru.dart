@@ -11,7 +11,7 @@ import 'statistics_menu_accordion.dart';
 import 'statistik_menu_grid.dart';
 import 'admin_kpi_row.dart';
 import 'skema_wilayah_card.dart';
-import 'asesor_homebase_card.dart';
+
 import '../../screens/dashboard/statistik_detail_screen.dart';
 
 class AdminStatistikBaru extends StatefulWidget {
@@ -30,7 +30,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   StatistikOverview? _overview;
   AsesorStats? _asesorStats;
   List<TopProvinsi> _topProvinces = [];
-  List<AsesorHomebase> _homebaseList = [];
+
   Map<String, IslandData> _islandDataMap = {};
   Map<String, int> _provinceMapData = {};
   IslandData? _selectedIsland;
@@ -54,15 +54,13 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
         ApiService.getStatistikOverview(),
         ApiService.getAsesorStats(),
         ApiService.getTopProvinces(),
-        ApiService.getAsesorHomebase(),
         ApiService.getPenyebaranRegional(),
         ApiService.getDomisiliAsesor(),
       ]);
 
       if (mounted) {
-        final homebase = results[3] as List<AsesorHomebase>;
-        final regional = results[4] as List<RegionalDistribution>;
-        final domisili = results[5] as DomisiliAsesorData?;
+        final regional = results[3] as List<RegionalDistribution>;
+        final domisili = results[4] as DomisiliAsesorData?;
         final islandMap = islandDataFromApi(regional);
 
         final Map<String, int> provData = {};
@@ -79,9 +77,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
           _overview = results[0] as StatistikOverview;
           _asesorStats = results[1] as AsesorStats;
           _topProvinces = results[2] as List<TopProvinsi>;
-          _homebaseList = homebase.length > 4
-              ? homebase.sublist(0, 4)
-              : homebase;
+
           _islandDataMap = islandMap;
           _provinceMapData = provData;
           if (_selectedIsland != null) {
@@ -240,9 +236,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                           SkemaWilayahCard(topProvinces: _topProvinces),
                           const SizedBox(height: 16),
 
-                          // 6. Section: Daftar Asessor Berdasarkan Homebase Card
-                          AsesorHomebaseCard(homebaseList: _homebaseList),
-                          const SizedBox(height: 16),
+
                         ],
                       ),
                     ),

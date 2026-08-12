@@ -217,8 +217,7 @@ class ApiService {
       AsesorService.getTopProvinces();
   static Future<List<TopMitra>> getTopMitras() => AsesorService.getTopMitras();
   static Future<SkemaStats> getSkemaStats() => AsesorService.getSkemaStats();
-  static Future<List<AsesorHomebase>> getAsesorHomebase() =>
-      AsesorService.getAsesorHomebase();
+
 
   // ── Sertifikat ──────────────────────────────────────────────────────────────
   static Future<SertifikatValidationResult> validateSertifikat(

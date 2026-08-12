@@ -768,28 +768,6 @@ class AsesorDashboardData {
   }
 }
 
-class AsesorHomebase {
-  final String name;
-  final String scheme;
-  final String homebase;
-  final int assessments;
-
-  const AsesorHomebase({
-    required this.name,
-    required this.scheme,
-    required this.homebase,
-    required this.assessments,
-  });
-
-  factory AsesorHomebase.fromJson(Map<String, dynamic> json) {
-    return AsesorHomebase(
-      name: json['name'] ?? '',
-      scheme: json['scheme'] ?? '',
-      homebase: json['homebase'] ?? '',
-      assessments: (json['assessments'] as num?)?.toInt() ?? 0,
-    );
-  }
-}
 
 // ============================================================================
 // Detailed Admin Statistics Models (Items #1-5)
