@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/admin_laporan_service.dart';
 import '../../models/admin_laporan_models.dart';
 import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/jadwal/detail_pelaporan_sections.dart';
 
 class DetailPelaporanScreen extends StatefulWidget {
   final int laporanId;
@@ -444,7 +445,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
                         ? _buildLampiranContent(detail, isApproved)
                         : _tabController.index == 1
                             ? _buildAsesiContent(detail, isApproved)
-                            : _buildInformasiContent(detail, isApproved),
+                            : InformasiContent(detail: detail, isApproved: isApproved),
                   ),
                 ),
               ],
@@ -661,7 +662,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
             ),
           ),
         ] else ...[
-          _buildGreenStatusBanner(),
+          const GreenStatusBanner(),
         ],
       ],
     );
@@ -875,170 +876,15 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
         // Status Banner ONLY shown if Disetujui
         if (isApproved) ...[
           const SizedBox(height: 12),
-          _buildGreenStatusBanner(),
+          const GreenStatusBanner(),
         ],
       ],
     );
   }
 
   /// 3. Informasi Tab Content
-  Widget _buildInformasiContent(AdminLaporanDetailData detail, bool isApproved) {
-    final String namaSkema = detail.skemaSertifikasi.isNotEmpty
-        ? detail.skemaSertifikasi
-        : 'Digital Marketing';
-    final String kodeSkema = detail.kodeLaporan.isNotEmpty
-        ? detail.kodeLaporan
-        : 'JNA - 002';
-    final String tuk = detail.tuk.isNotEmpty
-        ? detail.tuk
-        : 'LPK Digital Center';
-    final String jenisAsessmen = detail.jenisAsesmen.isNotEmpty
-        ? detail.jenisAsesmen
-        : 'Offline';
-    final String tanggalAsessmen = detail.tanggalPelaksanaan.isNotEmpty
-        ? detail.tanggalPelaksanaan
-        : '20 Juli 2026';
-    final String asesor = detail.namaAsesor.isNotEmpty
-        ? detail.namaAsesor
-        : 'Karina';
-    final String jumlahAsessi = '${detail.ringkasan.totalPeserta} Peserta';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Main Informasi Asessmen Card Box
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Informasi Asessmen',
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-              const SizedBox(height: 14),
-              _buildInfoRow('Nama Skema', namaSkema),
-              _buildInfoRow('Kode Skema', kodeSkema),
-              _buildInfoRow('TUK', tuk),
-              _buildInfoRow('Jenis Asessmen', jenisAsessmen),
-              _buildInfoRow('Tanggal Asessmen', tanggalAsessmen),
-              _buildInfoRow('Asessor', asesor),
-              _buildInfoRow('Jumlah Asessi', jumlahAsessi),
-            ],
-          ),
-        ),
 
-        // Status Banner ONLY shown if Disetujui
-        if (isApproved) ...[
-          const SizedBox(height: 16),
-          _buildGreenStatusBanner(),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildGreenStatusBanner() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFD1FAE5),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: const Color(0xFF34D399),
-          width: 1,
-        ),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.check_circle_rounded,
-            color: Color(0xFF10B981),
-            size: 32,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Laporan Telah Disetujui',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF065F46),
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Tidak ada dokumen yang perlu direvisi. Laporan dinyatakan lengkap.',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: Color(0xFF047857),
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 135,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF1E293B),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          const Text(
-            ': ',
-            style: TextStyle(
-              fontSize: 12,
-              color: Color(0xFF1E293B),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Bottom Action Buttons:
-  /// - If Disetujui: Single wide button "Unduh Lampiran"
   /// - If Belum Disetujui: Two side-by-side buttons "Minta Revisi" & "Disetujui"
   Widget _buildBottomActions() {
     final detail = _detail!;

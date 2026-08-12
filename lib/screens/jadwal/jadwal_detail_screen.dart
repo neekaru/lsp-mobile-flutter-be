@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../widgets/jadwal/detail_helpers.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import 'jadwal_edit_screen.dart';
@@ -119,126 +120,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     }
   }
 
-  Widget _buildStatusBadge(String status) {
-    Color bgColor;
-    Color textColor;
-    IconData icon;
-    String label = _getStatusLabel(status);
 
-    switch (status) {
-      case 'draft':
-      case 'waiting':
-        bgColor = const Color(0xFFFFEAD2);
-        textColor = const Color(0xFFE67E22);
-        icon = LucideIcons.clock;
-        break;
-      case 'completed':
-        bgColor = const Color(0xFFE8F5E9);
-        textColor = const Color(0xFF2E7D32);
-        icon = LucideIcons.circle_check;
-        break;
-      case 'canceled':
-        bgColor = const Color(0xFFFFEBEE);
-        textColor = const Color(0xFFC62828);
-        icon = LucideIcons.circle_x;
-        break;
-      case 'running':
-        bgColor = const Color(0xFFE5F1FC);
-        textColor = const Color(0xFF2C6C9C);
-        icon = LucideIcons.play;
-        break;
-      case 'pelaporan':
-        bgColor = const Color(0xFFFFF3E0);
-        textColor = const Color(0xFFFF9800);
-        icon = LucideIcons.file_text;
-        break;
-      default:
-        bgColor = const Color(0xFFECEFF1);
-        textColor = const Color(0xFF546E7A);
-        icon = LucideIcons.info;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: textColor),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow({
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
-    required String label,
-    required String value,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 16, color: iconColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 32),
-              alignment: Alignment.centerLeft,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      value,
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   String _getDisplayAsesor() {
     if (widget.jadwal.asesor.isEmpty) {
@@ -295,218 +177,10 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
     }
   }
 
-  Widget _buildChecklistItem(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.check_box_rounded,
-            color: Color(0xFF4CAF50),
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildAsesiInfoRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    Color iconColor = Colors.grey,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 14, color: iconColor),
-          const SizedBox(width: 8),
-          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildAsesorStatusBadge(String status) {
-    Color bgColor;
-    Color textColor;
-    String label;
 
-    switch (status) {
-      case 'draft':
-      case 'waiting':
-        bgColor = const Color(0xFFFEF3C7);
-        textColor = const Color(0xFFD97706);
-        label = 'Draft';
-        break;
-      case 'completed':
-        bgColor = const Color(0xFFD1FAE5);
-        textColor = const Color(0xFF059669);
-        label = 'Complete';
-        break;
-      case 'canceled':
-        bgColor = const Color(0xFFFEE2E2);
-        textColor = const Color(0xFFDC2626);
-        label = 'Canceled';
-        break;
-      case 'running':
-        bgColor = const Color(0xFFDBEAFE);
-        textColor = const Color(0xFF2563EB);
-        label = 'Running';
-        break;
-      case 'pelaporan':
-        bgColor = const Color(0xFFF3E8FF);
-        textColor = const Color(0xFF7C3AED);
-        label = 'Pelaporan';
-        break;
-      default:
-        bgColor = const Color(0xFFE2E8F0);
-        textColor = const Color(0xFF475569);
-        label = status;
-    }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAsesorDetailRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    Color iconColor = Colors.grey,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 16, color: iconColor),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.grey,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const Spacer(),
-          Expanded(
-            flex: 2,
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtonCard({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE5F1FC),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: const Color(0xFF2C6C9C), size: 20),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFF2C6C9C),
-                  size: 24,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildAsesorDetailView(BuildContext context) {
     final String leadAsesor =
@@ -586,7 +260,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _buildAsesorStatusBadge(widget.jadwal.status),
+                    AsesorStatusBadge(status: widget.jadwal.status),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -594,12 +268,12 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                 const SizedBox(height: 16),
 
                 // Info rows
-                _buildAsesorDetailRow(
+                AsesorDetailRow(
                   icon: Icons.calendar_today_outlined,
                   label: 'Tanggal Asesmen',
                   value: _formatAsesiDateRange(),
                 ),
-                _buildAsesorDetailRow(
+                AsesorDetailRow(
                   icon: Icons.access_time_rounded,
                   label: 'Waktu Asesmen',
                   value:
@@ -608,7 +282,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                       ? _detailData!.waktuAsesmen!
                       : '09:00 - 11:00 WIB',
                 ),
-                _buildAsesorDetailRow(
+                AsesorDetailRow(
                   icon: Icons.location_on_rounded,
                   label: 'Lokasi Asesmen',
                   value:
@@ -617,12 +291,12 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                       : 'Yogyakarta',
                   iconColor: Colors.orange,
                 ),
-                _buildAsesorDetailRow(
+                AsesorDetailRow(
                   icon: Icons.people_outline_rounded,
                   label: 'Peserta',
                   value: totalPeserta,
                 ),
-                _buildAsesorDetailRow(
+                AsesorDetailRow(
                   icon: Icons.person_outline_rounded,
                   label: 'Lead Asesor',
                   value: leadAsesor,
@@ -633,7 +307,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
           const SizedBox(height: 16),
 
           // Card 2: Lihat Surat Tugas
-          _buildActionButtonCard(
+          ActionButtonCard(
             icon: Icons.description_rounded,
             title: 'Lihat Surat Tugas',
             onTap: () async {
@@ -690,7 +364,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
           const SizedBox(height: 12),
 
           // Card 3: Lihat Peserta
-          _buildActionButtonCard(
+          ActionButtonCard(
             icon: Icons.people_rounded,
             title: 'Lihat Peserta',
             onTap: () {
@@ -827,17 +501,17 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                 const SizedBox(height: 16),
 
                 // Details List
-                _buildAsesiInfoRow(
+                AsesiInfoRow(
                   icon: Icons.calendar_today_outlined,
                   label: 'Tanggal Asesmen',
                   value: _formatAsesiDateRange(),
                 ),
-                _buildAsesiInfoRow(
+                AsesiInfoRow(
                   icon: Icons.access_time_rounded,
                   label: 'Waktu Asesmen',
                   value: '09:00 - 11:00 WIB',
                 ),
-                _buildAsesiInfoRow(
+                AsesiInfoRow(
                   icon: Icons.location_on_rounded,
                   label: 'Lokasi Asesmen',
                   value:
@@ -1046,9 +720,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                 const SizedBox(height: 12),
 
                 // Checklist Section
-                _buildChecklistItem('Portofolio Lengkap'),
-                _buildChecklistItem('Bukti Kompetensi Valid'),
-                _buildChecklistItem('Pra Asesmen Disetujui'),
+                ChecklistItem(title: 'Portofolio Lengkap'),
+                ChecklistItem(title: 'Bukti Kompetensi Valid'),
+                ChecklistItem(title: 'Pra Asesmen Disetujui'),
               ],
             ),
           ),
@@ -1144,7 +818,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              _buildStatusBadge(widget.jadwal.status),
+                              JadwalStatusBadge(status: widget.jadwal.status, label: _getStatusLabel(widget.jadwal.status)),
                             ],
                           ),
                         ),
@@ -1232,7 +906,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                               const SizedBox(height: 8),
 
                               // Rows
-                              _buildInfoRow(
+                              DetailInfoRow(
                                 icon: LucideIcons.map_pin,
                                 iconColor: const Color(0xFFEF5350),
                                 iconBgColor: const Color(0xFFFFEBEE),
@@ -1243,7 +917,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                     ? '${_detailData!.tuk}\n(${_detailData!.alamatTuk})'
                                     : widget.jadwal.tuk,
                               ),
-                              _buildInfoRow(
+                              DetailInfoRow(
                                 icon: LucideIcons.calendar,
                                 iconColor: const Color(0xFF2F80ED),
                                 iconBgColor: const Color(0xFFE5F1FC),
@@ -1251,14 +925,14 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                 value:
                                     '${_formatIndonesianDate(widget.jadwal.tanggalMulai)} - ${_formatIndonesianDate(widget.jadwal.tanggalSelesai)}',
                               ),
-                              _buildInfoRow(
+                              DetailInfoRow(
                                 icon: LucideIcons.clock,
                                 iconColor: const Color(0xFF2F80ED),
                                 iconBgColor: const Color(0xFFE5F5FC),
                                 label: 'Durasi Pelaksanaan',
                                 value: _getDurationString(),
                               ),
-                              _buildInfoRow(
+                              DetailInfoRow(
                                 icon: LucideIcons.users,
                                 iconColor: const Color(0xFF2F80ED),
                                 iconBgColor: const Color(0xFFE5F1FC),

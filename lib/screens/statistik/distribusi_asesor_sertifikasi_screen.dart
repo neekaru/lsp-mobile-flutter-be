@@ -5,6 +5,7 @@ import '../../models/jadwal_models.dart';
 import '../../models/sertifikat_models.dart';
 import '../../utils/number_format_helper.dart';
 import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/statistik/distribusi_asesor_widgets.dart';
 
 class DistribusiAsesorSertifikasiScreen extends StatefulWidget {
   final bool initialShowSebaranSkema;
@@ -111,7 +112,7 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: _isLoading 
-                    ? _buildLoadingState() 
+                    ? const DistribusiLoadingState() 
                     : (_isActiveAsesorSelected 
                         ? _buildAsesorAktifTab(stats) 
                         : _buildSebaranSkemaTab(stats)),
@@ -189,31 +190,6 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
     );
   }
 
-  Widget _buildLoadingState() {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.5,
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              strokeWidth: 3.0,
-              color: Color(0xFF2563EB),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Memuat data distribusi...',
-              style: TextStyle(
-                color: Color(0xFF64748B),
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ============================================================================
   // TAB 1: Asesor Aktif
@@ -674,7 +650,7 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
                       separatorBuilder: (context, index) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final item = lateSchedules[index];
-                        return _buildLateScheduleItem(
+                        return LateScheduleItem(
                           title: item.skema,
                           daysLate: item.daysLate ?? 1,
                           tuk: item.tuk,
@@ -689,98 +665,6 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
     );
   }
 
-  Widget _buildLateScheduleItem({
-    required String title,
-    required int daysLate,
-    required String tuk,
-    required String endDate,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFFEE2E2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEE2E2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.timer_rounded, color: Color(0xFFEF4444), size: 12),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Telat $daysLate Hari',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFEF4444),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.domain_rounded, color: Colors.grey, size: 13),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  tuk,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF64748B),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              const Icon(Icons.date_range_rounded, color: Colors.grey, size: 13),
-              const SizedBox(width: 4),
-              Text(
-                'Selesai: $endDate',
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF64748B),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   // ============================================================================
   // TAB 2: Sebaran Skema

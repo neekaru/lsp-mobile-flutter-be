@@ -3,10 +3,8 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../models/sertifikat_models.dart';
-import '../../utils/date_format_helper.dart';
+import '../../widgets/statistik/statistik_detail_cards.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import 'domisili_asesor_detail_screen.dart';
-import 'masa_berlaku_asesor_detail_screen.dart';
 import 'kompetensi_teknis_detail_screen.dart';
 import 'muk_detail_screen.dart';
 
@@ -333,160 +331,31 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildKpiCardGroup(
+        KpiCardGroup(
           items: [
-            _KpiItem('Total Asesor', '${data?.totalAsesor ?? 0}', Colors.blue),
-            _KpiItem('Homebase Internal', '${data?.totalInternal ?? 0}', Colors.green),
-            _KpiItem('Homebase External', '${data?.totalExternal ?? 0}', Colors.orange),
+            KpiItem('Total Asesor', '${data?.totalAsesor ?? 0}', Colors.blue),
+            KpiItem('Homebase Internal', '${data?.totalInternal ?? 0}', Colors.green),
+            KpiItem('Homebase External', '${data?.totalExternal ?? 0}', Colors.orange),
           ],
         ),
         const SizedBox(height: 16),
         _buildSearchField('Cari Provinsi...'),
         const SizedBox(height: 12),
         if (items.isEmpty)
-          _buildEmptyState('Belum ada data sebaran domisili asesor.')
+          EmptyStateCard(message: 'Belum ada data sebaran domisili asesor.')
         else if (filtered.isEmpty)
-          _buildEmptyState('Tidak ada provinsi yang cocok dengan pencarian.')
+          EmptyStateCard(message: 'Tidak ada provinsi yang cocok dengan pencarian.')
         else
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: filtered.length,
-            itemBuilder: (context, index) => _buildDomisiliCard(filtered[index]),
+            itemBuilder: (context, index) => DomisiliCard(item: filtered[index]),
           ),
       ],
     );
   }
 
-  Widget _buildDomisiliCard(DomisiliAsesorProvinsiItem item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x05000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          )
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DomisiliAsesorDetailScreen(
-                  provinsiId: item.provinsiId,
-                  provinsiNama: item.provinsiNama,
-                  totalAsesor: item.totalAsesor,
-                  totalInternal: item.asesorInternal,
-                  totalExternal: item.asesorExternal,
-                ),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.location_on_rounded, size: 18, color: Color(0xFF2563EB)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        item.provinsiNama,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${item.totalAsesor} Asesor',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: Color(0xFF2563EB),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      size: 20,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Internal: ${item.asesorInternal}',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF16A34A), fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      'External: ${item.asesorExternal}',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFFD97706), fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: item.totalAsesor > 0
-                        ? (item.asesorInternal / item.totalAsesor).clamp(0.0, 1.0)
-                        : 0.0,
-                    backgroundColor: const Color(0xFFFEF3C7),
-                    color: const Color(0xFF16A34A),
-                    minHeight: 6,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: const [
-                    Text(
-                      'Lihat Daftar Asesor',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2563EB),
-                      ),
-                    ),
-                    SizedBox(width: 2),
-                    Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 12,
-                      color: Color(0xFF2563EB),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   // 2. Kompetensi Teknis Content
   Widget _buildKompetensiTeknisContent() {
@@ -500,17 +369,17 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildKpiCardGroup(
+        KpiCardGroup(
           items: [
-            _KpiItem('Total Skema', '${_kompetensiList.length}', Colors.blue),
-            _KpiItem('Total Asesor', '${_kompetensiList.fold<int>(0, (sum, i) => sum + i.jumlahAsesor)}', Colors.indigo),
+            KpiItem('Total Skema', '${_kompetensiList.length}', Colors.blue),
+            KpiItem('Total Asesor', '${_kompetensiList.fold<int>(0, (sum, i) => sum + i.jumlahAsesor)}', Colors.indigo),
           ],
         ),
         const SizedBox(height: 16),
         _buildSearchField('Cari Skema / Kode...'),
         const SizedBox(height: 12),
         if (filteredList.isEmpty)
-          _buildEmptyState('Belum ada data kompetensi teknis asesor.')
+          EmptyStateCard(message: 'Belum ada data kompetensi teknis asesor.')
         else
           ...filteredList.map((item) => Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -622,7 +491,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildStatusCard(
+        StatusCard(
           title: 'Sertifikat Aktif',
           count: '${data?.aktif ?? 0}',
           desc: 'Masa berlaku masih aktif',
@@ -632,7 +501,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           numericCount: data?.aktif ?? 0,
         ),
         const SizedBox(height: 10),
-        _buildStatusCard(
+        StatusCard(
           title: 'Masa Tenggang',
           count: '${data?.tenggang ?? 0}',
           desc: 'Kurang dari 3 bulan menuju expired',
@@ -642,7 +511,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           numericCount: data?.tenggang ?? 0,
         ),
         const SizedBox(height: 10),
-        _buildStatusCard(
+        StatusCard(
           title: 'Expired / Kadaluarsa',
           count: '${data?.expired ?? 0}',
           desc: 'Sertifikat sudah habis masa berlaku',
@@ -655,126 +524,6 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     );
   }
 
-  Widget _buildStatusCard({
-    required String title,
-    required String count,
-    required String desc,
-    required Color color,
-    required IconData icon,
-    String? statusKey,
-    int numericCount = 0,
-  }) {
-    final bool isClickable = statusKey != null;
-
-    Widget cardContent = Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withAlpha(50)),
-        boxShadow: isClickable
-            ? [
-                BoxShadow(
-                  color: color.withAlpha(15),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                )
-              ]
-            : null,
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(20),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: color, size: 24),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: color)),
-                    const SizedBox(height: 2),
-                    Text(desc,
-                        style: const TextStyle(
-                            fontSize: 11, color: Color(0xFF64748B))),
-                  ],
-                ),
-              ),
-              Text(count,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: color)),
-              if (isClickable) ...[
-                const SizedBox(width: 6),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 20,
-                  color: color,
-                ),
-              ],
-            ],
-          ),
-          if (isClickable) ...[
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  'Lihat Daftar Asesor',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 12,
-                  color: color,
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-
-    if (!isClickable) return cardContent;
-
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MasaBerlakuAsesorDetailScreen(
-                statusFilter: statusKey,
-                count: numericCount,
-              ),
-            ),
-          );
-        },
-        child: cardContent,
-      ),
-    );
-  }
 
   // 3b. Masa Tenggang Sertifikat Content
   Widget _buildMasaTenggangSertifikatContent() {
@@ -808,102 +557,28 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         ),
         const SizedBox(height: 16),
         ...?data?.data.expand((bulanItem) => [
-          _buildBulanTenggangCard(bulanItem),
+          BulanTenggangCard(item: bulanItem),
           const SizedBox(height: 10),
         ]),
       ],
     );
   }
 
-  Widget _buildBulanTenggangCard(MasaTenggangSertifikatBulanItem item) {
-    final color = const Color(0xFFD97706);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(20),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(Icons.event_outlined, color: color, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.bulan.isEmpty ? item.tahunBulan : item.bulan,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${item.totalExpired} sertifikat expired',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...item.skemaDetail.map((skema) => Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    skema.namaSkema,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ),
-                Text(
-                  '${skema.jumlahAsesi} asesi',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                  ),
-                ),
-              ],
-            ),
-          )),
-        ],
-      ),
-    );
-  }
 
   // 4. Jenis Skema Content
   Widget _buildJenisSkemaContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildKpiCardGroup(
+        KpiCardGroup(
           items: [
-            _KpiItem('Total Kategori', '${_jenisSkemaList.length}', Colors.blue),
-            _KpiItem('Total Skema', '${_jenisSkemaList.fold<int>(0, (sum, i) => sum + i.jumlahSkema)}', Colors.indigo),
+            KpiItem('Total Kategori', '${_jenisSkemaList.length}', Colors.blue),
+            KpiItem('Total Skema', '${_jenisSkemaList.fold<int>(0, (sum, i) => sum + i.jumlahSkema)}', Colors.indigo),
           ],
         ),
         const SizedBox(height: 16),
         if (_jenisSkemaList.isEmpty)
-          _buildEmptyState('Belum ada data kategori jenis skema.')
+          EmptyStateCard(message: 'Belum ada data kategori jenis skema.')
         else
           ..._jenisSkemaList.map((item) => Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -953,17 +628,17 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildKpiCardGroup(
+        KpiCardGroup(
           items: [
-            _KpiItem('Total Skema', '${_mukList.length}', Colors.blue),
-            _KpiItem('Total MUK/MAPA', '${_mukList.fold<int>(0, (sum, i) => sum + i.jumlahMuk)}', Colors.teal),
+            KpiItem('Total Skema', '${_mukList.length}', Colors.blue),
+            KpiItem('Total MUK/MAPA', '${_mukList.fold<int>(0, (sum, i) => sum + i.jumlahMuk)}', Colors.teal),
           ],
         ),
         const SizedBox(height: 16),
         _buildSearchField('Cari Skema MUK...'),
         const SizedBox(height: 12),
         if (filteredList.isEmpty)
-          _buildEmptyState('Belum ada data distribusi MUK per skema.')
+          EmptyStateCard(message: 'Belum ada data distribusi MUK per skema.')
         else
           ...filteredList.map((item) => Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -1047,7 +722,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildEmptyState('Belum ada data praktisi skema terdaftar.'),
+        EmptyStateCard(message: 'Belum ada data praktisi skema terdaftar.'),
       ],
     );
   }
@@ -1065,7 +740,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         ),
         const SizedBox(height: 12),
         if (list.isEmpty)
-          _buildEmptyState('Belum ada data grafik asesi tahun 2026.')
+          EmptyStateCard(message: 'Belum ada data grafik asesi tahun 2026.')
         else
           ...list.map((m) => Container(
                 margin: const EdgeInsets.only(bottom: 8),
@@ -1108,47 +783,15 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 12),
-        _buildYearCard('Tahun 2024', '1,240 Asesi', 0.6, Colors.blue),
+        YearCard(year: 'Tahun 2024', total: '1,240 Asesi', progress: 0.6, color: Colors.blue),
         const SizedBox(height: 10),
-        _buildYearCard('Tahun 2025', '1,890 Asesi', 0.85, Colors.indigo),
+        YearCard(year: 'Tahun 2025', total: '1,890 Asesi', progress: 0.85, color: Colors.indigo),
         const SizedBox(height: 10),
-        _buildYearCard('Tahun 2026', '2,150 Asesi', 1.0, Colors.teal),
+        YearCard(year: 'Tahun 2026', total: '2,150 Asesi', progress: 1.0, color: Colors.teal),
       ],
     );
   }
 
-  Widget _buildYearCard(String year, String total, double progress, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(year, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              Text(total, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              color: color,
-              backgroundColor: color.withAlpha(25),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // 9. Kompetensi Content
   Widget _buildKompetensiContent() {
@@ -1163,7 +806,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
         ),
         const SizedBox(height: 12),
         if (list.isEmpty)
-          _buildEmptyState('Belum ada data kompetensi per skema.')
+          EmptyStateCard(message: 'Belum ada data kompetensi per skema.')
         else
           ...list.map((item) => Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -1189,31 +832,6 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
   }
 
   // Helpers
-  Widget _buildKpiCardGroup({required List<_KpiItem> items}) {
-    return Row(
-      children: items
-          .map((kpi) => Expanded(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(kpi.label, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-                      const SizedBox(height: 4),
-                      Text(kpi.value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: kpi.color)),
-                    ],
-                  ),
-                ),
-              ))
-          .toList(),
-    );
-  }
 
   // SPT 2026 Content — CustomScrollView + SliverList for virtualization
   Widget _buildSpt2026Content() {
@@ -1245,10 +863,10 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildKpiCardGroup(
+                KpiCardGroup(
                   items: [
-                    _KpiItem('Total Asesor', '${data?.totalAsesor ?? items.length}', Colors.blue),
-                    _KpiItem('Total Penugasan', '${data?.totalJadwal ?? items.fold<int>(0, (sum, i) => sum + i.total)}', Colors.indigo),
+                    KpiItem('Total Asesor', '${data?.totalAsesor ?? items.length}', Colors.blue),
+                    KpiItem('Total Penugasan', '${data?.totalJadwal ?? items.fold<int>(0, (sum, i) => sum + i.total)}', Colors.indigo),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -1298,131 +916,13 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
               delegate: SliverChildBuilderDelegate(
                 (context, index) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildSptAsesorCard(filtered[index]),
+                  child: SptAsesorCard(item: filtered[index]),
                 ),
                 childCount: filtered.length,
               ),
             ),
           ),
       ],
-    );
-  }
-
-  // Pre-allocated month labels — avoid re-creating list on every card build
-  static const List<String> _monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
-  Widget _buildSptAsesorCard(SptAsesorItem item) {
-    Color statusColor;
-    if (item.statusMasaBerlaku == 'Aktif') {
-      statusColor = const Color(0xFF16A34A);
-    } else if (item.statusMasaBerlaku == 'Tenggang') {
-      statusColor = const Color(0xFFD97706);
-    } else {
-      statusColor = const Color(0xFFDC2626);
-    }
-
-    return RepaintBoundary(
-      child: Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x05000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.person_outline, size: 20, color: Color(0xFF2563EB)),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.namaAsesor,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
-                    ),
-                    if (item.tglExpired.isNotEmpty)
-                      Text(
-                        'Expired: ${DateFormatHelper.formatToIndonesian(item.tglExpired)}',
-                        style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                      ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withAlpha(20),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  item.statusMasaBerlaku,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusColor),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '${item.total} SPT',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text('Penugasan per Bulan (2026):', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: _monthLabels.map((m) {
-              final count = item.bulanan[m] ?? 0;
-              final isAssigned = count > 0;
-              return Container(
-                width: 48,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                decoration: BoxDecoration(
-                  color: isAssigned ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Column(
-                  children: [
-                    Text(m, style: TextStyle(fontSize: 10, color: isAssigned ? Colors.white70 : const Color(0xFF64748B))),
-                    Text(
-                      '$count',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isAssigned ? Colors.white : Colors.black54),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    ),
     );
   }
 
@@ -1456,11 +956,11 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildKpiCardGroup(
+                KpiCardGroup(
                   items: [
-                    _KpiItem('Total Asesor', '${data?.totalAsesor ?? items.length}', Colors.blue),
-                    _KpiItem('Total Asesi', '${data?.totalAsesi ?? items.fold<int>(0, (sum, i) => sum + i.totalAsesi)}', const Color(0xFF16A34A)),
-                    _KpiItem('Total Jadwal', '${data?.totalJadwal ?? items.fold<int>(0, (sum, i) => sum + i.totalJadwal)}', Colors.indigo),
+                    KpiItem('Total Asesor', '${data?.totalAsesor ?? items.length}', Colors.blue),
+                    KpiItem('Total Asesi', '${data?.totalAsesi ?? items.fold<int>(0, (sum, i) => sum + i.totalAsesi)}', const Color(0xFF16A34A)),
+                    KpiItem('Total Jadwal', '${data?.totalJadwal ?? items.fold<int>(0, (sum, i) => sum + i.totalJadwal)}', Colors.indigo),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -1510,7 +1010,7 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
               delegate: SliverChildBuilderDelegate(
                 (context, index) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildAsesi2026Card(filtered[index]),
+                  child: Asesi2026Card(item: filtered[index]),
                 ),
                 childCount: filtered.length,
               ),
@@ -1618,150 +1118,6 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     );
   }
 
-  Widget _buildAsesi2026Card(Asesi2026Item item) {
-    Color statusBgColor;
-    Color statusTextColor;
-    if (item.statusMasaBerlaku == 'Aktif') {
-      statusBgColor = const Color(0xFFE8F5E9);
-      statusTextColor = const Color(0xFF16A34A);
-    } else if (item.statusMasaBerlaku == 'Tenggang') {
-      statusBgColor = const Color(0xFFFFF8E1);
-      statusTextColor = const Color(0xFFD97706);
-    } else {
-      statusBgColor = const Color(0xFFFFEBEE);
-      statusTextColor = const Color(0xFFDC2626);
-    }
-
-    return RepaintBoundary(
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x05000000),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            )
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.person_outline, size: 20, color: Color(0xFF2563EB)),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.namaAsesor,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
-                      ),
-                      if (item.tglExpired.isNotEmpty)
-                        Text(
-                          'Expired: ${DateFormatHelper.formatToIndonesian(item.tglExpired)}',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                        ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusBgColor,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    item.statusMasaBerlaku,
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: statusTextColor),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    '${item.totalAsesi} Asesi',
-                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF2563EB)),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    '${item.totalJadwal} Jadwal',
-                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Jumlah Asesi per Bulan (2026):',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: _monthLabels.map((m) {
-                final count = item.bulanan[m] ?? 0;
-                final isAssigned = count > 0;
-                return Container(
-                  width: 48,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isAssigned ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        m,
-                        style: TextStyle(fontSize: 10, color: isAssigned ? Colors.white70 : const Color(0xFF64748B)),
-                      ),
-                      Text(
-                        '$count',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: isAssigned ? Colors.white : Colors.black54,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildSearchField(String hint) {
     return Container(
@@ -1809,30 +1165,5 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     );
   }
 
-  Widget _buildEmptyState(String msg) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        children: [
-          const Icon(Icons.inbox_outlined, size: 40, color: Color(0xFF94A3B8)),
-          const SizedBox(height: 8),
-          Text(msg, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-        ],
-      ),
-    );
-  }
 }
 
-class _KpiItem {
-  final String label;
-  final String value;
-  final Color color;
-
-  _KpiItem(this.label, this.value, this.color);
-}
