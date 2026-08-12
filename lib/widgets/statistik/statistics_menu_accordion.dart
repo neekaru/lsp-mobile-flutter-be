@@ -78,6 +78,11 @@ class _StatisticsMenuAccordionState extends State<StatisticsMenuAccordion> {
           title: 'Pemegang Sertifikat',
           children: [
             _buildMenuItem(
+              value: 'masa_tenggang_sertifikat',
+              label: 'Masa Tenggang',
+              icon: Icons.warning_amber_outlined,
+            ),
+            _buildMenuItem(
               value: 'tahun_2026',
               label: 'Tahun 2026',
               icon: Icons.calendar_today_outlined,

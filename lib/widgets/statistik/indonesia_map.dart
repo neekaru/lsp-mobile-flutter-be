@@ -56,7 +56,7 @@ class _IndonesiaMapState extends State<IndonesiaMap>
     'IDNB': 15, // Nusa Tenggara Barat
     'IDNT': 8, // Nusa Tenggara Timur
     'IDKB': 25, // Kalimantan Barat
-    'IDKT': 214, // Kalimantan Tengah (Dark Blue)
+    'IDKT': 4, // Kalimantan Tengah
     'IDKS': 40, // Kalimantan Selatan
     'IDKI': 97, // Kalimantan Timur (Medium Blue)
     'IDKU': 6, // Kalimantan Utara
@@ -136,16 +136,20 @@ class _IndonesiaMapState extends State<IndonesiaMap>
     }
   }
 
-  /// Get color based on advisor count
+  /// Get color based on advisor count according to custom rules:
+  /// >= 20: Green (Hijau)
+  /// >= 5: Orange (Oranye)
+  /// >= 1: Yellow (Kuning)
+  /// 0: Red (Merah)
   Color _getColorForCount(int count) {
-    if (count > 100) {
-      return const Color(0xFF0F4C81); // Dark Blue (> 100 Asesor)
-    } else if (count >= 50) {
-      return const Color(0xFF3E82B3); // Medium Blue (50 - 100 Asesor)
-    } else if (count >= 10) {
-      return const Color(0xFF7CB8E6); // Light Blue (10 - 50 Asesor)
+    if (count >= 20) {
+      return const Color(0xFF22C55E); // Hijau (>= 20 Asesor)
+    } else if (count >= 5) {
+      return const Color(0xFFF97316); // Orange (>= 5 Asesor)
+    } else if (count >= 1) {
+      return const Color(0xFFEAB308); // Kuning (>= 1 Asesor)
     } else {
-      return const Color(0xFFBFE0FA); // Very Light Blue (< 10 Asesor)
+      return const Color(0xFFEF4444); // Merah (0 / Gak Ada)
     }
   }
 
@@ -279,14 +283,10 @@ class _IndonesiaMapState extends State<IndonesiaMap>
     );
   }
 
-  /// Map content dengan legend
+  /// Map content dengan legend di bawah (membuat peta penuh 100% lebar & lebih besar)
   Widget _buildMapContent() {
     final MapShapeSource? mapSource = _cachedMapSource;
 
-    // _cachedMapSource is null only if initState hasn't finished yet.
-    // Schedule a state update for the next frame instead of creating
-    // MapShapeSource inside build() — keeps build() pure and prevents
-    // Syncfusion from re-parsing GeoJSON on every rebuild.
     if (mapSource == null) {
       if (GeoJsonManager.instance.isInitialized && !_isDisposed) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -303,84 +303,79 @@ class _IndonesiaMapState extends State<IndonesiaMap>
       return _buildLoadingState();
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Syncfusion Vector Map (75% width)
-        Expanded(
-          flex: 3,
-          child: SizedBox(
-            height: 180,
-            child: SfMaps(
-              layers: [
-                MapShapeLayer(
-                  source: mapSource,
-                  showDataLabels: false,
-                  strokeColor: Colors.white,
-                  strokeWidth: 0.8,
-                  onSelectionChanged: (int index) {
-                    final provinces = GeoJsonManager.instance.provinces;
-                    if (index >= 0 && index < provinces.length) {
-                      final province = provinces[index];
-                      
-                      // Callback dengan island_id (untuk backward compatibility)
-                      widget.onIslandSelected(province.islandId);
-                      
-                      // Callback dengan province lengkap (optional, untuk data detail)
-                      widget.onProvinceSelected?.call(province);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-
-        // 2. Vertical Legend Column (25% width)
-        Expanded(
-          flex: 1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildVerticalLegendItem('> 100 Asesor', const Color(0xFF0F4C81)),
-              const SizedBox(height: 6),
-              _buildVerticalLegendItem('50 - 100 Asesor', const Color(0xFF3E82B3)),
-              const SizedBox(height: 6),
-              _buildVerticalLegendItem('10 - 50 Asesor', const Color(0xFF7CB8E6)),
-              const SizedBox(height: 6),
-              _buildVerticalLegendItem('< 10 Asesor', const Color(0xFFBFE0FA)),
+        // 1. Syncfusion Vector Map (100% width, height 230)
+        SizedBox(
+          height: 230,
+          width: double.infinity,
+          child: SfMaps(
+            layers: [
+              MapShapeLayer(
+                source: mapSource,
+                showDataLabels: false,
+                strokeColor: Colors.white,
+                strokeWidth: 0.8,
+                onSelectionChanged: (int index) {
+                  final provinces = GeoJsonManager.instance.provinces;
+                  if (index >= 0 && index < provinces.length) {
+                    final province = provinces[index];
+                    widget.onIslandSelected(province.islandId);
+                    widget.onProvinceSelected?.call(province);
+                  }
+                },
+              ),
             ],
           ),
         ),
+        const SizedBox(height: 12),
+
+        // 2. Horizontal Legend Row di bagian bawah peta
+        _buildHorizontalLegendRow(),
       ],
     );
   }
 
-  Widget _buildVerticalLegendItem(String label, Color color) {
+  Widget _buildHorizontalLegendRow() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildLegendChip('> 20 Asesor', const Color(0xFF22C55E)),
+          _buildLegendChip('5 - 20 Asesor', const Color(0xFFF97316)),
+          _buildLegendChip('1 - 5 Asesor', const Color(0xFFEAB308)),
+          _buildLegendChip('Gak Ada (0)', const Color(0xFFEF4444)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegendChip(String label, Color color) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 8,
-          height: 8,
+          width: 9,
+          height: 9,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(1.5),
+            borderRadius: BorderRadius.circular(2),
           ),
         ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 7.5,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF5F6E7D),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 9.5,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF475569),
           ),
         ),
       ],

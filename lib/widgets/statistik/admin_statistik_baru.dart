@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../helpers/number_format_helper.dart';
+import '../../helpers/bps_code_helper.dart';
 import '../../widgets/custom_app_bar.dart';
 import 'indonesia_map.dart';
 import 'island_data.dart';
 import 'detail_breakdown_card.dart';
+import 'statistics_menu_accordion.dart';
 import '../../screens/dashboard/distribusi_asesor_sertifikasi_screen.dart';
 import '../../screens/dashboard/statistik_detail_screen.dart';
+import '../../screens/dashboard/asesor_homebase_screen.dart';
 
 class AdminStatistikBaru extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -18,15 +21,16 @@ class AdminStatistikBaru extends StatefulWidget {
   State<AdminStatistikBaru> createState() => _AdminStatistikBaruState();
 }
 
-
-
 class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
   bool _isLoading = true;
 
   // Cached API Data
   StatistikOverview? _overview;
   AsesorStats? _asesorStats;
+  List<TopProvinsi> _topProvinces = [];
+  List<AsesorHomebase> _homebaseList = [];
   Map<String, IslandData> _islandDataMap = {};
+  Map<String, int> _provinceMapData = {};
   IslandData? _selectedIsland;
 
   @override
@@ -45,16 +49,37 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
       final results = await Future.wait([
         ApiService.getStatistikOverview(),
         ApiService.getAsesorStats(),
+        ApiService.getTopProvinces(),
+        ApiService.getAsesorHomebase(),
         ApiService.getPenyebaranRegional(),
+        ApiService.getDomisiliAsesor(),
       ]);
 
       if (mounted) {
-        final regional = results[2] as List<RegionalDistribution>;
+        final homebase = results[3] as List<AsesorHomebase>;
+        final regional = results[4] as List<RegionalDistribution>;
+        final domisili = results[5] as DomisiliAsesorData?;
         final islandMap = islandDataFromApi(regional);
+
+        final Map<String, int> provData = {};
+        if (domisili != null) {
+          for (var item in domisili.items) {
+            final code = BpsCodeHelper.mapCodeFromProvinsiId(item.provinsiId);
+            if (code != null) {
+              provData[code] = item.totalAsesor;
+            }
+          }
+        }
+
         setState(() {
           _overview = results[0] as StatistikOverview;
           _asesorStats = results[1] as AsesorStats;
+          _topProvinces = results[2] as List<TopProvinsi>;
+          _homebaseList = homebase.length > 4
+              ? homebase.sublist(0, 4)
+              : homebase;
           _islandDataMap = islandMap;
+          _provinceMapData = provData;
           if (_selectedIsland != null) {
             _selectedIsland = islandMap[_selectedIsland!.id];
           }
@@ -94,6 +119,41 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                 title: 'Dashboard Statistik',
                 onBack:
                     widget.onBackToHome ?? () => Navigator.of(context).pop(),
+                rightWidget: Theme(
+                  data: Theme.of(context).copyWith(
+                    dividerTheme: const DividerThemeData(
+                      color: Color(0xFFF1F5F9),
+                    ),
+                  ),
+                  child: PopupMenuButton<String>(
+                    icon: const Icon(
+                      Icons.more_horiz_rounded,
+                      color: Colors.black,
+                      size: 24,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    offset: const Offset(0, 40),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    color: Colors.white,
+                    elevation: 3,
+                    onSelected: _handleStatisticsMenuSelection,
+                    itemBuilder: (context) => <PopupMenuEntry<String>>[
+                      PopupMenuItem<String>(
+                        enabled: false,
+                        padding: EdgeInsets.zero,
+                        child: SizedBox(
+                          width: 280,
+                          child: StatisticsMenuAccordion(
+                            onSelected: _handleStatisticsMenuSelection,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
 
               _isLoading
@@ -121,6 +181,9 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                           ),
                           IndonesiaMap(
                             isAdminDashboard: true,
+                            provinceData: _provinceMapData.isNotEmpty
+                                ? _provinceMapData
+                                : null,
                             onIslandSelected: (islandId) {
                               setState(() {
                                 if (_selectedIsland?.id == islandId) {
@@ -144,8 +207,12 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                           ],
                           const SizedBox(height: 16),
 
-                          // 4. Section: Menu Button Grid (matches dropdown items)
-                          _buildMenuButtonGrid(),
+                          // 4. Section: Skema/Wilayah Asesor Card
+                          _buildSkemaWilayahCard(),
+                          const SizedBox(height: 16),
+
+                          // 5. Section: Daftar Asessor Berdasarkan Homebase Card
+                          _buildAsesorHomebaseCard(),
                           const SizedBox(height: 16),
                         ],
                       ),
@@ -154,6 +221,15 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _handleStatisticsMenuSelection(String value) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StatistikDetailScreen(menuKey: value),
       ),
     );
   }
@@ -524,138 +600,252 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
     );
   }
 
-  Widget _buildMenuButtonGrid() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildMenuGroup(
-          title: 'Asesor Kompetensi',
-          items: [
-            _MenuItem('domisili_asesor', 'Domisili Asesor', Icons.location_on_outlined, const Color(0xFF0284C7)),
-            _MenuItem('kompetensi_teknis', 'Kompetensi Teknis', Icons.build_outlined, const Color(0xFF7C3AED)),
-            _MenuItem('masa_berlaku', 'Masa Berlaku', Icons.event_outlined, const Color(0xFF059669)),
-            _MenuItem('spt_2026', 'SPT 2026', Icons.assignment_ind_outlined, const Color(0xFFD97706)),
-            _MenuItem('asesi_2026', 'Asesi 2026', Icons.groups_outlined, const Color(0xFF2563EB)),
-          ],
+  Widget _buildSkemaWilayahCard() {
+    final items = _topProvinces.isNotEmpty
+        ? _topProvinces
+        : const [
+            TopProvinsi(name: 'ACEH', value: 2, percentage: '2,7%'),
+            TopProvinsi(name: 'SUMATRA UTARA', value: 1, percentage: '1,4%'),
+            TopProvinsi(name: 'RIAU', value: 1, percentage: '1,4%'),
+            TopProvinsi(name: 'SUMATRA SELATAN', value: 2, percentage: '1,4%'),
+            TopProvinsi(name: 'DKI JAKARTA', value: 11, percentage: '15,1%'),
+          ];
 
-        ),
-        const SizedBox(height: 12),
-        _buildMenuGroup(
-          title: 'Skema Sertifikasi',
-          items: [
-            _MenuItem('jenis_skema', 'Jenis Skema', Icons.schema_outlined, const Color(0xFF2563EB)),
-            _MenuItem('muk', 'MUK', Icons.folder_open_outlined, const Color(0xFFDC2626)),
-            _MenuItem('praktisi', 'Praktisi', Icons.people_outline, const Color(0xFF0891B2)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _buildMenuGroup(
-          title: 'Pemegang Sertifikat',
-          items: [
-            _MenuItem('masa_tenggang_sertifikat', 'Masa Tenggang', Icons.warning_amber_outlined, const Color(0xFFF59E0B)),
-            _MenuItem('tahun_2026', 'Tahun 2026', Icons.calendar_today_outlined, const Color(0xFF16A34A)),
-            _MenuItem('3_tahun', '3 Tahun', Icons.history_outlined, const Color(0xFF9333EA)),
-            _MenuItem('kompetensi', 'Kompetensi', Icons.verified_outlined, const Color(0xFFEA580C)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMenuGroup({
-    required String title,
-    required List<_MenuItem> items,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF64748B),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x03000000),
+            blurRadius: 8,
+            offset: Offset(0, 3),
           ),
-        ),
-        const SizedBox(height: 8),
-        GridView.builder(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 2.8,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemCount: items.length,
-          itemBuilder: (context, index) => _buildMenuButton(items[index]),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMenuButton(_MenuItem item) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => StatistikDetailScreen(menuKey: item.value),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x03000000),
-              blurRadius: 8,
-              offset: Offset(0, 3),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Skema/Wilayah Asesor',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: item.color.withValues(alpha: 0.12),
+          ),
+          const SizedBox(height: 12),
+          ...items.map((item) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3B82F6),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          item.name.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          '${item.value} Asesor',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      SizedBox(
+                        width: 48,
+                        child: Text(
+                          item.percentage,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAsesorHomebaseCard() {
+    final preview = _homebaseList.take(4).toList();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x03000000),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Daftar Asessor Berdasarkan Homebase',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (preview.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'Tidak ada data asesor homebase.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ),
+            )
+          else
+            ...preview.map((item) {
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.name,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item.scheme.isNotEmpty ? item.scheme : '-',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.location_on_outlined,
+                                    size: 12,
+                                    color: Colors.redAccent,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    item.homebase.isNotEmpty
+                                        ? item.homebase
+                                        : '-',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${item.assessments} Asesmen',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF3B82F6),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
+                ],
+              );
+            }),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 38,
+            child: TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const AsesorHomebaseScreen(),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: const Color(0xFF93C5FD),
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  item.icon,
-                  color: item.color,
-                  size: 18,
+              ),
+              child: const Text(
+                'Lihat Semua Asesor',
+                style: TextStyle(
+                  color: Color(0xFF1E40AF),
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  item.label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E293B),
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: Color(0xFFCBD5E1),
-                size: 20,
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -862,13 +1052,4 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
       ),
     );
   }
-}
-
-class _MenuItem {
-  final String value;
-  final String label;
-  final IconData icon;
-  final Color color;
-
-  const _MenuItem(this.value, this.label, this.icon, this.color);
 }

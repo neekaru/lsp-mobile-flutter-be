@@ -63,4 +63,15 @@ class BpsCodeHelper {
   static List<int> getAllBpsCodes() {
     return _provinceMapping.values.toList();
   }
+
+  static final Map<String, String> _bpsToMapCode = {
+    for (var entry in _provinceMapping.entries) entry.value.toString(): entry.key,
+  };
+
+  /// Mendapatkan GeoJSON Map Code (misal 'IDKT') dari Province BPS ID (misal '62' atau 62)
+  static String? mapCodeFromProvinsiId(dynamic provinsiId) {
+    if (provinsiId == null) return null;
+    final str = provinsiId.toString().trim();
+    return _bpsToMapCode[str];
+  }
 }
