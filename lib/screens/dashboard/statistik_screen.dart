@@ -145,6 +145,7 @@ class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
     return mapData;
   }
 
+  // ignore: unused_element
   void _showSkemaAsesorDetailDialog(BuildContext context, String skemaName, String provinceName, int count) {
     showDialog(
       context: context,
@@ -1616,6 +1617,7 @@ class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
   }
 
   // Interactive Bottom Sheet to display TUK sebaran on tapped provinces
+  // ignore: unused_element
   void _showTUKDistributionBottomSheet(BuildContext context, String provinceId, String provinceName) {
     showModalBottomSheet(
       context: context,
