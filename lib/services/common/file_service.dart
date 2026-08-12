@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import 'api_client.dart';
-import '../utils/api_routes.dart';
+import '../api_client.dart';
+import '../../utils/api_routes.dart';
 
 // ============================================================================
 // File Service — Signed URL for protected files

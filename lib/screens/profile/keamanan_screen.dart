@@ -5,8 +5,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../core/navigation/main_navigator.dart';
 import '../../services/api_service.dart';
 import '../../models/auth_models.dart';
-import '../../services/token_storage.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/token_storage.dart';
+import '../../services/auth/auth_repository.dart';
 
 class KeamananScreen extends StatefulWidget {
   const KeamananScreen({super.key});

@@ -7,8 +7,8 @@ import 'widgets/step_informasi_skema.dart';
 import 'widgets/step_evaluasi_kompetensi.dart';
 import 'widgets/step_pengalaman_kerja.dart';
 import 'widgets/step_persetujuan_asesi.dart';
-import '../../services/sertifikat_service.dart';
-import '../../services/asesi_service.dart';
+import '../../services/sertifikat/sertifikat_service.dart';
+import '../../services/asesi/asesi_service.dart';
 import '../../models/sertifikat_models.dart';
 
 class PraAsesmenWizardScreen extends StatefulWidget {

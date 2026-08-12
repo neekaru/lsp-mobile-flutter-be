@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
 
-import '../../services/geojson_manager.dart';
+import '../../services/common/geojson_manager.dart';
 
 class IndonesiaMap extends StatefulWidget {
   final ValueChanged<String> onIslandSelected;

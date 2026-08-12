@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../services/api_service.dart';
-import '../../services/token_storage.dart';
-import '../../services/notification_service.dart';
+import '../../services/auth/token_storage.dart';
+import '../../services/common/notification_service.dart';
 import '../auth/login_screen.dart';
 import 'keamanan_screen.dart';
 import 'tentang_lsp_screen.dart';

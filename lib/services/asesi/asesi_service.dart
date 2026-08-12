@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import '../utils/api_routes.dart';
-import 'api_client.dart';
+import '../../utils/api_routes.dart';
+import '../api_client.dart';
 
 class AsesiService {
   static Dio get _dio => ApiClient.dio;

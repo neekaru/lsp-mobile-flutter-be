@@ -3,8 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../firebase_options.dart';
-import '../../services/app_notification_storage.dart';
-import '../../services/token_storage.dart';
+import '../../services/common/app_notification_storage.dart';
+import '../../services/auth/token_storage.dart';
 
 /// Background message handler (must be top-level function).
 @pragma('vm:entry-point')

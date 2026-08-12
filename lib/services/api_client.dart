@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../utils/api_routes.dart';
-import 'token_storage.dart';
-import 'auth_repository.dart';
+import 'auth/token_storage.dart';
+import 'auth/auth_repository.dart';
 
 // ============================================================================
 // API Client — Shared Dio singleton with interceptors

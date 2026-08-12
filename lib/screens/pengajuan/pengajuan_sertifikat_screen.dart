@@ -4,9 +4,9 @@ import '../../widgets/common/custom_app_bar.dart';
 
 import '../../core/navigation/main_navigator.dart' show mainNavigatorKey, MainNavigatorState;
 import '../../services/api_service.dart';
-import '../../services/auth_repository.dart';
-import '../../services/notification_service.dart';
-import '../../services/token_storage.dart';
+import '../../services/auth/auth_repository.dart';
+import '../../services/common/notification_service.dart';
+import '../../services/auth/token_storage.dart';
 import '../../widgets/pengajuan/step_indicator.dart';
 import '../../widgets/pengajuan/data_pengajuan_form.dart';
 import '../../widgets/pengajuan/data_pribadi_form.dart';

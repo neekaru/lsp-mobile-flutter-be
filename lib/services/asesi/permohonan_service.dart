@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'api_client.dart';
+import '../api_client.dart';
 
 class PermohonanService {
   static Dio get _dio => ApiClient.dio;

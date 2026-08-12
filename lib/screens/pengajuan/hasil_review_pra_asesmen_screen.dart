@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/sertifikat_service.dart';
+import '../../services/sertifikat/sertifikat_service.dart';
 import '../../widgets/pengajuan/animated_status_badges.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import 'tes_tertulis_screen.dart';

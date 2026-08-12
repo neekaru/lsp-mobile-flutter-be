@@ -10,7 +10,7 @@ import '../pendaftaran/permohonan_pendaftaran_screen.dart';
 import '../../widgets/common/notification_bell.dart';
 import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../widgets/dashboard/mulai_sertifikasi_card.dart';
 import '../../models/berita_models.dart';
 import '../../widgets/dashboard/berita_terkini_section.dart';

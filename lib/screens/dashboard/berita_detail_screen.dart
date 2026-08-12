@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/berita_models.dart';
 import '../../services/api_service.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../widgets/berita/admin_berita_dialog.dart';
 import '../../widgets/common/custom_app_bar.dart';
 

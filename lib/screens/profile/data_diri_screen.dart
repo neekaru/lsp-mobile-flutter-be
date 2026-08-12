@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_repository.dart';
-import '../../services/asesor_service.dart';
+import '../../services/auth/auth_repository.dart';
+import '../../services/asesor/asesor_service.dart';
 import '../../models/auth_models.dart';
 import 'edit_data_diri_screen.dart';
 

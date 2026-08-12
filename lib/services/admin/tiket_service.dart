@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import '../utils/api_routes.dart';
-import '../services/api_client.dart';
+import '../../utils/api_routes.dart';
+import '../api_client.dart';
 
-class AdminTiketService {
+class TiketService {
   static final Dio _dio = ApiClient.dio;
 
   // ===========================================================================

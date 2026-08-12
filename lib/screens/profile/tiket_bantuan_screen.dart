@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../services/asesor_service.dart';
-import '../../services/admin_tiket_service.dart';
-import '../../services/auth_repository.dart';
+import '../../services/asesor/asesor_service.dart';
+import '../../services/admin/tiket_service.dart';
+import '../../services/auth/auth_repository.dart';
 import 'buat_tiket_screen.dart';
 import 'detail_tiket_screen.dart';
 
@@ -32,7 +32,7 @@ class _TiketBantuanScreenState extends State<TiketBantuanScreen> {
     });
     try {
       final tickets = _isAdmin
-          ? await AdminTiketService.getTiketList()
+          ? await TiketService.getTiketList()
           : await AsesorService.getTiketList();
       if (mounted) {
         setState(() {

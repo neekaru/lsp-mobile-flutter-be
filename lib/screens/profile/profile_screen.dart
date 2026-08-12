@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../services/api_service.dart';
-import '../../services/token_storage.dart';
-import '../../services/notification_service.dart';
+import '../../services/auth/token_storage.dart';
+import '../../services/common/notification_service.dart';
 import '../../models/dashboard_models.dart';
 import '../auth/login_screen.dart';
 import 'data_diri_screen.dart';

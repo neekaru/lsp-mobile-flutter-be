@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/pengajuan/asesor_list_item.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
-import '../../services/sertifikat_service.dart';
+import '../../services/sertifikat/sertifikat_service.dart';
 import 'pra_asesmen_screen.dart';
 
 class AsesorRecommendationScreen extends StatefulWidget {

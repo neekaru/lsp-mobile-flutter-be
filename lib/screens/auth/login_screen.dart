@@ -4,9 +4,9 @@ import '../../widgets/auth/google_icon.dart';
 import 'package:dio/dio.dart';
 import '../../core/navigation/main_navigator.dart';
 import '../../services/api_service.dart';
-import '../../services/token_storage.dart';
-import '../../services/auth_repository.dart';
-import '../../services/notification_service.dart';
+import '../../services/auth/token_storage.dart';
+import '../../services/auth/auth_repository.dart';
+import '../../services/common/notification_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

@@ -3,7 +3,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/jadwal/custom_tab_bar.dart';
 import '../../widgets/penugasan/penugasan_list_item.dart';
 import '../../models/jadwal_models.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../services/api_service.dart';
 import '../../utils/api_routes.dart';
 import 'penugasan_detail_screen.dart';

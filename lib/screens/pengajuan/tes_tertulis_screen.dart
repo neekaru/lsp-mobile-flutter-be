@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../services/asesi_service.dart';
-import '../../services/sertifikat_service.dart';
+import '../../services/asesi/asesi_service.dart';
+import '../../services/sertifikat/sertifikat_service.dart';
 import 'widgets/tes_tertulis_intro.dart';
 import 'widgets/tes_tertulis_quiz.dart';
 import 'widgets/tes_tertulis_summary.dart';

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../services/asesor_service.dart';
-import '../../services/admin_tiket_service.dart';
-import '../../services/auth_repository.dart';
+import '../../services/asesor/asesor_service.dart';
+import '../../services/admin/tiket_service.dart';
+import '../../services/auth/auth_repository.dart';
 
 class DetailTiketScreen extends StatefulWidget {
   final Map<String, dynamic> ticket;
@@ -44,7 +44,7 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
     try {
       final id = widget.ticket['id'] as int;
       final res = _isAdmin
-          ? await AdminTiketService.getTiketDetail(id)
+          ? await TiketService.getTiketDetail(id)
           : await AsesorService.getTiketDetail(id);
 
       if (res != null && mounted) {
@@ -71,7 +71,7 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
     setState(() => _isSending = true);
     _replyController.clear();
 
-    final res = await AdminTiketService.replyTiket(id, text);
+    final res = await TiketService.replyTiket(id, text);
     if (mounted) {
       if (res != null) {
         await _fetchTicketDetail();
@@ -87,7 +87,7 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
   // ── Admin only: ubah status ──────────────────────────────────────────────────
   Future<void> _changeStatus(String newStatus) async {
     final id = widget.ticket['id'] as int;
-    final ok = await AdminTiketService.updateStatus(id, newStatus);
+    final ok = await TiketService.updateStatus(id, newStatus);
     if (mounted) {
       if (ok) {
         setState(() => _currentStatus = newStatus);

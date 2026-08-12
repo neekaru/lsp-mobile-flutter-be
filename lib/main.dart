@@ -10,9 +10,9 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'app.dart';
 import 'firebase_options.dart';
 import 'core/notifications/firebase_message_handler.dart';
-import 'services/geojson_manager.dart';
-import 'services/notification_service.dart';
-import 'services/token_storage.dart';
+import 'services/common/geojson_manager.dart';
+import 'services/common/notification_service.dart';
+import 'services/auth/token_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../services/admin_laporan_service.dart';
+import '../../services/admin/laporan_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/bottom_menu_bar.dart';
 import 'detail_pelaporan_screen.dart';
@@ -34,7 +34,7 @@ class _PelaporanScreenState extends State<PelaporanScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
-  final AdminLaporanService _service = AdminLaporanService();
+  final LaporanService _service = LaporanService();
 
   final ScrollController _revisiScrollController = ScrollController();
   final ScrollController _disetujuiScrollController = ScrollController();

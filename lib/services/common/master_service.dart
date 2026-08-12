@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-import 'api_client.dart';
-import '../utils/api_routes.dart';
-import '../models/master_models.dart';
+import '../api_client.dart';
+import '../../utils/api_routes.dart';
+import '../../models/master_models.dart';
 
 // ============================================================================
 // Master Service

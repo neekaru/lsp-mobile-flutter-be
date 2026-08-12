@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/sertifikat_models.dart';
-import '../../services/sertifikat_service.dart';
+import '../../services/sertifikat/sertifikat_service.dart';
 import '../pengajuan/pengajuan_sertifikat_screen.dart';
 import '../pengajuan/konfirmasi_pendaftaran_screen.dart';
 

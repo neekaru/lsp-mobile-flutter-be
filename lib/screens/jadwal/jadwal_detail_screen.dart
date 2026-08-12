@@ -5,7 +5,7 @@ import '../../widgets/jadwal/detail_helpers.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import 'jadwal_edit_screen.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../services/api_service.dart';
 import 'profil_asesor_screen.dart';
 import 'asesi_list_screen.dart';

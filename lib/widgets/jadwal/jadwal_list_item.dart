@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/jadwal_models.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 
 class JadwalListItem extends StatelessWidget {
   final JadwalItem item;

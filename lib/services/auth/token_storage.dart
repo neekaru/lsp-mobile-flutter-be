@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../models/auth_models.dart';
+import '../../models/auth_models.dart';
 
 class TokenStorage {
   TokenStorage._privateConstructor();

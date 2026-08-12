@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../models/master_models.dart';
-import '../../../services/master_service.dart';
+import '../../../services/common/master_service.dart';
 import '../../../widgets/pendaftaran/modal_select_sheet.dart';
-import '../../../services/permohonan_service.dart';
+import '../../../services/asesi/permohonan_service.dart';
 
 class Step4BiodataPeserta extends StatefulWidget {
   final int? permohonanId;

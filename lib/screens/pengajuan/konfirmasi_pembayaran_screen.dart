@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../services/sertifikat_service.dart';
+import '../../services/sertifikat/sertifikat_service.dart';
 import 'konfirmasi_persetujuan_screen.dart';
 
 class KonfirmasiPembayaranScreen extends StatefulWidget {

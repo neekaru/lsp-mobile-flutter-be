@@ -4,11 +4,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:januscaler_flutter_ringtone_player/flutter_ringtone_player.dart';
-import 'api_service.dart';
-import 'auth_repository.dart';
-import '../utils/api_routes.dart';
-import '../core/navigation/main_navigator.dart';
-import '../widgets/common/top_notification_banner.dart';
+import '../api_service.dart';
+import '../auth/auth_repository.dart';
+import '../../utils/api_routes.dart';
+import '../../core/navigation/main_navigator.dart';
+import '../../widgets/common/top_notification_banner.dart';
 import 'app_notification_storage.dart';
 
 class NotificationService {

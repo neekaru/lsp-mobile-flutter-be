@@ -5,8 +5,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/pengajuan/periksa_data_banner.dart';
 import '../../widgets/pengajuan/ringkasan_pendaftaran_card.dart';
 import '../../widgets/pengajuan/data_diri_konfirmasi_card.dart';
-import '../../services/asesi_service.dart';
-import '../../services/sertifikat_service.dart';
+import '../../services/asesi/asesi_service.dart';
+import '../../services/sertifikat/sertifikat_service.dart';
 import 'edit_data_pendaftaran_screen.dart';
 import 'konfirmasi_portofolio_screen.dart';
 

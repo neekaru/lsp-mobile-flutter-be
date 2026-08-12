@@ -1,6 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
-import '../../../services/permohonan_service.dart';
+import '../../../services/asesi/permohonan_service.dart';
 
 class Step3Jadwal extends StatefulWidget {
   final int? permohonanId;

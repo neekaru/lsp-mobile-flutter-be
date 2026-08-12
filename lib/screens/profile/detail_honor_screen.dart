@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../services/asesor_service.dart';
+import '../../services/asesor/asesor_service.dart';
 
 class DetailHonorScreen extends StatefulWidget {
   final Map<String, dynamic> detail;

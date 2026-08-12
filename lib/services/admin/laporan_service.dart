@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import '../models/admin_laporan_models.dart';
-import 'api_client.dart';
+import '../../models/admin_laporan_models.dart';
+import '../api_client.dart';
 
-class AdminLaporanService {
+class LaporanService {
   final Dio _dio = ApiClient.dio;
 
   // GET /api/admin/laporan - List reports, filtered/paginated at the server.

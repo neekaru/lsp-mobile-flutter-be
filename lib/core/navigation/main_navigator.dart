@@ -15,7 +15,7 @@ import '../../screens/sertifikat/asesi_sertifikat_screen.dart';
 import '../../screens/sertifikat/sertifikat_screen.dart';
 import '../../screens/sertifikat/skema_sertifikasi_screen.dart';
 import '../../screens/sertifikat/validasi_sertifikat_screen.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../widgets/common/bottom_menu_bar.dart';
 
 // Global keys for notification navigation

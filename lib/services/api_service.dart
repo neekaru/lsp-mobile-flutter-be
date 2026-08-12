@@ -3,37 +3,44 @@
 // ============================================================================
 // Seluruh implementasi API telah dipecah ke service masing-masing domain:
 //
-//   api_client.dart          → Shared Dio singleton + interceptors
-//   dashboard_service.dart   → Dashboard, Statistik, Wilayah, Regional
-//   jadwal_service.dart      → Jadwal + Notifikasi
-//   asesor_service.dart      → Asesor, Skema, Mitra
-//   sertifikat_service.dart  → Sertifikat validate/search/summary
-//   master_service.dart      → Master Provinsi/Kabupaten/Kecamatan/Skema/Jadwal
-//   misc_services.dart       → Sessions, Berita, Health checks
+//   api_client.dart                  → Shared Dio singleton + interceptors
+//   auth/session_service.dart        → Sessions login aktif
+//   dashboard/dashboard_service.dart → Dashboard, Statistik, Wilayah, Regional
+//   dashboard/berita_service.dart    → Berita
+//   jadwal/jadwal_service.dart       → Jadwal + Notifikasi
+//   asesor/asesor_service.dart       → Asesor, Skema, Mitra
+//   asesi/asesi_service.dart         → Asesi (Instansi, Sertifikat, Pendaftaran)
+//   sertifikat/sertifikat_service.dart → Sertifikat validate/search/summary
+//   common/master_service.dart       → Master Provinsi/Kabupaten/Kecamatan/Skema/Jadwal
+//   common/health_service.dart       → Health checks
 //
 // File ini tetap dipertahankan agar semua screen yang sudah ada tidak perlu
 // mengganti import. Setiap method mendelegasikan ke service yang sesuai.
 
 export 'api_client.dart';
-export 'dashboard_service.dart';
-export 'jadwal_service.dart';
-export 'asesor_service.dart';
-export 'asesi_service.dart';
-export 'sertifikat_service.dart';
-export 'master_service.dart';
-export 'misc_services.dart';
-export 'file_service.dart';
+export 'dashboard/dashboard_service.dart';
+export 'dashboard/berita_service.dart';
+export 'jadwal/jadwal_service.dart';
+export 'asesor/asesor_service.dart';
+export 'asesi/asesi_service.dart';
+export 'sertifikat/sertifikat_service.dart';
+export 'common/master_service.dart';
+export 'common/file_service.dart';
+export 'common/health_service.dart';
+export 'auth/session_service.dart';
 
 import 'package:dio/dio.dart';
 
 import 'api_client.dart';
-import 'dashboard_service.dart';
-import 'jadwal_service.dart';
-import 'asesor_service.dart';
-import 'sertifikat_service.dart';
-import 'master_service.dart';
-import 'misc_services.dart';
-import 'file_service.dart';
+import 'dashboard/dashboard_service.dart';
+import 'dashboard/berita_service.dart';
+import 'jadwal/jadwal_service.dart';
+import 'asesor/asesor_service.dart';
+import 'sertifikat/sertifikat_service.dart';
+import 'common/master_service.dart';
+import 'common/file_service.dart';
+import 'common/health_service.dart';
+import 'auth/session_service.dart';
 import '../models/dashboard_models.dart';
 import '../models/sertifikat_models.dart';
 import '../models/jadwal_models.dart';

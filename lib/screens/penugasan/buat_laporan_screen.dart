@@ -2,10 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../services/auth_repository.dart';
-import '../../services/asesor_service.dart';
+import '../../services/auth/auth_repository.dart';
+import '../../services/asesor/asesor_service.dart';
 import '../../services/api_client.dart';
-import '../../services/jadwal_service.dart';
+import '../../services/jadwal/jadwal_service.dart';
 import '../../utils/api_routes.dart';
 import '../../core/navigation/main_navigator.dart' show mainNavigatorKey;
 

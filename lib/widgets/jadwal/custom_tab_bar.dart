@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 
 class JadwalTabBar extends StatefulWidget {
   final TabController controller;

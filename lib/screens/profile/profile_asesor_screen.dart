@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../services/api_service.dart';
-import '../../services/token_storage.dart';
+import '../../services/auth/token_storage.dart';
 import '../../utils/api_routes.dart';
-import '../../services/notification_service.dart';
+import '../../services/common/notification_service.dart';
 import '../auth/login_screen.dart';
 import 'data_diri_screen.dart';
 import 'keamanan_screen.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../services/permohonan_service.dart';
+import '../../services/asesi/permohonan_service.dart';
 import 'detail_permohonan_screen.dart';
 
 class PermohonanPendaftaranScreen extends StatefulWidget {

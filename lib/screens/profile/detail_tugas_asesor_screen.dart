@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../services/asesor_service.dart';
+import '../../services/asesor/asesor_service.dart';
 import 'detail_honor_screen.dart';
 
 class DetailTugasAsesorScreen extends StatefulWidget {

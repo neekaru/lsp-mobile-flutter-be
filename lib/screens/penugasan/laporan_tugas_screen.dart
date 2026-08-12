@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../services/asesor_service.dart';
+import '../../services/asesor/asesor_service.dart';
 import 'buat_laporan_screen.dart';
 import 'detail_laporan_screen.dart';
 

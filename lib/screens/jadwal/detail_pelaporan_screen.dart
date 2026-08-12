@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/admin_laporan_service.dart';
+import '../../services/admin/laporan_service.dart';
 import '../../models/admin_laporan_models.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/jadwal/detail_pelaporan_sections.dart';
@@ -21,7 +21,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
   late TabController _tabController;
   late TextEditingController _catatanController;
   late TextEditingController _asesiSearchController;
-  final AdminLaporanService _service = AdminLaporanService();
+  final LaporanService _service = LaporanService();
 
   bool _isLoading = true;
   String? _errorMessage;

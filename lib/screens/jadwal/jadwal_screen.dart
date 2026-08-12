@@ -7,7 +7,7 @@ import '../../services/api_service.dart';
 import '../../widgets/jadwal/jadwal_list_item.dart';
 import '../../widgets/jadwal/jadwal_tab_content.dart';
 import '../../widgets/jadwal/custom_tab_bar.dart';
-import '../../services/auth_repository.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../utils/api_routes.dart';
 import '../../utils/date_format_helper.dart';
 import 'jadwal_detail_screen.dart';

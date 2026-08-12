@@ -5,7 +5,7 @@ import '../../widgets/sertifikat/skema_card.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../models/sertifikat_models.dart';
-import '../../services/sertifikat_service.dart';
+import '../../services/sertifikat/sertifikat_service.dart';
 import 'filter_menu_overlay.dart';
 import 'detail_skema_screen.dart';
 
