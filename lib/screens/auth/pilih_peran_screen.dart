@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../main.dart';
+import '../../core/navigation/main_navigator.dart';
 import '../pengajuan/pengajuan_sertifikat_screen.dart';
 
 class PilihPeranScreen extends StatefulWidget {

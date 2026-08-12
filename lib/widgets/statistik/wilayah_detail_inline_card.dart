@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/dashboard_models.dart';
 import '../../services/api_service.dart';
-import '../../helpers/number_format_helper.dart';
+import '../../utils/number_format_helper.dart';
 
 class WilayahDetailInlineCard extends StatefulWidget {
   final String provinceId;

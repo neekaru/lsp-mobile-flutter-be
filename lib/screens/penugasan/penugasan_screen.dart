@@ -5,7 +5,7 @@ import '../../widgets/penugasan/penugasan_list_item.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/auth_repository.dart';
 import '../../services/api_service.dart';
-import '../../helpers/api_routes.dart';
+import '../../utils/api_routes.dart';
 import 'penugasan_detail_screen.dart';
 
 class PenugasanScreen extends StatefulWidget {

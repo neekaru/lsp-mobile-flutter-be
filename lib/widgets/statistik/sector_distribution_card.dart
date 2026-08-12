@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
-import '../../helpers/number_format_helper.dart';
+import '../../utils/number_format_helper.dart';
 
 class SectorDistributionCard extends StatefulWidget {
   const SectorDistributionCard({super.key});

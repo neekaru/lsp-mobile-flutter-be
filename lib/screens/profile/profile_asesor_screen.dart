@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import '../../services/auth_repository.dart';
 import '../../services/api_service.dart';
 import '../../services/token_storage.dart';
-import '../../helpers/api_routes.dart';
+import '../../utils/api_routes.dart';
 import '../../services/notification_service.dart';
 import '../auth/login_screen.dart';
 import 'data_diri_screen.dart';

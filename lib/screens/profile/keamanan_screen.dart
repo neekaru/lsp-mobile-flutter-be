@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/bottom_menu_bar.dart';
 import '../../widgets/custom_app_bar.dart';
-import '../../main.dart';
+import '../../core/navigation/main_navigator.dart';
 import '../../services/api_service.dart';
 import '../../models/auth_models.dart';
 import '../../services/token_storage.dart';

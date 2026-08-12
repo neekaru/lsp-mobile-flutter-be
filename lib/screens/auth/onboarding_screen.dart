@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../main.dart';
+import '../../core/navigation/main_navigator.dart';
 import '../../services/token_storage.dart';
 
 class OnboardingScreen extends StatefulWidget {

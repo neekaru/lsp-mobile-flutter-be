@@ -2,9 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import 'api_client.dart';
-import '../helpers/api_routes.dart';
+import '../utils/api_routes.dart';
 import '../models/dashboard_models.dart';
-import '../helpers/bps_code_helper.dart';
+import '../utils/bps_code_helper.dart';
 
 // ============================================================================
 // Dashboard Service

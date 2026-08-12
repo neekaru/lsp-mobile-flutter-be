@@ -6,8 +6,8 @@ import '../../services/auth_repository.dart';
 import '../../services/asesor_service.dart';
 import '../../services/api_client.dart';
 import '../../services/jadwal_service.dart';
-import '../../helpers/api_routes.dart';
-import '../../main.dart' show mainNavigatorKey;
+import '../../utils/api_routes.dart';
+import '../../core/navigation/main_navigator.dart' show mainNavigatorKey;
 import '../pengajuan/widgets/animated_success_badge.dart';
 
 class ParticipantItem {

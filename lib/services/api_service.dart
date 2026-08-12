@@ -39,7 +39,7 @@ import '../models/sertifikat_models.dart';
 import '../models/jadwal_models.dart';
 import '../models/master_models.dart';
 import '../models/auth_models.dart';
-import '../models/berita_model.dart';
+import '../models/berita_models.dart';
 
 // ignore: avoid_classes_with_only_static_members
 class ApiService {

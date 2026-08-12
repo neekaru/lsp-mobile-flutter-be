@@ -12,7 +12,7 @@ import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../services/auth_repository.dart';
 import '../../widgets/mulai_sertifikasi_card.dart';
-import '../../models/berita_model.dart';
+import '../../models/berita_models.dart';
 import '../../widgets/berita_terkini_section.dart';
 import '../auth/login_screen.dart';
 import '../../widgets/public_sertifikat_card.dart';

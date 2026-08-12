@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import '../helpers/api_routes.dart';
+import '../utils/api_routes.dart';
 import '../services/api_client.dart';
 
 class AdminTiketService {

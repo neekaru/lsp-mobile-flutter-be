@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import '../helpers/api_routes.dart';
+import '../utils/api_routes.dart';
 import '../models/auth_models.dart';
 import 'token_storage.dart';
 

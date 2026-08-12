@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_app_bar.dart';
 
-import '../../main.dart' show mainNavigatorKey, MainNavigatorState;
+import '../../core/navigation/main_navigator.dart' show mainNavigatorKey, MainNavigatorState;
 import '../../services/api_service.dart';
 import '../../services/auth_repository.dart';
 import '../../services/notification_service.dart';

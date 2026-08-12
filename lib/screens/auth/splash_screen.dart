@@ -8,7 +8,7 @@ import '../../services/token_storage.dart';
 import '../../services/auth_repository.dart';
 import '../../services/notification_service.dart';
 import '../../models/auth_models.dart';
-import '../../main.dart';
+import '../../core/navigation/main_navigator.dart';
 import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
