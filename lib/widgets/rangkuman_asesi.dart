@@ -25,15 +25,6 @@ class _RangkumanAsesiState extends State<RangkumanAsesi> {
     return '${now.day} ${months[now.month - 1]}';
   }
 
-  String get _todayDate {
-    final now = DateTime.now();
-    const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-    ];
-    return '${now.day} ${months[now.month - 1]} ${now.year}';
-  }
-
   @override
   void initState() {
     super.initState();
@@ -98,7 +89,7 @@ class _RangkumanAsesiState extends State<RangkumanAsesi> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
-                'Rangkuman Utama',
+                'Dashboard',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -140,13 +131,6 @@ class _RangkumanAsesiState extends State<RangkumanAsesi> {
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            'Data diperbarui secara real-time - $_todayDate',
-            style: const TextStyle(
-              color: Color(0xB3FFFFFF),
-              fontSize: 12,
-            ),
-          ),
           const SizedBox(height: 16),
           GridView.count(
             shrinkWrap: true,

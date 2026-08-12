@@ -32,15 +32,6 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
     return '${now.day} ${months[now.month - 1]}';
   }
 
-  String get _todayDate {
-    final now = DateTime.now();
-    const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-    ];
-    return '${now.day} ${months[now.month - 1]} ${now.year}';
-  }
-
   @override
   void initState() {
     super.initState();
@@ -125,7 +116,7 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
-                'Rangkuman Utama',
+                'Dashboard',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -168,21 +159,7 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            'Data diperbarui secara real-time - $_todayDate',
-            style: const TextStyle(
-              color: Color(0xB3FFFFFF), // white with 0.7 opacity
-              fontSize: 12,
-            ),
-          ),
-
-          // Current Month Warning Badge
-          _buildWarningBadge(data),
-          
-          if (data.isCurrentMonth && data.note != null)
-            const SizedBox(height: 0)
-          else
-            const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
           // 2x2 Grid of Summary Cards
           GridView.count(
@@ -231,39 +208,6 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
         ],
       ),
     );
-  }
-
-  Widget _buildWarningBadge(DashboardSummary data) {
-    if (data.isCurrentMonth && data.note != null) {
-      return Container(
-        margin: const EdgeInsets.only(top: 8, bottom: 0),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0x33FFA726), // Orange with opacity
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFFF9800), width: 1),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.info_outline, color: Color(0xFFFFB74D), size: 16),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                data.note!,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return const SizedBox.shrink();
   }
 }
 
