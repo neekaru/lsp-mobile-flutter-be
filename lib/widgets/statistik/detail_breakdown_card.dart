@@ -58,7 +58,7 @@ class DetailBreakdownCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${selectedData.percentage}% dari total asesi nasional',
+                        '${selectedData.percentage.toStringAsFixed(1).replaceAll('.', ',')}% dari total asesi nasional',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],

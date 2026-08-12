@@ -190,6 +190,8 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                                 : null,
                             onIslandSelected: (islandId) {
                               setState(() {
+                                _selectedProvinceId = null;
+                                _selectedProvinceName = null;
                                 if (_selectedIsland?.id == islandId) {
                                   _selectedIsland = null;
                                 } else {
@@ -199,6 +201,7 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                             },
                             onProvinceSelected: (province) {
                               setState(() {
+                                _selectedIsland = null;
                                 if (_selectedProvinceId == province.id) {
                                   _selectedProvinceId = null;
                                   _selectedProvinceName = null;
