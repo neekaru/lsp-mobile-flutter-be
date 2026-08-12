@@ -70,6 +70,11 @@ class ApiService {
       DashboardService.getPenyebaranRegional();
   static Future<List<TUKKabupaten>> getTUKKabupaten(String provinceId) =>
       DashboardService.getTUKKabupaten(provinceId);
+  static Future<PenyebaranWilayahDetail?> getPenyebaranWilayahDetail(
+    String provinceId,
+    String provinceName,
+  ) =>
+      DashboardService.getPenyebaranWilayahDetail(provinceId, provinceName);
   static Future<DomisiliAsesorData?> getDomisiliAsesor() =>
       DashboardService.getDomisiliAsesor();
   static Future<DomisiliAsesorDetailData?> getDomisiliAsesorDetail({

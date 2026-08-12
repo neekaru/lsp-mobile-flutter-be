@@ -4,6 +4,7 @@ import '../../models/dashboard_models.dart';
 import '../../models/jadwal_models.dart';
 import '../../helpers/number_format_helper.dart';
 import '../../widgets/statistik/indonesia_map.dart';
+import '../../widgets/statistik/wilayah_detail_inline_card.dart';
 import '../../widgets/statistik/statistik_app_bar.dart';
 import '../../widgets/statistik/admin_statistik_baru.dart';
 // import 'sertifikat_statistik_screen.dart'; // Unused now
@@ -67,6 +68,8 @@ class StatistikDistribusiView extends StatefulWidget {
 
 class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
   bool _isActiveAsesorSelected = true; // True for Asesor Aktif, False for Sebaran Skema
+  String? _selectedProvinceId;
+  String? _selectedProvinceName;
   late Future<AsesorStats> _asesorStatsFuture;
   late Future<List<TopProvinsi>> _topProvincesFuture;
   late Future<List<JadwalItem>> _runningJadwalsFuture;
@@ -292,19 +295,35 @@ class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
                 },
                 onProvinceSelected: (province) {
                   debugPrint('Province selected: ${province.name} (ID: ${province.id})');
-                  if (_isActiveAsesorSelected) {
-                    _showTUKDistributionBottomSheet(context, province.id, province.name);
-                  } else {
-                    if (_selectedSkema != null) {
-                      final detail = _selectedSkema!.wilayahDetail.firstWhere(
-                        (d) => d.provinsiId == province.id,
-                        orElse: () => SkemaAsesorProvinsi(provinsiId: province.id, provinsiNama: province.name, jumlahAsesor: 0),
-                      );
-                      _showSkemaAsesorDetailDialog(context, _selectedSkema!.skema, province.name, detail.jumlahAsesor);
+                  setState(() {
+                    if (_selectedProvinceId == province.id) {
+                      _selectedProvinceId = null;
+                      _selectedProvinceName = null;
+                    } else {
+                      _selectedProvinceId = province.id;
+                      _selectedProvinceName = province.name;
                     }
-                  }
+                  });
                 },
               ),
+
+              if (_selectedProvinceId != null &&
+                  _selectedProvinceName != null) ...[
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: WilayahDetailInlineCard(
+                    provinceId: _selectedProvinceId!,
+                    provinceName: _selectedProvinceName!,
+                    onClose: () {
+                      setState(() {
+                        _selectedProvinceId = null;
+                        _selectedProvinceName = null;
+                      });
+                    },
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 8),
 

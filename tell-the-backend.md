@@ -1,55 +1,217 @@
-# Kontrak Backend LSP Mobile: Detail Asesor Kompetensi Teknis & Detail Masa Berlaku Asesor
+# Kontrak & Panduan Integrasi Backend LSP Mobile: Detail Penyebaran Wilayah (Inline Expansion), Detail Asesor Kompetensi Teknis & Masa Berlaku Asesor
 
-Dokumen ini **menggantikan secara total (override)** seluruh isi kontrak sebelumnya. Dokumen ini khusus mengatur spesifikasi backend untuk fitur **Detail Asesor Kompetensi Teknis (Berdasarkan Skema)** dan **Detail Masa Berlaku Asesor**.
-
----
-
-## 1. Aturan Bisnis & Alur Kerja
-
-| ID | Aturan |
-|---|---|
-| BR-01 | Pengguna (Admin / Pengelola Dashboard) dapat melihat statistik Kompetensi Teknis berdasarkan daftar skema sertifikasi. |
-| BR-02 | Ketika pengguna menekan salah satu **Skema Sertifikasi** pada statistik Kompetensi Teknis, aplikasi membuka screen detail yang menampilkan siapa saja Asesor yang terdaftar/memiliki kompetensi dalam skema tersebut. |
-| BR-03 | Screen detail Kompetensi Teknis wajib memiliki **Searchbar di bagian atas** untuk pencarian nama asesor, nomor MET, email, kota/kabupaten, dan provinsi. |
-| BR-04 | Screen detail Kompetensi Teknis mendukung filter status masa berlaku (`semua`, `aktif`, `tenggang`, `expired`). |
-| BR-05 | Backend wajib menyediakan endpoint `GET /api/dashboard/kompetensi-teknis/{skema_id}/asesor` dengan query parameter `search`, `status`, `limit`, dan `offset`. |
-| BR-06 | Ketika pengguna menekan card **Masa Tenggang** atau **Expired** pada Masa Berlaku Asesor, aplikasi membuka screen detail berisi daftar nama-nama Asesor terkait via `GET /api/dashboard/masa-berlaku-asesor/detail`. |
+Dokumen ini berisi spesifikasi API backend dan panduan integrasi frontend untuk aplikasi LSP Mobile, mencakup:
+1. **Fitur Detail Penyebaran Wilayah (Inline Expansion - Tanpa Popup Modal)**
+2. **Fitur Detail Asesor Kompetensi Teknis (Berdasarkan Skema)**
+3. **Fitur Detail Masa Berlaku Asesor (Status Tenggang & Expired / SPT 2026)**
 
 ---
 
-## 2. Autentikasi dan Header Request
+## 1. Fitur 1: Detail Penyebaran Wilayah (Inline Expansion)
 
+### 1.1. Requirement & User Request
+> **[Roy Buana]**: "Ketika di klik, gak usah popup. Langsung munculkan di bawah."
+> 1. **Jumlah Asesor**: Bidangnya apa saja
+> 2. **Jumlah TUK**: Di kabupaten mana saja
+> 3. **Jumlah Asesi**: Bidangnya apa saja
+
+### 1.2. Endpoint Specification
+
+* **Base URL:** `GET /api/dashboard/penyebaran-wilayah/detail`
+* **Authentication:** Public / Bearer Token Required
+
+#### Query Parameters:
+
+| Parameter | Type | Required | Example | Description |
+|-----------|------|----------|---------|-------------|
+| `provinsi_id` | String/Int | Yes | `73` | ID/Kode Provinsi |
+| `wilayah_id` | String | Optional | `sulawesi` | Kode Wilayah/Pulau (untuk filter tambahan) |
+
+---
+
+### 1.3. Example Request & Response Structure
+
+#### Request Example:
 ```http
-Authorization: Bearer <access_token>
+GET /api/dashboard/penyebaran-wilayah/detail?provinsi_id=73
 Accept: application/json
+```
+
+#### Success Response (`200 OK`):
+```json
+{
+  "status": "success",
+  "message": "Data detail penyebaran wilayah berhasil diambil",
+  "data": {
+    "provinsi_id": 73,
+    "nama_provinsi": "Sulawesi Tenggara",
+    "summary": {
+      "total_asesor": 125,
+      "total_tuk": 18,
+      "total_asesi": 5363
+    },
+    "asesor": {
+      "total": 125,
+      "by_bidang": [
+        {
+          "bidang_id": "Teknologi Informasi & Komunikasi",
+          "nama_bidang": "Teknologi Informasi & Komunikasi",
+          "jumlah_asesor": 45
+        },
+        {
+          "bidang_id": "Pemasaran Digital",
+          "nama_bidang": "Pemasaran Digital",
+          "jumlah_asesor": 30
+        },
+        {
+          "bidang_id": "Manajemen Sumber Daya Manusia",
+          "nama_bidang": "Manajemen Sumber Daya Manusia",
+          "jumlah_asesor": 50
+        }
+      ]
+    },
+    "tuk": {
+      "total": 18,
+      "by_kabupaten": [
+        {
+          "kabupaten_id": "7371",
+          "nama_kabupaten": "KOTA MAKASSAR",
+          "jumlah_tuk": 8
+        },
+        {
+          "kabupaten_id": "7306",
+          "nama_kabupaten": "KABUPATEN GOWA",
+          "jumlah_tuk": 6
+        },
+        {
+          "kabupaten_id": "7302",
+          "nama_kabupaten": "KABUPATEN BULUKUMBA",
+          "jumlah_tuk": 4
+        }
+      ]
+    },
+    "asesi": {
+      "total": 5363,
+      "by_bidang": [
+        {
+          "bidang_id": "Teknologi Informasi & Komunikasi",
+          "nama_bidang": "Teknologi Informasi & Komunikasi",
+          "jumlah_asesi": 2800
+        },
+        {
+          "bidang_id": "Pemasaran Digital",
+          "nama_bidang": "Pemasaran Digital",
+          "jumlah_asesi": 1563
+        },
+        {
+          "bidang_id": "Manajemen Sumber Daya Manusia",
+          "nama_bidang": "Manajemen Sumber Daya Manusia",
+          "jumlah_asesi": 1000
+        }
+      ]
+    }
+  }
+}
+```
+
+#### Error Response (`400 Bad Request`):
+```json
+{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "provinsi_id is required",
+  "errors": null
+}
+```
+
+#### Error Response (`404 Not Found`):
+```json
+{
+  "status": "error",
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "Data wilayah tidak ditemukan.",
+  "errors": null
+}
+```
+
+#### Error Response (`500 Internal Server Error`):
+```json
+{
+  "status": "error",
+  "code": "INTERNAL_SERVER_ERROR",
+  "message": "Terjadi kesalahan pada server.",
+  "errors": null
+}
 ```
 
 ---
 
-## 3. Spesifikasi Endpoint API
+### 1.4. Data Schema
 
-### 3.1. Detail Asesor Berdasarkan Skema Kompetensi Teknis
-
-| Metode | Endpoint | Auth | Fungsi |
-|---|---|---|---|
-| `GET` | `/api/dashboard/kompetensi-teknis/{skema_id}/asesor` | Bearer Token | Mengambil daftar nama-nama Asesor yang terdaftar dalam suatu Skema Kompetensi Teknis |
-
-#### Path & Query Parameters:
-
-| Parameter | Posisi | Tipe | Wajib | Contoh | Default | Keterangan |
-|---|---|---|---|---|---|---|
-| `skema_id` | Path | String/Int | Ya | `36` atau `SKK-36` | - | ID atau Kode Skema Sertifikasi |
-| `status` | Query | String | Tidak | `semua` / `aktif` / `tenggang` / `expired` | `semua` | Filter status masa berlaku asesor dalam skema |
-| `search` | Query | String | Tidak | `Budi` / `MET.2024` / `Jakarta` | - | Filter pencarian nama asesor, nomor MET, domisili, email, atau no HP |
-| `limit` | Query | Integer | Tidak | `50` | `50` | Batas jumlah data per halaman |
-| `offset` | Query | Integer | Tidak | `0` | `0` | Posisi offset pagination |
+#### Data Object Schema
+| Field | Type | Description |
+|---|---|---|
+| `provinsi_id` | Integer/String | ID/Kode Provinsi |
+| `nama_provinsi` | String | Nama resmi provinsi |
+| `summary` | Object | Akumulasi total Asesor, TUK, Asesi |
+| `asesor` | Object | `total` (Integer) & `by_bidang` (Array of AsesorBidangItem) |
+| `tuk` | Object | `total` (Integer) & `by_kabupaten` (Array of TUKKabupatenItem) |
+| `asesi` | Object | `total` (Integer) & `by_bidang` (Array of AsesiBidangItem) |
 
 ---
 
-### 3.2. Contoh Response Berhasil (`200 OK`)
+### 1.5. UI/UX & Interaction Requirements
 
-#### `GET /api/dashboard/kompetensi-teknis/36/asesor?status=semua&search=budi`
+* **TIDAK BOLEH: Popup Modal**
+  * DILARANG menampilkan data detail dalam popup modal terpisah.
+* **WAJIB: Inline Expansion (Accordion)**
+  * Data detail harus muncul langsung di bawah (*inline expansion / accordion*) dari card/wilayah yang diklik.
 
+#### Interaction Flow:
+1. User menekan card provinsi (misal: "Sulawesi Tenggara")
+2. Tanpa popup modal, card tersebut expand ke bawah.
+3. Tampilkan 3 section breakdown:
+   - **Jumlah Asesor** (per Bidang/Skema)
+   - **Jumlah TUK** (per Kabupaten/Kota)
+   - **Jumlah Asesi** (per Bidang/Skema)
+
+#### Recommended Layout:
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Sulawesi Tenggara                                      [▲]  │
+│ 125 Asesor  •  18 TUK  •  5,363 Asesi                       │
+├─────────────────────────────────────────────────────────────┤
+│ 👤 Jumlah Asesor (125)                                      │
+│   • Teknologi Informasi & Komunikasi: 45                    │
+│   • Pemasaran Digital: 30                                   │
+│   • Manajemen SDM: 50                                       │
+│                                                             │
+│ 🏢 Jumlah TUK (18)                                          │
+│   • KOTA MAKASSAR: 8                                        │
+│   • KABUPATEN GOWA: 6                                       │
+│   • KABUPATEN BULUKUMBA: 4                                  │
+│                                                             │
+│ 👨‍🎓 Jumlah Asesi (5,363)                                    │
+│   • Teknologi Informasi & Komunikasi: 2,800                 │
+│   • Pemasaran Digital: 1,563                                │
+│   • Manajemen SDM: 1,000                                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2. Fitur 2: Detail Asesor Kompetensi Teknis (Berdasarkan Skema)
+
+### 2.1. Aturan Bisnis
+* Pengguna dapat melihat statistik Kompetensi Teknis berdasarkan skema sertifikasi.
+* Menekan salah satu **Skema Sertifikasi** membuka screen detail yang menampilkan daftar Asesor yang memiliki kompetensi pada skema tersebut.
+* Memiliki **Searchbar** di bagian atas (nama, MET, email, kota/kabupaten, provinsi) dan filter status (`semua`, `aktif`, `tenggang`, `expired`).
+
+### 2.2. Spesifikasi Endpoint API
+* **Endpoint:** `GET /api/dashboard/kompetensi-teknis/{skema_id}/asesor`
+* **Query Parameters:** `search`, `status` (`semua`/`aktif`/`tenggang`/`expired`), `limit`, `offset`.
+
+#### Contoh Response Berhasil (`200 OK`):
 ```json
 {
   "status": "success",
@@ -71,24 +233,12 @@ Accept: application/json
         "email": "budi.santoso@lsp.or.id",
         "no_hp": "081234567890",
         "tipe_asesor": "Internal"
-      },
-      {
-        "id": "102",
-        "nama_asesor": "Ahmad Rizal, S.Kom., M.T.",
-        "no_met": "MET.000.004120.2019",
-        "status_masa_berlaku": "Tenggang",
-        "tanggal_expired": "2026-08-30",
-        "provinsi": "Jawa Barat",
-        "kabupaten_kota": "Kota Bandung",
-        "email": "ahmad.rizal@lsp.or.id",
-        "no_hp": "081398765432",
-        "tipe_asesor": "Internal"
       }
     ]
   },
   "meta": {
     "total_count": 86,
-    "filtered_count": 2,
+    "filtered_count": 1,
     "limit": 50,
     "offset": 0
   }
@@ -97,69 +247,34 @@ Accept: application/json
 
 ---
 
-### 3.3. Deskripsi Schema Fields
+## 3. Fitur 3: Detail Masa Berlaku Asesor (Status Tenggang & Expired / SPT 2026)
 
-| Field Data | Tipe | Keterangan |
-|---|---|---|
-| `data.skema_id` | String/Int | ID Skema Sertifikasi |
-| `data.kode_skema` | String | Kode resmi skema sertifikasi |
-| `data.nama_skema` | String | Judul/nama skema kompetensi teknis |
-| `data.total_asesor` | Integer | Total keseluruhan asesor pada skema tersebut |
-| `asesor_list[].id` | String | Unique ID record Asesor |
-| `asesor_list[].nama_asesor` | String | Nama lengkap asesor beserta gelar |
-| `asesor_list[].no_met` | String | Nomor MET / Registrasi Asesor |
-| `asesor_list[].status_masa_berlaku` | String | `"Aktif"`, `"Tenggang"`, atau `"Expired"` |
-| `asesor_list[].tanggal_expired` | String | Format tanggal `YYYY-MM-DD` |
-| `asesor_list[].provinsi` | String | Nama provinsi domisili asesor |
-| `asesor_list[].kabupaten_kota` | String | Nama kota/kabupaten domisili asesor |
-| `asesor_list[].email` | String | Email kontak asesor |
-| `asesor_list[].no_hp` | String | Nomor HP/Whatsapp asesor |
-| `asesor_list[].tipe_asesor` | String | `"Internal"` atau `"External"` |
+### 3.1. Aturan Bisnis
+* Menekan card **Masa Tenggang** atau **Expired** membuka screen detail berisi daftar nama-nama Asesor terkait.
+
+### 3.2. Spesifikasi Endpoint API
+* **Endpoint:** `GET /api/dashboard/masa-berlaku-asesor/detail`
+* **Query Parameters:** `status` (`tenggang`/`expired`), `search`, `limit`, `offset`.
 
 ---
 
-### 3.4. Detail Masa Berlaku Asesor (`tenggang` / `expired`)
+## 4. Implementation & Testing Checklist
 
-| Metode | Endpoint | Auth | Fungsi |
-|---|---|---|---|
-| `GET` | `/api/dashboard/masa-berlaku-asesor/detail` | Bearer Token | Mengambil daftar nama-nama Asesor yang berada dalam Masa Tenggang atau Expired |
+### Implementation Checklist
+- **API Integration:**
+  - Fungsi fetch `fetchPenyebaranWilayahDetail(provinsiId)`
+  - Loading state & Error handling inline
+  - Caching response untuk mencegah re-fetch berulang
+- **UI Components:**
+  - `WilayahCard` dengan state `isExpanded`
+  - Toggle expand/collapse tanpa modal popup
+  - Sub-komponen `AsesorBidangList`, `TUKKabupatenList`, `AsesiBidangList`
+- **UX & Performance:**
+  - Lazy load data saat expand pertama kali
+  - Smooth animation expand/collapse
+  - Empty state jika breakdown kosong ("Tidak ada data")
 
-#### Query Parameters:
-
-| Parameter | Tipe | Wajib | Contoh | Default | Keterangan |
-|---|---|---|---|---|---|
-| `status` | String | Ya | `tenggang` / `expired` | - | Kategori status masa berlaku |
-| `search` | String | Tidak | `Budi` / `MET.2024` | - | Filter pencarian nama, MET, skema, domisili |
-| `limit` | Integer | Tidak | `50` | `50` | Batas jumlah data per halaman |
-| `offset` | Integer | Tidak | `0` | `0` | Posisi offset pagination |
-
----
-
-## 4. Format Error Standard
-
-```json
-{
-  "status": "error",
-  "code": "RESOURCE_NOT_FOUND",
-  "message": "Skema sertifikasi tidak ditemukan.",
-  "errors": null
-}
-```
-
-| HTTP Status | Keterangan |
-|---:|---|
-| `400` | Parameter request tidak valid |
-| `401` | Unauthorized - Token JWT tidak valid atau expired |
-| `404` | Skema tidak ditemukan |
-| `500` | Internal Server Error |
-
----
-
-## 5. Kriteria Penerimaan Backend (Acceptance Criteria)
-
-| ID | Kriteria |
-|---|---|
-| AC-01 | Endpoint `GET /api/dashboard/kompetensi-teknis/{skema_id}/asesor` mengembalikan daftar asesor yang memiliki unit/skema kompetensi terkait. |
-| AC-02 | Parameter `search` mendukung pencarian case-insensitive pada nama asesor, nomor MET, email, no HP, kota/kabupaten, dan provinsi. |
-| AC-03 | Parameter `status` mampu memfilter asesor dengan status `aktif`, `tenggang` (< 3 bulan menuju expired), atau `expired`. |
-| AC-04 | Endpoint `GET /api/dashboard/masa-berlaku-asesor/detail?status=tenggang` / `expired` menyajikan data asesor tenggang & expired secara akurat. |
+### Testing Checklist
+- Test dengan `provinsi_id` valid & invalid
+- Test provinsi dengan data 0 asesor / 0 TUK / 0 asesi
+- Verify ketiadaan popup modal saat card diklik

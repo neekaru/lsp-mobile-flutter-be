@@ -29,6 +29,8 @@ class ApiRoutes {
   static const String dashboardAsesorDistribution =
       '/api/dashboard/asesor-distribution';
   static const String dashboardPenyebaranTuk = '/api/dashboard/penyebaran-tuk';
+  static const String dashboardPenyebaranWilayahDetail =
+      '/api/dashboard/penyebaran-wilayah/detail';
   static const String dashboardPenyebaranMitra =
       '/api/dashboard/penyebaran-mitra';
   static const String dashboardSebaranSkemaAsesor =
