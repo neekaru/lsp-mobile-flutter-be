@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/jadwal/custom_tab_bar.dart';
 import '../../widgets/penugasan/penugasan_list_item.dart';
 import '../../models/jadwal_models.dart';

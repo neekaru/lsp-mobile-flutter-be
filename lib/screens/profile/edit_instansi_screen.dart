@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 
 class EditInstansiScreen extends StatefulWidget {
   final String currentType;

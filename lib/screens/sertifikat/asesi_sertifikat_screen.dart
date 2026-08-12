@@ -4,7 +4,7 @@ import '../../models/sertifikat_models.dart';
 import '../../services/api_service.dart';
 import '../../widgets/sertifikat/sertifikat_list_item.dart';
 import '../../widgets/sertifikat/sertifikat_tab_bar.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 import 'detail_sertifikat_screen.dart';
 
 class AsesiSertifikatScreen extends StatefulWidget {

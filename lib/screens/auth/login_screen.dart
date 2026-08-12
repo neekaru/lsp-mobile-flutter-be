@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../widgets/auth/google_icon.dart';
 import 'package:dio/dio.dart';
 import '../../core/navigation/main_navigator.dart';
 import '../../services/api_service.dart';
@@ -50,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } catch (e) {
         debugPrint('Failed to get FCM Token during login: $e');
       }
-      
+
       await authRepo.login(
         account: identityVal,
         password: passwordVal,
@@ -67,12 +68,10 @@ class _LoginScreenState extends State<LoginScreen> {
       mainNavigatorKey = GlobalKey<MainNavigatorState>();
       Navigator.of(context).pushAndRemoveUntil(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => MainNavigator(key: mainNavigatorKey),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              MainNavigator(key: mainNavigatorKey),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
+            return FadeTransition(opacity: animation, child: child);
           },
           transitionDuration: const Duration(milliseconds: 600),
         ),
@@ -163,7 +162,10 @@ class _LoginScreenState extends State<LoginScreen> {
               // Login Form Card
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 20.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 0.0,
+                  vertical: 20.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -171,7 +173,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (_errorMessage != null)
                       Container(
                         margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFFEBEE),
                           borderRadius: BorderRadius.circular(8),
@@ -222,21 +227,30 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: 13,
                         ),
                         filled: false,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 0,
+                          vertical: 8,
+                        ),
                         border: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+                          borderSide: BorderSide(
+                            color: Color(0xFFE2E8F0),
+                            width: 1.0,
+                          ),
                         ),
                         enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+                          borderSide: BorderSide(
+                            color: Color(0xFFE2E8F0),
+                            width: 1.0,
+                          ),
                         ),
                         focusedBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF378CE7), width: 1.5),
+                          borderSide: BorderSide(
+                            color: Color(0xFF378CE7),
+                            width: 1.5,
+                          ),
                         ),
                       ),
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 13,
-                      ),
+                      style: const TextStyle(color: Colors.black, fontSize: 13),
                     ),
 
                     const SizedBox(height: 16),
@@ -261,19 +275,33 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: 13,
                         ),
                         filled: false,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 0,
+                          vertical: 8,
+                        ),
                         border: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+                          borderSide: BorderSide(
+                            color: Color(0xFFE2E8F0),
+                            width: 1.0,
+                          ),
                         ),
                         enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+                          borderSide: BorderSide(
+                            color: Color(0xFFE2E8F0),
+                            width: 1.0,
+                          ),
                         ),
                         focusedBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFF378CE7), width: 1.5),
+                          borderSide: BorderSide(
+                            color: Color(0xFF378CE7),
+                            width: 1.5,
+                          ),
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: Colors.grey.shade500,
                             size: 18,
                           ),
@@ -284,10 +312,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                       ),
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 13,
-                      ),
+                      style: const TextStyle(color: Colors.black, fontSize: 13),
                     ),
 
                     const SizedBox(height: 4),
@@ -333,7 +358,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : const Text(
@@ -386,7 +413,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () {},
                           style: OutlinedButton.styleFrom(
                             backgroundColor: const Color(0xFFF9FAFB),
-                            side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.0),
+                            side: const BorderSide(
+                              color: Color(0xFFE5E7EB),
+                              width: 1.0,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6),
                             ),
@@ -420,84 +450,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-}
-
-// Vector-drawn crisp Google Icon widget with high aesthetic standard
-class GoogleIcon extends StatelessWidget {
-  const GoogleIcon({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(18, 18),
-      painter: _GoogleIconPainter(),
-    );
-  }
-}
-
-class _GoogleIconPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double w = size.width;
-    final double h = size.height;
-    final double r = w / 2;
-
-    final Paint paint = Paint()..style = PaintingStyle.fill;
-
-    // Top Arc (Red)
-    paint.color = const Color(0xFFEA4335);
-    canvas.drawArc(
-      Rect.fromLTWH(0, 0, w, h),
-      -2.7,
-      1.9,
-      true,
-      paint,
-    );
-
-    // Left Arc (Yellow)
-    paint.color = const Color(0xFFFBBC05);
-    canvas.drawArc(
-      Rect.fromLTWH(0, 0, w, h),
-      -4.4,
-      1.7,
-      true,
-      paint,
-    );
-
-    // Bottom Arc (Green)
-    paint.color = const Color(0xFF34A853);
-    canvas.drawArc(
-      Rect.fromLTWH(0, 0, w, h),
-      -0.8,
-      1.9,
-      true,
-      paint,
-    );
-
-    // Right Arc (Blue)
-    paint.color = const Color(0xFF4285F4);
-    canvas.drawArc(
-      Rect.fromLTWH(0, 0, w, h),
-      -0.8,
-      -1.9,
-      true,
-      paint,
-    );
-
-    // Inner ring (Clean White background cutout)
-    paint.color = Colors.white; // Matches Google button background
-    canvas.drawCircle(Offset(r, r), r * 0.55, paint);
-
-    // Right horizontal bar (Blue)
-    paint.color = const Color(0xFF4285F4);
-    final double barW = r * 0.85;
-    final double barH = r * 0.35;
-    canvas.drawRect(
-      Rect.fromLTWH(r, r - barH / 2, barW, barH),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

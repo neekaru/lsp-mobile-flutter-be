@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/profile/custom_accordion_item.dart';
 
 class TugasTanggungJawabScreen extends StatefulWidget {
   const TugasTanggungJawabScreen({super.key});
 
   @override
-  State<TugasTanggungJawabScreen> createState() => _TugasTanggungJawabScreenState();
+  State<TugasTanggungJawabScreen> createState() =>
+      _TugasTanggungJawabScreenState();
 }
 
 class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
@@ -20,16 +22,16 @@ class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
         'Pengelolaan sumberdaya',
         'Mengawasi pengelolaan keuangan di LSP',
         'Monitoring dan evaluasi kegiatan LSP Teknologi Digital',
-        'Pengaturan kontrak.'
-      ]
+        'Pengaturan kontrak.',
+      ],
     },
     {
       'title': 'Bendahara',
       'points': [
         'Mengelola keuangan LSP',
         'Membuat laporan keuangan bulanan dan tahunan',
-        'Mengelola sistem perpajakan LSP.'
-      ]
+        'Mengelola sistem perpajakan LSP.',
+      ],
     },
     {
       'title': 'Manajer Mutu',
@@ -37,8 +39,8 @@ class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
         'Mengembangkan dan menerapkan sistem manajemen mutu, terhadap pedoman BNSP yang berlaku (PBNSP 201 dan 202) dan SNI ISO 17024 : 2012',
         'Memastikan dan memelihara secara konsisten penerapan sistem manajemen sesuai dengan standar dan pedoman yang diacu',
         'Melakukan audit internal dan memfasilitasi kaji ulang manajemen',
-        'Melakukan dan menjaga penerapan standarisasi dalam pelaksanaan proses sertifikasi kompetensi.'
-      ]
+        'Melakukan dan menjaga penerapan standarisasi dalam pelaksanaan proses sertifikasi kompetensi.',
+      ],
     },
     {
       'title': 'Manajer Sertifikasi',
@@ -49,15 +51,15 @@ class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
         'Menetapkan persyaratan tempat uji (TUK)',
         'Sebagai koordinator dari asesor lisensi , asesor kompetensi, dan tenaga ahli',
         'Memfasilitasi hubungan dengan TUK dalam fungsi memelihara informasi sertifikasi kompetensi',
-        'Mengecek kesiapan TUK sebelum pelaksanaan proses uji kompetensi.'
-      ]
+        'Mengecek kesiapan TUK sebelum pelaksanaan proses uji kompetensi.',
+      ],
     },
     {
       'title': 'Manajer Pengelola LSP',
       'points': [
         'Mengkoordinasikan komunikasi dan supervisi antar bagian',
-        'Manajer representative untuk pengembangan LSP'
-      ]
+        'Manajer representative untuk pengembangan LSP',
+      ],
     },
     {
       'title': 'Manajer Administrasi',
@@ -67,8 +69,8 @@ class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
         'Sebagai administrator pelaksanaan sistem sertifikasi dan tugas-tugas ketatausahaan organisasi LSP',
         'Membangun sistim informasi berbasis web dan aplikasi registrasi online',
         'Mempersiapkan laporan kegiatan LSP',
-        'Melakukan rekrutmen asesor kompetensi serta pemeliharaan kompetensinya.'
-      ]
+        'Melakukan rekrutmen asesor kompetensi serta pemeliharaan kompetensinya.',
+      ],
     },
     {
       'title': 'Manajer IT',
@@ -76,20 +78,18 @@ class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
         'Mengelola dan mengembangkan website',
         'Mengelola dan mengembangkan apps',
         'Integrasi sistem LSP dan BNSP',
-        'Integrasi sistem LSP dengan Mitra'
-      ]
+        'Integrasi sistem LSP dengan Mitra',
+      ],
     },
     {
       'title': 'Komite Teknis',
       'points': [
-        'Mengembangkan dan mengevaluasi perangkat asesmen, metode uji kompetensi, materi uji kompetensi, dan bank soal.'
-      ]
+        'Mengembangkan dan mengevaluasi perangkat asesmen, metode uji kompetensi, materi uji kompetensi, dan bank soal.',
+      ],
     },
     {
       'title': 'Asesor Lisensi',
-      'points': [
-        'Melaksanakan verifikasi calon TUK.'
-      ]
+      'points': ['Melaksanakan verifikasi calon TUK.'],
     },
     {
       'title': 'Asesor Kompetensi',
@@ -97,15 +97,15 @@ class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
         'Merencanakan, mengembangkan proses uji kompetensi',
         'Melaksanakan proses uji kompetensi',
         'Melakukan evaluasi atas proses uji kompetensi yang telah dilakukan',
-        'Membuat laporan hasil uji kompetensi.'
-      ]
+        'Membuat laporan hasil uji kompetensi.',
+      ],
     },
     {
       'title': 'Tenaga Ahli / Subject Specialyst',
       'points': [
-        'Membantu asesor kompetensi melaksanakan Uji Kompetensi sesuai bidang teknis yang diujikan.'
-      ]
-    }
+        'Membantu asesor kompetensi melaksanakan Uji Kompetensi sesuai bidang teknis yang diujikan.',
+      ],
+    },
   ];
 
   final List<Map<String, dynamic>> _pengarahData = [
@@ -117,16 +117,16 @@ class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
         'Bertindak sebagai komunikator dan fasilitator dengan stake holder',
         'Memastikan sumberdaya tersertifikasi bisa matching dengan kebutuhan industri',
         'Memobilisasi sumberdaya dan mencarikan sponsor yang tidak mengikat',
-        'Bertanggungjawab terhadap pengawasan ketidakberpihakan.'
-      ]
+        'Bertanggungjawab terhadap pengawasan ketidakberpihakan.',
+      ],
     },
     {
       'title': 'Komite Skema',
       'points': [
         'Menyusun dan mengembangkan skema sertifikasi',
-        'Kaji ulang skema sertifikasi , minimal satu kali setahun.'
-      ]
-    }
+        'Kaji ulang skema sertifikasi , minimal satu kali setahun.',
+      ],
+    },
   ];
 
   @override
@@ -139,10 +139,8 @@ class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          const CustomAppBar(
-            title: 'Tugas & Tanggung Jawab',
-          ),
-          
+          const CustomAppBar(title: 'Tugas & Tanggung Jawab'),
+
           // Tab Bar Container
           Container(
             height: 48,
@@ -216,7 +214,7 @@ class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
               ],
             ),
           ),
-          
+
           // Accordion List
           Expanded(
             child: ListView.builder(
@@ -233,137 +231,6 @@ class _TugasTanggungJawabScreenState extends State<TugasTanggungJawabScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class CustomAccordionItem extends StatefulWidget {
-  final String title;
-  final List<String> bulletPoints;
-
-  const CustomAccordionItem({
-    super.key,
-    required this.title,
-    required this.bulletPoints,
-  });
-
-  @override
-  State<CustomAccordionItem> createState() => _CustomAccordionItemState();
-}
-
-class _CustomAccordionItemState extends State<CustomAccordionItem> {
-  bool _isExpanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Header Card
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _isExpanded = !_isExpanded;
-            });
-          },
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: const Color(0xFFE2E8F0),
-                width: 1.0,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x02000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.title,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                ),
-                Icon(
-                  _isExpanded
-                      ? Icons.keyboard_arrow_down_rounded
-                      : Icons.chevron_right_rounded,
-                  color: const Color(0xFF3B82F6),
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ),
-        
-        // Expanded Content Card
-        if (_isExpanded) ...[
-          const SizedBox(height: 6),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: const Color(0xFFE2E8F0),
-                width: 1.0,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x02000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: widget.bulletPoints.map((point) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '• ',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF475569),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          point,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF475569),
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-        const SizedBox(height: 12),
-      ],
     );
   }
 }

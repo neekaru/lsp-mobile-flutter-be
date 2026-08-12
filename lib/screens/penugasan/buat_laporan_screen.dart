@@ -1,28 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 import '../../services/auth_repository.dart';
 import '../../services/asesor_service.dart';
 import '../../services/api_client.dart';
 import '../../services/jadwal_service.dart';
 import '../../utils/api_routes.dart';
 import '../../core/navigation/main_navigator.dart' show mainNavigatorKey;
-import '../pengajuan/widgets/animated_success_badge.dart';
+import '../../widgets/pengajuan/animated_status_badges.dart';
 
-class ParticipantItem {
-  final String name;
-  final String nim;
-  bool isPresent;
-  bool isCompetent; // For Step 3
-
-  ParticipantItem({
-    required this.name,
-    required this.nim,
-    this.isPresent = true,
-    this.isCompetent = true,
-  });
-}
+import '../../widgets/penugasan/participant_widgets.dart';
 
 class BuatLaporanScreen extends StatefulWidget {
   const BuatLaporanScreen({super.key});
@@ -83,10 +71,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
 
     if (result != null) {
       final url = result['file_url']?.toString();
-      _showFeedbackDialog(
-        isSuccess: true,
-        message: 'Upload File Berhasil',
-      );
+      _showFeedbackDialog(isSuccess: true, message: 'Upload File Berhasil');
       return (url != null && url.isNotEmpty) ? url : null;
     }
 
@@ -115,7 +100,12 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              padding: const EdgeInsets.only(top: 14, left: 20, right: 20, bottom: 24),
+              padding: const EdgeInsets.only(
+                top: 14,
+                left: 20,
+                right: 20,
+                bottom: 24,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -130,7 +120,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   const Text(
                     'Upload Surat Tugas',
                     style: TextStyle(
@@ -140,7 +130,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     ),
                   ),
                   const Divider(height: 24, color: Color(0xFFE2E8F0)),
-                  
+
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -208,8 +198,12 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: tempFileName != null ? FontWeight.bold : FontWeight.normal,
-                              color: tempFileName != null ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                              fontWeight: tempFileName != null
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: tempFileName != null
+                                  ? const Color(0xFF0F172A)
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                           if (tempFileName != null) ...[
@@ -253,13 +247,18 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                               backgroundColor: const Color(0xFF54A0EB),
                               foregroundColor: Colors.white,
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 12,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
                             child: Text(
-                              tempFileName == null ? 'Pilih File' : 'Ganti File',
+                              tempFileName == null
+                                  ? 'Pilih File'
+                                  : 'Ganti File',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -408,7 +407,12 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              padding: const EdgeInsets.only(top: 14, left: 20, right: 20, bottom: 24),
+              padding: const EdgeInsets.only(
+                top: 14,
+                left: 20,
+                right: 20,
+                bottom: 24,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -423,7 +427,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   const Text(
                     'Upload Lampiran Pendukung',
                     style: TextStyle(
@@ -433,7 +437,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     ),
                   ),
                   const Divider(height: 24, color: Color(0xFFE2E8F0)),
-                  
+
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -501,8 +505,12 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: tempFileName != null ? FontWeight.bold : FontWeight.normal,
-                              color: tempFileName != null ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                              fontWeight: tempFileName != null
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: tempFileName != null
+                                  ? const Color(0xFF0F172A)
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                           if (tempFileName != null) ...[
@@ -521,7 +529,12 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                               try {
                                 final result = await FilePicker.pickFiles(
                                   type: FileType.custom,
-                                  allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+                                  allowedExtensions: [
+                                    'pdf',
+                                    'jpg',
+                                    'jpeg',
+                                    'png',
+                                  ],
                                 );
                                 if (result != null && result.files.isNotEmpty) {
                                   final file = result.files.first;
@@ -546,13 +559,18 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                               backgroundColor: const Color(0xFF54A0EB),
                               foregroundColor: Colors.white,
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 12,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
                             child: Text(
-                              tempFileName == null ? 'Pilih File' : 'Ganti File',
+                              tempFileName == null
+                                  ? 'Pilih File'
+                                  : 'Ganti File',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -736,10 +754,14 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
       _isLoadingSchedules = true;
     });
     try {
-      final response = await ApiClient.dio.get('${ApiRoutes.asesorJadwal}?status_jadwal=1,4');
+      final response = await ApiClient.dio.get(
+        '${ApiRoutes.asesorJadwal}?status_jadwal=1,4',
+      );
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data'] ?? [];
-        _schedulesList = list.map((item) => item as Map<String, dynamic>).toList();
+        _schedulesList = list
+            .map((item) => item as Map<String, dynamic>)
+            .toList();
       }
     } catch (e) {
       debugPrint('Error loading schedules: $e');
@@ -759,7 +781,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
           'nama_jadwal': 'Sertifikasi Junior Graphic Designer',
           'tanggal': '2026-07-22',
           'tuk': 'Politeknik Sampit',
-        }
+        },
       ];
     }
 
@@ -831,7 +853,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
         if (_selectedDate.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Silakan pilih Tanggal Pelaksanaan terlebih dahulu'),
+              content: Text(
+                'Silakan pilih Tanggal Pelaksanaan terlebih dahulu',
+              ),
               backgroundColor: Colors.redAccent,
             ),
           );
@@ -874,11 +898,15 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
       _isSubmitting = true;
     });
 
-    final List<Map<String, dynamic>> participantList = _participants.map((p) => {
-      'nim': p.nim,
-      'kehadiran': p.isPresent ? 'Hadir' : 'Absen',
-      'is_kompeten': p.isCompetent,
-    }).toList();
+    final List<Map<String, dynamic>> participantList = _participants
+        .map(
+          (p) => {
+            'nim': p.nim,
+            'kehadiran': p.isPresent ? 'Hadir' : 'Absen',
+            'is_kompeten': p.isCompetent,
+          },
+        )
+        .toList();
 
     final response = await AsesorService.submitLaporan(
       jadwalId: _selectedSchedule?['id'] ?? 0,
@@ -945,13 +973,18 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     )
                   else
                     ..._schedulesList.map((schedule) {
-                      final isSelected = schedule['id'] == _selectedSchedule?['id'];
+                      final isSelected =
+                          schedule['id'] == _selectedSchedule?['id'];
                       return ListTile(
                         title: Text(
                           schedule['nama_jadwal'] ?? '',
                           style: TextStyle(
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? const Color(0xFF378CE7) : const Color(0xFF1E293B),
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? const Color(0xFF378CE7)
+                                : const Color(0xFF1E293B),
                           ),
                         ),
                         subtitle: Text(
@@ -959,7 +992,10 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                           style: const TextStyle(fontSize: 12),
                         ),
                         trailing: isSelected
-                            ? const Icon(Icons.check_circle_rounded, color: Color(0xFF378CE7))
+                            ? const Icon(
+                                Icons.check_circle_rounded,
+                                color: Color(0xFF378CE7),
+                              )
                             : null,
                         onTap: () {
                           if (!mounted) return;
@@ -1001,10 +1037,13 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
               }
             },
           ),
-          
+
           // Progress Bar Section
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 8.0,
+            ),
             child: Column(
               children: [
                 Row(
@@ -1028,7 +1067,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     value: _currentStep / 4.0,
                     minHeight: 6,
                     backgroundColor: const Color(0xFFE2E8F0),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF378CE7)),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Color(0xFF378CE7),
+                    ),
                   ),
                 ),
               ],
@@ -1039,9 +1080,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20.0),
-              child: RepaintBoundary(
-                child: _buildCurrentStepContent(),
-              ),
+              child: RepaintBoundary(child: _buildCurrentStepContent()),
             ),
           ),
 
@@ -1056,17 +1095,24 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     height: 48,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFCBD5E1), // Gray button background
+                        backgroundColor: const Color(
+                          0xFFCBD5E1,
+                        ), // Gray button background
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                         elevation: 0,
                       ),
-                      onPressed: _currentStep > 1 ? _previousStep : () => Navigator.pop(context),
+                      onPressed: _currentStep > 1
+                          ? _previousStep
+                          : () => Navigator.pop(context),
                       child: const Text(
                         'Kembali',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -1078,7 +1124,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     height: 48,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B9FD8), // Blue button background
+                        backgroundColor: const Color(
+                          0xFF5B9FD8,
+                        ), // Blue button background
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -1088,7 +1136,10 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                       onPressed: _currentStep < 4 ? _nextStep : _submitLaporan,
                       child: Text(
                         _currentStep < 4 ? 'Selanjutnya' : 'Kirim Laporan',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -1147,7 +1198,10 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                 borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -1205,7 +1259,11 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
           // Tanggal Pelaksanaan
           Row(
             children: const [
-              Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF64748B)),
+              Icon(
+                Icons.calendar_today_outlined,
+                size: 16,
+                color: Color(0xFF64748B),
+              ),
               SizedBox(width: 6),
               Text(
                 'Tanggal Pelaksanaan',
@@ -1229,10 +1287,21 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
               if (picked != null) {
                 setState(() {
                   final monthNames = [
-                    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                    'Januari',
+                    'Februari',
+                    'Maret',
+                    'April',
+                    'Mei',
+                    'Juni',
+                    'Juli',
+                    'Agustus',
+                    'September',
+                    'Oktober',
+                    'November',
+                    'Desember',
                   ];
-                  _selectedDate = '${picked.day} ${monthNames[picked.month - 1]} ${picked.year}';
+                  _selectedDate =
+                      '${picked.day} ${monthNames[picked.month - 1]} ${picked.year}';
                 });
               }
             },
@@ -1249,7 +1318,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                   Text(
                     _selectedDate.isEmpty ? 'Pilih tanggal' : _selectedDate,
                     style: TextStyle(
-                      color: _selectedDate.isEmpty ? const Color(0xFF94A3B8) : const Color(0xFF1E293B),
+                      color: _selectedDate.isEmpty
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF1E293B),
                       fontSize: 14,
                     ),
                   ),
@@ -1285,7 +1356,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                   Text(
                     _uploadedFileName ?? 'Pilih Surat Tugas',
                     style: TextStyle(
-                      color: _uploadedFileName != null ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
+                      color: _uploadedFileName != null
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFF94A3B8),
                       fontSize: 14,
                     ),
                   ),
@@ -1324,10 +1397,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
             onChanged: (val) {
               setState(() {});
             },
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF1E293B),
-            ),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
             decoration: InputDecoration(
               hintText: 'Unggah link dokumentasi',
               hintStyle: const TextStyle(
@@ -1344,7 +1414,10 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                 borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
           ),
           if (_linkController.text.isNotEmpty) ...[
@@ -1356,7 +1429,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                 child: GestureDetector(
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Membuka ${_linkController.text}...')),
+                      SnackBar(
+                        content: Text('Membuka ${_linkController.text}...'),
+                      ),
                     );
                   },
                   child: Text(
@@ -1474,7 +1549,10 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
               hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
               prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8)),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
           ),
         ),
@@ -1491,22 +1569,35 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
             children: [
               // Table Header
               Container(
-                color: const Color(0xFFDBEAFE), // Light blue header row background
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                color: const Color(
+                  0xFFDBEAFE,
+                ), // Light blue header row background
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Row(
                   children: const [
                     Expanded(
                       flex: 2,
                       child: Text(
                         'Nama Asessi',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
                     ),
                     Expanded(
                       flex: 2,
                       child: Text(
                         'NIM',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
                     ),
                     SizedBox(
@@ -1515,7 +1606,11 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                         alignment: Alignment.centerRight,
                         child: Text(
                           'Kehadiran',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
                         ),
                       ),
                     ),
@@ -1526,7 +1621,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
 
               // Table Body Rows
               ...filtered.map((participant) {
-                return _AttendanceRow(
+                return AttendanceRow(
                   key: ValueKey(participant.nim),
                   participant: participant,
                 );
@@ -1577,11 +1672,19 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                 children: const [
                   Text(
                     '> ',
-                    style: TextStyle(color: Color(0xFF0F766E), fontWeight: FontWeight.bold, fontSize: 13),
+                    style: TextStyle(
+                      color: Color(0xFF0F766E),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                   ),
                   Text(
                     'Kompeten [K]',
-                    style: TextStyle(color: Color(0xFF0F766E), fontWeight: FontWeight.bold, fontSize: 12),
+                    style: TextStyle(
+                      color: Color(0xFF0F766E),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -1590,11 +1693,19 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                 children: const [
                   Text(
                     '> ',
-                    style: TextStyle(color: Color(0xFFBE123C), fontWeight: FontWeight.bold, fontSize: 13),
+                    style: TextStyle(
+                      color: Color(0xFFBE123C),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                   ),
                   Text(
                     'Tidak Kompeten [TK]',
-                    style: TextStyle(color: Color(0xFFBE123C), fontWeight: FontWeight.bold, fontSize: 12),
+                    style: TextStyle(
+                      color: Color(0xFFBE123C),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -1633,13 +1744,19 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(
-                            color: _allKSelected ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
+                            color: _allKSelected
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFFCBD5E1),
                           ),
-                          backgroundColor: _allKSelected ? const Color(0xFFECFDF5) : Colors.white,
+                          backgroundColor: _allKSelected
+                              ? const Color(0xFFECFDF5)
+                              : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          foregroundColor: _allKSelected ? const Color(0xFF047857) : const Color(0xFF475569),
+                          foregroundColor: _allKSelected
+                              ? const Color(0xFF047857)
+                              : const Color(0xFF475569),
                           padding: EdgeInsets.zero,
                         ),
                         onPressed: () {
@@ -1655,14 +1772,21 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              _allKSelected ? Icons.check_circle_rounded : Icons.check_circle_outline_rounded,
+                              _allKSelected
+                                  ? Icons.check_circle_rounded
+                                  : Icons.check_circle_outline_rounded,
                               size: 16,
-                              color: _allKSelected ? const Color(0xFF10B981) : const Color(0xFF64748B),
+                              color: _allKSelected
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF64748B),
                             ),
                             const SizedBox(width: 6),
                             const Text(
                               'Semua [K]',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -1676,13 +1800,19 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(
-                            color: _allTKSelected ? const Color(0xFFEF4444) : const Color(0xFFCBD5E1),
+                            color: _allTKSelected
+                                ? const Color(0xFFEF4444)
+                                : const Color(0xFFCBD5E1),
                           ),
-                          backgroundColor: _allTKSelected ? const Color(0xFFFEF2F2) : Colors.white,
+                          backgroundColor: _allTKSelected
+                              ? const Color(0xFFFEF2F2)
+                              : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          foregroundColor: _allTKSelected ? const Color(0xFFB91C1C) : const Color(0xFF475569),
+                          foregroundColor: _allTKSelected
+                              ? const Color(0xFFB91C1C)
+                              : const Color(0xFF475569),
                           padding: EdgeInsets.zero,
                         ),
                         onPressed: () {
@@ -1698,14 +1828,21 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              _allTKSelected ? Icons.cancel_rounded : Icons.cancel_outlined,
+                              _allTKSelected
+                                  ? Icons.cancel_rounded
+                                  : Icons.cancel_outlined,
                               size: 16,
-                              color: _allTKSelected ? const Color(0xFFEF4444) : const Color(0xFF64748B),
+                              color: _allTKSelected
+                                  ? const Color(0xFFEF4444)
+                                  : const Color(0xFF64748B),
                             ),
                             const SizedBox(width: 6),
                             const Text(
                               'Semua [TK]',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -1722,7 +1859,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
         // Participant Mobile-First List Card
         Column(
           children: _participants.map((participant) {
-            return _Step3ParticipantCard(
+            return Step3ParticipantCard(
               key: ValueKey(participant.nim),
               participant: participant,
               onCompetenceChanged: (bool isCompetent) {
@@ -1790,7 +1927,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        
+
         // Add attachment button
         _isUploadingAttachment
             ? const SizedBox(
@@ -1805,7 +1942,10 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                 onTap: _pickLampiran,
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
@@ -1830,7 +1970,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                   ),
                 ),
               ),
-        
+
         if (_attachments.isNotEmpty) ...[
           const SizedBox(height: 12),
           ..._attachments.asMap().entries.map((entry) {
@@ -1856,14 +1996,19 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                       children: [
                         Icon(
                           isPdf ? Icons.picture_as_pdf : Icons.image,
-                          color: isPdf ? const Color(0xFFEF4444) : const Color(0xFF3B82F6),
+                          color: isPdf
+                              ? const Color(0xFFEF4444)
+                              : const Color(0xFF3B82F6),
                           size: 18,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             displayName,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF1E293B),
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -1872,7 +2017,11 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444), size: 18),
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: Color(0xFFEF4444),
+                      size: 18,
+                    ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     onPressed: () {
@@ -1937,7 +2086,10 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                                 height: 50,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFFF97316), width: 3),
+                                  border: Border.all(
+                                    color: const Color(0xFFF97316),
+                                    width: 3,
+                                  ),
                                 ),
                                 alignment: Alignment.center,
                                 child: const Text(
@@ -1986,7 +2138,10 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
                     },
                     child: const Text(
                       'OK',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -2017,310 +2172,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
-    );
-  }
-}
-
-class _Step3ParticipantCard extends StatefulWidget {
-  final ParticipantItem participant;
-  final ValueChanged<bool> onCompetenceChanged;
-
-  const _Step3ParticipantCard({
-    super.key,
-    required this.participant,
-    required this.onCompetenceChanged,
-  });
-
-  @override
-  State<_Step3ParticipantCard> createState() => _Step3ParticipantCardState();
-}
-
-class _Step3ParticipantCardState extends State<_Step3ParticipantCard> {
-  @override
-  Widget build(BuildContext context) {
-    final participant = widget.participant;
-    final firstLetter = participant.name.isNotEmpty ? participant.name[0].toUpperCase() : 'A';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          // Left: Avatar + Name & NIM
-          Expanded(
-            flex: 11,
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: const Color(0xFFF1F5F9),
-                  child: Text(
-                    firstLetter,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF475569),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        participant.name,
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'NIM: ${participant.nim}',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Right: Premium Mobile-First Selector Switch/Buttons
-          Expanded(
-            flex: 9,
-            child: Row(
-              children: [
-                // Pill for Kompeten [K]
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        participant.isCompetent = true;
-                      });
-                      widget.onCompetenceChanged(true);
-                    },
-                    child: Container(
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: participant.isCompetent ? const Color(0xFFECFDF5) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: participant.isCompetent ? const Color(0xFF10B981) : const Color(0xFFE2E8F0),
-                          width: participant.isCompetent ? 1.5 : 1,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '[K]',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: participant.isCompetent ? const Color(0xFF047857) : const Color(0xFF64748B),
-                            ),
-                          ),
-                          if (participant.isCompetent) ...[
-                            const SizedBox(width: 4),
-                            const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 12),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-
-                // Pill for Tidak Kompeten [TK]
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        participant.isCompetent = false;
-                      });
-                      widget.onCompetenceChanged(false);
-                    },
-                    child: Container(
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: !participant.isCompetent ? const Color(0xFFFEF2F2) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: !participant.isCompetent ? const Color(0xFFEF4444) : const Color(0xFFE2E8F0),
-                          width: !participant.isCompetent ? 1.5 : 1,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '[TK]',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: !participant.isCompetent ? const Color(0xFFB91C1C) : const Color(0xFF64748B),
-                            ),
-                          ),
-                          if (!participant.isCompetent) ...[
-                            const SizedBox(width: 4),
-                            const Icon(Icons.cancel_rounded, color: Color(0xFFEF4444), size: 12),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AttendanceRow extends StatefulWidget {
-  final ParticipantItem participant;
-
-  const _AttendanceRow({super.key, required this.participant});
-
-  @override
-  State<_AttendanceRow> createState() => _AttendanceRowState();
-}
-
-class _AttendanceRowState extends State<_AttendanceRow> {
-  @override
-  Widget build(BuildContext context) {
-    final participant = widget.participant;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              // Name Col
-              Expanded(
-                flex: 2,
-                child: Text(
-                  participant.name,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF1E293B),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              // NIM Col
-              Expanded(
-                flex: 2,
-                child: Text(
-                  participant.nim,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-              ),
-              // Attendance Switch Col
-              SizedBox(
-                width: 80,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: _buildAttendanceSwitch(participant),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1, color: Color(0xFFE2E8F0)),
-      ],
-    );
-  }
-
-  Widget _buildAttendanceSwitch(ParticipantItem participant) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          participant.isPresent = !participant.isPresent;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 75,
-        height: 28,
-        decoration: BoxDecoration(
-          color: participant.isPresent ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Row(
-          mainAxisAlignment:
-              participant.isPresent ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
-          children: [
-            if (participant.isPresent) ...[
-              const Padding(
-                padding: EdgeInsets.only(left: 8.0),
-                child: Text(
-                  'Hadir',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Container(
-                width: 20,
-                height: 20,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ] else ...[
-              Container(
-                width: 20,
-                height: 20,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.only(left: 8.0),
-                child: Text(
-                  'Absen',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 
 class SyaratKetentuanScreen extends StatelessWidget {
   const SyaratKetentuanScreen({super.key});

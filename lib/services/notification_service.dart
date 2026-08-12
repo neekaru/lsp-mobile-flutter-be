@@ -8,7 +8,7 @@ import 'api_service.dart';
 import 'auth_repository.dart';
 import '../utils/api_routes.dart';
 import '../core/navigation/main_navigator.dart';
-import '../widgets/top_notification_banner.dart';
+import '../widgets/common/top_notification_banner.dart';
 import 'app_notification_storage.dart';
 
 class NotificationService {

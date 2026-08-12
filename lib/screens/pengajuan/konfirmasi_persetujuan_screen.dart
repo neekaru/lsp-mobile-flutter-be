@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/pengajuan/animated_status_badges.dart';
 import 'asesor_recommendation_screen.dart';
 
 class KonfirmasiPersetujuanScreen extends StatefulWidget {
@@ -15,10 +16,12 @@ class KonfirmasiPersetujuanScreen extends StatefulWidget {
   });
 
   @override
-  State<KonfirmasiPersetujuanScreen> createState() => _KonfirmasiPersetujuanScreenState();
+  State<KonfirmasiPersetujuanScreen> createState() =>
+      _KonfirmasiPersetujuanScreenState();
 }
 
-class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScreen> {
+class _KonfirmasiPersetujuanScreenState
+    extends State<KonfirmasiPersetujuanScreen> {
   bool _isApproved = false;
 
   @override
@@ -124,10 +127,7 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
         const Expanded(
           child: Text(
             'Saya setuju dengan syarat dan ketentuan diatas',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.black87,
-            ),
+            style: TextStyle(fontSize: 13, color: Colors.black87),
           ),
         ),
       ],
@@ -144,18 +144,13 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
           backgroundColor: const Color(0xFF5B9FD8),
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           disabledBackgroundColor: const Color(0xFFE2E8F0),
           disabledForegroundColor: const Color(0xFF94A3B8),
         ),
         child: const Text(
           'Konfirmasi Pendaftaran',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -175,13 +170,16 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
             borderRadius: BorderRadius.circular(20),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 32.0,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const AnimatedSuccessBadge(),
                 const SizedBox(height: 24),
-                
+
                 // Casing matching screenshot: "Konfirmasi Pendaftaran Berhasil"
                 const Text(
                   'Konfirmasi Pendaftaran Berhasil',
@@ -193,7 +191,7 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
                   ),
                 ),
                 const SizedBox(height: 10),
-                
+
                 // Casing and content matching screenshot exactly
                 Text(
                   'Pendaftaran Anda dalam skema sertifikasi ${widget.title} berhasil dikonfirmasi',
@@ -205,7 +203,7 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
                   ),
                 ),
                 const SizedBox(height: 28),
-                
+
                 // Buttons: Batal & Ok
                 Row(
                   children: [
@@ -243,11 +241,12 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
                             Navigator.push(
                               parentContext,
                               MaterialPageRoute(
-                                builder: (context) => AsesorRecommendationScreen(
-                                  skemaId: widget.skemaId,
-                                  title: widget.title,
-                                  kodeSkema: widget.kodeSkema,
-                                ),
+                                builder: (context) =>
+                                    AsesorRecommendationScreen(
+                                      skemaId: widget.skemaId,
+                                      title: widget.title,
+                                      kodeSkema: widget.kodeSkema,
+                                    ),
                               ),
                             );
                           },
@@ -278,122 +277,8 @@ class _KonfirmasiPersetujuanScreenState extends State<KonfirmasiPersetujuanScree
       },
       transitionBuilder: (context, anim1, anim2, child) {
         final curve = CurvedAnimation(parent: anim1, curve: Curves.easeOutBack);
-        return ScaleTransition(
-          scale: curve,
-          child: child,
-        );
+        return ScaleTransition(scale: curve, child: child);
       },
-    );
-  }
-}
-
-class AnimatedSuccessBadge extends StatefulWidget {
-  const AnimatedSuccessBadge({super.key});
-
-  @override
-  State<AnimatedSuccessBadge> createState() => _AnimatedSuccessBadgeState();
-}
-
-class _AnimatedSuccessBadgeState extends State<AnimatedSuccessBadge> with TickerProviderStateMixin {
-  late AnimationController _badgeController;
-  late Animation<double> _badgeScale;
-  late AnimationController _checkController;
-  late Animation<double> _checkScale;
-
-  @override
-  void initState() {
-    super.initState();
-    _badgeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _badgeScale = CurvedAnimation(
-      parent: _badgeController,
-      curve: Curves.easeOutBack,
-    );
-
-    _checkController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 450),
-    );
-    _checkScale = CurvedAnimation(
-      parent: _checkController,
-      curve: Curves.elasticOut,
-    );
-
-    _badgeController.forward().then((_) {
-      _checkController.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _badgeController.dispose();
-    _checkController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _badgeScale,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Outer circle
-          Container(
-            width: 100,
-            height: 100,
-            decoration: const BoxDecoration(
-              color: Color(0xFFE2F4E9),
-              shape: BoxShape.circle,
-            ),
-          ),
-          // Inner circle
-          Container(
-            width: 70,
-            height: 70,
-            decoration: const BoxDecoration(
-              color: Color(0xFF4ADE80),
-              shape: BoxShape.circle,
-            ),
-            child: ScaleTransition(
-              scale: _checkScale,
-              child: const Icon(
-                Icons.check_rounded,
-                color: Colors.white,
-                size: 40,
-              ),
-            ),
-          ),
-          // Decorative floating dots to match screenshot bubbles
-          Positioned(
-            top: 10,
-            left: 10,
-            child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            top: 30,
-            left: 0,
-            child: Container(width: 12, height: 12, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            bottom: 25,
-            left: 5,
-            child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            top: 15,
-            right: 15,
-            child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            bottom: 20,
-            right: 10,
-            child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFC2EAD0), shape: BoxShape.circle)),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -3,7 +3,7 @@ import '../../models/berita_models.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_repository.dart';
 import '../../widgets/berita/admin_berita_dialog.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 
 class BeritaDetailScreen extends StatefulWidget {
   final int beritaId;

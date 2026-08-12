@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../screens/dashboard/tentang_sistem_screen.dart';
-import '../screens/dashboard/panduan_sertifikasi_screen.dart';
-import '../screens/dashboard/faq_screen.dart';
+import '../../screens/dashboard/tentang_sistem_screen.dart';
+import '../../screens/dashboard/panduan_sertifikasi_screen.dart';
+import '../../screens/dashboard/faq_screen.dart';
 
 class BantuanInformasiSection extends StatelessWidget {
   const BantuanInformasiSection({super.key});

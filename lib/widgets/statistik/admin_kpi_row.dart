@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/dashboard_models.dart';
 import '../../utils/number_format_helper.dart';
-import '../../screens/dashboard/distribusi_asesor_sertifikasi_screen.dart';
+import '../../screens/statistik/distribusi_asesor_sertifikasi_screen.dart';
 
 class AdminKpiRow extends StatelessWidget {
   final AsesorStats stats;

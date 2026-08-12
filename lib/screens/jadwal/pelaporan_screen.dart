@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/admin_laporan_service.dart';
-import '../../widgets/custom_app_bar.dart';
-import '../../widgets/bottom_menu_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/common/bottom_menu_bar.dart';
 import 'detail_pelaporan_screen.dart';
 
 class PelaporanScreen extends StatefulWidget {

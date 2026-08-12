@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../utils/date_format_helper.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 import 'hasil_review_pra_asesmen_screen.dart';
-import 'widgets/animated_success_badge.dart';
+import '../../widgets/pengajuan/animated_status_badges.dart';
 import 'widgets/step_informasi_skema.dart';
 import 'widgets/step_evaluasi_kompetensi.dart';
 import 'widgets/step_pengalaman_kerja.dart';
@@ -151,9 +151,11 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
         }
       }
 
-      final bool success =
-          await AsesiService.submitPraAsesmen(widget.skemaId, evaluasi);
-      
+      final bool success = await AsesiService.submitPraAsesmen(
+        widget.skemaId,
+        evaluasi,
+      );
+
       setState(() {
         _isSubmitting = false;
       });
@@ -164,7 +166,9 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Gagal mengirim jawaban Pra-Asesmen. Silakan coba lagi.'),
+              content: Text(
+                'Gagal mengirim jawaban Pra-Asesmen. Silakan coba lagi.',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -194,7 +198,10 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
           ),
           backgroundColor: Colors.white,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 32.0,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -237,8 +244,8 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
                                 : widget.title,
                             kodeSkema:
                                 _praAsesmenInfo?.kodeSkema.isNotEmpty == true
-                                    ? _praAsesmenInfo!.kodeSkema
-                                    : widget.kodeSkema,
+                                ? _praAsesmenInfo!.kodeSkema
+                                : widget.kodeSkema,
                             tuk: _praAsesmenInfo?.tuk ?? '',
                             tanggalAsesmen:
                                 _praAsesmenInfo?.tanggalAsesmen ?? '',
@@ -286,7 +293,10 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 12.0,
+              ),
               child: _buildStepContent(),
             ),
           ),
@@ -331,7 +341,9 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
               value: progress,
               minHeight: 6,
               backgroundColor: const Color(0xFFF1F5F9),
-              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5B9FD8)),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Color(0xFF5B9FD8),
+              ),
             ),
           ),
         ],
@@ -399,13 +411,15 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
   }
 
   Widget _buildBottomActionButtons() {
-    final bool isStep3Valid = _currentStep != 3 || 
-        (_hasWorkExperience == 'tidak' || 
-         (_companyController.text.isNotEmpty && 
-          _positionController.text.isNotEmpty && 
-          _durationController.text.isNotEmpty));
-          
-    final bool isStep4Valid = _currentStep != 4 || 
+    final bool isStep3Valid =
+        _currentStep != 3 ||
+        (_hasWorkExperience == 'tidak' ||
+            (_companyController.text.isNotEmpty &&
+                _positionController.text.isNotEmpty &&
+                _durationController.text.isNotEmpty));
+
+    final bool isStep4Valid =
+        _currentStep != 4 ||
         (_agreement1 && _agreement2 && _agreement3 && _agreeTerms);
 
     return Container(
@@ -456,7 +470,9 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
               child: SizedBox(
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: (isStep3Valid && isStep4Valid && !_isSubmitting) ? _nextStep : null,
+                  onPressed: (isStep3Valid && isStep4Valid && !_isSubmitting)
+                      ? _nextStep
+                      : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5B9FD8),
                     foregroundColor: Colors.white,
@@ -472,7 +488,9 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : FittedBox(
@@ -481,7 +499,9 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                _currentStep == 4 ? 'Kirim Jawaban' : 'Selanjutnya',
+                                _currentStep == 4
+                                    ? 'Kirim Jawaban'
+                                    : 'Selanjutnya',
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
@@ -489,7 +509,9 @@ class _PraAsesmenWizardScreenState extends State<PraAsesmenWizardScreen> {
                               ),
                               const SizedBox(width: 8),
                               Icon(
-                                _currentStep == 4 ? Icons.send_rounded : Icons.arrow_forward_rounded,
+                                _currentStep == 4
+                                    ? Icons.send_rounded
+                                    : Icons.arrow_forward_rounded,
                                 size: 18,
                               ),
                             ],

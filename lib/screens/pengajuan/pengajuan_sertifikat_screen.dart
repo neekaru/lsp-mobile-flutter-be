@@ -1,6 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 
 import '../../core/navigation/main_navigator.dart' show mainNavigatorKey, MainNavigatorState;
 import '../../services/api_service.dart';

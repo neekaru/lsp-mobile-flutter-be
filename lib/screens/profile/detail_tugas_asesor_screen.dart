@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 import '../../services/asesor_service.dart';
 import 'detail_honor_screen.dart';
 

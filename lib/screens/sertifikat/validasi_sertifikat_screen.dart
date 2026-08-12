@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/sertifikat_models.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 
 class ValidasiSertifikatScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;

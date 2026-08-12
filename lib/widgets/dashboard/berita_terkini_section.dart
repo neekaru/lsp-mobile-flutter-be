@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/api_client.dart';
-import '../models/berita_models.dart';
-import '../screens/dashboard/berita_screen.dart';
-import '../screens/dashboard/berita_detail_screen.dart';
+import '../../services/api_client.dart';
+import '../../models/berita_models.dart';
+import '../../screens/dashboard/berita_screen.dart';
+import '../../screens/dashboard/berita_detail_screen.dart';
 
 class BeritaTerkiniSection extends StatelessWidget {
   final List<BeritaItem>? data;

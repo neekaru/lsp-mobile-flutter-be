@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../widgets/custom_app_bar.dart';
-import '../../widgets/status_notification_dialog.dart';
+import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/common/status_notification_dialog.dart';
 import 'widgets/step1_persyaratan_asessi.dart';
 import 'widgets/step2_data_peserta.dart';
 import 'widgets/step3_jadwal.dart';

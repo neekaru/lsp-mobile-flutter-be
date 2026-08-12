@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../models/dashboard_models.dart';
 import '../../services/api_service.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 
 class MUKDetailScreen extends StatefulWidget {
   final dynamic skemaId;

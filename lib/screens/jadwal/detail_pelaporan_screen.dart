@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/admin_laporan_service.dart';
 import '../../models/admin_laporan_models.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 
 class DetailPelaporanScreen extends StatefulWidget {
   final int laporanId;

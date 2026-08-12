@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/api_service.dart';
 import '../../widgets/jadwal/jadwal_list_item.dart';
+import '../../widgets/jadwal/jadwal_tab_content.dart';
 import '../../widgets/jadwal/custom_tab_bar.dart';
 import '../../services/auth_repository.dart';
 import '../../utils/api_routes.dart';
@@ -178,13 +179,16 @@ class _JadwalScreenState extends State<JadwalScreen>
       final tanggalMulai = item.tanggalMulai.toLowerCase();
       final tanggalSelesai = item.tanggalSelesai.toLowerCase();
       final tuk = item.tuk.toLowerCase();
-      final formattedMulaiShort =
-          DateFormatHelper.formatToShort(item.tanggalMulai).toLowerCase();
-      final formattedMulaiIndo =
-          DateFormatHelper.formatToIndonesian(item.tanggalMulai).toLowerCase();
+      final formattedMulaiShort = DateFormatHelper.formatToShort(
+        item.tanggalMulai,
+      ).toLowerCase();
+      final formattedMulaiIndo = DateFormatHelper.formatToIndonesian(
+        item.tanggalMulai,
+      ).toLowerCase();
 
       // Filter TUK: jika search bar diisi, item harus cocok
-      final tukMatch = q.isEmpty ||
+      final tukMatch =
+          q.isEmpty ||
           tuk.contains(q) ||
           tanggalMulai.contains(q) ||
           tanggalSelesai.contains(q) ||
@@ -192,7 +196,8 @@ class _JadwalScreenState extends State<JadwalScreen>
           formattedMulaiIndo.contains(q);
 
       // Filter tanggal: jika date picker dipilih, item harus cocok
-      final dateMatch = dateStr.isEmpty ||
+      final dateMatch =
+          dateStr.isEmpty ||
           tanggalMulai.contains(dateStr) ||
           tanggalSelesai.contains(dateStr) ||
           formattedMulaiShort.contains(dateStr) ||
@@ -663,10 +668,7 @@ class _JadwalScreenState extends State<JadwalScreen>
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: const Color(0xFFCBD5E1),
-                  width: 1,
-                ),
+                border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0x05000000),
@@ -745,9 +747,7 @@ class _JadwalScreenState extends State<JadwalScreen>
               height: 42,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: hasSelectedDate
-                    ? const Color(0xFFEFF6FF)
-                    : Colors.white,
+                color: hasSelectedDate ? const Color(0xFFEFF6FF) : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: hasSelectedDate
@@ -862,7 +862,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                   if (currentUser.role == 'admin' ||
                       (currentUser.role != 'asesi' &&
                           currentUser.role != 'asesor'))
-                    _JadwalTabContent(
+                    JadwalTabContent(
                       key: const PageStorageKey('draft_tab'),
                       child: _buildJadwalList(
                         draftList,
@@ -874,7 +874,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                     ),
 
                   // Tab 1: Sedang Berjalan (Mendatang for Asesi)
-                  _JadwalTabContent(
+                  JadwalTabContent(
                     key: const PageStorageKey('sedang_berjalan_tab'),
                     child: _buildJadwalList(
                       runningList,
@@ -885,7 +885,7 @@ class _JadwalScreenState extends State<JadwalScreen>
                   ),
 
                   // Tab 2: Berjalan (Pelaporan for Admin/Asesor)
-                  _JadwalTabContent(
+                  JadwalTabContent(
                     key: const PageStorageKey('pelaporan_tab'),
                     child: _buildJadwalList(
                       pelaporanList,
@@ -897,7 +897,7 @@ class _JadwalScreenState extends State<JadwalScreen>
 
                   // Tab 3: Selesai (Only for non-Asesi)
                   if (!_isAsesiRole)
-                    _JadwalTabContent(
+                    JadwalTabContent(
                       key: const PageStorageKey('selesai_tab'),
                       child: _buildJadwalList(
                         selesaiList,
@@ -1117,25 +1117,3 @@ class MiniLineChartPainter extends CustomPainter {
 // Tab Content Wrapper with AutomaticKeepAlive
 // ============================================================================
 // Wrapper untuk keep tab state agar tidak re-render saat pindah tab
-class _JadwalTabContent extends StatefulWidget {
-  final Widget child;
-
-  const _JadwalTabContent({super.key, required this.child});
-
-  @override
-  State<_JadwalTabContent> createState() => _JadwalTabContentState();
-}
-
-class _JadwalTabContentState extends State<_JadwalTabContent>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(
-      context,
-    ); // Must call super.build for AutomaticKeepAliveClientMixin
-    return widget.child;
-  }
-}

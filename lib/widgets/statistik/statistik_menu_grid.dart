@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../screens/dashboard/statistik_detail_screen.dart';
+import '../../screens/statistik/statistik_detail_screen.dart';
 
 class _MenuItem {
   final String value;

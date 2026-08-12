@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import '../models/dashboard_models.dart';
-import '../screens/jadwal/jadwal_screen.dart';
-import '../screens/jadwal/jadwal_detail_screen.dart';
-import '../models/jadwal_models.dart';
-import '../services/auth_repository.dart';
+import '../../services/api_service.dart';
+import '../../models/dashboard_models.dart';
+import '../../screens/jadwal/jadwal_screen.dart';
+import '../../screens/jadwal/jadwal_detail_screen.dart';
+import '../../models/jadwal_models.dart';
+import '../../services/auth_repository.dart';
 
 class JadwalAsesmen extends StatefulWidget {
   final List<JadwalBaru>? data;

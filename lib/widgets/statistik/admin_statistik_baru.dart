@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../utils/bps_code_helper.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/common/custom_app_bar.dart';
 import 'indonesia_map.dart';
 import 'island_data.dart';
 import 'detail_breakdown_card.dart';
@@ -12,7 +12,7 @@ import 'statistik_menu_grid.dart';
 import 'admin_kpi_row.dart';
 import 'skema_wilayah_card.dart';
 
-import '../../screens/dashboard/statistik_detail_screen.dart';
+import '../../screens/statistik/statistik_detail_screen.dart';
 
 class AdminStatistikBaru extends StatefulWidget {
   final VoidCallback? onBackToHome;

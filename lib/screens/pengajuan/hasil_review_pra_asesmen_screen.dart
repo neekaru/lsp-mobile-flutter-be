@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/sertifikat_service.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/pengajuan/animated_status_badges.dart';
+import '../../widgets/common/custom_app_bar.dart';
 import 'tes_tertulis_screen.dart';
 
 class HasilReviewPraAsesmenScreen extends StatefulWidget {
@@ -88,9 +89,7 @@ class _HasilReviewPraAsesmenScreenState
           Expanded(
             child: _loading
                 ? const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF5B9FD8),
-                    ),
+                    child: CircularProgressIndicator(color: Color(0xFF5B9FD8)),
                   )
                 : SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -343,10 +342,7 @@ class _HasilReviewPraAsesmenScreenState
             ),
             child: const Text(
               'Mulai Tes Tertulis',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -357,23 +353,23 @@ class _HasilReviewPraAsesmenScreenState
   Future<void> _handleMulaiTesTertulis() async {
     // Save navigator before async operations
     final navigator = Navigator.of(context);
-    
+
     // Show loading
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
       // Cek apakah soal tersedia
-      final soalData = await SertifikatService.getUjianSoalBySkema(widget.skemaId);
-      
+      final soalData = await SertifikatService.getUjianSoalBySkema(
+        widget.skemaId,
+      );
+
       if (!mounted) return;
       navigator.pop(); // Close loading
-      
+
       if (soalData == null || soalData.soal.isEmpty) {
         // Soal tidak tersedia - show custom dialog
         if (!mounted) return;
@@ -395,7 +391,7 @@ class _HasilReviewPraAsesmenScreenState
     } catch (e) {
       if (!mounted) return;
       navigator.pop(); // Close loading
-      
+
       if (!mounted) return;
       // Show error dialog
       _showErrorDialog(context, e.toString());
@@ -416,13 +412,16 @@ class _HasilReviewPraAsesmenScreenState
             borderRadius: BorderRadius.circular(20),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 32.0,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const AnimatedWarningBadge(),
                 const SizedBox(height: 24),
-                
+
                 const Text(
                   'Tes Tertulis Tidak Tersedia',
                   textAlign: TextAlign.center,
@@ -433,7 +432,7 @@ class _HasilReviewPraAsesmenScreenState
                   ),
                 ),
                 const SizedBox(height: 10),
-                
+
                 const Text(
                   'Soal tes tertulis untuk skema ini belum tersedia. Silakan hubungi admin untuk informasi lebih lanjut.',
                   textAlign: TextAlign.center,
@@ -444,7 +443,7 @@ class _HasilReviewPraAsesmenScreenState
                   ),
                 ),
                 const SizedBox(height: 28),
-                
+
                 SizedBox(
                   width: double.infinity,
                   height: 44,
@@ -474,10 +473,7 @@ class _HasilReviewPraAsesmenScreenState
       },
       transitionBuilder: (context, anim1, anim2, child) {
         final curve = CurvedAnimation(parent: anim1, curve: Curves.easeOutBack);
-        return ScaleTransition(
-          scale: curve,
-          child: child,
-        );
+        return ScaleTransition(scale: curve, child: child);
       },
     );
   }
@@ -496,13 +492,16 @@ class _HasilReviewPraAsesmenScreenState
             borderRadius: BorderRadius.circular(20),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 32.0,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const AnimatedErrorBadge(),
                 const SizedBox(height: 24),
-                
+
                 const Text(
                   'Terjadi Kesalahan',
                   textAlign: TextAlign.center,
@@ -513,7 +512,7 @@ class _HasilReviewPraAsesmenScreenState
                   ),
                 ),
                 const SizedBox(height: 10),
-                
+
                 Text(
                   'Gagal memuat soal tes tertulis: $error',
                   textAlign: TextAlign.center,
@@ -524,7 +523,7 @@ class _HasilReviewPraAsesmenScreenState
                   ),
                 ),
                 const SizedBox(height: 28),
-                
+
                 SizedBox(
                   width: double.infinity,
                   height: 44,
@@ -554,235 +553,8 @@ class _HasilReviewPraAsesmenScreenState
       },
       transitionBuilder: (context, anim1, anim2, child) {
         final curve = CurvedAnimation(parent: anim1, curve: Curves.easeOutBack);
-        return ScaleTransition(
-          scale: curve,
-          child: child,
-        );
+        return ScaleTransition(scale: curve, child: child);
       },
-    );
-  }
-}
-
-// Animated Warning Badge (Orange)
-class AnimatedWarningBadge extends StatefulWidget {
-  const AnimatedWarningBadge({super.key});
-
-  @override
-  State<AnimatedWarningBadge> createState() => _AnimatedWarningBadgeState();
-}
-
-class _AnimatedWarningBadgeState extends State<AnimatedWarningBadge> with TickerProviderStateMixin {
-  late AnimationController _badgeController;
-  late Animation<double> _badgeScale;
-  late AnimationController _iconController;
-  late Animation<double> _iconScale;
-
-  @override
-  void initState() {
-    super.initState();
-    _badgeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _badgeScale = CurvedAnimation(
-      parent: _badgeController,
-      curve: Curves.easeOutBack,
-    );
-
-    _iconController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 450),
-    );
-    _iconScale = CurvedAnimation(
-      parent: _iconController,
-      curve: Curves.elasticOut,
-    );
-
-    _badgeController.forward().then((_) {
-      _iconController.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _badgeController.dispose();
-    _iconController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _badgeScale,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Outer circle
-          Container(
-            width: 100,
-            height: 100,
-            decoration: const BoxDecoration(
-              color: Color(0xFFFEF3E2), // Light orange
-              shape: BoxShape.circle,
-            ),
-          ),
-          // Inner circle
-          Container(
-            width: 70,
-            height: 70,
-            decoration: const BoxDecoration(
-              color: Color(0xFFF59E0B), // Orange
-              shape: BoxShape.circle,
-            ),
-            child: ScaleTransition(
-              scale: _iconScale,
-              child: const Icon(
-                Icons.info_outline_rounded,
-                color: Colors.white,
-                size: 40,
-              ),
-            ),
-          ),
-          // Decorative floating dots
-          Positioned(
-            top: 10,
-            left: 10,
-            child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFFEE4C0), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            top: 30,
-            left: 0,
-            child: Container(width: 12, height: 12, decoration: const BoxDecoration(color: Color(0xFFFEE4C0), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            bottom: 25,
-            left: 5,
-            child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFFEE4C0), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            top: 15,
-            right: 15,
-            child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFFEE4C0), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            bottom: 20,
-            right: 10,
-            child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFFEE4C0), shape: BoxShape.circle)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Animated Error Badge (Red)
-class AnimatedErrorBadge extends StatefulWidget {
-  const AnimatedErrorBadge({super.key});
-
-  @override
-  State<AnimatedErrorBadge> createState() => _AnimatedErrorBadgeState();
-}
-
-class _AnimatedErrorBadgeState extends State<AnimatedErrorBadge> with TickerProviderStateMixin {
-  late AnimationController _badgeController;
-  late Animation<double> _badgeScale;
-  late AnimationController _iconController;
-  late Animation<double> _iconScale;
-
-  @override
-  void initState() {
-    super.initState();
-    _badgeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _badgeScale = CurvedAnimation(
-      parent: _badgeController,
-      curve: Curves.easeOutBack,
-    );
-
-    _iconController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 450),
-    );
-    _iconScale = CurvedAnimation(
-      parent: _iconController,
-      curve: Curves.elasticOut,
-    );
-
-    _badgeController.forward().then((_) {
-      _iconController.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _badgeController.dispose();
-    _iconController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _badgeScale,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Outer circle
-          Container(
-            width: 100,
-            height: 100,
-            decoration: const BoxDecoration(
-              color: Color(0xFFFEE2E2), // Light red
-              shape: BoxShape.circle,
-            ),
-          ),
-          // Inner circle
-          Container(
-            width: 70,
-            height: 70,
-            decoration: const BoxDecoration(
-              color: Color(0xFFD32F2F), // Red
-              shape: BoxShape.circle,
-            ),
-            child: ScaleTransition(
-              scale: _iconScale,
-              child: const Icon(
-                Icons.error_outline_rounded,
-                color: Colors.white,
-                size: 40,
-              ),
-            ),
-          ),
-          // Decorative floating dots
-          Positioned(
-            top: 10,
-            left: 10,
-            child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFFECDCD), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            top: 30,
-            left: 0,
-            child: Container(width: 12, height: 12, decoration: const BoxDecoration(color: Color(0xFFFECDCD), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            bottom: 25,
-            left: 5,
-            child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFFECDCD), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            top: 15,
-            right: 15,
-            child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFFECDCD), shape: BoxShape.circle)),
-          ),
-          Positioned(
-            bottom: 20,
-            right: 10,
-            child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Color(0xFFFECDCD), shape: BoxShape.circle)),
-          ),
-        ],
-      ),
     );
   }
 }

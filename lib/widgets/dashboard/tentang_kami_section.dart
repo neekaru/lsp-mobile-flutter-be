@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../screens/dashboard/tentang_sistem_screen.dart';
-import '../screens/dashboard/faq_screen.dart';
-import '../screens/dashboard/panduan_sertifikasi_screen.dart';
+import '../../screens/dashboard/tentang_sistem_screen.dart';
+import '../../screens/dashboard/faq_screen.dart';
+import '../../screens/dashboard/panduan_sertifikasi_screen.dart';
 
 class TentangKamiSection extends StatelessWidget {
   const TentangKamiSection({super.key});

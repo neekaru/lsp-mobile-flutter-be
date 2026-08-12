@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import '../screens/sertifikat/skema_sertifikasi_screen.dart';
+import '../../screens/sertifikat/skema_sertifikasi_screen.dart';
 
 class PublicSertifikatCard extends StatelessWidget {
   const PublicSertifikatCard({super.key});

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../custom_app_bar.dart';
+import '../common/custom_app_bar.dart';
 import 'statistics_menu_accordion.dart';
-import '../../screens/dashboard/statistik_detail_screen.dart';
+import '../../screens/statistik/statistik_detail_screen.dart';
 
 class StatistikAppBar extends StatelessWidget {
   final String title;

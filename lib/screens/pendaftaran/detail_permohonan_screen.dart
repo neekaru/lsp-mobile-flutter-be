@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../widgets/custom_app_bar.dart';
-import '../../widgets/status_notification_dialog.dart';
+import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/common/status_notification_dialog.dart';
 import '../../services/permohonan_service.dart';
 import 'edit_pendaftaran_screen.dart';
 

@@ -1,23 +1,23 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../widgets/rangkuman_utama.dart';
-import '../../widgets/rangkuman_asesi.dart';
-import '../../widgets/rangkuman_asesor.dart';
-import '../../widgets/tren_asesmen_chart.dart';
+import '../../widgets/dashboard/rangkuman_utama.dart';
+import '../../widgets/dashboard/rangkuman_asesi.dart';
+import '../../widgets/dashboard/rangkuman_asesor.dart';
+import '../../widgets/dashboard/tren_asesmen_chart.dart';
 import '../jadwal/pelaporan_screen.dart';
 import '../pendaftaran/permohonan_pendaftaran_screen.dart';
-// import '../../widgets/jadwal_asesmen.dart';
-import '../../widgets/notification_bell.dart';
+// import '../../widgets/dashboard/jadwal_asesmen.dart';
+import '../../widgets/common/notification_bell.dart';
 import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../services/auth_repository.dart';
-import '../../widgets/mulai_sertifikasi_card.dart';
+import '../../widgets/dashboard/mulai_sertifikasi_card.dart';
 import '../../models/berita_models.dart';
-import '../../widgets/berita_terkini_section.dart';
+import '../../widgets/dashboard/berita_terkini_section.dart';
 import '../auth/login_screen.dart';
-import '../../widgets/public_sertifikat_card.dart';
-import '../../widgets/tentang_kami_section.dart';
-import '../../widgets/bantuan_informasi_section.dart';
+import '../../widgets/dashboard/public_sertifikat_card.dart';
+import '../../widgets/dashboard/tentang_kami_section.dart';
+import '../../widgets/dashboard/bantuan_informasi_section.dart';
 import '../profile/honor_asesor_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
