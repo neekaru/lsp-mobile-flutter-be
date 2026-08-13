@@ -25,6 +25,7 @@ class _TabState {
   bool hasMore = true;
   bool hasLoadedOnce = false;
   int offset = 0;
+  int totalCount = 0;
   static const int limit = 20;
 
   _TabState(this.status);
@@ -162,6 +163,7 @@ class _PelaporanScreenState extends State<PelaporanScreen>
           tab.items.addAll(mapped);
         }
         tab.offset = tab.items.length;
+        tab.totalCount = response.pagination.total;
         tab.hasMore = tab.items.length < response.pagination.total;
         tab.isLoading = false;
         tab.isLoadingMore = false;
@@ -208,6 +210,8 @@ class _PelaporanScreenState extends State<PelaporanScreen>
                 Expanded(
                   child: _buildTabPill(
                     label: 'Belum Lengkap',
+                    count: _revisi.totalCount,
+                    showRedBadge: true,
                     isSelected: _tabController.index == 0,
                     onTap: () => _tabController.animateTo(0),
                   ),
@@ -216,6 +220,8 @@ class _PelaporanScreenState extends State<PelaporanScreen>
                 Expanded(
                   child: _buildTabPill(
                     label: 'Lengkap',
+                    count: _disetujui.totalCount,
+                    showRedBadge: false,
                     isSelected: _tabController.index == 1,
                     onTap: () => _tabController.animateTo(1),
                   ),
@@ -357,6 +363,8 @@ class _PelaporanScreenState extends State<PelaporanScreen>
   /// Builds a tab pill widget using the exact JadwalTabBar design system
   Widget _buildTabPill({
     required String label,
+    int count = 0,
+    bool showRedBadge = false,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
@@ -374,15 +382,42 @@ class _PelaporanScreenState extends State<PelaporanScreen>
           color: containerColor,
           borderRadius: BorderRadius.circular(100),
         ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 13,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
+            if (count > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: showRedBadge
+                      ? const Color(0xFFEF4444)
+                      : (isSelected ? const Color(0xFF5A7EAA) : const Color(0xFF94A3B8)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
