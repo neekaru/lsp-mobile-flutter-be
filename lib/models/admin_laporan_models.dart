@@ -56,6 +56,7 @@ class AdminLaporanListItem {
   final String status;
   final String statusPermohonanBlanko;
   final String? jenisAsesmen;
+  final String? jenisUji;
 
   AdminLaporanListItem({
     required this.id,
@@ -67,21 +68,34 @@ class AdminLaporanListItem {
     required this.status,
     required this.statusPermohonanBlanko,
     this.jenisAsesmen,
+    this.jenisUji,
   });
 
   bool get isSjj {
+    if (jenisUji?.trim() == '1' || jenisAsesmen?.trim() == '1') return true;
     if (jenisAsesmen != null) {
       final j = jenisAsesmen!.trim().toUpperCase();
-      if (j == 'SJJ' || j == '1' || j.contains('JARAK JUAH') || j.contains('ONLINE') || j.contains('DARING')) {
+      if (j == 'SJJ' || j == 'AJJ' || j == '1' || j.contains('ONLINE') || j.contains('DARING') || j.contains('JARAK JAUH')) {
+        return true;
+      }
+    }
+    if (jenisUji != null) {
+      final j = jenisUji!.trim().toUpperCase();
+      if (j == 'SJJ' || j == 'AJJ' || j == '1' || j.contains('ONLINE') || j.contains('DARING') || j.contains('JARAK JAUH')) {
         return true;
       }
     }
     final tukUpper = tuk.toUpperCase();
     final skemaUpper = skemaSertifikasi.toUpperCase();
     return tukUpper.contains('SJJ') ||
-        tukUpper.contains('JARAK JUAH') ||
+        tukUpper.contains('AJJ') ||
+        tukUpper.contains('ONLINE') ||
+        tukUpper.contains('JARAK JAUH') ||
         skemaUpper.startsWith('SJJ') ||
-        skemaUpper.contains('SJJ');
+        skemaUpper.startsWith('AJJ') ||
+        skemaUpper.contains('SJJ') ||
+        skemaUpper.contains('AJJ') ||
+        skemaUpper.contains('JARAK JAUH');
   }
 
   factory AdminLaporanListItem.fromJson(Map<String, dynamic> json) {
@@ -94,7 +108,8 @@ class AdminLaporanListItem {
       namaAsesor: json['nama_asesor'] ?? '',
       status: json['status'] ?? '',
       statusPermohonanBlanko: json['status_permohonan_blanko']?.toString() ?? '0',
-      jenisAsesmen: json['jenis_asesmen']?.toString() ?? json['jenis_uji']?.toString(),
+      jenisAsesmen: json['jenis_asesmen']?.toString(),
+      jenisUji: json['jenis_uji']?.toString(),
     );
   }
 }
