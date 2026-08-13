@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/admin/laporan_service.dart';
 import '../../models/admin_laporan_models.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -60,9 +61,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
         setState(() {
           _detail = response.data;
           _isLoading = false;
-          _catatanController.text = _detail?.catatan.isNotEmpty == true
-              ? _detail!.catatan
-              : 'Mohon lengkapi dokumen daftar hadir dan FR.APL.01 sesuai dengan ketentuan yang berlaku';
+          _catatanController.text = _detail?.catatan ?? '';
         });
       }
     } catch (e) {
@@ -70,8 +69,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
         setState(() {
           _errorMessage = e.toString();
           _isLoading = false;
-          _catatanController.text =
-              'Mohon lengkapi dokumen daftar hadir dan FR.APL.01 sesuai dengan ketentuan yang berlaku';
+          _catatanController.clear();
         });
       }
     }
@@ -195,6 +193,16 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
         backgroundColor: Color(0xFF3B82F6),
       ),
     );
+  }
+
+  Future<void> _openLink(String link) async {
+    final uri = Uri.tryParse(link.trim());
+    if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Link tidak dapat dibuka')),
+      );
+    }
   }
 
   @override
@@ -519,6 +527,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
       return {
         'title': item.title.isNotEmpty ? item.title : item.fileName,
         'file': item.fileName.isNotEmpty ? item.fileName : item.fileUrl,
+        'url': item.fileUrl,
         'size': item.fileSize,
         'isValid': item.isValid,
       };
@@ -569,14 +578,24 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        item['file'].toString(),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF94A3B8),
+                      InkWell(
+                        onTap: item['url'].toString().isEmpty
+                            ? null
+                            : () => _openLink(item['url'].toString()),
+                        child: Text(
+                          item['file'].toString(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: item['url'].toString().isEmpty
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF2563EB),
+                            decoration: item['url'].toString().isEmpty
+                                ? TextDecoration.none
+                                : TextDecoration.underline,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -681,19 +700,22 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          link.isNotEmpty ? link : 'Belum mengunggah link pelaporan',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: link.isNotEmpty
-                                ? const Color(0xFF2563EB)
-                                : const Color(0xFF94A3B8),
-                            decoration: link.isNotEmpty
-                                ? TextDecoration.underline
-                                : TextDecoration.none,
+                        InkWell(
+                          onTap: link.isEmpty ? null : () => _openLink(link),
+                          child: Text(
+                            link.isNotEmpty ? link : 'Belum mengunggah link pelaporan',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: link.isNotEmpty
+                                  ? const Color(0xFF2563EB)
+                                  : const Color(0xFF94A3B8),
+                              decoration: link.isNotEmpty
+                                  ? TextDecoration.underline
+                                  : TextDecoration.none,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
