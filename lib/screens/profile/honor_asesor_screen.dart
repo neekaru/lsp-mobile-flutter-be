@@ -301,7 +301,6 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
       body: SafeArea(
-        bottom: false,
         child: Column(
           children: [
 
