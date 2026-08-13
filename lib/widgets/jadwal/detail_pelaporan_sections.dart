@@ -109,7 +109,7 @@ class GreenStatusBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
                 Text(
-                  'Laporan Telah Disetujui',
+                  'Laporan Telah Lengkap',
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,

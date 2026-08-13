@@ -268,7 +268,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
   Widget _buildDetailBody() {
     final detail = _detail!;
     final bool isApproved =
-        detail.status == 'Disetujui' || detail.status.toLowerCase() == 'completed';
+        detail.status == 'Lengkap' || detail.status == 'Disetujui' || detail.status.toLowerCase() == 'completed';
 
     final String skema = detail.skemaSertifikasi.isNotEmpty
         ? detail.skemaSertifikasi
@@ -279,7 +279,9 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
     final String tanggal = detail.tanggalPelaksanaan.isNotEmpty
         ? detail.tanggalPelaksanaan
         : '20 Juli 2026';
-    final String statusText = detail.status.isNotEmpty ? detail.status : 'Revisi';
+    final String statusText = detail.status == 'Revisi'
+        ? 'Belum Lengkap'
+        : (detail.status == 'Disetujui' ? 'Lengkap' : (detail.status.isNotEmpty ? detail.status : 'Belum Lengkap'));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -1013,7 +1015,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
   Widget _buildBottomActions() {
     final detail = _detail!;
     final bool isApproved =
-        detail.status == 'Disetujui' || detail.status.toLowerCase() == 'completed';
+        detail.status == 'Lengkap' || detail.status == 'Disetujui' || detail.status.toLowerCase() == 'completed';
 
     return Container(
       color: const Color(0xFFF5F6F8),
@@ -1083,7 +1085,7 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
                         ),
                         onPressed: _handleApprove,
                         child: const Text(
-                          'Disetujui',
+                          'Setujui (Lengkap)',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,

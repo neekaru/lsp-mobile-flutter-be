@@ -6,7 +6,7 @@ class LaporanService {
   final Dio _dio = ApiClient.dio;
 
   // GET /api/admin/laporan - List reports, filtered/paginated at the server.
-  // status: "Revisi" | "Disetujui" | "Draft" | "Terkonfirmasi" (omit for all)
+  // status: "Belum Lengkap" | "Lengkap" | "Draft" | "Terkonfirmasi" (omit for all)
   Future<AdminLaporanListResponse> getLaporanList({
     String? status,
     String? search,

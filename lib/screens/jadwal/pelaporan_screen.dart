@@ -18,7 +18,7 @@ class PelaporanScreen extends StatefulWidget {
 /// page from the server — the API does the status/search filtering, so the
 /// client never has to hold or scan the full 14k+ row table.
 class _TabState {
-  final String status; // 'Revisi' | 'Disetujui'
+  final String status; // 'Belum Lengkap' | 'Lengkap'
   List<PelaporanItemData> items = [];
   bool isLoading = true;
   bool isLoadingMore = false;
@@ -207,7 +207,7 @@ class _PelaporanScreenState extends State<PelaporanScreen>
               children: [
                 Expanded(
                   child: _buildTabPill(
-                    label: 'Revisi',
+                    label: 'Belum Lengkap',
                     isSelected: _tabController.index == 0,
                     onTap: () => _tabController.animateTo(0),
                   ),
@@ -215,7 +215,7 @@ class _PelaporanScreenState extends State<PelaporanScreen>
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildTabPill(
-                    label: 'Disetujui',
+                    label: 'Lengkap',
                     isSelected: _tabController.index == 1,
                     onTap: () => _tabController.animateTo(1),
                   ),
@@ -448,7 +448,7 @@ class _PelaporanScreenState extends State<PelaporanScreen>
   }
 
   Widget _buildPelaporanCard(PelaporanItemData item) {
-    final bool isApproved = item.status == 'Disetujui';
+    final bool isApproved = item.status == 'Lengkap' || item.status == 'Disetujui';
 
     return GestureDetector(
       onTap: () {
@@ -531,7 +531,9 @@ class _PelaporanScreenState extends State<PelaporanScreen>
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        item.status,
+                        item.status == 'Revisi'
+                            ? 'Belum Lengkap'
+                            : (item.status == 'Disetujui' ? 'Lengkap' : item.status),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
