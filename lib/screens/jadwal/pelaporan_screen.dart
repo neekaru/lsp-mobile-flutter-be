@@ -95,6 +95,22 @@ class _PelaporanScreenState extends State<PelaporanScreen>
     super.dispose();
   }
 
+  String _getDaysSinceLastDay(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      final today = DateTime.now();
+      final diff = DateTime(today.year, today.month, today.day)
+          .difference(DateTime(date.year, date.month, date.day))
+          .inDays;
+      if (diff < 0) {
+        return '0 hari';
+      }
+      return '$diff hari';
+    } catch (_) {
+      return '- hari';
+    }
+  }
+
   void _onScroll(_TabState tab, ScrollController controller) {
     if (!tab.hasMore || tab.isLoadingMore || tab.isLoading) return;
     if (controller.position.pixels >= controller.position.maxScrollExtent - 200) {
@@ -135,6 +151,7 @@ class _PelaporanScreenState extends State<PelaporanScreen>
                 tanggalSelesai: item.tanggalPelaksanaan,
                 status: item.status,
                 tanggalStatus: item.tanggalPelaksanaan,
+                statusPermohonanBlanko: item.statusPermohonanBlanko,
               ))
           .toList();
 
@@ -606,7 +623,17 @@ class _PelaporanScreenState extends State<PelaporanScreen>
 
                 // Status info date line at bottom
                 Text(
-                  '${item.status} : ${item.tanggalStatus}',
+                  'Sudah ${_getDaysSinceLastDay(item.tanggalSelesai)} semenjak jadwal uji hari terakhir',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF94A3B8),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // Blanko Status
+                Text(
+                  'Blanko: ${item.statusPermohonanBlanko == '1' ? 'Y' : 'N'}',
                   style: const TextStyle(
                     fontSize: 11,
                     color: Color(0xFF94A3B8),
@@ -632,6 +659,7 @@ class PelaporanItemData {
   final String tanggalSelesai;
   final String status; // 'Disetujui' or 'Revisi'
   final String tanggalStatus;
+  final String statusPermohonanBlanko;
 
   PelaporanItemData({
     required this.id,
@@ -642,5 +670,6 @@ class PelaporanItemData {
     required this.tanggalSelesai,
     required this.status,
     required this.tanggalStatus,
+    required this.statusPermohonanBlanko,
   });
 }

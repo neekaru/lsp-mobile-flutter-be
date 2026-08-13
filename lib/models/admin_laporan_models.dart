@@ -54,6 +54,7 @@ class AdminLaporanListItem {
   final String tuk;
   final String namaAsesor;
   final String status;
+  final String statusPermohonanBlanko;
 
   AdminLaporanListItem({
     required this.id,
@@ -63,6 +64,7 @@ class AdminLaporanListItem {
     required this.tuk,
     required this.namaAsesor,
     required this.status,
+    required this.statusPermohonanBlanko,
   });
 
   factory AdminLaporanListItem.fromJson(Map<String, dynamic> json) {
@@ -74,6 +76,7 @@ class AdminLaporanListItem {
       tuk: json['tuk'] ?? '',
       namaAsesor: json['nama_asesor'] ?? '',
       status: json['status'] ?? '',
+      statusPermohonanBlanko: json['status_permohonan_blanko']?.toString() ?? '0',
     );
   }
 }
@@ -98,6 +101,29 @@ class AdminLaporanDetailResponse {
   }
 }
 
+class AdminLaporanAsesorItem {
+  final int id;
+  final String namaAsesor;
+  final String isComplete; // '0' or '1'
+  final String linkRekaman;
+
+  AdminLaporanAsesorItem({
+    required this.id,
+    required this.namaAsesor,
+    required this.isComplete,
+    required this.linkRekaman,
+  });
+
+  factory AdminLaporanAsesorItem.fromJson(Map<String, dynamic> json) {
+    return AdminLaporanAsesorItem(
+      id: json['id'] ?? 0,
+      namaAsesor: json['nama_asesor'] ?? '',
+      isComplete: json['is_complete']?.toString() ?? '0',
+      linkRekaman: json['link_rekaman'] ?? '',
+    );
+  }
+}
+
 class AdminLaporanDetailData {
   final int id;
   final String kodeLaporan;
@@ -113,6 +139,7 @@ class AdminLaporanDetailData {
   final AdminLaporanDokumen dokumen;
   final List<AdminLaporanAsesiItem> daftarAsesiDinilai;
   final List<AdminLaporanLampiranItem> lampiranPendukung;
+  final List<AdminLaporanAsesorItem> daftarAsesor;
 
   AdminLaporanDetailData({
     required this.id,
@@ -129,6 +156,7 @@ class AdminLaporanDetailData {
     required this.dokumen,
     required this.daftarAsesiDinilai,
     required this.lampiranPendukung,
+    required this.daftarAsesor,
   });
 
   factory AdminLaporanDetailData.fromJson(Map<String, dynamic> json) {
@@ -151,6 +179,10 @@ class AdminLaporanDetailData {
           [],
       lampiranPendukung: (json['lampiran_pendukung'] as List<dynamic>?)
               ?.map((item) => AdminLaporanLampiranItem.fromJson(item))
+              .toList() ??
+          [],
+      daftarAsesor: (json['daftar_asesor'] as List<dynamic>?)
+              ?.map((item) => AdminLaporanAsesorItem.fromJson(item))
               .toList() ??
           [],
     );

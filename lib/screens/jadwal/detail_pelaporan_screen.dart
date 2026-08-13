@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../services/admin/laporan_service.dart';
 import '../../models/admin_laporan_models.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -617,6 +618,129 @@ class _DetailPelaporanScreenState extends State<DetailPelaporanScreen>
             );
           },
         ),
+
+        if (detail.daftarAsesor.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+          const SizedBox(height: 14),
+          const Text(
+            'Kelengkapan Laporan Asesor',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          const SizedBox(height: 10),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            itemCount: detail.daftarAsesor.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 10),
+            itemBuilder: (context, index) {
+              final asesor = detail.daftarAsesor[index];
+              final bool isLengkap = asesor.isComplete == '1';
+              final String link = asesor.linkRekaman;
+
+              return Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: isLengkap
+                          ? const Color(0xFFDCFCE7)
+                          : const Color(0xFFFEE2E2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(
+                      isLengkap ? Icons.person_rounded : Icons.person_outline_rounded,
+                      color: isLengkap
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFFDC2626),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          asesor.namaAsesor,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          link.isNotEmpty ? link : 'Belum mengunggah link pelaporan',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: link.isNotEmpty
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF94A3B8),
+                            decoration: link.isNotEmpty
+                                ? TextDecoration.underline
+                                : TextDecoration.none,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isLengkap
+                          ? const Color(0xFFDCFCE7)
+                          : const Color(0xFFFEE2E2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      isLengkap ? 'Lengkap' : 'Belum Lengkap',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: isLengkap
+                            ? const Color(0xFF16A34A)
+                            : const Color(0xFFDC2626),
+                      ),
+                    ),
+                  ),
+
+                  if (link.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.copy_rounded, size: 16, color: Color(0xFF3B82F6)),
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: link));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Link Laporan ${asesor.namaAsesor} disalin!'),
+                            backgroundColor: const Color(0xFF3B82F6),
+                          ),
+                        );
+                      },
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
 
         const SizedBox(height: 14),
         const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
