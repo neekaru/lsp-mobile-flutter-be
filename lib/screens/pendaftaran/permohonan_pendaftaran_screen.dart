@@ -160,7 +160,7 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
                           flex: 3,
                           child: Center(
                             child: Text(
-                              'Status',
+                              'TUK',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -271,30 +271,23 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
                                       ),
                                       const SizedBox(width: 4),
 
-                                      // Status Badge
+                                      // TUK Column
                                       Expanded(
                                         flex: 3,
                                         child: Center(
-                                          child: isVerified
-                                              ? Container(
-                                                  padding: const EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 4,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color: const Color(0xFFD1FAE5),
-                                                    borderRadius: BorderRadius.circular(6),
-                                                  ),
-                                                  child: const Text(
-                                                    'Terverifikasi',
-                                                    style: TextStyle(
-                                                      color: Color(0xFF10B981),
-                                                      fontSize: 10.5,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                )
-                                              : const SizedBox.shrink(),
+                                          child: Text(
+                                            (item['tuk'] != null && item['tuk']!.isNotEmpty)
+                                                ? item['tuk']!
+                                                : (item['status'] ?? '-'),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF334155),
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ),
                                       ),
                                     ],

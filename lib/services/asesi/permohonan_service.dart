@@ -22,6 +22,7 @@ class PermohonanService {
             'jam': item['jam']?.toString() ?? '',
             'nama': item['nama']?.toString() ?? '',
             'skema': item['skema']?.toString() ?? '',
+            'tuk': item['tuk']?.toString() ?? item['status']?.toString() ?? '',
             'status': item['status']?.toString() ?? '',
           };
         }).toList();
