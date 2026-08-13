@@ -207,12 +207,16 @@ class JadwalListItem extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE5F1FC),
+                      color: item.isSjj
+                          ? const Color(0xFFDCFCE7)
+                          : const Color(0xFFE5F1FC),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.calendar_today_rounded,
-                      color: Color(0xFF2C6C9C),
+                      color: item.isSjj
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFF2C6C9C),
                       size: 20,
                     ),
                   ),
@@ -511,12 +515,16 @@ class JadwalListItem extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE5F1FC),
+                      color: item.isSjj
+                          ? const Color(0xFFDCFCE7)
+                          : const Color(0xFFE5F1FC),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.calendar_today_rounded,
-                      color: Color(0xFF2C6C9C),
+                      color: item.isSjj
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFF2C6C9C),
                       size: 20,
                     ),
                   ),
@@ -793,12 +801,16 @@ class JadwalListItem extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE5F1FC),
+                      color: item.isSjj
+                          ? const Color(0xFFDCFCE7)
+                          : const Color(0xFFE5F1FC),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       LucideIcons.file_text,
-                      color: Color(0xFF2C6C9C),
+                      color: item.isSjj
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFF2C6C9C),
                       size: 20,
                     ),
                   ),
@@ -839,6 +851,25 @@ class JadwalListItem extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            if (item.isSjj) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDCFCE7),
+                                  borderRadius: BorderRadius.circular(3),
+                                  border: Border.all(color: const Color(0xFF86EFAC), width: 0.8),
+                                ),
+                                child: const Text(
+                                  'SJJ',
+                                  style: TextStyle(
+                                    color: Color(0xFF16A34A),
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 3),

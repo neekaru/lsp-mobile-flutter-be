@@ -50,6 +50,7 @@ class JadwalItem {
   final int jumlahBelumKompeten;
   final bool needsAcc;
   final int? kuota;
+  final String? jenisAsesmen;
 
   const JadwalItem({
     required this.id,
@@ -71,11 +72,29 @@ class JadwalItem {
     this.jumlahBelumKompeten = 0,
     this.needsAcc = false,
     this.kuota,
+    this.jenisAsesmen,
   });
 
   bool get isDraft =>
       status == 'draft' || status == 'waiting' || statusJadwal == '0';
   bool get isRunning => status == 'running' || statusJadwal == '3';
+
+  /// Asesmen Jarak Jauh (SJJ)
+  bool get isSjj {
+    if (jenisAsesmen != null) {
+      final j = jenisAsesmen!.trim().toUpperCase();
+      if (j == 'SJJ' || j == '1' || j.contains('JARAK JUAH') || j.contains('JARAK JUAH') || j.contains('ONLINE') || j.contains('DARING')) {
+        return true;
+      }
+    }
+    final tukUpper = tuk.toUpperCase();
+    final skemaUpper = skema.toUpperCase();
+    return tukUpper.contains('SJJ') ||
+        tukUpper.contains('JARAK JUAH') ||
+        tukUpper.contains('JARAK JUAH') ||
+        skemaUpper.startsWith('SJJ') ||
+        skemaUpper.contains('SJJ');
+  }
 
   /// Label tampilan: prioritaskan status_label BE
   String get displayStatusLabel {
@@ -160,6 +179,7 @@ class JadwalItem {
           : (json['kuota'] is int
                 ? json['kuota']
                 : int.tryParse('${json['kuota']}')),
+      jenisAsesmen: json['jenis_asesmen']?.toString() ?? json['jenis_uji']?.toString() ?? json['jenis_tuk']?.toString(),
     );
   }
 }

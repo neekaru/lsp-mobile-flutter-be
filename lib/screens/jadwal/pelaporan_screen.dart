@@ -153,6 +153,7 @@ class _PelaporanScreenState extends State<PelaporanScreen>
                 status: item.status,
                 tanggalStatus: item.tanggalPelaksanaan,
                 statusPermohonanBlanko: item.statusPermohonanBlanko,
+                jenisAsesmen: item.jenisAsesmen,
               ))
           .toList();
 
@@ -514,17 +515,21 @@ class _PelaporanScreenState extends State<PelaporanScreen>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left Blue Document Icon Container
+          // Left Green / Blue Document Icon Container
           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFFDBEAFE),
+              color: item.isSjj
+                  ? const Color(0xFFDCFCE7) // Soft Green
+                  : const Color(0xFFDBEAFE), // Soft Blue
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.description_rounded,
-              color: Color(0xFF3B82F6),
+              color: item.isSjj
+                  ? const Color(0xFF16A34A) // Green icon for SJJ
+                  : const Color(0xFF3B82F6), // Blue icon
               size: 24,
             ),
           ),
@@ -554,29 +559,59 @@ class _PelaporanScreenState extends State<PelaporanScreen>
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isApproved
-                            ? const Color(0xFFDCFCE7) // Soft Green
-                            : const Color(0xFFFEF3C7), // Soft Amber/Yellow
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        item.status == 'Revisi'
-                            ? 'Belum Lengkap'
-                            : (item.status == 'Disetujui' ? 'Lengkap' : item.status),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isApproved
-                              ? const Color(0xFF16A34A) // Green text
-                              : const Color(0xFFD97706), // Amber text
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (item.isSjj) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            margin: const EdgeInsets.only(right: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDCFCE7),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFF86EFAC),
+                                width: 1,
+                              ),
+                            ),
+                            child: const Text(
+                              'SJJ',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF16A34A),
+                              ),
+                            ),
+                          ),
+                        ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isApproved
+                                ? const Color(0xFFDCFCE7) // Soft Green
+                                : const Color(0xFFFEF3C7), // Soft Amber/Yellow
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            item.status == 'Revisi'
+                                ? 'Belum Lengkap'
+                                : (item.status == 'Disetujui' ? 'Lengkap' : item.status),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: isApproved
+                                  ? const Color(0xFF16A34A) // Green text
+                                  : const Color(0xFFD97706), // Amber text
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -697,6 +732,7 @@ class PelaporanItemData {
   final String status; // 'Disetujui' or 'Revisi'
   final String tanggalStatus;
   final String statusPermohonanBlanko;
+  final String? jenisAsesmen;
 
   PelaporanItemData({
     required this.id,
@@ -708,5 +744,21 @@ class PelaporanItemData {
     required this.status,
     required this.tanggalStatus,
     required this.statusPermohonanBlanko,
+    this.jenisAsesmen,
   });
+
+  bool get isSjj {
+    if (jenisAsesmen != null) {
+      final j = jenisAsesmen!.trim().toUpperCase();
+      if (j == 'SJJ' || j == '1' || j.contains('JARAK JUAH') || j.contains('ONLINE') || j.contains('DARING')) {
+        return true;
+      }
+    }
+    final tukUpper = tuk.toUpperCase();
+    final skemaUpper = skema.toUpperCase();
+    return tukUpper.contains('SJJ') ||
+        tukUpper.contains('JARAK JUAH') ||
+        skemaUpper.startsWith('SJJ') ||
+        skemaUpper.contains('SJJ');
+  }
 }

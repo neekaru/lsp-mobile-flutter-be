@@ -55,6 +55,7 @@ class AdminLaporanListItem {
   final String namaAsesor;
   final String status;
   final String statusPermohonanBlanko;
+  final String? jenisAsesmen;
 
   AdminLaporanListItem({
     required this.id,
@@ -65,7 +66,23 @@ class AdminLaporanListItem {
     required this.namaAsesor,
     required this.status,
     required this.statusPermohonanBlanko,
+    this.jenisAsesmen,
   });
+
+  bool get isSjj {
+    if (jenisAsesmen != null) {
+      final j = jenisAsesmen!.trim().toUpperCase();
+      if (j == 'SJJ' || j == '1' || j.contains('JARAK JUAH') || j.contains('ONLINE') || j.contains('DARING')) {
+        return true;
+      }
+    }
+    final tukUpper = tuk.toUpperCase();
+    final skemaUpper = skemaSertifikasi.toUpperCase();
+    return tukUpper.contains('SJJ') ||
+        tukUpper.contains('JARAK JUAH') ||
+        skemaUpper.startsWith('SJJ') ||
+        skemaUpper.contains('SJJ');
+  }
 
   factory AdminLaporanListItem.fromJson(Map<String, dynamic> json) {
     return AdminLaporanListItem(
@@ -77,6 +94,7 @@ class AdminLaporanListItem {
       namaAsesor: json['nama_asesor'] ?? '',
       status: json['status'] ?? '',
       statusPermohonanBlanko: json['status_permohonan_blanko']?.toString() ?? '0',
+      jenisAsesmen: json['jenis_asesmen']?.toString() ?? json['jenis_uji']?.toString(),
     );
   }
 }
