@@ -189,7 +189,6 @@ class _PermohonanPendaftaranScreenState extends State<PermohonanPendaftaranScree
                             separatorBuilder: (context, index) => const SizedBox(height: 8),
                             itemBuilder: (context, index) {
                               final item = _filteredData[index];
-                              final isVerified = item['status'] == 'Terverifikasi';
 
                               return GestureDetector(
                                 onTap: () {
