@@ -269,6 +269,13 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
   List<Map<String, dynamic>> _getFilteredItems() {
     List<Map<String, dynamic>> result = List.from(_honorItems);
 
+    // Filter out items that are already lunas / Selesai per business rule
+    result = result.where((item) {
+      final st = (item['status'] ?? '').toString().toLowerCase();
+      final stPembayaran = (item['status_pembayaran_honor'] ?? '').toString();
+      return st != 'selesai' && st != 'lunas' && stPembayaran != '1';
+    }).toList();
+
     // Filter by search query
     if (_searchQuery.trim().isNotEmpty) {
       final q = _searchQuery.trim().toLowerCase();
@@ -398,11 +405,9 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          _buildPillTab(index: 0, label: 'Semua'),
+          _buildPillTab(index: 0, label: 'Semua (Belum Lunas)'),
           const SizedBox(width: 8),
           _buildPillTab(index: 1, label: 'Menunggu'),
-          const SizedBox(width: 8),
-          _buildPillTab(index: 2, label: 'Selesai'),
         ],
       ),
     );

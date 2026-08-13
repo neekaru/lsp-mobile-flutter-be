@@ -73,7 +73,10 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
   }
 
   List<Map<String, dynamic>> _getTasksForAsesor() {
-    return _loadedTasks;
+    return _loadedTasks.where((task) {
+      final st = (task['status_pembayaran_honor'] ?? '').toString();
+      return st != '1';
+    }).toList();
   }
 
   void _navigateToDetailHonor(Map<String, dynamic> task) {
@@ -268,23 +271,13 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       children: [
-                        // Tab Bar Header (Semua, Selesai, Menunggu with Red Count Badges)
+                        // Tab Bar Header (Belum Lunas)
                         Row(
                           children: [
                             _buildUnderlineTab(
                               index: 0,
-                              label: 'Semua',
-                              count: allTasks.length,
-                            ),
-                            _buildUnderlineTab(
-                              index: 1,
-                              label: 'Selesai',
-                              count: selesaiTasks.length,
-                            ),
-                            _buildUnderlineTab(
-                              index: 2,
-                              label: 'Menunggu',
-                              count: menungguTasks.length,
+                              label: 'Menunggu Pembayaran',
+                              count: _getTasksForAsesor().length,
                             ),
                           ],
                         ),
