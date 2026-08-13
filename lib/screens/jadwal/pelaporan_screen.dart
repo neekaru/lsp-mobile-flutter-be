@@ -594,30 +594,7 @@ class _PelaporanScreenState extends State<PelaporanScreen>
                   ],
                 ),
 
-                const SizedBox(height: 4),
 
-                // Icon Row 3: Assessment Date Range
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today_outlined,
-                      size: 14,
-                      color: Color(0xFF94A3B8),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        '${item.tanggalMulai} – ${item.tanggalSelesai}',
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          color: Color(0xFF64748B),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
 
                 const SizedBox(height: 6),
 
