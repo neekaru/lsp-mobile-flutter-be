@@ -18,6 +18,7 @@ class AdminPengajuanBlankoScreen extends StatefulWidget {
 class _AdminPengajuanBlankoScreenState
     extends State<AdminPengajuanBlankoScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String _searchQuery = '';
   Timer? _debounce;
 
@@ -25,19 +26,27 @@ class _AdminPengajuanBlankoScreenState
   int _currentPage = 1;
   final int _pageSize = 10;
   bool _isLoading = false;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
 
   List<BlankoListItem> _items = [];
   BlankoMeta _meta = const BlankoMeta();
+  // Badge counts harus global, jangan ikut totalItem dari response terfilter.
+  int _badgeTotal = 0;
+  int _badgePending = 0;
+  int _badgeTerkirim = 0;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _fetchBlankoList();
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -53,11 +62,22 @@ class _AdminPengajuanBlankoScreenState
     }
   }
 
-  Future<void> _fetchBlankoList({int page = 1}) async {
-    setState(() {
-      _isLoading = true;
-      _currentPage = page;
-    });
+  // Infinite scroll: load next page ketika mendekati akhir list.
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _fetchBlankoList({int page = 1, bool append = false}) async {
+    if (append) {
+      if (_isLoadingMore || !_hasMore) return;
+      setState(() => _isLoadingMore = true);
+    } else {
+      setState(() => _isLoading = true);
+    }
 
     try {
       final response = await BlankoService.getBlankoList(
@@ -68,18 +88,35 @@ class _AdminPengajuanBlankoScreenState
       );
 
       if (mounted) {
+        final isUnfiltered =
+            _currentStatusParam.isEmpty && _searchQuery.isEmpty;
         setState(() {
-          _items = response.data;
+          _currentPage = page;
+          _items = append ? [..._items, ...response.data] : response.data;
           _meta = response.meta;
+          _hasMore = page < response.meta.totalPage;
+          if (isUnfiltered && !append) {
+            _badgeTotal = response.meta.totalItem;
+            _badgePending = response.meta.totalBelumTerkirim;
+            _badgeTerkirim = response.meta.totalTerkirim;
+          }
           _isLoading = false;
+          _isLoadingMore = false;
         });
       }
     } catch (e) {
       debugPrint('🔴 Error fetching blanko list: $e');
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
       }
     }
+  }
+
+  Future<void> _loadMore() async {
+    await _fetchBlankoList(page: _currentPage + 1, append: true);
   }
 
   void _onTabChanged(int index) {
@@ -87,6 +124,8 @@ class _AdminPengajuanBlankoScreenState
     setState(() {
       _selectedTabIndex = index;
       _currentPage = 1;
+      _items = [];
+      _hasMore = true;
     });
     _fetchBlankoList(page: 1);
   }
@@ -98,6 +137,8 @@ class _AdminPengajuanBlankoScreenState
         setState(() {
           _searchQuery = query.trim();
           _currentPage = 1;
+          _items = [];
+          _hasMore = true;
         });
         _fetchBlankoList(page: 1);
       }
@@ -135,7 +176,7 @@ class _AdminPengajuanBlankoScreenState
                 ),
                 onSelected: (val) {
                   if (val == 'refresh') {
-                    _fetchBlankoList(page: _currentPage);
+                    _fetchBlankoList(page: 1);
                   }
                 },
                 itemBuilder: (context) => [
@@ -160,9 +201,9 @@ class _AdminPengajuanBlankoScreenState
             // Tab Filter Bar with Jadwal/Honor pill style
             BlankoTabPills(
               selectedIndex: _selectedTabIndex,
-              totalCount: _meta.totalItem,
-              pendingCount: _meta.totalBelumTerkirim,
-              terkirimCount: _meta.totalTerkirim,
+              totalCount: _badgeTotal,
+              pendingCount: _badgePending,
+              terkirimCount: _badgeTerkirim,
               onTabChanged: _onTabChanged,
             ),
 
@@ -178,7 +219,7 @@ class _AdminPengajuanBlankoScreenState
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF378CE7)),
               ),
 
-            // List Content with Pull to Refresh
+            // List Content with Pull to Refresh + Infinite Auto-Scroll
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () => _fetchBlankoList(page: 1),
@@ -186,10 +227,28 @@ class _AdminPengajuanBlankoScreenState
                 child: _items.isEmpty && !_isLoading
                     ? _buildEmptyState()
                     : ListView.builder(
+                        controller: _scrollController,
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                        itemCount: _items.length,
+                        itemCount: _items.length + (_hasMore ? 1 : 0),
                         itemBuilder: (context, index) {
+                          if (index == _items.length) {
+                            // Loader kecil saat auto-load halaman berikutnya.
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFF378CE7),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
                           final item = _items[index];
                           return BlankoCard(
                             item: item,
@@ -199,9 +258,6 @@ class _AdminPengajuanBlankoScreenState
                       ),
               ),
             ),
-
-            // Pagination Controls (if more than 1 page)
-            if (_meta.totalPage > 1) _buildPaginationFooter(),
           ],
         ),
       ),
@@ -302,55 +358,6 @@ class _AdminPengajuanBlankoScreenState
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPaginationFooter() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Halaman $_currentPage dari ${_meta.totalPage}',
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF64748B),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left_rounded),
-                onPressed: _currentPage > 1 && !_isLoading
-                    ? () => _fetchBlankoList(page: _currentPage - 1)
-                    : null,
-                visualDensity: VisualDensity.compact,
-              ),
-              Text(
-                '$_currentPage',
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F172A),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right_rounded),
-                onPressed: _currentPage < _meta.totalPage && !_isLoading
-                    ? () => _fetchBlankoList(page: _currentPage + 1)
-                    : null,
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

@@ -229,7 +229,6 @@ class _AsesorRekapKinerjaSectionState extends State<AsesorRekapKinerjaSection> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
 
           // 4. Grid of 12 Months
           _buildMonthlyGrid(data.bulanan),
