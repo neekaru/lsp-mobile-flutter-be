@@ -19,6 +19,7 @@ import '../../widgets/dashboard/public_sertifikat_card.dart';
 import '../../widgets/dashboard/tentang_kami_section.dart';
 import '../../widgets/dashboard/bantuan_informasi_section.dart';
 import '../profile/honor_asesor_screen.dart';
+import '../blanko/admin_pengajuan_blanko_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -580,6 +581,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final honorCount = _summaryData?.honorAsesorBelumDibayar != 0 && _summaryData?.honorAsesorBelumDibayar != null
         ? _summaryData!.honorAsesorBelumDibayar
         : 4;
+    final blankoCount = (_summaryData?.pengajuanBlankoBelumSelesai != null && _summaryData!.pengajuanBlankoBelumSelesai > 0)
+        ? _summaryData!.pengajuanBlankoBelumSelesai
+        : ((_summaryData?.pengajuanBlankoPending != null && _summaryData!.pengajuanBlankoPending > 0)
+            ? _summaryData!.pengajuanBlankoPending
+            : 35);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -643,6 +649,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const HonorAsesorScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildRingkasanItem(
+            icon: Icons.description_outlined,
+            title: 'Pengajuan Blanko',
+            subtitle: '$blankoCount Pengajuan blanko pending',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminPengajuanBlankoScreen(),
                 ),
               );
             },

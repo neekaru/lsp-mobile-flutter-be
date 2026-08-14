@@ -33,6 +33,8 @@ class DashboardService {
           suratTugasMenungguPengiriman: data['surat_tugas_menunggu_pengiriman'] ?? 0,
           pendaftaranAsesiBaru: data['pendaftaran_asesi_baru'] ?? 0,
           honorAsesorBelumDibayar: data['honor_asesor_belum_dibayar'] ?? 0,
+          pengajuanBlankoBelumSelesai: data['pengajuan_blanko_belum_selesai'] ?? data['pengajuan_blanko_pending'] ?? 0,
+          pengajuanBlankoPending: data['pengajuan_blanko_pending'] ?? data['pengajuan_blanko_belum_selesai'] ?? 0,
           trendAsesmen: trends?['asesmen']?['formatted'] ?? '+0,0%',
           trendPemegangSertifikat:
               trends?['pemegang_sertifikat']?['formatted'] ?? '+0,0%',

@@ -28,6 +28,7 @@ export 'common/master_service.dart';
 export 'common/file_service.dart';
 export 'common/health_service.dart';
 export 'auth/session_service.dart';
+export 'admin/blanko_service.dart';
 
 import 'package:dio/dio.dart';
 

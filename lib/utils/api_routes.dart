@@ -71,6 +71,13 @@ class ApiRoutes {
       '/api/admin/honor-asesor/tugas/$tugasId';
 
   // ============================================================================
+  // Admin Blanko Routes
+  // ============================================================================
+
+  static const String adminBlanko = '/api/admin/blanko';
+  static String adminBlankoDetail(dynamic id) => '/api/admin/blanko/$id';
+
+  // ============================================================================
   // Jadwal Routes
   // ============================================================================
 
