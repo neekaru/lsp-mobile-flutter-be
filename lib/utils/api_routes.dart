@@ -179,6 +179,7 @@ class ApiRoutes {
   // ============================================================================
 
   static const String asesorDashboard = '/api/asesor/dashboard';
+  static const String asesorStatistikBulanan = '/api/asesor/statistik-bulanan';
   static const String asesorJadwal = '/api/asesor/jadwal';
   static const String asesorLaporan = '/api/asesor/laporan';
   static const String asesorLaporanUploadLampiran =

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import '../api_client.dart';
 import '../../utils/api_routes.dart';
 import '../../models/dashboard_models.dart';
+import '../../models/asesor_statistik_models.dart';
 
 // ============================================================================
 // Asesor Service
@@ -518,6 +519,30 @@ class AsesorService {
       return null;
     } catch (e) {
       debugPrint('🔴 Error updating admin honor tugas status: $e');
+      return null;
+    }
+  }
+
+  /// 18. Fetch Statistik Bulanan SPT & Asesi 2026 for logged-in Asesor
+  /// GET /api/asesor/statistik-bulanan?tahun=2026
+  static Future<AsesorStatistikData?> getAsesorStatistikBulanan({
+    int tahun = 2026,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiRoutes.asesorStatistikBulanan,
+        queryParameters: {'tahun': tahun},
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'];
+        if (data != null && data is Map<String, dynamic>) {
+          return AsesorStatistikData.fromJson(data);
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching asesor statistik bulanan: $e');
       return null;
     }
   }

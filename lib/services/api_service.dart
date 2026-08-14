@@ -29,6 +29,7 @@ export 'common/file_service.dart';
 export 'common/health_service.dart';
 export 'auth/session_service.dart';
 export 'admin/blanko_service.dart';
+export '../models/asesor_statistik_models.dart';
 
 import 'package:dio/dio.dart';
 
@@ -43,6 +44,7 @@ import 'common/file_service.dart';
 import 'common/health_service.dart';
 import 'auth/session_service.dart';
 import '../models/dashboard_models.dart';
+import '../models/asesor_statistik_models.dart';
 import '../models/sertifikat_models.dart';
 import '../models/jadwal_models.dart';
 import '../models/master_models.dart';
@@ -147,6 +149,8 @@ class ApiService {
       DashboardService.getSptAsesor2026(tahun: tahun);
   static Future<Asesi2026Data?> getAsesi2026({int tahun = 2026}) =>
       DashboardService.getAsesi2026(tahun: tahun);
+  static Future<AsesorStatistikData?> getAsesorStatistikBulanan({int tahun = 2026}) =>
+      AsesorService.getAsesorStatistikBulanan(tahun: tahun);
 
 
   // ── Jadwal ──────────────────────────────────────────────────────────────────
