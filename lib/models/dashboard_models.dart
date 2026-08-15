@@ -713,23 +713,54 @@ class AsesorDashboardJadwal {
 
 class AsesorDashboardTugas {
   final int idTugas;
+  final int idJadwal;
   final String title;
   final String subtitle;
   final String type;
 
   const AsesorDashboardTugas({
     required this.idTugas,
+    required this.idJadwal,
     required this.title,
     required this.subtitle,
     required this.type,
   });
 
   factory AsesorDashboardTugas.fromJson(Map<String, dynamic> json) {
+    final rawIdTugas = json['id_tugas'];
+    final parsedIdTugas = rawIdTugas is int
+        ? rawIdTugas
+        : int.tryParse(rawIdTugas?.toString() ?? '0') ?? 0;
+
+    final rawIdJadwal = json['id_jadwal'];
+    final parsedIdJadwal = rawIdJadwal != null
+        ? (rawIdJadwal is int
+            ? rawIdJadwal
+            : int.tryParse(rawIdJadwal.toString()) ?? 0)
+        : parsedIdTugas;
+
     return AsesorDashboardTugas(
-      idTugas: json['id_tugas'] ?? 0,
-      title: json['title'] ?? '',
-      subtitle: json['subtitle'] ?? '',
-      type: json['type'] ?? '',
+      idTugas: parsedIdTugas,
+      idJadwal: parsedIdJadwal,
+      title: json['title']?.toString() ?? '',
+      subtitle: json['subtitle']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
+    );
+  }
+
+  JadwalItem toJadwalItem() {
+    final effectiveId = idJadwal > 0 ? idJadwal : idTugas;
+    return JadwalItem(
+      id: effectiveId,
+      skema: subtitle,
+      tuk: '',
+      tanggalMulai: '',
+      tanggalSelesai: '',
+      status: type == 'asesmen_berlangsung' ? 'running' : 'pelaporan',
+      statusJadwal: type == 'asesmen_berlangsung' ? '3' : '4',
+      jumlahAsesi: 0,
+      asesor: const [],
+      sisaHari: 0,
     );
   }
 }
@@ -738,27 +769,30 @@ class AsesorDashboardData {
   final AsesorDashboardSummaryCount summary;
   final AsesorDashboardAlertBanner alertBanner;
   final List<AsesorDashboardJadwal> jadwalHariIni;
-  final List<AsesorDashboardTugas> tugasPrioritas;
+  final List<AsesorDashboardTugas> jadwalBelumLengkap;
+
+  List<AsesorDashboardTugas> get tugasPrioritas => jadwalBelumLengkap;
 
   const AsesorDashboardData({
     required this.summary,
     required this.alertBanner,
     required this.jadwalHariIni,
-    required this.tugasPrioritas,
+    required this.jadwalBelumLengkap,
   });
 
   factory AsesorDashboardData.fromJson(Map<String, dynamic> json) {
     final summaryJson = json['summary'] ?? {};
     final alertJson = json['alert_banner'] ?? {};
     final List<dynamic> jadwalList = json['jadwal_hari_ini'] ?? [];
-    final List<dynamic> tugasList = json['tugas_prioritas'] ?? [];
+    final List<dynamic> tugasList =
+        json['jadwal_belum_lengkap'] ?? json['tugas_prioritas'] ?? [];
 
     return AsesorDashboardData(
       summary: AsesorDashboardSummaryCount.fromJson(summaryJson),
       alertBanner: AsesorDashboardAlertBanner.fromJson(alertJson),
       jadwalHariIni:
           jadwalList.map((j) => AsesorDashboardJadwal.fromJson(j)).toList(),
-      tugasPrioritas:
+      jadwalBelumLengkap:
           tugasList.map((t) => AsesorDashboardTugas.fromJson(t)).toList(),
     );
   }
@@ -769,7 +803,7 @@ class AsesorDashboardData {
       summary: AsesorDashboardSummaryCount.empty(),
       alertBanner: AsesorDashboardAlertBanner.empty(),
       jadwalHariIni: const [],
-      tugasPrioritas: const [],
+      jadwalBelumLengkap: const [],
     );
   }
 }

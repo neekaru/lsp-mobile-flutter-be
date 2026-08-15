@@ -270,15 +270,26 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
           ),
         const SizedBox(height: 28),
 
-        // 3. Tugas Prioritas Section Header
+        // 3. Jadwal Belum Lengkap Section Header
         _buildSectionHeader(
-          title: 'Tugas Prioritas',
-          onTapLihatSemua: () {},
+          title: 'Jadwal Belum Lengkap',
+          onTapLihatSemua: () {
+            if (widget.onNavigateToJadwal != null) {
+              widget.onNavigateToJadwal!();
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const JadwalScreen(),
+                ),
+              );
+            }
+          },
         ),
         const SizedBox(height: 12),
 
-        // Tugas Prioritas List
-        if (widget.data == null || widget.data!.tugasPrioritas.isEmpty)
+        // Jadwal Belum Lengkap List
+        if (widget.data == null || widget.data!.jadwalBelumLengkap.isEmpty)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 24),
@@ -293,7 +304,7 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
                 Icon(Icons.assignment_turned_in_rounded, color: Color(0xFF94A3B8), size: 36),
                 SizedBox(height: 8),
                 Text(
-                  'Tidak ada tugas prioritas saat ini',
+                  'Tidak ada jadwal yang belum lengkap',
                   style: TextStyle(
                     color: Color(0xFF64748B),
                     fontSize: 13,
@@ -310,45 +321,12 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
               shrinkWrap: true,
               physics: const BouncingScrollPhysics(),
               padding: EdgeInsets.zero,
-              itemCount: widget.data!.tugasPrioritas.length,
+              itemCount: widget.data!.jadwalBelumLengkap.length,
               itemBuilder: (context, index) {
-                final task = widget.data!.tugasPrioritas[index];
-                IconData icon = Icons.assignment_rounded;
-                Color iconColor = const Color(0xFF3FA8F8);
-                Color iconBgColor = const Color(0xFFE8F5FF);
-
-                switch (task.type) {
-                  case 'menunggu_verifikasi':
-                    icon = Icons.access_time_rounded;
-                    iconColor = const Color(0xFFF59E0B);
-                    iconBgColor = const Color(0xFFFEF3C7);
-                    break;
-                  case 'penugasan_baru':
-                    icon = Icons.assignment_rounded;
-                    iconColor = const Color(0xFF3FA8F8);
-                    iconBgColor = const Color(0xFFE8F5FF);
-                    break;
-                  case 'asesmen_berlangsung':
-                    icon = Icons.play_circle_outline_rounded;
-                    iconColor = const Color(0xFF3F8CFF);
-                    iconBgColor = const Color(0xFFF0F5FF);
-                    break;
-                  case 'asesmen_selesai':
-                    icon = Icons.check_circle_rounded;
-                    iconColor = const Color(0xFF10B981);
-                    iconBgColor = const Color(0xFFECFDF5);
-                    break;
-                }
-
+                final task = widget.data!.jadwalBelumLengkap[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: _buildPriorityTaskCard(
-                    title: task.title,
-                    subtitle: task.subtitle,
-                    icon: icon,
-                    iconColor: iconColor,
-                    iconBgColor: iconBgColor,
-                  ),
+                  child: _buildJadwalBelumLengkapCard(task),
                 );
               },
             ),
@@ -594,65 +572,163 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
     );
   }
 
-  Widget _buildPriorityTaskCard({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
-  }) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
+  Widget _buildJadwalBelumLengkapCard(AsesorDashboardTugas task) {
+    IconData icon = Icons.assignment_outlined;
+    Color iconColor = const Color(0xFF2563EB);
+    Color iconBgColor = const Color(0xFFEFF6FF);
+    String badgeText = task.title;
+    Color badgeTextColor = const Color(0xFF2563EB);
+    Color badgeBgColor = const Color(0xFFEFF6FF);
+
+    switch (task.type) {
+      case 'asesmen_berlangsung':
+        icon = Icons.play_circle_outline_rounded;
+        iconColor = const Color(0xFF2563EB);
+        iconBgColor = const Color(0xFFEFF6FF);
+        badgeText = task.title.isNotEmpty ? task.title : 'Asesmen berlangsung';
+        badgeTextColor = const Color(0xFF2563EB);
+        badgeBgColor = const Color(0xFFEFF6FF);
+        break;
+      case 'menunggu_verifikasi':
+        icon = Icons.hourglass_top_rounded;
+        iconColor = const Color(0xFFD97706);
+        iconBgColor = const Color(0xFFFEF3C7);
+        badgeText =
+            task.title.isNotEmpty ? task.title : 'Laporan menunggu verifikasi';
+        badgeTextColor = const Color(0xFFB45309);
+        badgeBgColor = const Color(0xFFFEF3C7);
+        break;
+      case 'penugasan_baru':
+        icon = Icons.assignment_outlined;
+        iconColor = const Color(0xFF3FA8F8);
+        iconBgColor = const Color(0xFFE8F5FF);
+        badgeText = task.title.isNotEmpty ? task.title : 'Penugasan Baru';
+        badgeTextColor = const Color(0xFF0284C7);
+        badgeBgColor = const Color(0xFFE0F2FE);
+        break;
+      case 'asesmen_selesai':
+        icon = Icons.check_circle_outline_rounded;
+        iconColor = const Color(0xFF10B981);
+        iconBgColor = const Color(0xFFECFDF5);
+        badgeText = task.title.isNotEmpty ? task.title : 'Asesmen Selesai';
+        badgeTextColor = const Color(0xFF059669);
+        badgeBgColor = const Color(0xFFD1FAE5);
+        break;
+      default:
+        badgeText = task.title.isNotEmpty ? task.title : 'Jadwal Asesmen';
+        break;
+    }
+
+    final displayText = task.subtitle.isNotEmpty ? task.subtitle : task.title;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          final user = AuthRepository.currentUserInstance;
+          final userRole = UserRole(
+            role: user?.role ?? 'asesor',
+            name: user?.name ?? '',
+            email: user?.email ?? '',
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => JadwalDetailScreen(
+                jadwal: task.toJadwalItem(),
+                userRole: userRole,
+              ),
+            ),
+          );
+        },
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1.0,
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFFE2E8F0),
+              width: 1.0,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x06000000),
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: badgeBgColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            badgeText,
+                            style: TextStyle(
+                              color: badgeTextColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      displayText,
+                      style: const TextStyle(
+                        color: Color(0xFF0F172A),
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Padding(
+                padding: EdgeInsets.only(top: 10),
+                child: Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFF94A3B8),
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
