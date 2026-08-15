@@ -2,11 +2,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/common/custom_app_bar.dart';
 
-import '../../core/navigation/main_navigator.dart' show mainNavigatorKey, MainNavigatorState;
-import '../../services/api_service.dart';
-import '../../services/auth/auth_repository.dart';
-import '../../services/common/notification_service.dart';
-import '../../services/auth/token_storage.dart';
 import '../../widgets/pengajuan/step_indicator.dart';
 import '../../widgets/pengajuan/data_pengajuan_form.dart';
 import '../../widgets/pengajuan/data_pribadi_form.dart';
@@ -15,10 +10,9 @@ import '../../widgets/pengajuan/dokumen_portofolio_form.dart';
 import '../../widgets/pengajuan/asesmen_mandiri_form.dart';
 import '../../widgets/pengajuan/unit_kompetensi_detail.dart';
 import '../../widgets/pengajuan/dokumen_persyaratan_form.dart';
-import '../auth/splash_screen.dart';
-import 'bukti_portofolio_screen.dart';
 import 'asesmen_mandiri_uji_screen.dart';
-import '../../models/master_models.dart';
+import 'pengajuan_sertifikat_data_logic.dart';
+import 'pengajuan_sertifikat_flow_logic.dart';
 
 class PengajuanSertifikatScreen extends StatefulWidget {
   /// Pre-select skema when opened from Detail Skema → Daftar Sekarang.
@@ -32,1006 +26,42 @@ class PengajuanSertifikatScreen extends StatefulWidget {
   });
 
   @override
-  State<PengajuanSertifikatScreen> createState() => _PengajuanSertifikatScreenState();
+  State<PengajuanSertifikatScreen> createState() => PengajuanSertifikatScreenState();
 }
 
-class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
+class PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen>
+    with PengajuanSertifikatDataLogic, PengajuanSertifikatFlowLogic {
   @override
   void initState() {
     super.initState();
-    _cachedUnitKompetensi = [];
-    _loadInitialData();
+    cachedUnitKompetensi = [];
+    loadInitialData();
   }
 
-  Future<void> _loadInitialData() async {
-    // Wait for route transition animation to finish before making network calls
-    await Future.delayed(const Duration(milliseconds: 375));
-    if (!mounted) return;
-
-    // Master data only (dropdowns bind to _master* lists from API)
-    _fetchProvinsi();
-    _fetchMasterSkema();
-    _fetchMasterSumberAnggaran();
-    _fetchMasterPendidikan();
-    _fetchMasterPekerjaan();
-    _loadAsesiProfile();
-  }
-
-  Future<void> _fetchMasterPekerjaan() async {
-    setState(() => _isLoadingPekerjaan = true);
-    try {
-      final list = await ApiService.getMasterPekerjaanList();
-      if (mounted) {
-        setState(() {
-          _listPekerjaan = list;
-          _isLoadingPekerjaan = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching master pekerjaan: $e');
-      if (mounted) setState(() => _isLoadingPekerjaan = false);
-    }
-  }
-
-  Future<void> _fetchMasterPendidikan() async {
-    setState(() => _isLoadingPendidikan = true);
-    try {
-      final list = await ApiService.getMasterPendidikanList();
-      if (mounted) {
-        setState(() {
-          _listPendidikan = list;
-          _isLoadingPendidikan = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching master pendidikan: $e');
-      if (mounted) setState(() => _isLoadingPendidikan = false);
-    }
-  }
-
-  Future<void> _loadAsesiProfile() async {
-    try {
-      final profile = await AsesiService.getProfile();
-      if (profile == null || !mounted) return;
-      setState(() {
-        if ((profile['nik']?.toString() ?? '').isNotEmpty) {
-          _nikController.text = profile['nik'].toString();
-        }
-        if ((profile['nama_lengkap']?.toString() ?? '').isNotEmpty) {
-          _namaLengkapController.text = profile['nama_lengkap'].toString();
-        }
-        final jk = profile['jenis_kelamin']?.toString() ?? '';
-        if (jk == '1' || jk.toLowerCase().contains('laki')) {
-          _jenisKelamin = 'Laki-Laki';
-        } else if (jk == '2' || jk.toLowerCase().contains('perempuan')) {
-          _jenisKelamin = 'Perempuan';
-        }
-        if ((profile['tempat_lahir']?.toString() ?? '').isNotEmpty) {
-          _tempatLahirController.text = profile['tempat_lahir'].toString();
-        }
-        if ((profile['tgl_lahir']?.toString() ?? '').isNotEmpty) {
-          _tanggalLahirController.text =
-              AsesiService.normalizeTglLahir(profile['tgl_lahir'].toString());
-        }
-        if ((profile['alamat']?.toString() ?? '').isNotEmpty) {
-          _alamatDomisiliController.text = profile['alamat'].toString();
-        }
-        if (profile['id_provinsi'] != null) {
-          _selectedProvinsi = profile['id_provinsi'].toString();
-        }
-        if (profile['id_kabupaten'] != null) {
-          _selectedKota = profile['id_kabupaten'].toString();
-        }
-        if ((profile['id_kecamatan']?.toString() ?? '').isNotEmpty) {
-          _selectedKecamatan = profile['id_kecamatan'].toString();
-        }
-        if ((profile['telp']?.toString() ?? '').isNotEmpty) {
-          _noTelpController.text = profile['telp'].toString();
-        }
-        if ((profile['email']?.toString() ?? '').isNotEmpty) {
-          _emailController.text = profile['email'].toString();
-        }
-        if (profile['id_pendidikan'] != null) {
-          _selectedPendidikanId =
-              int.tryParse(profile['id_pendidikan'].toString());
-        }
-        if ((profile['nama_sekolah']?.toString() ?? '').isNotEmpty) {
-          _namaSekolahController.text = profile['nama_sekolah'].toString();
-        }
-        if ((profile['jurusan']?.toString() ?? '').isNotEmpty) {
-          _jurusanController.text = profile['jurusan'].toString();
-        }
-        if (profile['id_pekerjaan'] != null) {
-          _selectedPekerjaanId =
-              int.tryParse(profile['id_pekerjaan'].toString());
-        }
-        if ((profile['organisasi']?.toString() ?? '').isNotEmpty) {
-          _namaPerusahaanController.text = profile['organisasi'].toString();
-        }
-        if ((profile['jabatan']?.toString() ?? '').isNotEmpty) {
-          _jabatanController.text = profile['jabatan'].toString();
-        }
-        if ((profile['alamat_company']?.toString() ?? '').isNotEmpty) {
-          _alamatPerusahaanController.text =
-              profile['alamat_company'].toString();
-        }
-        if ((profile['kode_pos_company']?.toString() ?? '').isNotEmpty) {
-          _kodeposPerusahaanController.text =
-              profile['kode_pos_company'].toString();
-        }
-        if ((profile['telp_company']?.toString() ?? '').isNotEmpty) {
-          _telpPerusahaanController.text = profile['telp_company'].toString();
-        }
-        if ((profile['email_company']?.toString() ?? '').isNotEmpty) {
-          _emailPerusahaanController.text =
-              profile['email_company'].toString();
-        }
-      });
-      if (_selectedProvinsi != null) {
-        await _fetchKabupaten(_selectedProvinsi!);
-        if (_selectedKota != null) {
-          await _fetchKecamatan(_selectedKota!);
-        }
-      }
-    } catch (e) {
-      debugPrint('Error loading asesi profile: $e');
-    }
-  }
-
-  Map<String, dynamic> _buildDataPribadiPayload() {
-    final payload = <String, dynamic>{
-      'nik': _nikController.text.trim(),
-      'nama_lengkap': _namaLengkapController.text.trim(),
-      'jenis_kelamin': AsesiService.mapJenisKelamin(_jenisKelamin),
-      'tempat_lahir': _tempatLahirController.text.trim(),
-      'tgl_lahir': AsesiService.normalizeTglLahir(_tanggalLahirController.text),
-      'alamat': _alamatDomisiliController.text.trim(),
-      'telp': _noTelpController.text.trim(),
-      'email': _emailController.text.trim(),
-      'nama_sekolah': _namaSekolahController.text.trim(),
-      'jurusan': _jurusanController.text.trim(),
-    };
-    final idProv = int.tryParse(_selectedProvinsi ?? '');
-    if (idProv != null) payload['id_provinsi'] = idProv;
-    final idKab = int.tryParse(_selectedKota ?? '');
-    if (idKab != null) payload['id_kabupaten'] = idKab;
-    if ((_selectedKecamatan ?? '').isNotEmpty) {
-      payload['id_kecamatan'] = _selectedKecamatan;
-    }
-    if (_selectedPendidikanId != null) {
-      payload['id_pendidikan'] = _selectedPendidikanId;
-    }
-    if (_selectedSumberAnggaranId != null) {
-      payload['id_sumber_anggaran'] = _selectedSumberAnggaranId;
-    }
-    if (_selectedPemberiAnggaranId != null) {
-      payload['id_instansi_anggaran'] = _selectedPemberiAnggaranId;
-    }
-    if (_selectedPekerjaanId != null) {
-      payload['id_pekerjaan'] = _selectedPekerjaanId;
-    }
-    final organisasi = _namaPerusahaanController.text.trim();
-    if (organisasi.isNotEmpty) payload['organisasi'] = organisasi;
-    final jabatan = _jabatanController.text.trim();
-    if (jabatan.isNotEmpty) payload['jabatan'] = jabatan;
-    final alamatCompany = _alamatPerusahaanController.text.trim();
-    if (alamatCompany.isNotEmpty) payload['alamat_company'] = alamatCompany;
-    final kodePos = _kodeposPerusahaanController.text.trim();
-    if (kodePos.isNotEmpty) payload['kode_pos_company'] = kodePos;
-    final telpCompany = _telpPerusahaanController.text.trim();
-    if (telpCompany.isNotEmpty) payload['telp_company'] = telpCompany;
-    final emailCompany = _emailPerusahaanController.text.trim();
-    if (emailCompany.isNotEmpty) payload['email_company'] = emailCompany;
-    return payload;
-  }
-
-  /// Publik (belum login): POST ensure-asesi → JWT.
-  /// Returns true if session was just created/logged-in from public (need splash restart).
-  Future<bool> _ensureAsesiSession(Map<String, dynamic> dataPribadi) async {
-    final token = await TokenStorage.instance.getAccessToken();
-    final role = AuthRepository.currentUserInstance?.role;
-    final hasRealJwt = token != null &&
-        token.isNotEmpty &&
-        !token.startsWith('fake-');
-
-    // Sudah login asesi → langsung daftar
-    if (hasRealJwt && (role == null || role == 'asesi')) {
-      return false;
-    }
-
-    final nik = (dataPribadi['nik']?.toString() ?? '').trim();
-    final email = (dataPribadi['email']?.toString() ?? '').trim();
-    final nama = (dataPribadi['nama_lengkap']?.toString() ?? '').trim();
-    final telp = (dataPribadi['telp']?.toString() ?? '').trim();
-
-    var account = nik;
-    if (account.isEmpty && email.contains('@')) {
-      account = email.split('@').first;
-    }
-    if (account.isEmpty) {
-      throw Exception(
-        'NIK wajib diisi untuk membuat akun login (password default 123456).',
-      );
-    }
-    if (account.length > 18) account = account.substring(0, 18);
-
-    final auth = AuthRepository(
-      dio: ApiClient.dio,
-      tokenStorage: TokenStorage.instance,
-    );
-    await auth.ensureAsesi(
-      account: account,
-      password: '123456',
-      namaLengkap: nama,
-      email: email.isNotEmpty ? email : null,
-      hp: telp.isNotEmpty ? telp : null,
-      platform: 'mobile',
-    );
-    // Register FCM under new asesi session
-    try {
-      NotificationService.instance.registerCurrentToken();
-    } catch (_) {}
-    return true;
-  }
-
-  /// Freeze UI then hard-restart via Splash so MainNavigator rebuilds as asesi.
-  Future<void> _freezeAndRestartSplash({String message = 'Menyiapkan sesi Asesi...'}) async {
-    if (!mounted) return;
-
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.white,
-      useRootNavigator: true,
-      builder: (ctx) {
-        return PopScope(
-          canPop: false,
-          child: Material(
-            color: Colors.white,
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: CircularProgressIndicator(strokeWidth: 3),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    message,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Mohon tunggu sebentar…',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-
-    // Brief freeze so user sees clean transition (avoids weird mixed guest/asesi UI)
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-
-    mainNavigatorKey = GlobalKey<MainNavigatorState>();
-    Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const SplashScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 450),
-      ),
-      (_) => false,
-    );
-  }
-
-  Future<void> _fetchProvinsi() async {
-    setState(() {
-      _isLoadingProvinsi = true;
-    });
-    try {
-      final list = await ApiService.getProvinsiList();
-      if (mounted) {
-        setState(() {
-          _listProvinsi = list;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching provinsi: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingProvinsi = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _fetchKabupaten(String provinceId) async {
-    setState(() {
-      _isLoadingKabupaten = true;
-      _listKabupaten = [];
-      _listKecamatan = [];
-    });
-    try {
-      final list = await ApiService.getKabupatenList(provinceId);
-      if (mounted) {
-        setState(() {
-          _listKabupaten = list;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching kabupaten: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingKabupaten = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _fetchKecamatan(String kabupatenId) async {
-    setState(() {
-      _isLoadingKecamatan = true;
-      _listKecamatan = [];
-    });
-    try {
-      final list = await ApiService.getKecamatanList(kabupatenId);
-      if (mounted) {
-        setState(() {
-          _listKecamatan = list;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching kecamatan: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingKecamatan = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _fetchMasterSkema() async {
-    setState(() {
-      _isLoadingSkema = true;
-    });
-    try {
-      final list = await ApiService.getMasterSkemaList();
-      if (mounted) {
-        setState(() {
-          _masterSkemaList = list;
-          _isLoadingSkema = false;
-        });
-        await _applyInitialSkema();
-      }
-    } catch (e) {
-      debugPrint('Error fetching master skema: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingSkema = false;
-        });
-      }
-    }
-  }
-
-  /// Auto-select skema from Detail Skema so user tidak perlu cari manual.
-  Future<void> _applyInitialSkema() async {
-    final id = widget.initialSkemaId;
-    if (id == null || id <= 0) return;
-    if (_selectedSkemaId != null) return;
-
-    MasterSkema? match;
-    try {
-      match = _masterSkemaList.firstWhere((s) => s.id == id);
-    } catch (_) {
-      match = null;
-    }
-
-    final name = match?.namaSkema ??
-        (widget.initialSkemaName?.trim().isNotEmpty == true
-            ? widget.initialSkemaName!.trim()
-            : null);
-
-    if (match == null && name != null) {
-      // Pastikan muncul di dropdown walau belum ada di master list
-      _masterSkemaList = [
-        ..._masterSkemaList,
-        MasterSkema(
-          id: id,
-          kodeSkema: '',
-          namaSkema: name,
-        ),
-      ];
-    } else if (match == null) {
-      return;
-    }
-
-    setState(() {
-      _selectedSkemaId = id;
-      _selectedSkema = name ?? match?.namaSkema;
-      _selectedJadwalId = null;
-      _masterJadwalList = [];
-      _clearUnitPersyaratan();
-    });
-
-    // Cek duplicate di FE (sama seperti onSkemaChanged)
-    final already = await _isAlreadyRegisteredOnSkema(id);
-    if (already && mounted) {
-      await _showAlreadyRegisteredWarning(skemaName: _selectedSkema);
-      return;
-    }
-
-    if (mounted && _selectedSkemaId == id) {
-      _fetchMasterJadwal(id);
-      _fetchSkemaUnitPersyaratan(id);
-    }
-  }
-
-  Future<void> _fetchMasterJadwal(int idSkema) async {
-    setState(() {
-      _isLoadingJadwal = true;
-      _masterJadwalList = [];
-    });
-    try {
-      final list = await ApiService.getMasterJadwalList(idSkema);
-      if (mounted) {
-        setState(() {
-          _masterJadwalList = list;
-          _isLoadingJadwal = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching master jadwal: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingJadwal = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _fetchMasterSumberAnggaran() async {
-    setState(() {
-      _isLoadingSumberAnggaran = true;
-    });
-    try {
-      final list = await ApiService.getMasterSumberAnggaranList();
-      if (mounted) {
-        setState(() {
-          _masterSumberAnggaranList = list;
-          _isLoadingSumberAnggaran = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching master sumber anggaran: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingSumberAnggaran = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _fetchMasterPemberiAnggaran(int idSumberAnggaran) async {
-    setState(() {
-      _isLoadingPemberiAnggaran = true;
-      _masterPemberiAnggaranList = [];
-    });
-    try {
-      final list = await ApiService.getMasterPemberiAnggaranList(
-        idSumberAnggaran: idSumberAnggaran,
-      );
-      if (mounted) {
-        setState(() {
-          _masterPemberiAnggaranList = list;
-          _isLoadingPemberiAnggaran = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching master pemberi anggaran: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingPemberiAnggaran = false;
-        });
-      }
-    }
-  }
-
-  // Current active step
-  int _currentStep = 0;
-  bool _isSubmitting = false;
-
-  // Step 1: Data Pengajuan State
-  int? _selectedSkemaId;
-  int? _selectedJadwalId;
-  int? _selectedSumberAnggaranId;
-  int? _selectedPemberiAnggaranId;
-  String? _selectedSkema;
-
-  List<MasterSkema> _masterSkemaList = [];
-  List<MasterJadwal> _masterJadwalList = [];
-  List<MasterSumberAnggaran> _masterSumberAnggaranList = [];
-  List<MasterPemberiAnggaran> _masterPemberiAnggaranList = [];
-  bool _isLoadingSkema = false;
-  bool _isLoadingJadwal = false;
-  bool _isLoadingSumberAnggaran = false;
-  bool _isLoadingPemberiAnggaran = false;
-
-  // Step 2: Profil Peserta - Data Pribadi State
-  final TextEditingController _nikController = TextEditingController();
-  final TextEditingController _namaLengkapController = TextEditingController();
-  String _jenisKelamin = 'Laki-Laki';
-  final TextEditingController _tempatLahirController = TextEditingController();
-  final TextEditingController _tanggalLahirController = TextEditingController();
-  final TextEditingController _alamatDomisiliController = TextEditingController();
-  String? _selectedProvinsi;
-  String? _selectedKota;
-  String? _selectedKecamatan;
-
-  // Master lists and loading indicators for Profil Peserta dynamic dropdowns
-  List<MasterItem> _listProvinsi = [];
-  List<MasterItem> _listKabupaten = [];
-  List<MasterItem> _listKecamatan = [];
-  bool _isLoadingProvinsi = false;
-  bool _isLoadingKabupaten = false;
-  bool _isLoadingKecamatan = false;
-  final TextEditingController _noTelpController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  int? _selectedPendidikanId;
-  List<MasterPendidikan> _listPendidikan = [];
-  bool _isLoadingPendidikan = false;
-  final TextEditingController _namaSekolahController = TextEditingController();
-  final TextEditingController _jurusanController = TextEditingController();
-
-  // Step 3: Profil Peserta - Data Pekerjaan State
-  int? _selectedPekerjaanId;
-  List<MasterPekerjaan> _listPekerjaan = [];
-  bool _isLoadingPekerjaan = false;
-  final TextEditingController _namaPerusahaanController = TextEditingController();
-  final TextEditingController _jabatanController = TextEditingController();
-  final TextEditingController _alamatPerusahaanController = TextEditingController();
-  final TextEditingController _kodeposPerusahaanController = TextEditingController();
-  final TextEditingController _telpPerusahaanController = TextEditingController();
-  final TextEditingController _emailPerusahaanController = TextEditingController();
-
-  // FR.APL.01 persyaratan upload — keyed by portofolio `key` (slug)
-  final Map<String, bool> _uploadedDocs = {};
-  final Map<String, String?> _uploadedFileNames = {};
-  final Map<String, String?> _uploadedFilePaths = {};
-
-  int? _activeUnitDetailIndex;
-  /// key = id_elemen as String → K/KB
-  final Map<String, bool?> _kukAssessments = {};
-  final Map<String, String?> _kukEvidence = {};
-
-  // Unit list for dokumen persyaratan (FR.APL.01) — no elemen/KUK
-  List<Map<String, dynamic>> _cachedUnitKompetensi = [];
-  // FR.APL.02 — unit + elemen/KUK from GET /api/pra-asesmen/skema/:id/kompetensi
-  List<Map<String, dynamic>> _asesmenUnits = [];
-  bool _isLoadingKompetensi = false;
-
-  // FR.APL.01 bagian 2 — unit + persyaratan from API (by id_skema)
-  List<Map<String, String>> _persyaratanDasar = [];
-  // Default admin keys always present for upload; API can replace/extend.
-  List<Map<String, String>> _persyaratanAdministratif = const [
-    {
-      'key': 'pasfoto',
-      'label': 'Pasfoto*',
-      'section': 'a',
-      'mandatory': '1',
-    },
-    {
-      'key': 'identitas-pribadi-ktp-kartu-pelajar',
-      'label': 'Identitas pribadi (KTP/Kartu Pelajar)*',
-      'section': 'a',
-      'mandatory': '1',
-    },
-  ];
-  bool _isLoadingUnitPersyaratan = false;
-  int? _sertifikasiId;
-  int? _kompetensiSkemaId;
-  /// true only when pra-asesmen kompetensi API returned nested elemen/KUK
-  bool _kompetensiHasDetail = false;
-
-  String _sectionFromJenisBukti(String jenis, String key, String label) {
-    final j = jenis.toLowerCase().trim();
-    if (j == 'a' ||
-        j == 'admin' ||
-        j == 'administratif' ||
-        j == 'identitas') {
-      return 'a';
-    }
-    if (j == 'c' ||
-        j == 'bukti_pelatihan' ||
-        j == 'pelatihan' ||
-        j == 'karya' ||
-        j == 'kompetensi' ||
-        j == 'portofolio') {
-      return 'c';
-    }
-    if (j == 'b' ||
-        j == 'pendidikan' ||
-        j == 'bukti_bekerja' ||
-        j == 'bukti_pekerja' ||
-        j == 'pekerjaan' ||
-        j == 'kerja') {
-      return 'b';
-    }
-    final t = '${key.toLowerCase()} ${label.toLowerCase()}';
-    bool has(List<String> xs) => xs.any(t.contains);
-    if (has([
-      'ktp',
-      'identitas',
-      'pasfoto',
-      'pas-foto',
-      'pas foto',
-      'kartu pelajar',
-      'foto 4x6',
-      '4x6',
-    ])) {
-      return 'a';
-    }
-    if (has([
-      'github',
-      'portofolio',
-      'karya',
-      'sertifikat',
-      'pelatihan',
-      'kompetensi teknis',
-      'tautan',
-      'url',
-    ])) {
-      return 'c';
-    }
-    return 'b';
-  }
-
-  Future<void> _fetchSkemaUnitPersyaratan(int idSkema) async {
-    setState(() {
-      _isLoadingUnitPersyaratan = true;
-      _cachedUnitKompetensi = [];
-      _persyaratanDasar = [];
-      _uploadedDocs.clear();
-      _uploadedFileNames.clear();
-      _uploadedFilePaths.clear();
-    });
-    try {
-      final data = await ApiService.getSkemaUnitPersyaratan(idSkema);
-      if (!mounted) return;
-      if (data != null) {
-        setState(() {
-          _cachedUnitKompetensi =
-              data.unitKompetensi.map((u) => u.toUnitMap()).toList();
-          _persyaratanDasar = data.persyaratanDasar
-              .map((p) => {
-                    'key': p.key,
-                    'label': p.label,
-                    'jenis_bukti': p.jenisBukti,
-                    'mandatory': p.mandatory ? '1' : '0',
-                    'section': _sectionFromJenisBukti(
-                      p.jenisBukti,
-                      p.key,
-                      p.label,
-                    ),
-                  })
-              .toList();
-          // Merge API admin list with defaults — never drop pasfoto/KTP keys.
-          const defaults = [
-            {
-              'key': 'pasfoto',
-              'label': 'Pasfoto*',
-              'section': 'a',
-              'mandatory': '1',
-            },
-            {
-              'key': 'identitas-pribadi-ktp-kartu-pelajar',
-              'label': 'Identitas pribadi (KTP/Kartu Pelajar)*',
-              'section': 'a',
-              'mandatory': '1',
-            },
-          ];
-          final fromApi = data.persyaratanAdministratif
-              .map((p) => {
-                    'key': p.key,
-                    'label': p.label,
-                    'section': 'a',
-                    'mandatory': '1',
-                  })
-              .toList();
-          final byKey = <String, Map<String, String>>{};
-          for (final d in defaults) {
-            byKey[d['key']!] = Map<String, String>.from(d);
-          }
-          for (final p in fromApi) {
-            final k = p['key'] ?? '';
-            if (k.isEmpty) continue;
-            byKey[k] = p;
-          }
-          _persyaratanAdministratif = byKey.values.toList();
-          if (_selectedSkema == null || _selectedSkema!.isEmpty) {
-            _selectedSkema = data.namaSkema;
-          }
-          _isLoadingUnitPersyaratan = false;
-        });
-      } else {
-        setState(() {
-          _isLoadingUnitPersyaratan = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching skema unit-persyaratan: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingUnitPersyaratan = false;
-        });
-      }
-    }
-    // FR.APL.02 kompetensi (unit → elemen/KUK)
-    await _fetchPraAsesmenKompetensi(idSkema);
-  }
-
-  int _countElemen(List<Map<String, dynamic>> units) {
-    var n = 0;
-    for (final u in units) {
-      final el = u['elemen'];
-      if (el is List) n += el.length;
-    }
-    return n;
-  }
-
-  List<Map<String, dynamic>> _unitsFromCacheOnly() {
-    return _cachedUnitKompetensi
-        .map((u) => {
-              'kode': u['kode']?.toString() ?? '',
-              'judul': u['judul']?.toString() ?? '',
-              'kuk_count': '0 item',
-              'elemen': <Map<String, dynamic>>[],
-            })
-        .toList();
-  }
-
-  Future<void> _fetchPraAsesmenKompetensi(int idSkema) async {
-    setState(() {
-      _isLoadingKompetensi = true;
-      _asesmenUnits = [];
-      _kompetensiHasDetail = false;
-      _kukAssessments.clear();
-      _kukEvidence.clear();
-      _kompetensiSkemaId = idSkema;
-    });
-    try {
-      final komp = await SertifikatService.getPraAsesmenKompetensi(
-        idSkema,
-        _selectedSkema ?? '',
-      );
-      if (!mounted) return;
-      // Ignore stale response if user switched skema mid-flight
-      if (_kompetensiSkemaId != idSkema) return;
-
-      if (komp == null) {
-        // Temporary shell only — _kompetensiHasDetail stays false so we retry
-        setState(() {
-          _asesmenUnits = _unitsFromCacheOnly();
-          _kompetensiHasDetail = false;
-          _isLoadingKompetensi = false;
-        });
-        return;
-      }
-
-      if (komp.namaSkema.isNotEmpty &&
-          (_selectedSkema == null || _selectedSkema!.isEmpty)) {
-        _selectedSkema = komp.namaSkema;
-      }
-
-      final units = komp.unitKompetensi.map((u) {
-        final elemenGroups = u.elemen.map((e) {
-          final items = e.assessableItems;
-          return {
-            'id_elemen': e.idElemen,
-            'title': e.elemenKompetensi.isNotEmpty
-                ? e.elemenKompetensi
-                : e.pertanyaanKuk,
-            'kuk_count': '${items.length} item',
-            'items': items,
-          };
-        }).toList();
-        var total = 0;
-        for (final g in elemenGroups) {
-          final items = g['items'];
-          if (items is List) total += items.length;
-        }
-        return {
-          'kode': u.kodeUnit,
-          'judul': u.judulUnit,
-          'kuk_count': '$total item',
-          'elemen': elemenGroups,
-        };
-      }).toList();
-
-      final hasDetail = units.isNotEmpty && _countElemen(units) > 0;
-      final resolved = units.isNotEmpty ? units : _unitsFromCacheOnly();
-
-      setState(() {
-        _asesmenUnits = resolved;
-        // Only mark complete when API nested elemen/KUK present
-        _kompetensiHasDetail = hasDetail;
-        _isLoadingKompetensi = false;
-      });
-
-      debugPrint(
-        'pra-asesmen kompetensi skema=$idSkema units=${resolved.length} '
-        'elemen=${_countElemen(resolved)} hasDetail=$hasDetail',
-      );
-    } catch (e) {
-      debugPrint('Error fetching pra-asesmen kompetensi: $e');
-      if (mounted && _kompetensiSkemaId == idSkema) {
-        setState(() {
-          if (_asesmenUnits.isEmpty) {
-            _asesmenUnits = _unitsFromCacheOnly();
-          }
-          _kompetensiHasDetail = false;
-          _isLoadingKompetensi = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _ensureKompetensiLoaded() async {
-    final id = _selectedSkemaId;
-    if (id == null) return;
-    if (_isLoadingKompetensi) return;
-    // Retry when only unit shell loaded (elemen/KUK still 0) — e.g. Desainer Grafis Muda
-    if (_kompetensiSkemaId == id &&
-        _kompetensiHasDetail &&
-        _asesmenUnits.isNotEmpty) {
-      return;
-    }
-    await _fetchPraAsesmenKompetensi(id);
-  }
-
-  void _clearUnitPersyaratan() {
-    _cachedUnitKompetensi = [];
-    _asesmenUnits = [];
-    _kompetensiSkemaId = null;
-    _kompetensiHasDetail = false;
-    _persyaratanDasar = [];
-    _persyaratanAdministratif = const [
-      {
-        'key': 'pasfoto',
-        'label': 'Pasfoto*',
-        'section': 'a',
-        'mandatory': '1',
-      },
-      {
-        'key': 'identitas-pribadi-ktp-kartu-pelajar',
-        'label': 'Identitas pribadi (KTP/Kartu Pelajar)*',
-        'section': 'a',
-        'mandatory': '1',
-      },
-    ];
-    _uploadedDocs.clear();
-    _uploadedFileNames.clear();
-    _uploadedFilePaths.clear();
-    _kukAssessments.clear();
-    _kukEvidence.clear();
-  }
-
-  void _onPersyaratanUpload(
-    String key,
-    String label,
-    bool isUploaded,
-    String? fileName,
-    String? filePath,
-  ) {
-    setState(() {
-      _uploadedDocs[key] = isUploaded;
-      _uploadedFileNames[key] = fileName;
-      _uploadedFilePaths[key] = filePath;
-    });
-  }
-
-  List<Map<String, dynamic>> _buildPortofolioDocuments() {
-    final seen = <String>{};
-    final docs = <Map<String, dynamic>>[];
-    void add(
-      String key,
-      String label, {
-      bool required = true,
-      String section = 'b',
-      String jenisBukti = '',
-    }) {
-      if (key.isEmpty || seen.contains(key)) return;
-      seen.add(key);
-      docs.add({
-        'key': key,
-        'label': label,
-        'section': section,
-        'jenis_bukti': jenisBukti,
-        'is_required': required,
-        'status': _uploadedDocs[key] == true
-            ? 'Menunggu Verifikasi'
-            : 'Belum Diunggah',
-        'file_name': _uploadedFileNames[key],
-      });
-    }
-
-    // Same list as GET /portofolio: admin defaults + skema_syarat (mandatory flag from DB)
-    for (final p in _persyaratanAdministratif) {
-      add(
-        p['key'] ?? '',
-        p['label'] ?? '',
-        required: true,
-        section: p['section'] ?? 'a',
-        jenisBukti: 'administratif',
-      );
-    }
-    for (final p in _persyaratanDasar) {
-      final key = p['key'] ?? '';
-      final label = p['label'] ?? '';
-      final jenis = p['jenis_bukti'] ?? '';
-      final section = p['section'] ??
-          _sectionFromJenisBukti(jenis, key, label);
-      final mand = (p['mandatory'] ?? '').toLowerCase();
-      add(
-        key,
-        label,
-        required: mand == '1' || mand == 'true',
-        section: section,
-        jenisBukti: jenis,
-      );
-    }
-    for (final entry in _uploadedDocs.entries) {
-      if (entry.value == true && !seen.contains(entry.key)) {
-        add(
-          entry.key,
-          entry.key,
-          required: false,
-          section: _sectionFromJenisBukti('', entry.key, entry.key),
-        );
-      }
-    }
-    return docs;
-  }
 
   @override
   void dispose() {
-    _nikController.dispose();
-    _namaLengkapController.dispose();
-    _tempatLahirController.dispose();
-    _tanggalLahirController.dispose();
-    _alamatDomisiliController.dispose();
-    _noTelpController.dispose();
-    _emailController.dispose();
-    _namaSekolahController.dispose();
-    _jurusanController.dispose();
-    _namaPerusahaanController.dispose();
-    _jabatanController.dispose();
-    _alamatPerusahaanController.dispose();
-    _kodeposPerusahaanController.dispose();
-    _telpPerusahaanController.dispose();
-    _emailPerusahaanController.dispose();
+    nikController.dispose();
+    namaLengkapController.dispose();
+    tempatLahirController.dispose();
+    tanggalLahirController.dispose();
+    alamatDomisiliController.dispose();
+    noTelpController.dispose();
+    emailController.dispose();
+    namaSekolahController.dispose();
+    jurusanController.dispose();
+    namaPerusahaanController.dispose();
+    jabatanController.dispose();
+    alamatPerusahaanController.dispose();
+    kodeposPerusahaanController.dispose();
+    telpPerusahaanController.dispose();
+    emailPerusahaanController.dispose();
     super.dispose();
   }
 
-  // Get screen title based on current step
-  String get _appBarTitle {
-    switch (_currentStep) {
+
+  String get appBarTitle {
+    switch (currentStep) {
       case 0:
         return 'Pengajuan Sertifikat';
       case 1:
@@ -1041,680 +71,10 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       case 4:
         return 'Dokumen Portofolio';
       case 5:
-        return _activeUnitDetailIndex != null ? 'Detail Uji Kompetensi' : 'Asesmen Mandiri';
+        return activeUnitDetailIndex != null ? 'Detail Uji Kompetensi' : 'Asesmen Mandiri';
       default:
         return 'Pengajuan Sertifikat';
     }
-  }
-
-  Future<void> _navigateToBuktiPortofolio() async {
-    final ok = await _ensurePersyaratanLengkap(
-      contextLabel: 'ke Bukti Portofolio',
-    );
-    if (!ok) return;
-
-    var documents = _buildPortofolioDocuments();
-    if (_sertifikasiId != null) {
-      try {
-        final remote = await AsesiService.getPortofolioList(_sertifikasiId!);
-        if (remote.isNotEmpty) {
-          // Merge remote status into local section map (keep a/b/c separation)
-          final localByKey = {
-            for (final d in documents) (d['key']?.toString() ?? ''): d,
-          };
-          final merged = <Map<String, dynamic>>[];
-          final seen = <String>{};
-          for (final d in remote) {
-            final key = d['key']?.toString() ?? '';
-            if (key.isEmpty) continue;
-            seen.add(key);
-            final local = localByKey[key];
-            final section = (d['section']?.toString().isNotEmpty == true)
-                ? d['section'].toString()
-                : (local?['section']?.toString() ??
-                    _sectionFromJenisBukti(
-                      d['jenis_bukti']?.toString() ??
-                          local?['jenis_bukti']?.toString() ??
-                          '',
-                      key,
-                      d['label']?.toString() ?? key,
-                    ));
-            merged.add({
-              ...d,
-              'section': section,
-              'jenis_bukti': d['jenis_bukti'] ?? local?['jenis_bukti'] ?? '',
-              'label': (d['label']?.toString().isNotEmpty == true)
-                  ? d['label']
-                  : (local?['label'] ?? key),
-            });
-            final fn = d['file_name']?.toString();
-            final st = d['status']?.toString() ?? '';
-            if (fn != null && fn.isNotEmpty) {
-              _uploadedFileNames[key] = fn;
-              _uploadedDocs[key] = st != 'Belum Diunggah';
-            }
-          }
-          for (final d in documents) {
-            final key = d['key']?.toString() ?? '';
-            if (key.isEmpty || seen.contains(key)) continue;
-            merged.add(d);
-          }
-          documents = merged;
-        }
-      } catch (e) {
-        debugPrint('Error load portofolio list: $e');
-      }
-    }
-    if (!mounted) return;
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BuktiPortofolioScreen(
-          selectedSkema: _selectedSkema ?? '',
-          uploadedDocs: _uploadedDocs,
-          uploadedFileNames: _uploadedFileNames,
-          uploadedFilePaths: _uploadedFilePaths,
-          documents: documents,
-          onUploadChanged: (key, isUploaded, fileName, filePath) {
-            setState(() {
-              _uploadedDocs[key] = isUploaded;
-              _uploadedFileNames[key] = fileName;
-              if (filePath != null) {
-                _uploadedFilePaths[key] = filePath;
-              }
-            });
-          },
-        ),
-      ),
-    );
-    if (mounted) setState(() {});
-  }
-
-  /// FE pre-check: GET /api/sertifikasi/status — true jika sudah terdaftar di skema.
-  Future<bool> _isAlreadyRegisteredOnSkema(int skemaId) async {
-    if (skemaId <= 0) return false;
-    final token = await TokenStorage.instance.getAccessToken();
-    if (token == null || token.isEmpty || token.startsWith('fake-')) {
-      return false; // belum login → biar ensure-asesi dulu
-    }
-    final status = await AsesiService.getSertifikasiStatus(skemaId);
-    if (status == null) return false;
-    final terdaftar = status['terdaftar'] == true ||
-        status['terdaftar'] == 1 ||
-        status['terdaftar']?.toString() == 'true';
-    final st = (status['status_pendaftaran']?.toString() ?? '').toLowerCase();
-    if (terdaftar) return true;
-    if (st.isNotEmpty && st != 'belum_terdaftar') return true;
-    return false;
-  }
-
-  void _clearSkemaAndJadwal() {
-    _selectedSkemaId = null;
-    _selectedSkema = null;
-    _selectedJadwalId = null;
-    _masterJadwalList = [];
-    _selectedSumberAnggaranId = null;
-    _selectedPemberiAnggaranId = null;
-    _masterPemberiAnggaranList = [];
-    _clearUnitPersyaratan();
-  }
-
-  Future<void> _showAlreadyRegisteredWarning({
-    String? skemaName,
-    String? beMessage,
-  }) async {
-    if (!mounted) return;
-    final name = (skemaName ?? _selectedSkema ?? 'skema ini').trim();
-    final body = (beMessage != null && beMessage.trim().isNotEmpty)
-        ? beMessage.trim()
-        : 'Skema "$name" sudah terisi / sudah Anda daftarkan. '
-            'Silakan pilih skema lain untuk melanjutkan pendaftaran.';
-
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          backgroundColor: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFFF3E0),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.warning_amber_rounded,
-                      color: Color(0xFFF59E0B),
-                      size: 44,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Sudah Terdaftar',
-                  style: TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  body,
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF378CE7),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Mengerti',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    // Setelah warning: null-kan skema + kosongkan jadwal, jadwal tidak bisa dipilih
-    if (mounted) {
-      setState(_clearSkemaAndJadwal);
-    }
-  }
-
-  bool _isAlreadyRegisteredError(Object e) {
-    final msg = e.toString().toLowerCase();
-    return msg.contains('sudah terdaftar') ||
-        msg.contains('sudah lulus') ||
-        msg.contains('sertifikat masih berlaku') ||
-        msg.contains('tidak bisa daftar ulang') ||
-        msg.contains('pendaftaran ulang') ||
-        msg.contains('conflict') ||
-        msg.contains('409');
-  }
-
-  String _cleanErrorMessage(Object e) {
-    return e
-        .toString()
-        .replaceFirst(RegExp(r'^Exception:\s*'), '')
-        .replaceFirst(RegExp(r'^DioException.*?:\s*'), '')
-        .trim();
-  }
-
-  /// Missing mandatory uploads only (match web: admin default + mandatory DB).
-  List<String> _missingPersyaratanLabels() {
-    final missing = <String>[];
-    void check(List<Map<String, String>> items, {bool forceRequired = false}) {
-      for (final p in items) {
-        final key = p['key'] ?? '';
-        if (key.isEmpty) continue;
-        final mand = (p['mandatory'] ?? '').toLowerCase();
-        final required = forceRequired ||
-            mand == '1' ||
-            mand == 'true' ||
-            mand == 'yes';
-        if (!required) continue;
-        final ok = _uploadedDocs[key] == true &&
-            (_uploadedFilePaths[key]?.isNotEmpty == true ||
-                _uploadedFileNames[key]?.isNotEmpty == true);
-        if (!ok) missing.add(p['label'] ?? key);
-      }
-    }
-
-    // Administratif default (Pasfoto + KTP) always mandatory — same as web
-    check(_persyaratanAdministratif, forceRequired: true);
-    // Dasar: only when mandatory=1 from DB
-    check(_persyaratanDasar);
-    return missing;
-  }
-
-  Future<bool> _ensurePersyaratanLengkap({String contextLabel = 'persyaratan'}) async {
-    final missing = _missingPersyaratanLabels();
-    if (missing.isEmpty) return true;
-    if (!mounted) return false;
-    final list = missing.take(6).map((e) => '• $e').join('\n');
-    final more = missing.length > 6 ? '\n…dan ${missing.length - 6} lainnya' : '';
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          backgroundColor: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFFF3E0),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.warning_amber_rounded,
-                      color: Color(0xFFF59E0B),
-                      size: 44,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Persyaratan Belum Lengkap',
-                  style: TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Lengkapi dulu Persyaratan Dasar & Administratif sebelum melanjutkan $contextLabel.\n\nBelum diunggah:\n$list$more',
-                  style: const TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.left,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF378CE7),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Mengerti',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-    return false;
-  }
-
-  Future<void> _nextStep() async {
-    if (_currentStep < 5) {
-      // Step 0 → 1: warning FE jika skema sudah terdaftar (login asesi)
-      if (_currentStep == 0) {
-        final skemaId = _selectedSkemaId;
-        if (skemaId != null && skemaId > 0) {
-          final already = await _isAlreadyRegisteredOnSkema(skemaId);
-          if (already) {
-            await _showAlreadyRegisteredWarning();
-            return;
-          }
-        }
-      }
-      // Step 3 = Dokumen Persyaratan (Dasar + Administratif) harus lengkap
-      if (_currentStep == 3) {
-        final ok = await _ensurePersyaratanLengkap(
-          contextLabel: 'ke Dokumen Portofolio',
-        );
-        if (!ok) return;
-      }
-      final next = _currentStep + 1;
-      setState(() {
-        _currentStep = next;
-      });
-      // Ensure unit/elemen/KUK loaded when entering Dokumen Portofolio / Asesmen
-      if (next == 4 || next == 5) {
-        await _ensureKompetensiLoaded();
-      }
-    } else {
-      setState(() {
-        _isSubmitting = true;
-      });
-
-      try {
-        // Guard: persyaratan Dasar + Administratif harus lengkap sebelum submit
-        final reqOk = await _ensurePersyaratanLengkap(
-          contextLabel: 'submit pendaftaran',
-        );
-        if (!reqOk) {
-          if (mounted) setState(() => _isSubmitting = false);
-          return;
-        }
-
-        final skemaId = _selectedSkemaId;
-        final jadwalId = _selectedJadwalId;
-        if (skemaId == null || skemaId <= 0) {
-          throw Exception('Pilih skema sertifikasi terlebih dahulu.');
-        }
-        if (jadwalId == null || jadwalId <= 0) {
-          throw Exception('Pilih jadwal asesmen terlebih dahulu.');
-        }
-        final dataPribadi = _buildDataPribadiPayload();
-
-        // 0. Publik: ensure-asesi → token. Sudah login asesi: skip.
-        final fromPublicLogin = await _ensureAsesiSession(dataPribadi);
-
-        // 0b. FE pre-check status (setelah punya JWT) — dialog warning, jangan hanya andalkan BE 409
-        final already = await _isAlreadyRegisteredOnSkema(skemaId);
-        if (already) {
-          if (mounted) {
-            setState(() => _isSubmitting = false);
-          }
-          await _showAlreadyRegisteredWarning();
-          return;
-        }
-
-        // 1. Daftar (auth) — BE tolak jika sudah lulus / sudah terdaftar skema sama
-        final regRes = await AsesiService.daftarSertifikasi(
-          skemaId: skemaId,
-          jadwalId: jadwalId,
-          dataPribadi: dataPribadi,
-        );
-
-        if (regRes == null) {
-          throw Exception('Gagal melakukan pendaftaran sertifikasi.');
-        }
-
-        final sertifikasiId = regRes['sertifikasi_id'] ?? regRes['id'];
-        if (sertifikasiId == null) {
-          throw Exception('ID Sertifikasi tidak valid.');
-        }
-        final sertId = sertifikasiId is int
-            ? sertifikasiId
-            : int.parse(sertifikasiId.toString());
-        _sertifikasiId = sertId;
-
-        // 2. Upload persyaratan (key = slug from API, path = local file)
-        for (final entry in _uploadedFilePaths.entries) {
-          final docKey = entry.key;
-          final filePath = entry.value;
-          if (filePath != null &&
-              filePath.isNotEmpty &&
-              !filePath.startsWith('http')) {
-            final up = await AsesiService.uploadPortofolio(
-              sertId,
-              docKey,
-              filePath,
-            );
-            if (up == null) {
-              throw Exception(
-                'Gagal unggah dokumen "$docKey". Periksa file lalu coba lagi.',
-              );
-            }
-          }
-        }
-
-        // 3. Submit Pra-Asesmen (key: k:{id_kuk} | e:{id_elemen})
-        await _ensureKompetensiLoaded();
-        final List<Map<String, dynamic>> evaluasi = [];
-        _kukAssessments.forEach((key, isKompeten) {
-          if (isKompeten == null) return;
-          int idElemen = 0;
-          int idKuk = 0;
-          if (key.startsWith('k:')) {
-            idKuk = int.tryParse(key.substring(2)) ?? 0;
-          } else if (key.startsWith('e:')) {
-            idElemen = int.tryParse(key.substring(2)) ?? 0;
-          } else {
-            idElemen = int.tryParse(key) ?? 0;
-          }
-          if (idElemen <= 0 && idKuk <= 0) return;
-          // resolve id_elemen from nested units if only id_kuk
-          if (idElemen <= 0 && idKuk > 0) {
-            for (final u in _asesmenUnits) {
-              final groups = u['elemen'];
-              if (groups is! List) continue;
-              for (final g in groups) {
-                final items = g is Map ? g['items'] : null;
-                if (items is! List) continue;
-                for (final it in items) {
-                  if (it is Map && it['id_kuk'] == idKuk) {
-                    idElemen = it['id_elemen'] as int? ?? 0;
-                  }
-                }
-              }
-            }
-          }
-          final item = <String, dynamic>{
-            'id_elemen': idElemen,
-            'nilai': isKompeten == true ? 'K' : 'KB',
-          };
-          if (idKuk > 0) item['id_kuk'] = idKuk;
-          final bukti = _kukEvidence[key];
-          if (bukti != null && bukti.isNotEmpty) item['bukti'] = bukti;
-          evaluasi.add(item);
-        });
-
-        if (_kompetensiHasDetail && evaluasi.isEmpty) {
-          throw Exception(
-            'Lengkapi asesmen mandiri (evaluasi kompetensi) sebelum mengirim.',
-          );
-        }
-        if (evaluasi.isNotEmpty) {
-          final submitRes =
-              await AsesiService.submitPraAsesmen(skemaId, evaluasi);
-          if (!submitRes) {
-            throw Exception('Gagal submit evaluasi pra-asesmen.');
-          }
-        }
-
-        if (!mounted) return;
-
-        // Publik → asesi: freeze + restart Splash (clean shell, no weird guest UI)
-        if (fromPublicLogin) {
-          await _freezeAndRestartSplash(
-            message: 'Pendaftaran berhasil.\nMenyiapkan aplikasi sebagai Asesi…',
-          );
-          return;
-        }
-
-        _showSuccessDialog();
-      } catch (e) {
-        debugPrint('Error during submission flow: $e');
-        if (!mounted) return;
-        final clean = _cleanErrorMessage(e);
-        if (_isAlreadyRegisteredError(e)) {
-          setState(() => _isSubmitting = false);
-          await _showAlreadyRegisteredWarning(beMessage: clean);
-          return;
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(clean.isEmpty ? 'Terjadi kesalahan.' : clean),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isSubmitting = false;
-          });
-        }
-      }
-    }
-  }
-
-  void _previousStep() {
-    if (_currentStep == 5 && _activeUnitDetailIndex != null) {
-      setState(() {
-        _activeUnitDetailIndex = null;
-      });
-      return;
-    }
-    if (_currentStep > 0) {
-      setState(() {
-        _currentStep--;
-      });
-    } else {
-      Navigator.of(context).pop();
-    }
-  }
-
-  // ignore: unused_element
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline_rounded, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: const Color(0xFFEF5350),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          backgroundColor: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE8F5E9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.check_circle_rounded,
-                      color: Color(0xFF4CAF50),
-                      size: 44,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Pengajuan Berhasil',
-                  style: TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Pengajuan sertifikasi Anda telah berhasil dikirimkan ke pihak LSP untuk diverifikasi.',
-                  style: TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Dismiss Dialog
-                      // Rebuild shell as current role (asesi) — avoids stale guest tabs
-                      mainNavigatorKey = GlobalKey<MainNavigatorState>();
-                      Navigator.of(context, rootNavigator: true)
-                          .pushAndRemoveUntil(
-                        PageRouteBuilder(
-                          pageBuilder: (context, animation, secondaryAnimation) =>
-                              const SplashScreen(),
-                          transitionsBuilder:
-                              (context, animation, secondaryAnimation, child) {
-                            return FadeTransition(
-                              opacity: animation,
-                              child: child,
-                            );
-                          },
-                          transitionDuration: const Duration(milliseconds: 450),
-                        ),
-                        (_) => false,
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF378CE7),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Kembali ke Menu Utama',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -1730,9 +90,9 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       body: Column(
         children: [
           SizedBox(height: statusBarHeight + 8),
-          _buildAppBar(),
-          if (_currentStep != 5 || _activeUnitDetailIndex == null)
-            StepIndicator(currentStep: _currentStep),
+          buildAppBar(),
+          if (currentStep != 5 || activeUnitDetailIndex == null)
+            StepIndicator(currentStep: currentStep),
           Expanded(
             child: RepaintBoundary(
               child: SingleChildScrollView(
@@ -1751,156 +111,156 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                       ),
                     ],
                   ),
-                  child: _buildCurrentFormStep(),
+                  child: buildCurrentFormStep(),
                 ),
               ),
             ),
           ),
-          _buildBottomActionButtons(),
+          buildBottomActionButtons(),
         ],
       ),
     );
   }
 
-  Widget _buildAppBar() {
+  Widget buildAppBar() {
     return CustomAppBar(
-      title: _appBarTitle,
-      onBack: _previousStep,
+      title: appBarTitle,
+      onBack: previousStep,
     );
   }
 
-  Widget _buildCurrentFormStep() {
-    switch (_currentStep) {
+  Widget buildCurrentFormStep() {
+    switch (currentStep) {
       case 0:
         return DataPengajuanForm(
-          selectedSkema: _selectedSkemaId,
-          selectedJadwal: _selectedJadwalId,
-          selectedSumberAnggaran: _selectedSumberAnggaranId,
-          selectedPemberiAnggaran: _selectedPemberiAnggaranId,
-          listSkema: _masterSkemaList,
-          listJadwal: _masterJadwalList,
-          listSumberAnggaran: _masterSumberAnggaranList,
-          listPemberiAnggaran: _masterPemberiAnggaranList,
-          isLoadingSkema: _isLoadingSkema,
-          isLoadingJadwal: _isLoadingJadwal,
-          isLoadingSumberAnggaran: _isLoadingSumberAnggaran,
-          isLoadingPemberiAnggaran: _isLoadingPemberiAnggaran,
+          selectedSkema: selectedSkemaId,
+          selectedJadwal: selectedJadwalId,
+          selectedSumberAnggaran: selectedSumberAnggaranId,
+          selectedPemberiAnggaran: selectedPemberiAnggaranId,
+          listSkema: masterSkemaList,
+          listJadwal: masterJadwalList,
+          listSumberAnggaran: masterSumberAnggaranList,
+          listPemberiAnggaran: masterPemberiAnggaranList,
+          isLoadingSkema: isLoadingSkema,
+          isLoadingJadwal: isLoadingJadwal,
+          isLoadingSumberAnggaran: isLoadingSumberAnggaran,
+          isLoadingPemberiAnggaran: isLoadingPemberiAnggaran,
           onSkemaChanged: (val) async {
             String? skemaName;
             setState(() {
-              _selectedSkemaId = val;
-              _selectedJadwalId = null;
-              _masterJadwalList = [];
+              selectedSkemaId = val;
+              selectedJadwalId = null;
+              masterJadwalList = [];
               if (val != null) {
                 try {
                   final selected =
-                      _masterSkemaList.firstWhere((item) => item.id == val);
-                  _selectedSkema = selected.namaSkema;
+                      masterSkemaList.firstWhere((item) => item.id == val);
+                  selectedSkema = selected.namaSkema;
                   skemaName = selected.namaSkema;
                 } catch (_) {
-                  _selectedSkema = null;
+                  selectedSkema = null;
                 }
-                _clearUnitPersyaratan();
+                clearUnitPersyaratan();
               } else {
-                _selectedSkema = null;
-                _clearUnitPersyaratan();
+                selectedSkema = null;
+                clearUnitPersyaratan();
               }
             });
             // Warning FE saat pilih skema (jika sudah login asesi)
             if (val != null && val > 0) {
-              final already = await _isAlreadyRegisteredOnSkema(val);
+              final already = await isAlreadyRegisteredOnSkema(val);
               if (already && mounted) {
-                await _showAlreadyRegisteredWarning(skemaName: skemaName);
+                await showAlreadyRegisteredWarning(skemaName: skemaName);
                 return; // skema/jadwal sudah di-reset di warning
               }
             }
-            if (val != null && mounted && _selectedSkemaId == val) {
-              _fetchMasterJadwal(val);
-              _fetchSkemaUnitPersyaratan(val);
+            if (val != null && mounted && selectedSkemaId == val) {
+              fetchMasterJadwal(val);
+              fetchSkemaUnitPersyaratan(val);
             }
           },
           onJadwalChanged: (val) {
             // Larang pilih jadwal jika skema belum valid
-            if (_selectedSkemaId == null) return;
+            if (selectedSkemaId == null) return;
             setState(() {
-              _selectedJadwalId = val;
+              selectedJadwalId = val;
             });
           },
           onSumberAnggaranChanged: (val) {
             setState(() {
-              _selectedSumberAnggaranId = val;
-              _selectedPemberiAnggaranId = null;
-              _masterPemberiAnggaranList = [];
+              selectedSumberAnggaranId = val;
+              selectedPemberiAnggaranId = null;
+              masterPemberiAnggaranList = [];
             });
             if (val != null) {
-              _fetchMasterPemberiAnggaran(val);
+              fetchMasterPemberiAnggaran(val);
             }
           },
           onPemberiAnggaranChanged: (val) {
             setState(() {
-              _selectedPemberiAnggaranId = val;
+              selectedPemberiAnggaranId = val;
             });
           },
         );
       case 1:
         return DataPribadiForm(
-          nikController: _nikController,
-          namaLengkapController: _namaLengkapController,
-          jenisKelamin: _jenisKelamin,
-          tempatLahirController: _tempatLahirController,
-          tanggalLahirController: _tanggalLahirController,
-          alamatDomisiliController: _alamatDomisiliController,
-          selectedProvinsi: _selectedProvinsi,
-          selectedKota: _selectedKota,
-          selectedKecamatan: _selectedKecamatan,
-          noTelpController: _noTelpController,
-          emailController: _emailController,
-          selectedPendidikanId: _selectedPendidikanId,
-          namaSekolahController: _namaSekolahController,
-          jurusanController: _jurusanController,
-          listProvinsi: _listProvinsi,
-          listKabupaten: _listKabupaten,
-          listKecamatan: _listKecamatan,
-          listPendidikan: _listPendidikan,
-          isLoadingProvinsi: _isLoadingProvinsi,
-          isLoadingKabupaten: _isLoadingKabupaten,
-          isLoadingKecamatan: _isLoadingKecamatan,
-          isLoadingPendidikan: _isLoadingPendidikan,
+          nikController: nikController,
+          namaLengkapController: namaLengkapController,
+          jenisKelamin: jenisKelamin,
+          tempatLahirController: tempatLahirController,
+          tanggalLahirController: tanggalLahirController,
+          alamatDomisiliController: alamatDomisiliController,
+          selectedProvinsi: selectedProvinsi,
+          selectedKota: selectedKota,
+          selectedKecamatan: selectedKecamatan,
+          noTelpController: noTelpController,
+          emailController: emailController,
+          selectedPendidikanId: selectedPendidikanId,
+          namaSekolahController: namaSekolahController,
+          jurusanController: jurusanController,
+          listProvinsi: listProvinsi,
+          listKabupaten: listKabupaten,
+          listKecamatan: listKecamatan,
+          listPendidikan: listPendidikan,
+          isLoadingProvinsi: isLoadingProvinsi,
+          isLoadingKabupaten: isLoadingKabupaten,
+          isLoadingKecamatan: isLoadingKecamatan,
+          isLoadingPendidikan: isLoadingPendidikan,
           onJenisKelaminChanged: (val) {
             setState(() {
-              _jenisKelamin = val!;
+              jenisKelamin = val!;
             });
           },
           onProvinsiChanged: (val) {
             setState(() {
-              _selectedProvinsi = val;
-              _selectedKota = null;
-              _selectedKecamatan = null;
-              _listKabupaten = [];
-              _listKecamatan = [];
+              selectedProvinsi = val;
+              selectedKota = null;
+              selectedKecamatan = null;
+              listKabupaten = [];
+              listKecamatan = [];
             });
             if (val != null) {
-              _fetchKabupaten(val);
+              fetchKabupaten(val);
             }
           },
           onKotaChanged: (val) {
             setState(() {
-              _selectedKota = val;
-              _selectedKecamatan = null;
-              _listKecamatan = [];
+              selectedKota = val;
+              selectedKecamatan = null;
+              listKecamatan = [];
             });
             if (val != null) {
-              _fetchKecamatan(val);
+              fetchKecamatan(val);
             }
           },
           onKecamatanChanged: (val) {
             setState(() {
-              _selectedKecamatan = val;
+              selectedKecamatan = val;
             });
           },
           onPendidikanChanged: (val) {
             setState(() {
-              _selectedPendidikanId = val;
+              selectedPendidikanId = val;
             });
           },
           onTanggalLahirTap: () async {
@@ -1912,7 +272,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             );
             if (pickedDate != null) {
               setState(() {
-                _tanggalLahirController.text =
+                tanggalLahirController.text =
                     "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
               });
             }
@@ -1920,56 +280,56 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         );
       case 2:
         return DataPekerjaanForm(
-          selectedPekerjaanId: _selectedPekerjaanId,
-          listPekerjaan: _listPekerjaan,
-          isLoadingPekerjaan: _isLoadingPekerjaan,
-          namaPerusahaanController: _namaPerusahaanController,
-          jabatanController: _jabatanController,
-          alamatPerusahaanController: _alamatPerusahaanController,
-          kodeposPerusahaanController: _kodeposPerusahaanController,
-          telpPerusahaanController: _telpPerusahaanController,
-          emailPerusahaanController: _emailPerusahaanController,
+          selectedPekerjaanId: selectedPekerjaanId,
+          listPekerjaan: listPekerjaan,
+          isLoadingPekerjaan: isLoadingPekerjaan,
+          namaPerusahaanController: namaPerusahaanController,
+          jabatanController: jabatanController,
+          alamatPerusahaanController: alamatPerusahaanController,
+          kodeposPerusahaanController: kodeposPerusahaanController,
+          telpPerusahaanController: telpPerusahaanController,
+          emailPerusahaanController: emailPerusahaanController,
           onPekerjaanChanged: (val) {
             setState(() {
-              _selectedPekerjaanId = val;
+              selectedPekerjaanId = val;
             });
           },
         );
       case 3:
         return DokumenPersyaratanForm(
-          selectedSkema: _selectedSkema ?? 'Pilih skema dulu',
-          unitKompetensi: _cachedUnitKompetensi,
-          persyaratanDasar: _persyaratanDasar,
-          persyaratanAdministratif: _persyaratanAdministratif,
-          isLoading: _isLoadingUnitPersyaratan,
-          uploadedDocs: _uploadedDocs,
-          uploadedFileNames: _uploadedFileNames,
-          onUploadChanged: _onPersyaratanUpload,
+          selectedSkema: selectedSkema ?? 'Pilih skema dulu',
+          unitKompetensi: cachedUnitKompetensi,
+          persyaratanDasar: persyaratanDasar,
+          persyaratanAdministratif: persyaratanAdministratif,
+          isLoading: isLoadingUnitPersyaratan,
+          uploadedDocs: uploadedDocs,
+          uploadedFileNames: uploadedFileNames,
+          onUploadChanged: onPersyaratanUpload,
         );
       case 4:
         return DokumenPortofolioForm(
-          selectedSkema: _selectedSkema ?? '',
-          unitKompetensi: _asesmenUnits,
-          isLoading: _isLoadingKompetensi,
-          onBuktiTap: _navigateToBuktiPortofolio,
+          selectedSkema: selectedSkema ?? '',
+          unitKompetensi: asesmenUnits,
+          isLoading: isLoadingKompetensi,
+          onBuktiTap: navigateToBuktiPortofolio,
           onUnitTap: () async {
             final completed = await Navigator.push<bool>(
               context,
               MaterialPageRoute(
                 builder: (context) => AsesmenMandiriUjiScreen(
-                  selectedSkema: _selectedSkema ?? '',
-                  unitKompetensi: _asesmenUnits,
-                  uploadedFileNames: _uploadedFileNames,
-                  kukAssessments: _kukAssessments,
-                  kukEvidence: _kukEvidence,
+                  selectedSkema: selectedSkema ?? '',
+                  unitKompetensi: asesmenUnits,
+                  uploadedFileNames: uploadedFileNames,
+                  kukAssessments: kukAssessments,
+                  kukEvidence: kukEvidence,
                   onAssessmentChanged: (elemenKey, isK) {
                     setState(() {
-                      _kukAssessments[elemenKey] = isK;
+                      kukAssessments[elemenKey] = isK;
                     });
                   },
                   onEvidenceChanged: (elemenKey, fileName) {
                     setState(() {
-                      _kukEvidence[elemenKey] = fileName;
+                      kukEvidence[elemenKey] = fileName;
                     });
                   },
                 ),
@@ -1977,15 +337,15 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             );
             if (completed == true) {
               setState(() {
-                _currentStep = 5;
+                currentStep = 5;
               });
             }
           },
         );
       case 5:
-        if (_activeUnitDetailIndex != null &&
-            _activeUnitDetailIndex! < _asesmenUnits.length) {
-          final unit = _asesmenUnits[_activeUnitDetailIndex!];
+        if (activeUnitDetailIndex != null &&
+            activeUnitDetailIndex! < asesmenUnits.length) {
+          final unit = asesmenUnits[activeUnitDetailIndex!];
           final String kode = unit['kode'] as String? ?? '';
           final String judul = unit['judul'] as String? ?? '';
           final elemenRaw = unit['elemen'];
@@ -2004,50 +364,50 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
             unitJudul: judul,
             kukCount: kukCount,
             elemenGroups: elemenGroups,
-            uploadedFileNames: _uploadedFileNames,
-            kukAssessments: _kukAssessments,
-            kukEvidence: _kukEvidence,
+            uploadedFileNames: uploadedFileNames,
+            kukAssessments: kukAssessments,
+            kukEvidence: kukEvidence,
             onAssessmentChanged: (elemenKey, isK) {
               setState(() {
-                _kukAssessments[elemenKey] = isK;
+                kukAssessments[elemenKey] = isK;
               });
             },
             onEvidenceChanged: (elemenKey, fileName) {
               setState(() {
-                _kukEvidence[elemenKey] = fileName;
+                kukEvidence[elemenKey] = fileName;
               });
             },
             onKembali: () {
               setState(() {
-                _activeUnitDetailIndex = null;
+                activeUnitDetailIndex = null;
               });
             },
             onSelesai: () {
               setState(() {
-                _activeUnitDetailIndex = null;
+                activeUnitDetailIndex = null;
               });
             },
           );
         }
 
         return AsesmenMandiriForm(
-          selectedSkema: _selectedSkema ?? '',
-          unitKompetensi: _asesmenUnits,
-          isLoading: _isLoadingKompetensi,
+          selectedSkema: selectedSkema ?? '',
+          unitKompetensi: asesmenUnits,
+          isLoading: isLoadingKompetensi,
           onUnitTap: (index) {
             setState(() {
-              _activeUnitDetailIndex = index;
+              activeUnitDetailIndex = index;
             });
           },
-          onBuktiTap: _navigateToBuktiPortofolio,
+          onBuktiTap: navigateToBuktiPortofolio,
         );
       default:
         return Container();
     }
   }
 
-  Widget _buildBottomActionButtons() {
-    if (_currentStep == 5 && _activeUnitDetailIndex != null) {
+  Widget buildBottomActionButtons() {
+    if (currentStep == 5 && activeUnitDetailIndex != null) {
       return Container(
         color: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -2062,7 +422,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () {
                       setState(() {
-                        _activeUnitDetailIndex = null;
+                        activeUnitDetailIndex = null;
                       });
                     },
                     icon: const Icon(Icons.arrow_back_rounded, size: 18),
@@ -2092,7 +452,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        _activeUnitDetailIndex = null;
+                        activeUnitDetailIndex = null;
                       });
                     },
                     style: ElevatedButton.styleFrom(
@@ -2126,7 +486,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
       );
     }
 
-    final bool isStep4 = _currentStep == 4;
+    final bool isStep4 = currentStep == 4;
 
     return Container(
       color: Colors.white,
@@ -2135,13 +495,13 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
         top: false,
         child: Row(
           children: [
-            if (_currentStep > 0) ...[
+            if (currentStep > 0) ...[
               Expanded(
                 flex: 2,
                 child: SizedBox(
                   height: 48,
                   child: OutlinedButton.icon(
-                    onPressed: _previousStep,
+                    onPressed: previousStep,
                     icon: const Icon(Icons.arrow_back_rounded, size: 18),
                     label: const Text(
                       'Kembali',
@@ -2163,13 +523,13 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
               ),
             ],
             if (!isStep4) ...[
-              if (_currentStep > 0) const SizedBox(width: 16),
+              if (currentStep > 0) const SizedBox(width: 16),
               Expanded(
                 flex: 3,
                 child: SizedBox(
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _isSubmitting ? null : _nextStep,
+                    onPressed: isSubmitting ? null : nextStep,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF378CE7),
                       foregroundColor: Colors.white,
@@ -2178,7 +538,7 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: _isSubmitting
+                    child: isSubmitting
                         ? const SizedBox(
                             width: 20,
                             height: 20,
@@ -2191,13 +551,13 @@ class _PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                _currentStep == 5 ? 'Kirim Pengajuan' : 'Selanjutnya',
+                                currentStep == 5 ? 'Kirim Pengajuan' : 'Selanjutnya',
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              if (_currentStep < 5) ...[
+                              if (currentStep < 5) ...[
                                 const SizedBox(width: 8),
                                 const Icon(Icons.arrow_forward_rounded, size: 18),
                               ],

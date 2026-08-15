@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../services/asesor/asesor_service.dart';
@@ -11,6 +10,8 @@ import '../../core/navigation/main_navigator.dart' show mainNavigatorKey;
 
 import '../../widgets/penugasan/feedback_dialog.dart';
 import '../../widgets/penugasan/participant_widgets.dart';
+import '../../widgets/penugasan/file_upload_sheet.dart';
+import '../../widgets/penugasan/buat_laporan_steps.dart';
 
 class BuatLaporanScreen extends StatefulWidget {
   const BuatLaporanScreen({super.key});
@@ -75,628 +76,49 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
       return (url != null && url.isNotEmpty) ? url : null;
     }
 
-    showFeedbackDialog(context, 
+    showFeedbackDialog(context,
       isSuccess: false,
       message: 'Ada Kesalahan, Periksa Kembali Dokumen Anda',
     );
     return null;
   }
 
-  void _pickSuratTugas() {
-    String? tempFileName = _uploadedFileName;
-    String? tempFilePath;
-    String? tempFileSize;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.72,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              padding: const EdgeInsets.only(
-                top: 14,
-                left: 20,
-                right: 20,
-                bottom: 24,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  const Text(
-                    'Upload Surat Tugas',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                  const Divider(height: 24, color: Color(0xFFE2E8F0)),
-
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.description_outlined,
-                          color: Color(0xFF3B82F6),
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Berkas Surat Tugas',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F172A),
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Upload file PDF Surat Tugas resmi dari lembaga Anda.',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF64748B),
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.cloud_upload_outlined,
-                            size: 72,
-                            color: Color(0xFF2563EB),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            tempFileName ?? 'Tidak ada file terpilih',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: tempFileName != null
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: tempFileName != null
-                                  ? const Color(0xFF0F172A)
-                                  : const Color(0xFF64748B),
-                            ),
-                          ),
-                          if (tempFileName != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              tempFileSize ?? '',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () async {
-                              try {
-                                final result = await FilePicker.pickFiles(
-                                  type: FileType.custom,
-                                  allowedExtensions: ['pdf'],
-                                );
-                                if (result != null && result.files.isNotEmpty) {
-                                  final file = result.files.first;
-                                  if (file.path == null || file.path!.isEmpty) {
-                                    return;
-                                  }
-                                  setSheetState(() {
-                                    tempFileName = file.name;
-                                    tempFilePath = file.path;
-                                    final double kb = file.size / 1024;
-                                    final double mb = kb / 1024;
-                                    tempFileSize = mb >= 1
-                                        ? '${mb.toStringAsFixed(1)} MB'
-                                        : '${kb.toStringAsFixed(1)} KB';
-                                  });
-                                }
-                              } catch (e) {
-                                debugPrint('Error picking file: $e');
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF54A0EB),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: Text(
-                              tempFileName == null
-                                  ? 'Pilih File'
-                                  : 'Ganti File',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.info_outline_rounded,
-                        color: Color(0xFFF59E0B),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      const Expanded(
-                        child: Text(
-                          'Format : PDF. Maksimal 5MB',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF64748B),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      if (tempFileName != null)
-                        TextButton(
-                          onPressed: () {
-                            setSheetState(() {
-                              tempFileName = null;
-                              tempFilePath = null;
-                              tempFileSize = null;
-                            });
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text(
-                            'Hapus',
-                            style: TextStyle(
-                              color: Color(0xFFEF4444),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFE2E8F0),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: const Text(
-                              'Batal',
-                              style: TextStyle(
-                                color: Color(0xFF64748B),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: tempFilePath == null
-                                ? null
-                                : () async {
-                                    final name = tempFileName!;
-                                    final path = tempFilePath!;
-                                    Navigator.pop(context);
-                                    final url = await _uploadFileToApi(path);
-                                    if (!mounted || url == null) return;
-                                    setState(() {
-                                      _uploadedFileName = name;
-                                      _uploadedFileUrl = url;
-                                    });
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF54A0EB),
-                              disabledBackgroundColor: const Color(0xFF93C5FD),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: const Text(
-                              'Upload',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+  Future<void> _pickSuratTugas() async {
+    final result = await showFileUploadSheet(
+      context,
+      title: 'Upload Surat Tugas',
+      descriptionLabel: 'Berkas Surat Tugas',
+      descriptionText:
+          'Upload file PDF Surat Tugas resmi dari lembaga Anda.',
+      allowedExtensions: const ['pdf'],
+      formatInfo: 'Format : PDF. Maksimal 5MB',
+      initialFileName: _uploadedFileName,
     );
+    if (result == null || !mounted) return;
+    final url = await _uploadFileToApi(result.path);
+    if (!mounted || url == null) return;
+    setState(() {
+      _uploadedFileName = result.name;
+      _uploadedFileUrl = url;
+    });
   }
 
-  void _pickLampiran() {
-    String? tempFileName;
-    String? tempFilePath;
-    String? tempFileSize;
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.72,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              padding: const EdgeInsets.only(
-                top: 14,
-                left: 20,
-                right: 20,
-                bottom: 24,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  const Text(
-                    'Upload Lampiran Pendukung',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                  const Divider(height: 24, color: Color(0xFFE2E8F0)),
-
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.description_outlined,
-                          color: Color(0xFF3B82F6),
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Dokumen Lampiran',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0F172A),
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Upload berkas atau dokumen pendukung tambahan (opsional).',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF64748B),
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.cloud_upload_outlined,
-                            size: 72,
-                            color: Color(0xFF2563EB),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            tempFileName ?? 'Tidak ada file terpilih',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: tempFileName != null
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: tempFileName != null
-                                  ? const Color(0xFF0F172A)
-                                  : const Color(0xFF64748B),
-                            ),
-                          ),
-                          if (tempFileName != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              tempFileSize ?? '',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () async {
-                              try {
-                                final result = await FilePicker.pickFiles(
-                                  type: FileType.custom,
-                                  allowedExtensions: [
-                                    'pdf',
-                                    'jpg',
-                                    'jpeg',
-                                    'png',
-                                  ],
-                                );
-                                if (result != null && result.files.isNotEmpty) {
-                                  final file = result.files.first;
-                                  if (file.path == null || file.path!.isEmpty) {
-                                    return;
-                                  }
-                                  setSheetState(() {
-                                    tempFileName = file.name;
-                                    tempFilePath = file.path;
-                                    final double kb = file.size / 1024;
-                                    final double mb = kb / 1024;
-                                    tempFileSize = mb >= 1
-                                        ? '${mb.toStringAsFixed(1)} MB'
-                                        : '${kb.toStringAsFixed(1)} KB';
-                                  });
-                                }
-                              } catch (e) {
-                                debugPrint('Error picking file: $e');
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF54A0EB),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: Text(
-                              tempFileName == null
-                                  ? 'Pilih File'
-                                  : 'Ganti File',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.info_outline_rounded,
-                        color: Color(0xFFF59E0B),
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      const Expanded(
-                        child: Text(
-                          'Format : PDF, JPG, PNG. Maksimal 5MB',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF64748B),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      if (tempFileName != null)
-                        TextButton(
-                          onPressed: () {
-                            setSheetState(() {
-                              tempFileName = null;
-                              tempFilePath = null;
-                              tempFileSize = null;
-                            });
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text(
-                            'Hapus',
-                            style: TextStyle(
-                              color: Color(0xFFEF4444),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFE2E8F0),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: const Text(
-                              'Batal',
-                              style: TextStyle(
-                                color: Color(0xFF64748B),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: tempFilePath == null
-                                ? null
-                                : () async {
-                                    final path = tempFilePath!;
-                                    Navigator.pop(context);
-                                    final url = await _uploadFileToApi(path);
-                                    if (!mounted || url == null) return;
-                                    setState(() {
-                                      _attachments.add(url);
-                                    });
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF54A0EB),
-                              disabledBackgroundColor: const Color(0xFF93C5FD),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: const Text(
-                              'Upload',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+  Future<void> _pickLampiran() async {
+    final result = await showFileUploadSheet(
+      context,
+      title: 'Upload Lampiran Pendukung',
+      descriptionLabel: 'Dokumen Lampiran',
+      descriptionText:
+          'Upload berkas atau dokumen pendukung tambahan (opsional).',
+      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+      formatInfo: 'Format : PDF, JPG, PNG. Maksimal 5MB',
     );
+    if (result == null || !mounted) return;
+    final url = await _uploadFileToApi(result.path);
+    if (!mounted || url == null) return;
+    setState(() {
+      _attachments.add(url);
+    });
   }
 
   // API State fields
@@ -713,7 +135,6 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   bool _isSubmitting = false;
 
   // Step 2 State
-  String _searchQuery = '';
   Timer? _searchDebounce;
   final _searchController = TextEditingController();
   final List<ParticipantItem> _participants = [];
@@ -886,7 +307,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
 
   void _submitLaporan() async {
     if (_uploadedFileUrl == null || _uploadedFileUrl!.isEmpty) {
-      showFeedbackDialog(context, 
+      showFeedbackDialog(context,
         isSuccess: false,
         message: 'Ada Kesalahan, Periksa Kembali Dokumen Anda',
       );
@@ -926,7 +347,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
     });
 
     if (response != null) {
-      showFeedbackDialog(context, 
+      showFeedbackDialog(context,
         isSuccess: true,
         message: 'Laporan Tugas Berhasil Dibuat',
         onConfirm: () {
@@ -935,7 +356,7 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
         },
       );
     } else {
-      showFeedbackDialog(context, 
+      showFeedbackDialog(context,
         isSuccess: false,
         message: 'Ada Kesalahan, Periksa Kembali Dokumen Anda',
       );
@@ -1155,888 +576,96 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
   Widget _buildCurrentStepContent() {
     switch (_currentStep) {
       case 1:
-        return _buildStep1();
+        return BuatLaporanStep1Form(
+          formKey: _formKeyStep1,
+          nameController: _nameController,
+          linkController: _linkController,
+          selectedSkema: _selectedSkema,
+          selectedDate: _selectedDate,
+          uploadedFileName: _uploadedFileName,
+          onSelectSkema: _selectSkema,
+          onPickSuratTugas: _pickSuratTugas,
+          onDatePicked: (picked) {
+            final monthNames = [
+              'Januari',
+              'Februari',
+              'Maret',
+              'April',
+              'Mei',
+              'Juni',
+              'Juli',
+              'Agustus',
+              'September',
+              'Oktober',
+              'November',
+              'Desember',
+            ];
+            setState(() {
+              _selectedDate =
+                  '${picked.day} ${monthNames[picked.month - 1]} ${picked.year}';
+            });
+          },
+          onLinkChanged: (val) {
+            setState(() {});
+          },
+        );
       case 2:
-        return _buildStep2();
+        return BuatLaporanStep2Form(
+          participants: _participants,
+          selectedSkema: _selectedSkema,
+          searchController: _searchController,
+          onSearchChanged: (val) {
+            setState(() {});
+          },
+        );
       case 3:
-        return _buildStep3();
+        return BuatLaporanStep3Form(
+          participants: _participants,
+          allKSelected: _allKSelected,
+          allTKSelected: _allTKSelected,
+          onBulkK: () {
+            setState(() {
+              _allKSelected = !_allKSelected;
+              _allTKSelected = false;
+              for (var p in _participants) {
+                p.isCompetent = _allKSelected;
+              }
+            });
+          },
+          onBulkTK: () {
+            setState(() {
+              _allTKSelected = !_allTKSelected;
+              _allKSelected = false;
+              for (var p in _participants) {
+                p.isCompetent = !_allTKSelected;
+              }
+            });
+          },
+          onCompetenceChanged: (bool isCompetent) {
+            final newAllK = _participants.every((p) => p.isCompetent);
+            final newAllTK = _participants.every((p) => !p.isCompetent);
+            if (newAllK != _allKSelected || newAllTK != _allTKSelected) {
+              setState(() {
+                _allKSelected = newAllK;
+                _allTKSelected = newAllTK;
+              });
+            }
+          },
+        );
       case 4:
-        return _buildStep4();
+        return BuatLaporanStep4Form(
+          notesController: _notesController,
+          isUploadingAttachment: _isUploadingAttachment,
+          attachments: _attachments,
+          onPickLampiran: _pickLampiran,
+          onRemoveAttachment: (idx) {
+            setState(() {
+              _attachments.removeAt(idx);
+            });
+          },
+        );
       default:
         return const SizedBox.shrink();
     }
   }
-
-  // ================= STEP 1: General Info =================
-  Widget _buildStep1() {
-    return Form(
-      key: _formKeyStep1,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Nama Lengkap
-          const Text(
-            'Nama Lengkap',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _nameController,
-            decoration: InputDecoration(
-              hintText: 'Masukan nama lengkap anda',
-              fillColor: Colors.white,
-              filled: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Nama lengkap tidak boleh kosong';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
-
-          // Skema Sertifikasi
-          const Text(
-            'Skema Sertifikasi (TUK)',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 8),
-          GestureDetector(
-            onTap: _selectSkema,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      _selectedSkema,
-                      style: const TextStyle(
-                        color: Color(0xFF1E293B),
-                        fontSize: 14,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: Color(0xFF94A3B8),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Tanggal Pelaksanaan
-          Row(
-            children: const [
-              Icon(
-                Icons.calendar_today_outlined,
-                size: 16,
-                color: Color(0xFF64748B),
-              ),
-              SizedBox(width: 6),
-              Text(
-                'Tanggal Pelaksanaan',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          GestureDetector(
-            onTap: () async {
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2020),
-                lastDate: DateTime(2030),
-              );
-              if (picked != null) {
-                setState(() {
-                  final monthNames = [
-                    'Januari',
-                    'Februari',
-                    'Maret',
-                    'April',
-                    'Mei',
-                    'Juni',
-                    'Juli',
-                    'Agustus',
-                    'September',
-                    'Oktober',
-                    'November',
-                    'Desember',
-                  ];
-                  _selectedDate =
-                      '${picked.day} ${monthNames[picked.month - 1]} ${picked.year}';
-                });
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _selectedDate.isEmpty ? 'Pilih tanggal' : _selectedDate,
-                    style: TextStyle(
-                      color: _selectedDate.isEmpty
-                          ? const Color(0xFF94A3B8)
-                          : const Color(0xFF1E293B),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Unggah Surat Tugas
-          const Text(
-            'Unggah Surat Tugas',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 8),
-          InkWell(
-            onTap: _pickSuratTugas,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _uploadedFileName ?? 'Pilih Surat Tugas',
-                    style: TextStyle(
-                      color: _uploadedFileName != null
-                          ? const Color(0xFF1E293B)
-                          : const Color(0xFF94A3B8),
-                      fontSize: 14,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.cloud_upload_outlined,
-                    color: Color(0xFF94A3B8),
-                    size: 20,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Surat tugas harus PDF minimal 2 mb.',
-            style: TextStyle(
-              color: Color(0xFF0D9488),
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Link Dokumentasi
-          const Text(
-            'Link Dokumentasi',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _linkController,
-            onChanged: (val) {
-              setState(() {});
-            },
-            style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
-            decoration: InputDecoration(
-              hintText: 'Unggah link dokumentasi',
-              hintStyle: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF94A3B8),
-              ),
-              fillColor: Colors.white,
-              filled: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-            ),
-          ),
-          if (_linkController.text.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Membuka ${_linkController.text}...'),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    '🔗 ${_linkController.text}',
-                    style: const TextStyle(
-                      color: Color(0xFF2563EB),
-                      decoration: TextDecoration.underline,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ),
-          ],
-          const SizedBox(height: 6),
-          const Text(
-            'Bukti dokumentasi berupa link video/foto.',
-            style: TextStyle(
-              color: Color(0xFF0D9488),
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ================= STEP 2: Attendance =================
-  Widget _buildStep2() {
-    final filtered = _participants.where((p) {
-      if (_searchQuery.isEmpty) return true;
-      return p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          p.nim.contains(_searchQuery);
-    }).toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Total Asessi Card
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFBFDBFE), // Soft blue
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.people_alt_rounded,
-                  color: Color(0xFF2563EB),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Total Asessi Skema $_selectedSkema',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${_participants.length} Asessi',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Search Bar
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: TextFormField(
-            controller: _searchController,
-            onChanged: (val) {
-              _searchDebounce?.cancel();
-              _searchDebounce = Timer(const Duration(milliseconds: 300), () {
-                if (!mounted) return;
-                setState(() {
-                  _searchQuery = val;
-                });
-              });
-            },
-            decoration: const InputDecoration(
-              hintText: 'Cari nama/NIM peserta',
-              hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-              prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8)),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Custom Attendance Table
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Column(
-            children: [
-              // Table Header
-              Container(
-                color: const Color(
-                  0xFFDBEAFE,
-                ), // Light blue header row background
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                child: Row(
-                  children: const [
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Nama Asessi',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'NIM',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 80,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          'Kehadiran',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1, color: Color(0xFFE2E8F0)),
-
-              // Table Body Rows
-              ...filtered.map((participant) {
-                return AttendanceRow(
-                  key: ValueKey(participant.nim),
-                  participant: participant,
-                );
-              }),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ================= STEP 3: Assessment Decision =================
-  Widget _buildStep3() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Info Instruction Card
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Penilaian Asessi',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Tugas yang diberikan assessor dikerjakan dengan baik, Tingkat kehadiran tidak absen, dan asessi mengerjakan tugas secara mandiri.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF64748B),
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: const [
-                  Text(
-                    '> ',
-                    style: TextStyle(
-                      color: Color(0xFF0F766E),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  Text(
-                    'Kompeten [K]',
-                    style: TextStyle(
-                      color: Color(0xFF0F766E),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: const [
-                  Text(
-                    '> ',
-                    style: TextStyle(
-                      color: Color(0xFFBE123C),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  Text(
-                    'Tidak Kompeten [TK]',
-                    style: TextStyle(
-                      color: Color(0xFFBE123C),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Bulk Selection Header Card (Mobile First style)
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12.0),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'PILIHAN MASSAL (BULK ACTION)',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF64748B),
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 38,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: _allKSelected
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFFCBD5E1),
-                          ),
-                          backgroundColor: _allKSelected
-                              ? const Color(0xFFECFDF5)
-                              : Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          foregroundColor: _allKSelected
-                              ? const Color(0xFF047857)
-                              : const Color(0xFF475569),
-                          padding: EdgeInsets.zero,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _allKSelected = !_allKSelected;
-                            _allTKSelected = false;
-                            for (var p in _participants) {
-                              p.isCompetent = _allKSelected;
-                            }
-                          });
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _allKSelected
-                                  ? Icons.check_circle_rounded
-                                  : Icons.check_circle_outline_rounded,
-                              size: 16,
-                              color: _allKSelected
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFF64748B),
-                            ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Semua [K]',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: SizedBox(
-                      height: 38,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: _allTKSelected
-                                ? const Color(0xFFEF4444)
-                                : const Color(0xFFCBD5E1),
-                          ),
-                          backgroundColor: _allTKSelected
-                              ? const Color(0xFFFEF2F2)
-                              : Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          foregroundColor: _allTKSelected
-                              ? const Color(0xFFB91C1C)
-                              : const Color(0xFF475569),
-                          padding: EdgeInsets.zero,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _allTKSelected = !_allTKSelected;
-                            _allKSelected = false;
-                            for (var p in _participants) {
-                              p.isCompetent = !_allTKSelected;
-                            }
-                          });
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _allTKSelected
-                                  ? Icons.cancel_rounded
-                                  : Icons.cancel_outlined,
-                              size: 16,
-                              color: _allTKSelected
-                                  ? const Color(0xFFEF4444)
-                                  : const Color(0xFF64748B),
-                            ),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Semua [TK]',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-
-        // Participant Mobile-First List Card
-        Column(
-          children: _participants.map((participant) {
-            return Step3ParticipantCard(
-              key: ValueKey(participant.nim),
-              participant: participant,
-              onCompetenceChanged: (bool isCompetent) {
-                participant.isCompetent = isCompetent;
-                final newAllK = _participants.every((p) => p.isCompetent);
-                final newAllTK = _participants.every((p) => !p.isCompetent);
-                if (newAllK != _allKSelected || newAllTK != _allTKSelected) {
-                  setState(() {
-                    _allKSelected = newAllK;
-                    _allTKSelected = newAllTK;
-                  });
-                }
-              },
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  // ================= STEP 4: Review / Catatan & Lampiran =================
-  Widget _buildStep4() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Catatan :',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _notesController,
-          maxLines: 7,
-          decoration: InputDecoration(
-            fillColor: const Color(0xFFF8FAFC),
-            filled: true,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-            ),
-            contentPadding: const EdgeInsets.all(16),
-          ),
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF1E293B),
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        const Text(
-          'Lampiran Pendukung(Opsional)',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
-          ),
-        ),
-        const SizedBox(height: 10),
-
-        // Add attachment button
-        _isUploadingAttachment
-            ? const SizedBox(
-                height: 40,
-                width: 40,
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            : InkWell(
-                onTap: _pickLampiran,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Pilih Berkas Lampiran',
-                        style: TextStyle(
-                          color: Color(0xFF94A3B8),
-                          fontSize: 14,
-                        ),
-                      ),
-                      Icon(
-                        Icons.cloud_upload_outlined,
-                        color: Color(0xFF94A3B8),
-                        size: 20,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-        if (_attachments.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          ..._attachments.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final file = entry.value;
-            final displayName = file.contains('/')
-                ? file.split('/').last
-                : file;
-            final isPdf = displayName.toLowerCase().endsWith('.pdf');
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Icon(
-                          isPdf ? Icons.picture_as_pdf : Icons.image,
-                          color: isPdf
-                              ? const Color(0xFFEF4444)
-                              : const Color(0xFF3B82F6),
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            displayName,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF1E293B),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.delete_outline_rounded,
-                      color: Color(0xFFEF4444),
-                      size: 18,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      setState(() {
-                        _attachments.removeAt(idx);
-                      });
-                    },
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ],
-    );
-  }
-
 }

@@ -4,13 +4,13 @@ import 'package:intl/intl.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/api_service.dart';
-import '../../widgets/jadwal/jadwal_list_item.dart';
+import '../../widgets/jadwal/jadwal_list_view.dart';
 import '../../widgets/jadwal/jadwal_tab_content.dart';
 import '../../widgets/jadwal/custom_tab_bar.dart';
+import '../../widgets/jadwal/jadwal_search_date_row.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../utils/api_routes.dart';
 import '../../utils/date_format_helper.dart';
-import 'jadwal_detail_screen.dart';
 
 class JadwalScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -640,157 +640,14 @@ class _JadwalScreenState extends State<JadwalScreen>
   }
 
   Widget _buildSearchAndDateRow() {
-    final bool hasSelectedDate = _selectedDate != null;
-    final String dateLabel = hasSelectedDate
-        ? DateFormat('dd/MM/yyyy').format(_selectedDate!)
-        : 'Tanggal';
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: Row(
-        children: [
-          // Search TextField container
-          Expanded(
-            child: Container(
-              height: 42,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFCBD5E1), width: 1),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x05000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 12),
-                  const Icon(
-                    Icons.search_rounded,
-                    color: Color(0xFF94A3B8),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (val) {
-                        _onSearchChanged(val);
-                      },
-                      textInputAction: TextInputAction.search,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF1E293B),
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Cari tanggal asesmen atau TUK',
-                        hintStyle: TextStyle(
-                          color: Color(0xFF94A3B8),
-                          fontSize: 12.5,
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                  ),
-                  if (_isSearchingSelesai) ...[
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFF3B82F6),
-                        ),
-                      ),
-                    ),
-                  ] else if (_searchQuery.isNotEmpty) ...[
-                    GestureDetector(
-                      onTap: _resetSelesaiSearch,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Icon(
-                          Icons.close_rounded,
-                          size: 18,
-                          color: Color(0xFF94A3B8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Date filter button
-          GestureDetector(
-            onTap: _selectDateFilter,
-            child: Container(
-              height: 42,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: hasSelectedDate ? const Color(0xFFEFF6FF) : Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: hasSelectedDate
-                      ? const Color(0xFF3B82F6)
-                      : const Color(0xFFCBD5E1),
-                  width: hasSelectedDate ? 1.5 : 1.0,
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x05000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.calendar_today_outlined,
-                    size: 16,
-                    color: hasSelectedDate
-                        ? const Color(0xFF2563EB)
-                        : const Color(0xFF64748B),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    dateLabel,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: hasSelectedDate
-                          ? FontWeight.bold
-                          : FontWeight.w500,
-                      color: hasSelectedDate
-                          ? const Color(0xFF1E40AF)
-                          : const Color(0xFF475569),
-                    ),
-                  ),
-                  if (hasSelectedDate) ...[
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: _resetSelesaiSearch,
-                      child: const Icon(
-                        Icons.close_rounded,
-                        size: 14,
-                        color: Color(0xFF2563EB),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+    return JadwalSearchDateRow(
+      searchController: _searchController,
+      isSearching: _isSearchingSelesai,
+      searchQuery: _searchQuery,
+      selectedDate: _selectedDate,
+      onSearchChanged: _onSearchChanged,
+      onResetSearch: _resetSelesaiSearch,
+      onSelectDate: _selectDateFilter,
     );
   }
 
@@ -910,103 +767,15 @@ class _JadwalScreenState extends State<JadwalScreen>
     bool hasMore, {
     bool showCreatedDate = false,
   }) {
-    if (items.isEmpty && !_isLoading) {
-      return RefreshIndicator(
-        onRefresh: _handleRefresh,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height - 300,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE5F1FC),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.event_busy_rounded,
-                      color: Color(0xFF2C6C9C),
-                      size: 36,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Tidak ada jadwal',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return RefreshIndicator(
+    return JadwalListView(
+      items: items,
+      controller: controller,
+      hasMore: hasMore,
+      isLoadingMore: _isLoadingMore,
+      showCreatedDate: showCreatedDate,
+      userRole: currentUser,
       onRefresh: _handleRefresh,
-      child: ListView.builder(
-        controller: controller,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        itemCount: items.length + 1, // +1 for loading indicator
-        itemBuilder: (context, index) {
-          // Loading indicator at the end
-          if (index == items.length) {
-            if (_isLoadingMore) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            } else if (!hasMore) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: Text(
-                    'Tidak ada data lagi',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                ),
-              );
-            } else {
-              return const SizedBox(height: 80);
-            }
-          }
-
-          // List items
-          final item = items[index];
-          return Padding(
-            padding: EdgeInsets.only(bottom: index < items.length - 1 ? 8 : 0),
-            child: JadwalListItem(
-              key: ValueKey(item.id),
-              item: item,
-              showCreatedDate: showCreatedDate,
-              onTap: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        JadwalDetailScreen(jadwal: item, userRole: currentUser),
-                  ),
-                );
-
-                // Refresh data if status was updated
-                if (result == true) {
-                  _loadJadwalData();
-                }
-              },
-            ),
-          );
-        },
-      ),
+      onItemUpdated: _loadJadwalData,
     );
   }
 
@@ -1026,81 +795,6 @@ class _JadwalScreenState extends State<JadwalScreen>
     );
   }
 }
-
-// Custom Painter untuk Mini Line Chart
-class MiniLineChartPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Data points untuk line chart (simulasi data)
-    final dataPoints = [0.3, 0.5, 0.4, 0.6, 0.8, 0.7, 0.9, 0.85, 1.0];
-
-    // Bar chart colors
-    final barColors = [
-      const Color(0xFF5B47D8), // Purple
-      const Color(0xFF5B47D8),
-      const Color(0xFFFFC107), // Yellow
-      const Color(0xFFFF7043), // Orange
-      const Color(0xFF5B9FD8), // Blue
-      const Color(0xFFFF7043), // Orange
-    ];
-
-    final barWidth = size.width / (barColors.length * 2);
-    final maxBarHeight = size.height * 0.6;
-
-    // Draw bars
-    for (int i = 0; i < barColors.length; i++) {
-      final barPaint = Paint()
-        ..color = barColors[i]
-        ..style = PaintingStyle.fill;
-
-      final barHeight = maxBarHeight * (0.4 + (i % 3) * 0.2);
-      final x = i * barWidth * 1.8 + barWidth * 0.5;
-      final y = size.height - barHeight;
-
-      final rect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, y, barWidth, barHeight),
-        const Radius.circular(3),
-      );
-      canvas.drawRRect(rect, barPaint);
-    }
-
-    // Draw line chart
-    final linePaint = Paint()
-      ..color = Colors.grey.withValues(alpha: 0.6)
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
-
-    final pointPaint = Paint()
-      ..color = Colors.grey
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    final points = <Offset>[];
-
-    for (int i = 0; i < dataPoints.length; i++) {
-      final x = (size.width / (dataPoints.length - 1)) * i;
-      final y = size.height - (dataPoints[i] * size.height * 0.7);
-      points.add(Offset(x, y));
-
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-
-    canvas.drawPath(path, linePaint);
-
-    // Draw points
-    for (final point in points) {
-      canvas.drawCircle(point, 3, pointPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
 // ============================================================================
 // Tab Content Wrapper with AutomaticKeepAlive
 // ============================================================================

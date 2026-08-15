@@ -5,6 +5,7 @@ import '../../../models/master_models.dart';
 import '../../../services/common/master_service.dart';
 import '../../../widgets/pendaftaran/modal_select_sheet.dart';
 import '../../../services/asesi/permohonan_service.dart';
+import '../../../widgets/pendaftaran/biodata_form_fields.dart';
 
 class Step4BiodataPeserta extends StatefulWidget {
   final int? permohonanId;
@@ -697,7 +698,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
       children: [
         _buildTopBanner(),
         const SizedBox(height: 12),
-        _buildAccordionCard(
+        BiodataAccordionCard(
           icon: Icons.person_rounded,
           iconBgColor: const Color(0xFFDBEAFE),
           iconColor: const Color(0xFF3B82F6),
@@ -711,7 +712,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           content: _buildDataPesertaContent(),
         ),
         const SizedBox(height: 12),
-        _buildAccordionCard(
+        BiodataAccordionCard(
           icon: Icons.school_rounded,
           iconBgColor: const Color(0xFFD1FAE5),
           iconColor: const Color(0xFF10B981),
@@ -725,7 +726,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           content: _buildDataPendidikanContent(),
         ),
         const SizedBox(height: 12),
-        _buildAccordionCard(
+        BiodataAccordionCard(
           icon: Icons.work_rounded,
           iconBgColor: const Color(0xFFFEF3C7),
           iconColor: const Color(0xFFF59E0B),
@@ -764,95 +765,21 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
     );
   }
 
-  Widget _buildAccordionCard({
-    required IconData icon,
-    required Color iconBgColor,
-    required Color iconColor,
-    required String title,
-    required bool isExpanded,
-    required VoidCallback onTapHeader,
-    required Widget content,
-  }) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        children: [
-          InkWell(
-            onTap: onTapHeader,
-            borderRadius: BorderRadius.circular(10),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: iconBgColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        icon,
-                        color: iconColor,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                  ),
-                  Icon(
-                    isExpanded
-                        ? Icons.keyboard_arrow_up_rounded
-                        : Icons.chevron_right_rounded,
-                    color: const Color(0xFF0F172A),
-                    size: 22,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (isExpanded) ...[
-            const Divider(height: 1, color: Color(0xFFE2E8F0)),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: content,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildDataPesertaContent() {
     return Column(
       children: [
-        _buildSelectField(
+        BiodataSelectField(
           label: 'Skema Sertifikasi',
           value: _skemaSertifikasi,
           hint: 'Pilih Skema Sertifikasi',
           onTap: _selectSkemaSertifikasi,
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'ID',
           controller: _idController,
           hint: 'Masukkan ID',
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'NIK',
           controller: _nikController,
           hint: 'Masukkan NIK',
@@ -880,58 +807,59 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
             ),
           ),
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'Nama Lengkap',
           controller: _namaLengkapController,
           hint: 'Masukkan Nama Lengkap',
         ),
-        _buildSelectField(
+        BiodataSelectField(
           label: 'Jenis Kelamin',
           value: _jenisKelamin,
           hint: 'Pilih Jenis Kelamin',
           onTap: _selectJenisKelamin,
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'Tempat Lahir',
           controller: _tempatLahirController,
           hint: 'Masukkan Tempat Lahir',
         ),
-        _buildDatePickerField(
+        BiodataDatePickerField(
           label: 'Tanggal Lahir',
           controller: _tanggalLahirController,
           hint: 'dd/mm/yyyy',
           onTap: () => _selectDate(context),
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'Alamat',
           controller: _alamatController,
           hint: 'Masukkan Alamat',
           maxLines: 2,
         ),
-        _buildSelectField(
+        BiodataSelectField(
           label: 'Provinsi',
           value: _provinsi,
           hint: 'Pilih Provinsi',
           onTap: _selectProvinsi,
         ),
-        _buildSelectField(
+        BiodataSelectField(
           label: 'Kabupaten/Kota',
           value: _kabupaten,
           hint: 'Pilih Kabupaten/Kota',
           onTap: _selectKabupaten,
         ),
-        _buildSelectField(
+        BiodataSelectField(
           label: 'Kecamatan',
           value: _kecamatan,
           hint: 'Pilih Kecamatan',
           onTap: _selectKecamatan,
         ),
-        _buildPhoneField(
+        BiodataPhoneField(
           label: 'No.Kontak',
           controller: _kontakController,
           hint: 'Masukkan No.Kontak',
+          onTap: () => _openWhatsApp(_kontakController.text),
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'Email',
           controller: _emailController,
           hint: 'Masukkan Email',
@@ -945,18 +873,18 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   Widget _buildDataPendidikanContent() {
     return Column(
       children: [
-        _buildSelectField(
+        BiodataSelectField(
           label: 'Pendidikan Terakhir',
           value: _pendidikanTerakhir,
           hint: 'Pilih Pendidikan',
           onTap: _selectPendidikanTerakhir,
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'Nama Sekolah/Perguruan Tinggi',
           controller: _namaSekolahController,
           hint: 'Masukkan Nama Sekolah',
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'Jurusan/Program Studi',
           controller: _jurusanController,
           hint: 'Masukkan Jurusan',
@@ -969,40 +897,41 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   Widget _buildDataPekerjaanContent() {
     return Column(
       children: [
-        _buildSelectField(
+        BiodataSelectField(
           label: 'Pekerjaan',
           value: _pekerjaan,
           hint: 'Pilih Pekerjaan',
           onTap: _selectPekerjaan,
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'Perusahaan',
           controller: _perusahaanController,
           hint: 'Masukkan Nama Perusahaan',
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'Jabatan',
           controller: _jabatanController,
           hint: 'Masukkan Jabatan',
         ),
-        _buildInputField(
+        BiodataInputField(
           label: 'Alamat Organisasi/Perusahaan',
           controller: _alamatPerusahaanController,
           hint: 'Masukkan Alamat Perusahaan',
           maxLines: 2,
         ),
-        _buildPhoneField(
+        BiodataPhoneField(
           label: 'No.Kontak Perusahaan',
           controller: _noKontakPerusahaanController,
           hint: 'Masukkan No.Kontak',
+          onTap: () => _openWhatsApp(_noKontakPerusahaanController.text),
         ),
-        _buildSelectField(
+        BiodataSelectField(
           label: 'TUK',
           value: _tuk,
           hint: 'Pilih TUK',
           onTap: _selectTUK,
         ),
-        _buildSelectField(
+        BiodataSelectField(
           label: 'Pra Asessmen Checked',
           value: _asesorShortName.isNotEmpty && _asesorEmail.isNotEmpty
               ? '$_asesorShortName ($_asesorEmail)'
@@ -1010,7 +939,7 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           hint: 'Pilih Asesor',
           onTap: _selectPraAsesmenChecked,
         ),
-        _buildSelectField(
+        BiodataSelectField(
           label: 'Perangkat Asesmen',
           value: _namaPerangkatAsesmen.isNotEmpty && _kodePerangkatAsesmen.isNotEmpty
               ? '$_namaPerangkatAsesmen [$_kodePerangkatAsesmen]'
@@ -1020,281 +949,6 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
           isLast: true,
         ),
       ],
-    );
-  }
-
-  Widget _buildInputField({
-    required String label,
-    required TextEditingController controller,
-    String hint = '',
-    Widget? rightAction,
-    int maxLines = 1,
-    TextInputType keyboardType = TextInputType.text,
-    bool isLast = false,
-  }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0.0 : 10.0),
-      child: Row(
-        crossAxisAlignment: maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-                height: 1.3,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller,
-                    maxLines: maxLines,
-                    keyboardType: keyboardType,
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: hint,
-                      hintStyle: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.normal,
-                        color: Color(0xFF94A3B8),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6),
-                        borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
-                      ),
-                      fillColor: Colors.white,
-                      filled: true,
-                    ),
-                  ),
-                ),
-                if (rightAction != null) ...[
-                  const SizedBox(width: 6),
-                  rightAction,
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSelectField({
-    required String label,
-    required String value,
-    String hint = 'Pilih...',
-    required VoidCallback onTap,
-    bool isLast = false,
-  }) {
-    final bool hasValue = value.isNotEmpty;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0.0 : 10.0),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-                height: 1.3,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: GestureDetector(
-              onTap: onTap,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Color(0xFFCBD5E1)),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        hasValue ? value : hint,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: hasValue ? FontWeight.bold : FontWeight.normal,
-                          color: hasValue ? const Color(0xFF0F172A) : const Color(0xFF94A3B8),
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const Icon(
-                      Icons.arrow_drop_down_rounded,
-                      color: Color(0xFF64748B),
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDatePickerField({
-    required String label,
-    required TextEditingController controller,
-    String hint = 'dd/mm/yyyy',
-    required VoidCallback onTap,
-    bool isLast = false,
-  }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0.0 : 10.0),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: GestureDetector(
-              onTap: onTap,
-              child: AbsorbPointer(
-                child: TextField(
-                  controller: controller,
-                  style: const TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    hintText: hint,
-                    hintStyle: const TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.normal,
-                      color: Color(0xFF94A3B8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    suffixIcon: const Icon(
-                      Icons.calendar_today_outlined,
-                      color: Color(0xFF64748B),
-                      size: 16,
-                    ),
-                    suffixIconConstraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
-                    ),
-                    fillColor: Colors.white,
-                    filled: true,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPhoneField({
-    required String label,
-    required TextEditingController controller,
-    String hint = 'Masukkan No.Kontak',
-    bool isLast = false,
-  }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0.0 : 10.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-                height: 1.3,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => _openWhatsApp(controller.text),
-              child: AbsorbPointer(
-                child: TextField(
-                  controller: controller,
-                  style: const TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    hintText: hint,
-                    hintStyle: const TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.normal,
-                      color: Color(0xFF94A3B8),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
-                    ),
-                    fillColor: Colors.white,
-                    filled: true,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

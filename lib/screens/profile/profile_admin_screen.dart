@@ -10,6 +10,8 @@ import 'keamanan_screen.dart';
 import 'tentang_lsp_screen.dart';
 import 'struktur_organisasi_screen.dart';
 import 'tugas_tanggung_jawab_screen.dart';
+import '../../widgets/profile/profile_admin_widgets.dart';
+import '../../widgets/profile/profile_asesor_widgets.dart';
 
 class ProfileAdminScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -23,10 +25,8 @@ class ProfileAdminScreen extends StatefulWidget {
 class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
   bool _isLoggingOut = false;
   bool _isUploadingPhoto = false;
-  int _carouselIndex = 0;
-  final PageController _pageController = PageController();
 
-  final List<Map<String, dynamic>> _carouselItems = [
+  final List<Map<String, dynamic>> _carouselItems = const [
     {
       'title1': 'Visi LSP Teknologi Digital',
       'desc1': 'Menjadi lembaga sertifikasi kompetensi terkemuka dan terpercaya.',
@@ -261,180 +261,14 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
   }
 
   void _showPhotoPickerDemo() {
-    showModalBottomSheet(
+    showProfilePhotoPicker(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Material(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Ubah Foto Profil',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE3F2FD),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.photo_library_rounded,
-                      color: Color(0xFF378CE7),
-                    ),
-                  ),
-                  title: const Text('Pilih dari Galeri'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickAndUploadPhoto();
-                  },
-                ),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE3F2FD),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt_rounded,
-                      color: Color(0xFF378CE7),
-                    ),
-                  ),
-                  title: const Text('Ambil Foto / Pilih Berkas'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickAndUploadPhoto();
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      onPickPhoto: _pickAndUploadPhoto,
     );
   }
 
   Widget _buildCertificateIllustration() {
-    return Container(
-      width: 76,
-      height: 56,
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E88E5), // Dark blue certificate background
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // The paper/inner part
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3F2FD), // Light blue paper color
-              borderRadius: BorderRadius.circular(4),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Placeholder line 1
-                Container(
-                  width: 32,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF90CAF9),
-                    borderRadius: BorderRadius.circular(1.5),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Placeholder line 2
-                Container(
-                  width: 20,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF90CAF9),
-                    borderRadius: BorderRadius.circular(1.5),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Red Ribbon 1
-          Positioned(
-            bottom: -4,
-            right: 18,
-            child: Transform.rotate(
-              angle: -0.15,
-              child: Container(
-                width: 5,
-                height: 12,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE53935),
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(2)),
-                ),
-              ),
-            ),
-          ),
-          // Red Ribbon 2
-          Positioned(
-            bottom: -4,
-            right: 12,
-            child: Transform.rotate(
-              angle: 0.15,
-              child: Container(
-                width: 5,
-                height: 12,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE53935),
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(2)),
-                ),
-              ),
-            ),
-          ),
-          // Gold Seal
-          Positioned(
-            bottom: 0,
-            right: 11,
-            child: Container(
-              width: 13,
-              height: 13,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFC107), // Gold/Amber
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 1,
-                    offset: Offset(0, 1),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return const AdminCertificateIllustration();
   }
 
   Widget _buildOrgCard({
@@ -442,60 +276,7 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
     required String title,
     required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1.0,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x05000000),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE5F1FC),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: const Color(0xFF3B82F6),
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+    return AdminOrgCard(icon: icon, title: title, onTap: onTap);
   }
 
   @override
@@ -710,151 +491,7 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
             ),
 
             // Carousel Section (Overlapping the Blue Header slightly)
-            Transform.translate(
-              offset: const Offset(0, -20),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 180,
-                    child: PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: (int index) {
-                        setState(() {
-                          _carouselIndex = index;
-                        });
-                      },
-                      itemCount: _carouselItems.length,
-                      itemBuilder: (context, index) {
-                        final item = _carouselItems[index];
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.06),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: const Color(0xFFF1F5F9),
-                              width: 1,
-                            ),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Row(
-                              children: [
-                                // Left details
-                                Expanded(
-                                  flex: 6,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          item['title1']!,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w800,
-                                            color: Color(0xFF0F172A),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          item['desc1']!,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 10,
-                                            color: Color(0xFF475569),
-                                            height: 1.2,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Container(
-                                          width: double.infinity,
-                                          height: 1,
-                                          color: const Color(0xFFE2E8F0),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          item['title2']!,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w800,
-                                            color: Color(0xFF0F172A),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          item['desc2']!,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 10,
-                                            color: Color(0xFF475569),
-                                            height: 1.2,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                // Right image
-                                Expanded(
-                                  flex: 4,
-                                  child: SizedBox(
-                                    height: double.infinity,
-                                    child: Image.network(
-                                      item['imageUrl']!,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return Container(
-                                          color: const Color(0xFFF1F5F9),
-                                          child: const Icon(
-                                            Icons.business_rounded,
-                                            color: Color(0xFF94A3B8),
-                                            size: 40,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Carousel dots
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _carouselItems.length,
-                      (index) => Container(
-                        width: 8,
-                        height: 8,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _carouselIndex == index
-                              ? const Color(0xFF4FA8E8)
-                              : const Color(0xFFE2E8F0),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            AdminInfoCarousel(items: _carouselItems),
 
             // Informasi Organisasi Section
             Padding(

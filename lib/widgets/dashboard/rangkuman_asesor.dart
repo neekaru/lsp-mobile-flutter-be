@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../screens/jadwal/jadwal_screen.dart';
-import '../../screens/jadwal/jadwal_detail_screen.dart';
 import '../../models/dashboard_models.dart';
-import '../../models/jadwal_models.dart';
-import '../../services/auth/auth_repository.dart';
 import '../../utils/date_format_helper.dart';
+import 'asesor_dashboard_cards.dart';
 
 class RangkumanAsesor extends StatefulWidget {
   final bool isLoading;
@@ -23,6 +21,19 @@ class RangkumanAsesor extends StatefulWidget {
 }
 
 class _RangkumanAsesorState extends State<RangkumanAsesor> {
+  void _openJadwalScreen() {
+    if (widget.onNavigateToJadwal != null) {
+      widget.onNavigateToJadwal!();
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const JadwalScreen(),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.isLoading) {
@@ -52,283 +63,45 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 1. "Dashboard Asesor" Overlapping Card (Design matches RangkumanUtama)
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF559AD4), Color(0xFF2C6C9C)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x26000000), // black with 0.15 opacity
-                blurRadius: 15,
-                offset: Offset(0, 8),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Row: Title & Masa Aktif Asesor pill
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Dashboard Asesor',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  // Masa Aktif Asesor pill
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      border: Border.all(
-                        color: const Color(0x99FFFFFF), // white with 0.6 opacity
-                        width: 1.2,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.verified_user_rounded,
-                          color: Colors.white,
-                          size: 13,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Masa Aktif: $formattedExp',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Deskripsi Pemeliharaan Kompetensi / RCC Banner
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: isKompeten
-                      ? const Color(0xFF10B981).withValues(alpha: 0.2)
-                      : Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isKompeten
-                        ? const Color(0xFF34D399).withValues(alpha: 0.8)
-                        : const Color(0xFFFBBF24).withValues(alpha: 0.8),
-                    width: 1.2,
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      isKompeten
-                          ? Icons.verified_rounded
-                          : Icons.info_outline_rounded,
-                      color: isKompeten
-                          ? const Color(0xFF6EE7B7)
-                          : const Color(0xFFFDE68A),
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            isKompeten
-                                ? 'Asesor Telah Memelihara Kompetensi'
-                                : 'Minimal 6 SPT untuk proses Perpanjangan Sertifikat Asesor / RCC',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            isKompeten
-                                ? 'Telah menyelesaikan $totalSpt SPT dalam 3 tahun (memenuhi syarat perpanjangan sertifikat asesor)'
-                                : 'Saat ini tercatat $totalSpt SPT. Selesaikan minimal 6 penugasan asesmen dalam 3 tahun masa berlaku',
-                            style: const TextStyle(
-                              color: Color(0xE0FFFFFF),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Alert banner inside card
-              if (widget.data?.alertBanner.hasAlert == true) ...[
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFFD97706),
-                      width: 1.5,
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.notifications_active_rounded,
-                        color: Color(0xFFFBBF24),
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.data!.alertBanner.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              widget.data!.alertBanner.subtitle,
-                              style: const TextStyle(
-                                color: Color(0xE0FFFFFF),
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-              // Row of 3 Stat Cards (Jumlah SPT 2026, Jumlah MUK 2026, Jumlah Mitra)
-              SizedBox(
-                height: 120,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildCategoryCard(
-                        title: 'Jumlah SPT 2026',
-                        count: (widget.data?.summary.jumlahSpt2026 ?? 0).toString(),
-                        unit: 'SPT',
-                        icon: Icons.assignment_turned_in_rounded,
-                        iconColor: const Color(0xFF3F8CFF),
-                        iconBgColor: const Color(0xFFEFF6FF),
-                        onTap: () {
-                          if (widget.onNavigateToJadwal != null) {
-                            widget.onNavigateToJadwal!();
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const JadwalScreen(),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildCategoryCard(
-                        title: 'Jumlah MUK 2026',
-                        count: (widget.data?.summary.jumlahMuk2026 ?? 0).toString(),
-                        unit: 'Perangkat',
-                        icon: Icons.menu_book_rounded,
-                        iconColor: const Color(0xFFF59E0B),
-                        iconBgColor: const Color(0xFFFEF3C7),
-                        onTap: () {
-                          _showStatDetailDialog(
-                            title: 'Jumlah MUK 2026',
-                            count: widget.data?.summary.jumlahMuk2026 ?? 0,
-                            unit: 'Perangkat',
-                            description:
-                                'Total perangkat MUK / MAPA yang dikembangkan atau ditugaskan kepada Anda pada tahun 2026.',
-                            icon: Icons.menu_book_rounded,
-                            iconColor: const Color(0xFFF59E0B),
-                            iconBgColor: const Color(0xFFFEF3C7),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildCategoryCard(
-                        title: 'Jumlah Mitra',
-                        count: (widget.data?.summary.jumlahMitra ?? 0).toString(),
-                        unit: 'Mitra',
-                        icon: Icons.handshake_rounded,
-                        iconColor: const Color(0xFF10B981),
-                        iconBgColor: const Color(0xFFECFDF5),
-                        onTap: () {
-                          _showStatDetailDialog(
-                            title: 'Jumlah Mitra',
-                            count: widget.data?.summary.jumlahMitra ?? 0,
-                            unit: 'Mitra',
-                            description:
-                                'Total mitra kerja sama asosiasi, instansi, atau TUK terkait penugasan asesmen Anda.',
-                            icon: Icons.handshake_rounded,
-                            iconColor: const Color(0xFF10B981),
-                            iconBgColor: const Color(0xFFECFDF5),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        AsesorDashboardHeaderCard(
+          formattedExp: formattedExp,
+          isKompeten: isKompeten,
+          totalSpt: totalSpt,
+          data: widget.data,
+          onTapSpt: _openJadwalScreen,
+          onTapMuk: () {
+            showAsesorStatDetailDialog(
+              context: context,
+              title: 'Jumlah MUK 2026',
+              count: widget.data?.summary.jumlahMuk2026 ?? 0,
+              unit: 'Perangkat',
+              description:
+                  'Total perangkat MUK / MAPA yang dikembangkan atau ditugaskan kepada Anda pada tahun 2026.',
+              icon: Icons.menu_book_rounded,
+              iconColor: const Color(0xFFF59E0B),
+              iconBgColor: const Color(0xFFFEF3C7),
+            );
+          },
+          onTapMitra: () {
+            showAsesorStatDetailDialog(
+              context: context,
+              title: 'Jumlah Mitra',
+              count: widget.data?.summary.jumlahMitra ?? 0,
+              unit: 'Mitra',
+              description:
+                  'Total mitra kerja sama asosiasi, instansi, atau TUK terkait penugasan asesmen Anda.',
+              icon: Icons.handshake_rounded,
+              iconColor: const Color(0xFF10B981),
+              iconBgColor: const Color(0xFFECFDF5),
+            );
+          },
         ),
         const SizedBox(height: 28),
 
         // 2. Jadwal Asessmen Hari Ini Section Header
-        _buildSectionHeader(
+        AsesorSectionHeader(
           title: 'Jadwal Asessmen Hari Ini',
-          onTapLihatSemua: () {
-            if (widget.onNavigateToJadwal != null) {
-              widget.onNavigateToJadwal!();
-            } else {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const JadwalScreen(),
-                ),
-              );
-            }
-          },
+          onTapLihatSemua: _openJadwalScreen,
         ),
         const SizedBox(height: 12),
 
@@ -363,27 +136,16 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
             children: widget.data!.jadwalHariIni
                 .map((item) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildJadwalHariIniCard(item),
+                      child: AsesorJadwalHariIniCard(item: item),
                     ))
                 .toList(),
           ),
         const SizedBox(height: 28),
 
         // 3. Jadwal Belum Lengkap Section Header
-        _buildSectionHeader(
+        AsesorSectionHeader(
           title: 'Jadwal Belum Lengkap',
-          onTapLihatSemua: () {
-            if (widget.onNavigateToJadwal != null) {
-              widget.onNavigateToJadwal!();
-            } else {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const JadwalScreen(),
-                ),
-              );
-            }
-          },
+          onTapLihatSemua: _openJadwalScreen,
         ),
         const SizedBox(height: 12),
 
@@ -425,616 +187,13 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
                 final task = widget.data!.jadwalBelumLengkap[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: _buildJadwalBelumLengkapCard(task),
+                  child: AsesorJadwalBelumLengkapCard(task: task),
                 );
               },
             ),
           ),
         const SizedBox(height: 16),
       ],
-    );
-  }
-
-  Widget _buildSectionHeader({
-    required String title,
-    required VoidCallback onTapLihatSemua,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: Color(0xFF0F172A),
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        InkWell(
-          onTap: onTapLihatSemua,
-          borderRadius: BorderRadius.circular(4),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Lihat semua',
-                style: TextStyle(
-                  color: Color(0xFF2563EB),
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(width: 4),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: Color(0xFF2563EB),
-                size: 16,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildJadwalHariIniCard(AsesorDashboardJadwal item) {
-    String statusLabel = 'waiting';
-    Color statusColor = const Color(0xFFEA580C);
-    Color statusBgColor = const Color(0xFFFFEDD5);
-
-    // Canonical: 0=Draft, 1=Completed, 2=Canceled, 3=Running, 4=Pelaporan
-    switch (item.status) {
-      case '0':
-        statusLabel = 'draft';
-        statusColor = const Color(0xFFEA580C);
-        statusBgColor = const Color(0xFFFFEDD5);
-        break;
-      case '1':
-        statusLabel = 'completed';
-        statusColor = const Color(0xFF10B981);
-        statusBgColor = const Color(0xFFECFDF5);
-        break;
-      case '2':
-        statusLabel = 'canceled';
-        statusColor = const Color(0xFFEF4444);
-        statusBgColor = const Color(0xFFFEE2E2);
-        break;
-      case '3':
-        statusLabel = 'running';
-        statusColor = const Color(0xFF3F8CFF);
-        statusBgColor = const Color(0xFFF0F5FF);
-        break;
-      case '4':
-        statusLabel = 'pelaporan';
-        statusColor = const Color(0xFFD97706);
-        statusBgColor = const Color(0xFFFEF3C7);
-        break;
-    }
-
-    return InkWell(
-      onTap: () {
-        final user = AuthRepository.currentUserInstance;
-        final userRole = UserRole(
-          role: user?.role ?? 'asesor',
-          name: user?.name ?? '',
-          email: user?.email ?? '',
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => JadwalDetailScreen(
-              jadwal: item.toJadwalItem(),
-              userRole: userRole,
-            ),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFFE2E8F0),
-            width: 1.0,
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x06000000),
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE2F0FD),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Icon(
-                    Icons.calendar_month_rounded,
-                    color: Color(0xFF3F8CFF),
-                    size: 40,
-                  ),
-                  Positioned(
-                    bottom: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.edit_rounded,
-                        color: Color(0xFF3F8CFF),
-                        size: 14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Asesmen Mandiri',
-                          style: TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusBgColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          statusLabel,
-                          style: TextStyle(
-                            color: statusColor,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Skema : ${item.skema}',
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    item.waktu,
-                    style: const TextStyle(
-                      color: Color(0xFF0F172A),
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item.tuk,
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildJadwalBelumLengkapCard(AsesorDashboardTugas task) {
-    IconData icon = Icons.assignment_outlined;
-    Color iconColor = const Color(0xFF2563EB);
-    Color iconBgColor = const Color(0xFFEFF6FF);
-    String badgeText = task.title;
-    Color badgeTextColor = const Color(0xFF2563EB);
-    Color badgeBgColor = const Color(0xFFEFF6FF);
-
-    switch (task.type) {
-      case 'asesmen_berlangsung':
-        icon = Icons.play_circle_outline_rounded;
-        iconColor = const Color(0xFF2563EB);
-        iconBgColor = const Color(0xFFEFF6FF);
-        badgeText = task.title.isNotEmpty ? task.title : 'Asesmen berlangsung';
-        badgeTextColor = const Color(0xFF2563EB);
-        badgeBgColor = const Color(0xFFEFF6FF);
-        break;
-      case 'menunggu_verifikasi':
-        icon = Icons.hourglass_top_rounded;
-        iconColor = const Color(0xFFD97706);
-        iconBgColor = const Color(0xFFFEF3C7);
-        badgeText =
-            task.title.isNotEmpty ? task.title : 'Laporan menunggu verifikasi';
-        badgeTextColor = const Color(0xFFB45309);
-        badgeBgColor = const Color(0xFFFEF3C7);
-        break;
-      case 'penugasan_baru':
-        icon = Icons.assignment_outlined;
-        iconColor = const Color(0xFF3FA8F8);
-        iconBgColor = const Color(0xFFE8F5FF);
-        badgeText = task.title.isNotEmpty ? task.title : 'Penugasan Baru';
-        badgeTextColor = const Color(0xFF0284C7);
-        badgeBgColor = const Color(0xFFE0F2FE);
-        break;
-      case 'asesmen_selesai':
-        icon = Icons.check_circle_outline_rounded;
-        iconColor = const Color(0xFF10B981);
-        iconBgColor = const Color(0xFFECFDF5);
-        badgeText = task.title.isNotEmpty ? task.title : 'Asesmen Selesai';
-        badgeTextColor = const Color(0xFF059669);
-        badgeBgColor = const Color(0xFFD1FAE5);
-        break;
-      default:
-        badgeText = task.title.isNotEmpty ? task.title : 'Jadwal Asesmen';
-        break;
-    }
-
-    final displayText = task.subtitle.isNotEmpty ? task.subtitle : task.title;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          final user = AuthRepository.currentUserInstance;
-          final userRole = UserRole(
-            role: user?.role ?? 'asesor',
-            name: user?.name ?? '',
-            email: user?.email ?? '',
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => JadwalDetailScreen(
-                jadwal: task.toJadwalItem(),
-                userRole: userRole,
-              ),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFFE2E8F0),
-              width: 1.0,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x06000000),
-                blurRadius: 6,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: badgeBgColor,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            badgeText,
-                            style: TextStyle(
-                              color: badgeTextColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      displayText,
-                      style: const TextStyle(
-                        color: Color(0xFF0F172A),
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Padding(
-                padding: EdgeInsets.only(top: 10),
-                child: Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFF94A3B8),
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryCard({
-    required String title,
-    required String count,
-    required String unit,
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
-    VoidCallback? onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A000000),
-                blurRadius: 8,
-                offset: Offset(0, 3),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Icon Box & Arrow indicator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: iconBgColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: iconColor,
-                      size: 18,
-                    ),
-                  ),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: Color(0xFFCBD5E1),
-                    size: 16,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Texts
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Color(0xFF1E293B),
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    count,
-                    style: const TextStyle(
-                      color: Color(0xFF0F172A),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      height: 1,
-                    ),
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    unit,
-                    style: TextStyle(
-                      color: iconColor,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showStatDetailDialog({
-    required String title,
-    required int count,
-    required String unit,
-    required String description,
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: iconBgColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 24),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '$count $unit',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: iconColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Text(
-                description,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF475569),
-                  height: 1.4,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3F8CFF),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

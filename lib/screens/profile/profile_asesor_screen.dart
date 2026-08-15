@@ -14,6 +14,7 @@ import 'honor_asesor_screen.dart';
 import 'tiket_bantuan_screen.dart';
 import '../dashboard/faq_screen.dart';
 import 'public_profile_screen.dart';
+import '../../widgets/profile/profile_asesor_widgets.dart';
 
 class ProfileAsesorScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -324,69 +325,9 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
   }
 
   void _showPhotoPickerDemo() {
-    showModalBottomSheet(
+    showProfilePhotoPicker(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Material(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Ubah Foto Profil',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE3F2FD),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.photo_library_rounded,
-                      color: Color(0xFF378CE7),
-                    ),
-                  ),
-                  title: const Text('Pilih dari Galeri'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickAndUploadPhoto();
-                  },
-                ),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE3F2FD),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt_rounded,
-                      color: Color(0xFF378CE7),
-                    ),
-                  ),
-                  title: const Text('Ambil Foto / Pilih Berkas'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickAndUploadPhoto();
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      onPickPhoto: _pickAndUploadPhoto,
     );
   }
 
@@ -767,214 +708,24 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
   }
 
   Widget _buildRingkasanCards() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildRingkasanCard(
-            value: _totalPenugasan.toString(),
-            label: 'Penugasan',
-            sublabel: 'Yang diterima',
-            icon: Icons.assignment_outlined,
-            iconColor: const Color(0xFFF97316),
-            iconBgColor: const Color(0xFFFFF3E0),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildRingkasanCard(
-            value: _totalLaporan.toString(),
-            label: 'Laporan',
-            sublabel: 'Terkirim ke LSP',
-            icon: Icons.description_outlined,
-            iconColor: const Color(0xFF378CE7),
-            iconBgColor: const Color(0xFFE3F2FD),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildRingkasanCard(
-            value: _totalLaporanSukses.toString(),
-            label: 'Laporan',
-            sublabel: 'Terkonfirmasi',
-            icon: Icons.check_circle_outline_rounded,
-            iconColor: const Color(0xFF4CAF50),
-            iconBgColor: const Color(0xFFE8F5E9),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRingkasanCard({
-    required String value,
-    required String label,
-    required String sublabel,
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Icon Container
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Icon(icon, color: iconColor, size: 18),
-          ),
-          const SizedBox(height: 12),
-          // Value
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(height: 2),
-          // Label
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0F172A),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 2),
-          // Sublabel
-          Text(
-            sublabel,
-            style: const TextStyle(fontSize: 9.5, color: Color(0xFF64748B)),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
+    return ProfileRingkasanCards(
+      totalPenugasan: _totalPenugasan,
+      totalLaporan: _totalLaporan,
+      totalLaporanSukses: _totalLaporanSukses,
     );
   }
 
   Widget _buildHonorCard() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Honor Bulan Ini',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HonorAsesorScreen(),
-                  ),
-                );
-              },
-              child: const Row(
-                children: [
-                  Text(
-                    'Lihat semua',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF378CE7),
-                    ),
-                  ),
-                  SizedBox(width: 4),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: Color(0xFF378CE7),
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+    return ProfileHonorCard(
+      honorData: _honorData,
+      onTapLihatSemua: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HonorAsesorScreen(),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Total Honor (${_honorData?["periode"] ?? "Juli 2026"})',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _honorData?['total_honor'] ?? 'Rp. 0',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _honorData?['jumlah_asesmen_selesai'] ??
-                        '0 Asesmen selesai',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE3F2FD),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.account_balance_wallet_rounded,
-                    color: Color(0xFF378CE7),
-                    size: 24,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -986,47 +737,13 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
     required VoidCallback onTap,
     Color textColor = const Color(0xFF1E293B),
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: Colors.white,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: Color(0xFFE2E8F0)),
-        ),
-        child: ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: iconColor, size: 20),
-          ),
-          title: Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          trailing: const Icon(
-            Icons.chevron_right_rounded,
-            color: Color(0xFF378CE7),
-            size: 22,
-          ),
-          onTap: onTap,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 4,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      ),
+    return ProfileMenuCard(
+      icon: icon,
+      title: title,
+      iconColor: iconColor,
+      iconBgColor: iconBgColor,
+      onTap: onTap,
+      textColor: textColor,
     );
   }
 }
