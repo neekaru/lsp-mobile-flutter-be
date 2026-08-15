@@ -251,20 +251,6 @@ class JadwalListItem extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            const Icon(
-                              Icons.location_on_rounded,
-                              size: 12,
-                              color: Colors.orange,
-                            ),
-                            const SizedBox(width: 2),
-                            const Text(
-                              'Yogyakarta',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF6B7280), // Gray 500
-                              ),
-                            ),
                           ],
                         ),
                       ],
@@ -297,7 +283,7 @@ class JadwalListItem extends StatelessWidget {
               const Divider(height: 1, color: Color(0xFFECEFF1)),
               const SizedBox(height: 12),
 
-              // Columns
+              // Columns: Waktu Asesmen, Asesor, Jumlah Peserta
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -314,7 +300,7 @@ class JadwalListItem extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Jadwal Asesmen',
+                              'Waktu Asesmen',
                               style: TextStyle(
                                 fontSize: 9,
                                 color: Colors.grey[600],
@@ -390,13 +376,13 @@ class JadwalListItem extends StatelessWidget {
                         Row(
                           children: [
                             const Icon(
-                              Icons.access_time_rounded,
+                              Icons.people_outline_rounded,
                               size: 12,
                               color: Colors.grey,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Jadwal Selesai',
+                              'Peserta',
                               style: TextStyle(
                                 fontSize: 9,
                                 color: Colors.grey[600],
@@ -407,7 +393,7 @@ class JadwalListItem extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${_formatIndonesianDayAndDate(item.tanggalSelesai)}\n08:00 - 11:00 WIB',
+                          '${item.totalAsesi > 0 ? item.totalAsesi : (item.jumlahAsesi > 0 ? item.jumlahAsesi : 0)} Asesi',
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -559,20 +545,6 @@ class JadwalListItem extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            const Icon(
-                              Icons.location_on_rounded,
-                              size: 12,
-                              color: Colors.orange,
-                            ),
-                            const SizedBox(width: 2),
-                            const Text(
-                              'Yogyakarta',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF6B7280), // Gray 500
-                              ),
-                            ),
                           ],
                         ),
                       ],
@@ -605,7 +577,7 @@ class JadwalListItem extends StatelessWidget {
               const Divider(height: 1, color: Color(0xFFECEFF1)),
               const SizedBox(height: 12),
 
-              // Columns
+              // Columns: Waktu Asesmen, Asesor, Jumlah Peserta
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -622,7 +594,7 @@ class JadwalListItem extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Jadwal Asesmen',
+                              'Waktu Asesmen',
                               style: TextStyle(
                                 fontSize: 9,
                                 color: Colors.grey[600],
@@ -698,13 +670,13 @@ class JadwalListItem extends StatelessWidget {
                         Row(
                           children: [
                             const Icon(
-                              Icons.access_time_rounded,
+                              Icons.people_outline_rounded,
                               size: 12,
                               color: Colors.grey,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Jadwal Selesai',
+                              'Peserta',
                               style: TextStyle(
                                 fontSize: 9,
                                 color: Colors.grey[600],
@@ -715,7 +687,7 @@ class JadwalListItem extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${_formatIndonesianDayAndDate(item.tanggalSelesai)}\n08:00 - 11:00 WIB',
+                          '${item.totalAsesi > 0 ? item.totalAsesi : (item.jumlahAsesi > 0 ? item.jumlahAsesi : 0)} Asesi',
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,

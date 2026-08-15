@@ -62,7 +62,7 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
         children: [
           Expanded(
             child: TabItem(
-              label: 'Menunggu',
+              label: 'Running',
               badgeCount: widget.runningCount > 0 ? widget.runningCount : null,
               isSelected: widget.controller.index == 0,
               onTap: () => widget.controller.animateTo(0),
@@ -72,7 +72,7 @@ class _JadwalTabBarState extends State<JadwalTabBar> {
           const SizedBox(width: 8),
           Expanded(
             child: TabItem(
-              label: 'Dibatalkan',
+              label: 'Pelaporan',
               badgeCount: widget.pelaporanCount > 0
                   ? widget.pelaporanCount
                   : null,

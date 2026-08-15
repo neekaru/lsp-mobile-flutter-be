@@ -301,29 +301,17 @@ class _JadwalScreenState extends State<JadwalScreen>
 
       // Custom parameters per role
       String status1 = isAsesi ? '0' : '3';
-      String path1 = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalActive;
-      if (isAsesor) {
-        status1 = '0'; // Menunggu
-        path1 = ApiRoutes.asesorJadwal;
-      }
+      String path1 = isAsesi ? ApiRoutes.asesiJadwal : (isAsesor ? ApiRoutes.asesorJadwal : ApiRoutes.jadwalActive);
 
       String status2 = isAsesi ? '3' : '4';
       String path2 = isAsesi
           ? ApiRoutes.asesiJadwal
-          : ApiRoutes.jadwalCompleted;
-      if (isAsesor) {
-        status2 = '2'; // Dibatalkan
-        path2 = ApiRoutes.asesorJadwal;
-      }
+          : (isAsesor ? ApiRoutes.asesorJadwal : ApiRoutes.jadwalCompleted);
 
       String status3 = '1';
       String path3 = isAsesi
           ? ApiRoutes.asesiJadwal
-          : ApiRoutes.jadwalCompleted;
-      if (isAsesor) {
-        status3 = '1,4'; // Selesai & Pelaporan
-        path3 = ApiRoutes.asesorJadwal;
-      }
+          : (isAsesor ? ApiRoutes.asesorJadwal : ApiRoutes.jadwalCompleted);
 
       // Fetch data untuk setiap tab secara parallel + statistics (badge)
       final listFutures = <Future<List<JadwalItem>>>[

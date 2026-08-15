@@ -288,7 +288,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                   value:
                       _detailData != null && _detailData!.alamatTuk.isNotEmpty
                       ? _detailData!.alamatTuk
-                      : 'Yogyakarta',
+                      : (_detailData?.lokasiAsesmen.isNotEmpty == true ? _detailData!.lokasiAsesmen : (widget.jadwal.tuk.isNotEmpty ? widget.jadwal.tuk : '-')),
                   iconColor: Colors.orange,
                 ),
                 AsesorDetailRow(
@@ -517,7 +517,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                   value:
                       _detailData != null && _detailData!.alamatTuk.isNotEmpty
                       ? _detailData!.alamatTuk
-                      : 'Yogyakarta',
+                      : (_detailData?.lokasiAsesmen.isNotEmpty == true ? _detailData!.lokasiAsesmen : (widget.jadwal.tuk.isNotEmpty ? widget.jadwal.tuk : '-')),
                   iconColor: Colors.orange,
                 ),
 
@@ -692,7 +692,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                               builder: (context) => ProfilAsesorScreen(
                                 name: _getDisplayAsesor(),
                                 skema: widget.jadwal.skema,
-                                lokasi: 'Yogyakarta',
+                                lokasi: _detailData?.lokasiAsesmen.isNotEmpty == true ? _detailData!.lokasiAsesmen : (widget.jadwal.tuk.isNotEmpty ? widget.jadwal.tuk : '-'),
                               ),
                             ),
                           );
