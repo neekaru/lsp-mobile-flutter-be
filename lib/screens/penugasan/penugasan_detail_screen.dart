@@ -366,17 +366,18 @@ class _PenugasanDetailScreenState extends State<PenugasanDetailScreen> {
                                 foregroundColor: const Color(0xFF3B82F6),
                               ),
                               onPressed: () async {
+                                final messenger = ScaffoldMessenger.of(context);
                                 final fileUrl = await ApiService.getSuratTugas(widget.jadwal.id);
                                 if (!mounted) return;
                                 if (fileUrl != null && fileUrl.isNotEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  messenger.showSnackBar(
                                     SnackBar(
                                       content: Text('Surat Tugas: ${fileUrl.split('/').last}'),
                                       backgroundColor: const Color(0xFF3B82F6),
                                     ),
                                   );
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  messenger.showSnackBar(
                                     const SnackBar(
                                       content: Text('Surat Tugas belum tersedia'),
                                       backgroundColor: Colors.orange,

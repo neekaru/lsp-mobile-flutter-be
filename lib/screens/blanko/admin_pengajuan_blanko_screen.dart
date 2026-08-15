@@ -92,7 +92,6 @@ class _AdminPengajuanBlankoScreenState
         setState(() {
           _currentPage = page;
           _items = append ? [..._items, ...response.data] : response.data;
-          _meta = response.meta;
           _hasMore = page < response.meta.totalPage;
           if (isUnfiltered && !append) {
             _badgeTotal = response.meta.totalItem;
