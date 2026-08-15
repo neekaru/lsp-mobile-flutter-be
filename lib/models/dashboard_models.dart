@@ -1,4 +1,5 @@
 import 'jadwal_models.dart';
+import 'asesor_statistik_models.dart';
 
 // ============================================================================
 // Dashboard Data Models
@@ -770,6 +771,7 @@ class AsesorDashboardData {
   final AsesorDashboardAlertBanner alertBanner;
   final List<AsesorDashboardJadwal> jadwalHariIni;
   final List<AsesorDashboardTugas> jadwalBelumLengkap;
+  final AsesorStatistikData? statistikBulanan;
 
   List<AsesorDashboardTugas> get tugasPrioritas => jadwalBelumLengkap;
 
@@ -778,6 +780,7 @@ class AsesorDashboardData {
     required this.alertBanner,
     required this.jadwalHariIni,
     required this.jadwalBelumLengkap,
+    this.statistikBulanan,
   });
 
   factory AsesorDashboardData.fromJson(Map<String, dynamic> json) {
@@ -786,6 +789,7 @@ class AsesorDashboardData {
     final List<dynamic> jadwalList = json['jadwal_hari_ini'] ?? [];
     final List<dynamic> tugasList =
         json['jadwal_belum_lengkap'] ?? json['tugas_prioritas'] ?? [];
+    final statJson = json['statistik_bulanan'];
 
     return AsesorDashboardData(
       summary: AsesorDashboardSummaryCount.fromJson(summaryJson),
@@ -794,6 +798,9 @@ class AsesorDashboardData {
           jadwalList.map((j) => AsesorDashboardJadwal.fromJson(j)).toList(),
       jadwalBelumLengkap:
           tugasList.map((t) => AsesorDashboardTugas.fromJson(t)).toList(),
+      statistikBulanan: statJson is Map<String, dynamic>
+          ? AsesorStatistikData.fromJson(statJson)
+          : null,
     );
   }
 
@@ -804,6 +811,7 @@ class AsesorDashboardData {
       alertBanner: AsesorDashboardAlertBanner.empty(),
       jadwalHariIni: const [],
       jadwalBelumLengkap: const [],
+      statistikBulanan: null,
     );
   }
 }

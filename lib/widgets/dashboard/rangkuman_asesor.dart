@@ -4,6 +4,7 @@ import '../../screens/jadwal/jadwal_detail_screen.dart';
 import '../../models/dashboard_models.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/auth/auth_repository.dart';
+import '../../utils/date_format_helper.dart';
 import 'asesor_rekap_kinerja_section.dart';
 
 class RangkumanAsesor extends StatefulWidget {
@@ -23,8 +24,6 @@ class RangkumanAsesor extends StatefulWidget {
 }
 
 class _RangkumanAsesorState extends State<RangkumanAsesor> {
-  final String _selectedDate = '20 April';
-
   @override
   Widget build(BuildContext context) {
     if (widget.isLoading) {
@@ -41,10 +40,19 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
       );
     }
 
+    final stat = widget.data?.statistikBulanan;
+    final tglExp = stat?.tglExpired;
+    final formattedExp = (tglExp != null && tglExp.isNotEmpty)
+        ? DateFormatHelper.formatToIndonesian(tglExp)
+        : (stat?.statusMasaBerlaku ?? 'Aktif');
+
+    final totalSpt = stat?.totalSpt ?? 0;
+    final isKompeten = totalSpt >= 6;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. "Tugas Hari Ini" Overlapping Card (Design matches RangkumanUtama)
+        // 1. "Dashboard Asesor" Overlapping Card (Design matches RangkumanUtama)
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
@@ -66,13 +74,13 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Row: Title & Date dropdown
+              // Header Row: Title & Masa Aktif Asesor pill
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
-                    'Tugas Hari Ini',
+                    'Dashboard Asesor',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -80,9 +88,10 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
                       letterSpacing: -0.3,
                     ),
                   ),
-                  // Dropdown pill
+                  // Masa Aktif Asesor pill
                   Container(
                     decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
                       border: Border.all(
                         color: const Color(0x99FFFFFF), // white with 0.6 opacity
                         width: 1.2,
@@ -90,37 +99,89 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                      horizontal: 10,
+                      vertical: 5,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          _selectedDate,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        const Icon(
+                          Icons.verified_user_rounded,
+                          color: Colors.white,
+                          size: 13,
                         ),
                         const SizedBox(width: 4),
-                        const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: Colors.white,
-                          size: 16,
+                        Text(
+                          'Masa Aktif: $formattedExp',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
-              const Text(
-                'Pantau dan selesaikan tugas asessmen Anda',
-                style: TextStyle(
-                  color: Color(0xB3FFFFFF), // white with 0.7 opacity
-                  fontSize: 12,
+              const SizedBox(height: 12),
+              // Deskripsi Pemeliharaan Kompetensi / RCC Banner
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: isKompeten
+                      ? const Color(0xFF10B981).withValues(alpha: 0.2)
+                      : Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isKompeten
+                        ? const Color(0xFF34D399).withValues(alpha: 0.8)
+                        : const Color(0xFFFBBF24).withValues(alpha: 0.8),
+                    width: 1.2,
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      isKompeten
+                          ? Icons.verified_rounded
+                          : Icons.info_outline_rounded,
+                      color: isKompeten
+                          ? const Color(0xFF6EE7B7)
+                          : const Color(0xFFFDE68A),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isKompeten
+                                ? 'Asesor Telah Memelihara Kompetensi'
+                                : 'Minimal 6 SPT untuk proses Perpanjangan Sertifikat Asesor / RCC',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            isKompeten
+                                ? 'Telah menyelesaikan $totalSpt SPT dalam 3 tahun (memenuhi syarat perpanjangan sertifikat asesor)'
+                                : 'Saat ini tercatat $totalSpt SPT. Selesaikan minimal 6 penugasan asesmen dalam 3 tahun masa berlaku',
+                            style: const TextStyle(
+                              color: Color(0xE0FFFFFF),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
