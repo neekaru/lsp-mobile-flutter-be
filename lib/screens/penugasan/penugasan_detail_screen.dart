@@ -124,10 +124,12 @@ class _PenugasanDetailScreenState extends State<PenugasanDetailScreen> {
     }
 
     final String skemaName = widget.jadwal.skema;
-    final String tukName = _detailData?.tuk ?? widget.jadwal.tuk;
-    final String lokasiName = _detailData != null && _detailData!.alamatTuk.isNotEmpty
+    final String tukName = (_detailData?.tuk != null && _detailData!.tuk.isNotEmpty)
+        ? _detailData!.tuk
+        : widget.jadwal.tuk;
+    final String lokasiName = (_detailData != null && _detailData!.alamatTuk.isNotEmpty)
         ? _detailData!.alamatTuk
-        : 'Kalimantan Tengah';
+        : (tukName.isNotEmpty ? tukName : '-');
     
     final String jumlahPeserta = _detailData?.jumlahPeserta != null
         ? '${_detailData!.jumlahPeserta}'

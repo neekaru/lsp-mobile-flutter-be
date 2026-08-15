@@ -503,6 +503,7 @@ class JadwalAsesorDetailData {
   final int idTuk;
   final String tuk;
   final String alamatTuk;
+  String get lokasiAsesmen => alamatTuk;
   final String jenisTuk;
   final List<AsesorDetailItem> asesor;
   final List<AsesiItem> asesi;
@@ -529,6 +530,13 @@ class JadwalAsesorDetailData {
   });
 
   factory JadwalAsesorDetailData.fromJson(Map<String, dynamic> json) {
+    final String rawAlamat = json['alamat_tuk']?.toString() ??
+        json['lokasi_asesmen']?.toString() ??
+        json['alamat']?.toString() ??
+        '';
+    final String tukName = json['tuk']?.toString() ?? '';
+    final String resolvedAlamat = rawAlamat.isNotEmpty ? rawAlamat : tukName;
+
     return JadwalAsesorDetailData(
       id: json['id'] ?? 0,
       jadwal: json['jadwal'] ?? json['nama_jadwal'] ?? '',
@@ -537,8 +545,8 @@ class JadwalAsesorDetailData {
       statusJadwal: json['status_jadwal']?.toString() ?? '',
       statusLabel: json['status_label'] ?? '',
       idTuk: json['id_tuk'] ?? 0,
-      tuk: json['tuk'] ?? '',
-      alamatTuk: json['alamat_tuk'] ?? json['lokasi_asesmen'] ?? '',
+      tuk: tukName,
+      alamatTuk: resolvedAlamat,
       jenisTuk: json['jenis_tuk'] ?? '',
       waktuAsesmen: json['waktu_asesmen'],
       leadAsesor: json['lead_asesor'],
