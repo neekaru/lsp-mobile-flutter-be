@@ -8,6 +8,7 @@ import '../../screens/dashboard/statistik_screen.dart';
 import '../../screens/jadwal/jadwal_screen.dart';
 import '../../screens/penugasan/laporan_tugas_screen.dart';
 import '../../screens/penugasan/penugasan_screen.dart';
+import '../../screens/statistik/statistik_asesor_screen.dart';
 import '../../screens/profile/profile_admin_screen.dart';
 import '../../screens/profile/profile_asesor_screen.dart';
 import '../../screens/profile/profile_screen.dart';
@@ -63,7 +64,7 @@ class MainNavigatorState extends State<MainNavigator> {
         _screens = [
           DashboardScreen(onNavigateToJadwal: () => setTab(1)),
           JadwalScreen(onBackToHome: () => setTab(0)),
-          PenugasanScreen(onBackToHome: () => setTab(0)),
+          StatistikAsesorScreen(onBackToHome: () => setTab(0)),
           LaporanTugasScreen(onBackToHome: () => setTab(0)),
           ProfileAsesorScreen(onBackToHome: () => setTab(0)),
         ];

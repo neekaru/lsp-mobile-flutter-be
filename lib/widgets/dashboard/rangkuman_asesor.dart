@@ -5,7 +5,6 @@ import '../../models/dashboard_models.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../utils/date_format_helper.dart';
-import 'asesor_rekap_kinerja_section.dart';
 
 class RangkumanAsesor extends StatefulWidget {
   final bool isLoading;
@@ -431,10 +430,6 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
               },
             ),
           ),
-        const SizedBox(height: 16),
-
-        // 4. Rekap Kinerja Asesor (SPT & Asesi 2026)
-        const AsesorRekapKinerjaSection(tahun: 2026),
         const SizedBox(height: 16),
       ],
     );

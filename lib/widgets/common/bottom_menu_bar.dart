@@ -62,8 +62,8 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
                 ),
                 _buildMenuItem(
                   index: 2,
-                  icon: Icons.assignment_outlined,
-                  label: 'Tugas',
+                  icon: Icons.bar_chart_rounded,
+                  label: 'Statistik',
                   isAsesor: true,
                 ),
                 _buildMenuItem(
