@@ -7,7 +7,6 @@ import '../../screens/dashboard/dashboard_screen.dart';
 import '../../screens/dashboard/statistik_screen.dart';
 import '../../screens/jadwal/jadwal_screen.dart';
 import '../../screens/asesi/asesor_asesi_screen.dart';
-import '../../screens/penugasan/penugasan_screen.dart';
 import '../../screens/statistik/statistik_asesor_screen.dart';
 import '../../screens/profile/profile_admin_screen.dart';
 import '../../screens/profile/profile_asesor_screen.dart';

@@ -30,7 +30,6 @@ class _AdminPengajuanBlankoScreenState
   bool _hasMore = true;
 
   List<BlankoListItem> _items = [];
-  BlankoMeta _meta = const BlankoMeta();
   // Badge counts harus global, jangan ikut totalItem dari response terfilter.
   int _badgeTotal = 0;
   int _badgePending = 0;

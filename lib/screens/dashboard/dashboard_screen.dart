@@ -236,7 +236,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             width: 48,
                                             height: 48,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) => const Icon(
+                                            errorBuilder: (context, error, stackTrace) => const Icon(
                                               Icons.person_rounded,
                                               size: 32,
                                               color: Color(0xFFCBD5E1),
@@ -269,8 +269,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    user?.name ??
-                                        (isAsesor
+                                    user.name.isNotEmpty
+                                        ? user.name
+                                        : (isAsesor
                                             ? 'Muhammad Hanafi'
                                             : 'Asesi'),
                                     style: const TextStyle(

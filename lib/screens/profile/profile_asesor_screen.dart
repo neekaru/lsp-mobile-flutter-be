@@ -518,7 +518,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
                                                   width: 110,
                                                   height: 110,
                                                   fit: BoxFit.cover,
-                                                  errorBuilder: (_, __, ___) => const Center(
+                                                  errorBuilder: (context, error, stackTrace) => const Center(
                                                     child: Icon(
                                                       Icons.person_rounded,
                                                       size: 70,

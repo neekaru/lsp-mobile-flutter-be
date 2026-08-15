@@ -630,7 +630,7 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
                                                 width: 76,
                                                 height: 76,
                                                 fit: BoxFit.cover,
-                                                errorBuilder: (_, __, ___) => const Center(
+                                                errorBuilder: (context, error, stackTrace) => const Center(
                                                   child: Icon(
                                                     Icons.person_rounded,
                                                     size: 48,

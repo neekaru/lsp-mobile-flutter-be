@@ -366,11 +366,12 @@ class _PenugasanDetailScreenState extends State<PenugasanDetailScreen> {
                                 foregroundColor: const Color(0xFF3B82F6),
                               ),
                               onPressed: () async {
-                                final res = await ApiService.getSuratTugas(widget.jadwal.id);
-                                if (res != null && res.data.fileUrl.isNotEmpty) {
+                                final fileUrl = await ApiService.getSuratTugas(widget.jadwal.id);
+                                if (!mounted) return;
+                                if (fileUrl != null && fileUrl.isNotEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Surat Tugas: ${res.data.fileName}'),
+                                      content: Text('Surat Tugas: ${fileUrl.split('/').last}'),
                                       backgroundColor: const Color(0xFF3B82F6),
                                     ),
                                   );
