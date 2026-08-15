@@ -197,33 +197,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          if (isAsesi || isAsesor) ...[
+                          if (user != null) ...[
                             // Foto Profil
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                  width: 2,
-                                ),
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.08),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
+                            Builder(
+                              builder: (context) {
+                                final rawPhoto = user.fotoProfilUrl;
+                                String? photoUrl;
+                                if (rawPhoto != null && rawPhoto.isNotEmpty) {
+                                  if (rawPhoto.startsWith('http://') || rawPhoto.startsWith('https://')) {
+                                    photoUrl = rawPhoto;
+                                  } else {
+                                    final normalized = rawPhoto.startsWith('/') ? rawPhoto : '/$rawPhoto';
+                                    photoUrl = '${ApiService.baseUrl}$normalized';
+                                  }
+                                }
+                                return Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.6),
+                                      width: 2,
+                                    ),
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.08),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              child: const ClipOval(
-                                child: Icon(
-                                  Icons.person_rounded,
-                                  size: 32,
-                                  color: Color(0xFFCBD5E1),
-                                ),
-                              ),
+                                  child: ClipOval(
+                                    child: photoUrl != null
+                                        ? Image.network(
+                                            photoUrl,
+                                            width: 48,
+                                            height: 48,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) => const Icon(
+                                              Icons.person_rounded,
+                                              size: 32,
+                                              color: Color(0xFFCBD5E1),
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.person_rounded,
+                                            size: 32,
+                                            color: Color(0xFFCBD5E1),
+                                          ),
+                                  ),
+                                );
+                              },
                             ),
                             const SizedBox(width: 14),
                             // Hallo, Nama User

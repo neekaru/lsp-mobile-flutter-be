@@ -43,6 +43,8 @@ import 'common/master_service.dart';
 import 'common/file_service.dart';
 import 'common/health_service.dart';
 import 'auth/session_service.dart';
+import 'auth/auth_repository.dart';
+import '../utils/api_routes.dart';
 import '../models/dashboard_models.dart';
 import '../models/asesor_statistik_models.dart';
 import '../models/sertifikat_models.dart';
@@ -56,6 +58,36 @@ class ApiService {
   // ── Dio access ─────────────────────────────────────────────────────────────
   static String get baseUrl => ApiClient.baseUrl;
   static Dio get dio => ApiClient.dio;
+
+  // ── Profile Photo Upload ───────────────────────────────────────────────────
+  static Future<Map<String, dynamic>?> uploadProfilePhoto(String filePath) async {
+    try {
+      final fileName = filePath.split(RegExp(r'[\\/]')).last;
+      final formData = FormData.fromMap({
+        'foto': await MultipartFile.fromFile(filePath, filename: fileName),
+      });
+      final response = await dio.post(
+        ApiRoutes.uploadFotoProfil,
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          final fotoProfil = data['foto_profil']?.toString() ?? '';
+          final fotoProfilUrl = data['foto_profil_url']?.toString() ?? '';
+          await AuthRepository.updateCurrentUserPhoto(
+            fotoProfil: fotoProfil,
+            fotoProfilUrl: fotoProfilUrl,
+          );
+        }
+        return data;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 
   // ── Health ──────────────────────────────────────────────────────────────────
   static Future<bool> healthCheck() => HealthService.healthCheck();

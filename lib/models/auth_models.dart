@@ -6,6 +6,8 @@ class AuthUser {
     required this.role,
     required this.roles,
     this.email,
+    this.fotoProfil,
+    this.fotoProfilUrl,
   });
 
   final String id;
@@ -14,6 +16,8 @@ class AuthUser {
   final String role;
   final List<String> roles;
   final String? email;
+  final String? fotoProfil;
+  final String? fotoProfilUrl;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
@@ -25,6 +29,8 @@ class AuthUser {
       roles: (json['roles'] as List<dynamic>? ?? [])
           .map((role) => role.toString())
           .toList(),
+      fotoProfil: json['foto_profil'] as String?,
+      fotoProfilUrl: json['foto_profil_url'] as String?,
     );
   }
 
@@ -36,7 +42,31 @@ class AuthUser {
       'role': role,
       'roles': roles,
       'email': email,
+      'foto_profil': fotoProfil,
+      'foto_profil_url': fotoProfilUrl,
     };
+  }
+
+  AuthUser copyWith({
+    String? id,
+    String? account,
+    String? name,
+    String? role,
+    List<String>? roles,
+    String? email,
+    String? fotoProfil,
+    String? fotoProfilUrl,
+  }) {
+    return AuthUser(
+      id: id ?? this.id,
+      account: account ?? this.account,
+      name: name ?? this.name,
+      role: role ?? this.role,
+      roles: roles ?? this.roles,
+      email: email ?? this.email,
+      fotoProfil: fotoProfil ?? this.fotoProfil,
+      fotoProfilUrl: fotoProfilUrl ?? this.fotoProfilUrl,
+    );
   }
 }
 

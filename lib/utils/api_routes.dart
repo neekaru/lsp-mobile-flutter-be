@@ -150,6 +150,7 @@ class ApiRoutes {
   static const String authCurrent = '/api/auth/current';
   static const String authRefresh = '/api/auth/refresh';
   static const String authLogout = '/api/auth/logout';
+  static const String uploadFotoProfil = '/api/user/upload-foto';
 
   /// Public: create asesi (NIM/NIK + default password 123456) if missing, return tokens
   static const String authEnsureAsesi = '/api/auth/ensure-asesi';

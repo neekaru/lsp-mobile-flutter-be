@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,6 +26,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoggingOut = false;
+  bool _isUploadingPhoto = false;
   bool _isInstansiExpanded = false;
   bool _isLoadingRingkasan = true;
   AsesiDashboardSummary _ringkasan = AsesiDashboardSummary.empty();
@@ -285,6 +287,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _pickAndUploadPhoto() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+      );
+      if (result != null && result.files.isNotEmpty) {
+        final filePath = result.files.single.path;
+        if (filePath == null) return;
+        setState(() => _isUploadingPhoto = true);
+        final uploaded = await ApiService.uploadProfilePhoto(filePath);
+        if (!mounted) return;
+        if (uploaded != null && uploaded['foto_profil_url'] != null) {
+          setState(() {});
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle_outline, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Foto profil berhasil diperbarui!'),
+                ],
+              ),
+              backgroundColor: Color(0xFF2E7D32),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Gagal mengunggah foto profil'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking profile photo: $e');
+    } finally {
+      if (mounted) setState(() => _isUploadingPhoto = false);
+    }
+  }
+
   void _showPhotoPickerDemo() {
     showModalBottomSheet(
       context: context,
@@ -323,9 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   title: const Text('Pilih dari Galeri'),
                   onTap: () {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Membuka Galeri (Simulasi)')),
-                    );
+                    _pickAndUploadPhoto();
                   },
                 ),
                 ListTile(
@@ -340,12 +384,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Color(0xFF378CE7),
                     ),
                   ),
-                  title: const Text('Ambil Foto'),
+                  title: const Text('Ambil Foto / Pilih Berkas'),
                   onTap: () {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Membuka Kamera (Simulasi)')),
-                    );
+                    _pickAndUploadPhoto();
                   },
                 ),
               ],
@@ -430,65 +472,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Profile Image Avatar Stack
-                  Stack(
-                    children: [
-                      GestureDetector(
-                        onTap: _showPhotoPickerDemo,
-                        child: Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.person_rounded,
-                              size: 70,
-                              color: Color(0xFFCBD5E1),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 4,
-                        child: GestureDetector(
-                          onTap: _showPhotoPickerDemo,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
+                  Builder(
+                    builder: (context) {
+                      final rawPhoto = user.fotoProfilUrl;
+                      String? photoUrl;
+                      if (rawPhoto != null && rawPhoto.isNotEmpty) {
+                        if (rawPhoto.startsWith('http://') || rawPhoto.startsWith('https://')) {
+                          photoUrl = rawPhoto;
+                        } else {
+                          final normalized = rawPhoto.startsWith('/') ? rawPhoto : '/$rawPhoto';
+                          photoUrl = '${ApiService.baseUrl}$normalized';
+                        }
+                      }
+                      return Stack(
+                        children: [
+                          GestureDetector(
+                            onTap: _showPhotoPickerDemo,
+                            child: Container(
+                              width: 110,
+                              height: 110,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  width: 3,
                                 ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt_outlined,
-                              color: Color(0xFF378CE7),
-                              size: 18,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: _isUploadingPhoto
+                                    ? const Center(
+                                        child: SizedBox(
+                                          width: 32,
+                                          height: 32,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 3,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF5B9FD8)),
+                                          ),
+                                        ),
+                                      )
+                                    : (photoUrl != null && photoUrl.isNotEmpty)
+                                        ? Image.network(
+                                            photoUrl,
+                                            width: 110,
+                                            height: 110,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) => const Center(
+                                              child: Icon(
+                                                Icons.person_rounded,
+                                                size: 70,
+                                                color: Color(0xFFCBD5E1),
+                                              ),
+                                            ),
+                                          )
+                                        : const Center(
+                                            child: Icon(
+                                              Icons.person_rounded,
+                                              size: 70,
+                                              color: Color(0xFFCBD5E1),
+                                            ),
+                                          ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
+                          Positioned(
+                            bottom: 0,
+                            right: 4,
+                            child: GestureDetector(
+                              onTap: _showPhotoPickerDemo,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_outlined,
+                                  color: Color(0xFF378CE7),
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
 

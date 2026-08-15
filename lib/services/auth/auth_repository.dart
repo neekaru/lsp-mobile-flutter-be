@@ -16,6 +16,19 @@ class AuthRepository {
 
   static AuthUser? currentUserInstance;
 
+  static Future<void> updateCurrentUserPhoto({
+    required String fotoProfil,
+    required String fotoProfilUrl,
+  }) async {
+    if (currentUserInstance != null) {
+      currentUserInstance = currentUserInstance!.copyWith(
+        fotoProfil: fotoProfil,
+        fotoProfilUrl: fotoProfilUrl,
+      );
+      await TokenStorage.instance.saveUserProfile(currentUserInstance!);
+    }
+  }
+
   static final List<Future<void> Function()> preLogoutHooks = [];
 
   static final List<void Function()> onTokenExpiredCallbacks = [];
