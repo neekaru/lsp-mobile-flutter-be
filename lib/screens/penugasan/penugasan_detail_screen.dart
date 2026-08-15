@@ -351,6 +351,54 @@ class _PenugasanDetailScreenState extends State<PenugasanDetailScreen> {
                             ),
                           ),
 
+                          const SizedBox(height: 14),
+
+                          // Surat Tugas Button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 40,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFF3B82F6)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                foregroundColor: const Color(0xFF3B82F6),
+                              ),
+                              onPressed: () async {
+                                final res = await ApiService.getSuratTugas(widget.jadwal.id);
+                                if (res != null && res.data.fileUrl.isNotEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Surat Tugas: ${res.data.fileName}'),
+                                      backgroundColor: const Color(0xFF3B82F6),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Surat Tugas belum tersedia'),
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(Icons.description_outlined, size: 16),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Lihat Surat Tugas',
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(Icons.chevron_right_rounded, size: 16),
+                                ],
+                              ),
+                            ),
+                          ),
+
                           const SizedBox(height: 16),
 
                           // Catatan Admin Box
@@ -392,6 +440,219 @@ class _PenugasanDetailScreenState extends State<PenugasanDetailScreen> {
                           ),
                         ],
                       ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Video Pelaksanaan Card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x06000000),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(14.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.videocam_rounded,
+                            color: Color(0xFF2563EB),
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Video Pelaksanaan / Zoom',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Dokumentasi & rekaman asesmen',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          height: 32,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Video Pelaksanaan dapat diakses saat asesmen berlangsung'),
+                                  backgroundColor: Color(0xFF2563EB),
+                                ),
+                              );
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Text('Lihat Video', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                SizedBox(width: 2),
+                                Icon(Icons.chevron_right_rounded, size: 14),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Ringkasan Pelaksanaan Card
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x06000000),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Ringkasan Pelaksanaan',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('Peserta Hadir', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                                    const SizedBox(height: 4),
+                                    Text('$jumlahPeserta Orang', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF2563EB))),
+                                    const Text('100% Kehadiran', style: TextStyle(fontSize: 10, color: Color(0xFF10B981), fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFECFDF5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('Kompeten [K]', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                                    const SizedBox(height: 4),
+                                    Text('$jumlahPeserta Orang', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
+                                    const Text('100% Kompeten', style: TextStyle(fontSize: 10, color: Color(0xFF10B981), fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        const Text('Detail Pelaksanaan', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+                        const SizedBox(height: 8),
+                        _buildStatRow('Total Terdaftar', '$jumlahPeserta Orang', const Color(0xFF1E293B)),
+                        const Divider(height: 12, color: Color(0xFFF1F5F9)),
+                        _buildStatRow('Peserta Hadir', '$jumlahPeserta Orang', const Color(0xFF10B981)),
+                        const Divider(height: 12, color: Color(0xFFF1F5F9)),
+                        _buildStatRow('Peserta Absen', '0 Orang', const Color(0xFF64748B)),
+                        const Divider(height: 12, color: Color(0xFFF1F5F9)),
+                        _buildStatRow('Hasil Kompeten [K]', '$jumlahPeserta Orang', const Color(0xFF10B981)),
+                        const Divider(height: 12, color: Color(0xFFF1F5F9)),
+                        _buildStatRow('Hasil Belum Kompeten [TK]', '0 Orang', const Color(0xFF64748B)),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Catatan Asesor Card
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    padding: const EdgeInsets.all(14.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Catatan Asesor',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'Asesi telah memenuhi kriteria unjuk kerja dan seluruh bukti portofolio telah diverifikasi sesuai standar kompetensi yang berlaku.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF475569),
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   
@@ -510,6 +771,32 @@ class _PenugasanDetailScreenState extends State<PenugasanDetailScreen> {
           
           // Value
           Expanded(child: valueWidget),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, String value, Color valueColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF64748B),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: valueColor,
+            ),
+          ),
         ],
       ),
     );

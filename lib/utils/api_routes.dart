@@ -349,6 +349,10 @@ class ApiRoutes {
 
     return params.isEmpty ? route : '$route?${params.join('&')}';
   }
+
+  // Asesor Asesi Routes
+  static const String asesorAsesi = '/api/asesor/asesi';
+  static String asesorAsesiDetail(int id) => '/api/asesor/asesi/$id';
 }
 
 // ============================================================================

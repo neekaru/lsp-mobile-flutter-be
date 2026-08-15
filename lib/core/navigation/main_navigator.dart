@@ -6,7 +6,7 @@ import '../../screens/dashboard/berita_screen.dart';
 import '../../screens/dashboard/dashboard_screen.dart';
 import '../../screens/dashboard/statistik_screen.dart';
 import '../../screens/jadwal/jadwal_screen.dart';
-import '../../screens/penugasan/laporan_tugas_screen.dart';
+import '../../screens/asesi/asesor_asesi_screen.dart';
 import '../../screens/penugasan/penugasan_screen.dart';
 import '../../screens/statistik/statistik_asesor_screen.dart';
 import '../../screens/profile/profile_admin_screen.dart';
@@ -65,7 +65,7 @@ class MainNavigatorState extends State<MainNavigator> {
           DashboardScreen(onNavigateToJadwal: () => setTab(1)),
           JadwalScreen(onBackToHome: () => setTab(0)),
           StatistikAsesorScreen(onBackToHome: () => setTab(0)),
-          LaporanTugasScreen(onBackToHome: () => setTab(0)),
+          AsesorAsesiScreen(onBackToHome: () => setTab(0)),
           ProfileAsesorScreen(onBackToHome: () => setTab(0)),
         ];
       } else if (isAsesi) {

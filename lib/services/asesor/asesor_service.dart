@@ -5,6 +5,7 @@ import '../api_client.dart';
 import '../../utils/api_routes.dart';
 import '../../models/dashboard_models.dart';
 import '../../models/asesor_statistik_models.dart';
+import '../../models/asesor_asesi_models.dart';
 
 // ============================================================================
 // Asesor Service
@@ -543,6 +544,60 @@ class AsesorService {
       return null;
     } catch (e) {
       debugPrint('🔴 Error fetching asesor statistik bulanan: $e');
+      return null;
+    }
+  }
+
+  /// 19. Fetch Asesi List tested by logged-in Asesor
+  /// GET /api/asesor/asesi
+  static Future<AsesorAsesiListResponse?> getAsesiList({
+    String? search,
+    int? jadwalId,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    try {
+      final Map<String, dynamic> params = {
+        'page': page,
+        'per_page': perPage,
+      };
+      if (search != null && search.isNotEmpty) {
+        params['search'] = search;
+      }
+      if (jadwalId != null && jadwalId > 0) {
+        params['jadwal_id'] = jadwalId;
+      }
+
+      final response = await _dio.get(
+        ApiRoutes.asesorAsesi,
+        queryParameters: params,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return AsesorAsesiListResponse.fromJson(response.data as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching asesor asesi list: $e');
+      return null;
+    }
+  }
+
+  /// 20. Fetch Asesi Detail tested by logged-in Asesor
+  /// GET /api/asesor/asesi/:id
+  static Future<AsesorAsesiDetailData?> getAsesiDetail(int id) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorAsesiDetail(id));
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'];
+        if (data != null && data is Map<String, dynamic>) {
+          return AsesorAsesiDetailData.fromJson(data);
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching asesor asesi detail: $e');
       return null;
     }
   }

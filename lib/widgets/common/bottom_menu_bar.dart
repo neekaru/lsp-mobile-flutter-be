@@ -68,8 +68,8 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
                 ),
                 _buildMenuItem(
                   index: 3,
-                  icon: Icons.description_rounded,
-                  label: 'Laporan',
+                  icon: Icons.groups_rounded,
+                  label: 'Asesi',
                   isAsesor: true,
                 ),
                 _buildMenuItem(
