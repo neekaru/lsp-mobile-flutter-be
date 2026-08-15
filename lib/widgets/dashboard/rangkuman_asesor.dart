@@ -234,38 +234,77 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
                 ),
                 const SizedBox(height: 16),
               ],
-              // Row of 3 Category Cards
+              // Row of 3 Stat Cards (Jumlah SPT 2026, Jumlah MUK 2026, Jumlah Mitra)
               SizedBox(
                 height: 120,
                 child: Row(
                   children: [
                     Expanded(
                       child: _buildCategoryCard(
-                        title: 'Menunggu Verifikasi',
-                        count: (widget.data?.summary.menungguVerifikasi ?? 0).toString(),
-                        icon: Icons.access_time_rounded,
+                        title: 'Jumlah SPT 2026',
+                        count: (widget.data?.summary.jumlahSpt2026 ?? 0).toString(),
+                        unit: 'SPT',
+                        icon: Icons.assignment_turned_in_rounded,
+                        iconColor: const Color(0xFF3F8CFF),
+                        iconBgColor: const Color(0xFFEFF6FF),
+                        onTap: () {
+                          if (widget.onNavigateToJadwal != null) {
+                            widget.onNavigateToJadwal!();
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const JadwalScreen(),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildCategoryCard(
+                        title: 'Jumlah MUK 2026',
+                        count: (widget.data?.summary.jumlahMuk2026 ?? 0).toString(),
+                        unit: 'Perangkat',
+                        icon: Icons.menu_book_rounded,
                         iconColor: const Color(0xFFF59E0B),
                         iconBgColor: const Color(0xFFFEF3C7),
+                        onTap: () {
+                          _showStatDetailDialog(
+                            title: 'Jumlah MUK 2026',
+                            count: widget.data?.summary.jumlahMuk2026 ?? 0,
+                            unit: 'Perangkat',
+                            description:
+                                'Total perangkat MUK / MAPA yang dikembangkan atau ditugaskan kepada Anda pada tahun 2026.',
+                            icon: Icons.menu_book_rounded,
+                            iconColor: const Color(0xFFF59E0B),
+                            iconBgColor: const Color(0xFFFEF3C7),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _buildCategoryCard(
-                        title: 'Asessmen Berlangsung',
-                        count: (widget.data?.summary.asesmenBerlangsung ?? 0).toString(),
-                        icon: Icons.assignment_rounded,
-                        iconColor: const Color(0xFF3F8CFF),
-                        iconBgColor: const Color(0xFFF0F5FF),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildCategoryCard(
-                        title: 'Asessmen Selesai',
-                        count: (widget.data?.summary.asesmenSelesai ?? 0).toString(),
-                        icon: Icons.check_circle_rounded,
+                        title: 'Jumlah Mitra',
+                        count: (widget.data?.summary.jumlahMitra ?? 0).toString(),
+                        unit: 'Mitra',
+                        icon: Icons.handshake_rounded,
                         iconColor: const Color(0xFF10B981),
                         iconBgColor: const Color(0xFFECFDF5),
+                        onTap: () {
+                          _showStatDetailDialog(
+                            title: 'Jumlah Mitra',
+                            count: widget.data?.summary.jumlahMitra ?? 0,
+                            unit: 'Mitra',
+                            description:
+                                'Total mitra kerja sama asosiasi, instansi, atau TUK terkait penugasan asesmen Anda.',
+                            icon: Icons.handshake_rounded,
+                            iconColor: const Color(0xFF10B981),
+                            iconBgColor: const Color(0xFFECFDF5),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -797,80 +836,209 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
   Widget _buildCategoryCard({
     required String title,
     required String count,
+    required String unit,
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBgColor,
+    VoidCallback? onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Icon Box & Arrow indicator
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: iconBgColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: iconColor,
+                      size: 18,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Color(0xFFCBD5E1),
+                    size: 16,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Texts
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFF1E293B),
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  height: 1.2,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    count,
+                    style: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    unit,
+                    style: TextStyle(
+                      color: iconColor,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showStatDetailDialog({
+    required String title,
+    required int count,
+    required String unit,
+    required String description,
     required IconData icon,
     required Color iconColor,
     required Color iconBgColor,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, 3),
-          ),
-        ],
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      padding: const EdgeInsets.all(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Icon Box
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(8),
+      backgroundColor: Colors.white,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFCBD5E1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 18,
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 24),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$count $unit',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: iconColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          // Texts
-          Text(
-            title,
-            style: const TextStyle(
-              color: Color(0xFF1E293B),
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              height: 1.2,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                count,
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Text(
+                description,
                 style: const TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  height: 1,
+                  fontSize: 13,
+                  color: Color(0xFF475569),
+                  height: 1.4,
                 ),
               ),
-              const SizedBox(width: 3),
-              const Text(
-                'Asessmen',
-                style: TextStyle(
-                  color: Color(0xFF0D9488),
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3F8CFF),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
+                child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

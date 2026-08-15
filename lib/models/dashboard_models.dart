@@ -609,12 +609,18 @@ class AsesiDashboardSummary {
 // ============================================================================
 
 class AsesorDashboardSummaryCount {
+  final int jumlahSpt2026;
+  final int jumlahMuk2026;
+  final int jumlahMitra;
   final int menungguVerifikasi;
   final int asesmenBerlangsung;
   final int asesmenSelesai;
   final int menungguPenugasan;
 
   const AsesorDashboardSummaryCount({
+    this.jumlahSpt2026 = 0,
+    this.jumlahMuk2026 = 0,
+    this.jumlahMitra = 0,
     required this.menungguVerifikasi,
     required this.asesmenBerlangsung,
     required this.asesmenSelesai,
@@ -623,6 +629,9 @@ class AsesorDashboardSummaryCount {
 
   factory AsesorDashboardSummaryCount.fromJson(Map<String, dynamic> json) {
     return AsesorDashboardSummaryCount(
+      jumlahSpt2026: json['jumlah_spt_2026'] ?? json['total_spt'] ?? 0,
+      jumlahMuk2026: json['jumlah_muk_2026'] ?? json['jumlah_muk'] ?? 0,
+      jumlahMitra: json['jumlah_mitra'] ?? 0,
       menungguVerifikasi: json['menunggu_verifikasi'] ?? 0,
       asesmenBerlangsung: json['asesmen_berlangsung'] ?? 0,
       asesmenSelesai: json['asesmen_selesai'] ?? 0,
@@ -632,6 +641,9 @@ class AsesorDashboardSummaryCount {
 
   factory AsesorDashboardSummaryCount.empty() {
     return const AsesorDashboardSummaryCount(
+      jumlahSpt2026: 0,
+      jumlahMuk2026: 0,
+      jumlahMitra: 0,
       menungguVerifikasi: 0,
       asesmenBerlangsung: 0,
       asesmenSelesai: 0,
