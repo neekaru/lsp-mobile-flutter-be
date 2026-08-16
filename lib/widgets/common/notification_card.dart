@@ -8,11 +8,15 @@ class NotificationCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onStatusUpdated;
 
+  /// Whether the current user may confirm the schedule (admin & asesor).
+  final bool canConfirm;
+
   const NotificationCard({
     super.key,
     required this.schedule,
     required this.onTap,
     required this.onStatusUpdated,
+    required this.canConfirm,
   });
 
   void _confirmStatusUpdate(BuildContext context) {
@@ -33,10 +37,7 @@ class NotificationCard extends StatelessWidget {
               SizedBox(width: 10),
               Text(
                 'Konfirmasi Jadwal',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ],
           ),
@@ -175,10 +176,7 @@ class NotificationCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFFF8F9FA),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFFE9ECEF),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFFE9ECEF), width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,41 +333,43 @@ class NotificationCard extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 12),
-            const Divider(height: 1, thickness: 1, color: Color(0xFFE9ECEF)),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => _confirmStatusUpdate(context),
-                  icon: const Icon(
-                    Icons.play_arrow_rounded,
-                    size: 18,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    'Konfirmasi Jadwal',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+            if (canConfirm) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE9ECEF)),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => _confirmStatusUpdate(context),
+                    icon: const Icon(
+                      Icons.play_arrow_rounded,
+                      size: 18,
                       color: Colors.white,
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2E7D32), // Forest Green
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                    label: const Text(
+                      'Konfirmasi Jadwal',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2E7D32), // Forest Green
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

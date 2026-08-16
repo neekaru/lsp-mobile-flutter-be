@@ -30,9 +30,12 @@ class _NotificationPanelState extends State<NotificationPanel> {
   void initState() {
     super.initState();
     _loadAllData();
-    _notificationSubscription = NotificationService.onNotificationReceived.stream.listen((_) {
-      _loadAllData();
-    });
+    _notificationSubscription = NotificationService
+        .onNotificationReceived
+        .stream
+        .listen((_) {
+          _loadAllData();
+        });
   }
 
   @override
@@ -47,8 +50,10 @@ class _NotificationPanelState extends State<NotificationPanel> {
     });
 
     final schedulesResponse = await ApiService.getWaitingSchedules(limit: 20);
-    final localNotifs = await AppNotificationStorage.instance.getNotifications();
-    final unreadLocalCount = await AppNotificationStorage.instance.getUnreadCount();
+    final localNotifs = await AppNotificationStorage.instance
+        .getNotifications();
+    final unreadLocalCount = await AppNotificationStorage.instance
+        .getUnreadCount();
 
     if (mounted) {
       setState(() {
@@ -62,8 +67,10 @@ class _NotificationPanelState extends State<NotificationPanel> {
   }
 
   Future<void> _refreshAppNotifications() async {
-    final localNotifs = await AppNotificationStorage.instance.getNotifications();
-    final unreadLocalCount = await AppNotificationStorage.instance.getUnreadCount();
+    final localNotifs = await AppNotificationStorage.instance
+        .getNotifications();
+    final unreadLocalCount = await AppNotificationStorage.instance
+        .getUnreadCount();
     if (mounted) {
       setState(() {
         _appNotifications = localNotifs;
@@ -146,7 +153,10 @@ class _NotificationPanelState extends State<NotificationPanel> {
                       ),
                       if (_selectedTab == 1 && _appNotifications.isNotEmpty)
                         PopupMenuButton<String>(
-                          icon: const Icon(Icons.more_vert, color: Color(0xFF64748B)),
+                          icon: const Icon(
+                            Icons.more_vert,
+                            color: Color(0xFF64748B),
+                          ),
                           onSelected: (value) {
                             if (value == 'read_all') {
                               _markAllAsRead();
@@ -159,7 +169,11 @@ class _NotificationPanelState extends State<NotificationPanel> {
                               value: 'read_all',
                               child: Row(
                                 children: [
-                                  Icon(Icons.done_all, size: 18, color: Colors.blue),
+                                  Icon(
+                                    Icons.done_all,
+                                    size: 18,
+                                    color: Colors.blue,
+                                  ),
                                   SizedBox(width: 8),
                                   Text('Tandai Semua Dibaca'),
                                 ],
@@ -169,7 +183,11 @@ class _NotificationPanelState extends State<NotificationPanel> {
                               value: 'clear_all',
                               child: Row(
                                 children: [
-                                  Icon(Icons.delete_sweep, size: 18, color: Colors.red),
+                                  Icon(
+                                    Icons.delete_sweep,
+                                    size: 18,
+                                    color: Colors.red,
+                                  ),
                                   SizedBox(width: 8),
                                   Text('Hapus Semua'),
                                 ],
@@ -201,12 +219,16 @@ class _NotificationPanelState extends State<NotificationPanel> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 10),
                           decoration: BoxDecoration(
-                            color: _selectedTab == 0 ? Colors.white : Colors.transparent,
+                            color: _selectedTab == 0
+                                ? Colors.white
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: _selectedTab == 0
                                 ? [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.05),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.05,
+                                      ),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -219,7 +241,9 @@ class _NotificationPanelState extends State<NotificationPanel> {
                               Icon(
                                 Icons.calendar_today_rounded,
                                 size: 16,
-                                color: _selectedTab == 0 ? const Color(0xFF4A9EDF) : Colors.grey[600],
+                                color: _selectedTab == 0
+                                    ? const Color(0xFF4A9EDF)
+                                    : Colors.grey[600],
                               ),
                               const SizedBox(width: 8),
                               Text(
@@ -227,16 +251,23 @@ class _NotificationPanelState extends State<NotificationPanel> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
-                                  color: _selectedTab == 0 ? const Color(0xFF1E293B) : Colors.grey[600],
+                                  color: _selectedTab == 0
+                                      ? const Color(0xFF1E293B)
+                                      : Colors.grey[600],
                                 ),
                               ),
                               if (_totalWaiting > 0) ...[
                                 const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: const BoxDecoration(
                                     color: Color(0xFFFF5252),
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10),
+                                    ),
                                   ),
                                   child: Text(
                                     '$_totalWaiting',
@@ -260,12 +291,16 @@ class _NotificationPanelState extends State<NotificationPanel> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 10),
                           decoration: BoxDecoration(
-                            color: _selectedTab == 1 ? Colors.white : Colors.transparent,
+                            color: _selectedTab == 1
+                                ? Colors.white
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: _selectedTab == 1
                                 ? [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.05),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.05,
+                                      ),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -278,7 +313,9 @@ class _NotificationPanelState extends State<NotificationPanel> {
                               Icon(
                                 Icons.phone_android_rounded,
                                 size: 16,
-                                color: _selectedTab == 1 ? const Color(0xFF4A9EDF) : Colors.grey[600],
+                                color: _selectedTab == 1
+                                    ? const Color(0xFF4A9EDF)
+                                    : Colors.grey[600],
                               ),
                               const SizedBox(width: 8),
                               Text(
@@ -286,16 +323,23 @@ class _NotificationPanelState extends State<NotificationPanel> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
-                                  color: _selectedTab == 1 ? const Color(0xFF1E293B) : Colors.grey[600],
+                                  color: _selectedTab == 1
+                                      ? const Color(0xFF1E293B)
+                                      : Colors.grey[600],
                                 ),
                               ),
                               if (_unreadAppCount > 0) ...[
                                 const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: const BoxDecoration(
                                     color: Color(0xFF4A9EDF),
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(10),
+                                    ),
                                   ),
                                   child: Text(
                                     '$_unreadAppCount',
@@ -323,73 +367,94 @@ class _NotificationPanelState extends State<NotificationPanel> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _selectedTab == 0
-                        ? (_schedules.isEmpty
-                            ? _buildEmptyState(
-                                icon: Icons.notifications_off_outlined,
-                                title: 'Tidak ada notifikasi jadwal',
-                                subtitle: 'Semua jadwal sudah ditindaklanjuti',
-                              )
-                            : ListView.separated(
-                                controller: scrollController,
-                                padding: const EdgeInsets.all(16),
-                                itemCount: _schedules.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  return NotificationCard(
-                                    schedule: _schedules[index],
-                                    onStatusUpdated: _loadAllData,
-                                    onTap: () {
-                                      Navigator.pop(context);
-                                    },
-                                  );
-                                },
-                              ))
-                        : (_appNotifications.isEmpty
-                            ? _buildEmptyState(
-                                icon: Icons.message_outlined,
-                                title: 'Tidak ada notifikasi aplikasi',
-                                subtitle: 'Anda akan menerima pemberitahuan penting di sini',
-                              )
-                            : ListView.separated(
-                                controller: scrollController,
-                                padding: const EdgeInsets.all(16),
-                                itemCount: _appNotifications.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final notif = _appNotifications[index];
-                                  return AppNotificationCard(
-                                    notification: notif,
-                                    onTap: () async {
-                                      await AppNotificationStorage.instance.markAsRead(notif.id);
-                                      _refreshAppNotifications();
-                                    },
-                                    onActionPressed: () {
-                                      Navigator.pop(context); // Close bottom sheet
-                                      final type = notif.type;
-                                      final state = mainNavigatorKey.currentState;
-                                      if (state == null || !state.mounted) return;
-                                      final isAsesi = AuthRepository.currentUserInstance?.role == 'asesi';
-                                      if (isAsesi) {
-                                        if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
-                                          state.setTab(3); // Switch to Sertifikat Tab
-                                        } else if (type == 'rekomendasi_asesor') {
-                                          state.setTab(2); // Switch to Jadwal Tab
-                                        }
-                                      } else {
-                                        if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
-                                          state.setTab(3); // Switch to Sertifikat Tab
-                                        } else if (type == 'rekomendasi_asesor') {
-                                          state.setTab(2); // Switch to Jadwal Tab
-                                        }
+                    ? (_schedules.isEmpty
+                          ? _buildEmptyState(
+                              icon: Icons.notifications_off_outlined,
+                              title: 'Tidak ada notifikasi jadwal',
+                              subtitle: 'Semua jadwal sudah ditindaklanjuti',
+                            )
+                          : ListView.separated(
+                              controller: scrollController,
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _schedules.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final role =
+                                    AuthRepository.currentUserInstance?.role;
+                                return NotificationCard(
+                                  schedule: _schedules[index],
+                                  canConfirm:
+                                      role == 'admin' || role == 'asesor',
+                                  onStatusUpdated: _loadAllData,
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                  },
+                                );
+                              },
+                            ))
+                    : (_appNotifications.isEmpty
+                          ? _buildEmptyState(
+                              icon: Icons.message_outlined,
+                              title: 'Tidak ada notifikasi aplikasi',
+                              subtitle:
+                                  'Anda akan menerima pemberitahuan penting di sini',
+                            )
+                          : ListView.separated(
+                              controller: scrollController,
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _appNotifications.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final notif = _appNotifications[index];
+                                return AppNotificationCard(
+                                  notification: notif,
+                                  onTap: () async {
+                                    await AppNotificationStorage.instance
+                                        .markAsRead(notif.id);
+                                    _refreshAppNotifications();
+                                  },
+                                  onActionPressed: () {
+                                    Navigator.pop(
+                                      context,
+                                    ); // Close bottom sheet
+                                    final type = notif.type;
+                                    final state = mainNavigatorKey.currentState;
+                                    if (state == null || !state.mounted) return;
+                                    final isAsesi =
+                                        AuthRepository
+                                            .currentUserInstance
+                                            ?.role ==
+                                        'asesi';
+                                    if (isAsesi) {
+                                      if (type == 'status_kompeten' ||
+                                          type == 'sertifikat_terbit') {
+                                        state.setTab(
+                                          3,
+                                        ); // Switch to Sertifikat Tab
+                                      } else if (type == 'rekomendasi_asesor') {
+                                        state.setTab(2); // Switch to Jadwal Tab
                                       }
-                                    },
-                                    onDelete: () async {
-                                      await AppNotificationStorage.instance.deleteNotification(notif.id);
-                                      _refreshAppNotifications();
-                                    },
-                                  );
-                                },
-                              )),
+                                    } else {
+                                      if (type == 'status_kompeten' ||
+                                          type == 'sertifikat_terbit') {
+                                        state.setTab(
+                                          3,
+                                        ); // Switch to Sertifikat Tab
+                                      } else if (type == 'rekomendasi_asesor') {
+                                        state.setTab(2); // Switch to Jadwal Tab
+                                      }
+                                    }
+                                  },
+                                  onDelete: () async {
+                                    await AppNotificationStorage.instance
+                                        .deleteNotification(notif.id);
+                                    _refreshAppNotifications();
+                                  },
+                                );
+                              },
+                            )),
               ),
             ],
           ),
@@ -407,11 +472,7 @@ class _NotificationPanelState extends State<NotificationPanel> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 80,
-            color: Colors.grey[300],
-          ),
+          Icon(icon, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             title,
@@ -424,10 +485,7 @@ class _NotificationPanelState extends State<NotificationPanel> {
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
         ],
       ),
@@ -478,7 +536,8 @@ class _AppNotificationCardState extends State<AppNotificationCard> {
       iconColor = const Color(0xFF94A3B8); // Muted grey
     }
 
-    final hasAction = widget.onActionPressed != null &&
+    final hasAction =
+        widget.onActionPressed != null &&
         (notification.type == 'status_kompeten' ||
             notification.type == 'rekomendasi_asesor' ||
             notification.type == 'sertifikat_terbit');
@@ -491,9 +550,7 @@ class _AppNotificationCardState extends State<AppNotificationCard> {
         background: Container(
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
-          decoration: const BoxDecoration(
-            color: Color(0xFFFFEBEE),
-          ),
+          decoration: const BoxDecoration(color: Color(0xFFFFEBEE)),
           child: const Icon(
             Icons.delete_outline_rounded,
             color: Color(0xFFC62828),
@@ -502,9 +559,13 @@ class _AppNotificationCardState extends State<AppNotificationCard> {
         onDismissed: (_) => widget.onDelete(),
         child: Container(
           decoration: BoxDecoration(
-            color: notification.isRead ? const Color(0xFFF8F9FA) : const Color(0xFFE3F2FD).withValues(alpha: 0.35),
+            color: notification.isRead
+                ? const Color(0xFFF8F9FA)
+                : const Color(0xFFE3F2FD).withValues(alpha: 0.35),
             border: Border.all(
-              color: notification.isRead ? const Color(0xFFE9ECEF) : const Color(0xFF90CAF9).withValues(alpha: 0.5),
+              color: notification.isRead
+                  ? const Color(0xFFE9ECEF)
+                  : const Color(0xFF90CAF9).withValues(alpha: 0.5),
               width: 1,
             ),
             borderRadius: BorderRadius.circular(12),
@@ -528,14 +589,12 @@ class _AppNotificationCardState extends State<AppNotificationCard> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: iconColor.withValues(alpha: notification.isRead ? 0.05 : 0.1),
+                          color: iconColor.withValues(
+                            alpha: notification.isRead ? 0.05 : 0.1,
+                          ),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          iconData,
-                          color: iconColor,
-                          size: 20,
-                        ),
+                        child: Icon(iconData, color: iconColor, size: 20),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -550,8 +609,12 @@ class _AppNotificationCardState extends State<AppNotificationCard> {
                                     notification.title,
                                     style: TextStyle(
                                       fontSize: 14,
-                                      fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
-                                      color: notification.isRead ? const Color(0xFF64748B) : const Color(0xFF1E293B),
+                                      fontWeight: notification.isRead
+                                          ? FontWeight.w600
+                                          : FontWeight.w800,
+                                      color: notification.isRead
+                                          ? const Color(0xFF64748B)
+                                          : const Color(0xFF1E293B),
                                     ),
                                   ),
                                 ),
@@ -568,7 +631,9 @@ class _AppNotificationCardState extends State<AppNotificationCard> {
                                 ],
                                 const SizedBox(width: 6),
                                 Icon(
-                                  _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                                  _isExpanded
+                                      ? Icons.keyboard_arrow_up_rounded
+                                      : Icons.keyboard_arrow_down_rounded,
                                   size: 18,
                                   color: const Color(0xFF94A3B8),
                                 ),
@@ -579,11 +644,15 @@ class _AppNotificationCardState extends State<AppNotificationCard> {
                               notification.body,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: notification.isRead ? const Color(0xFF94A3B8) : const Color(0xFF334155),
+                                color: notification.isRead
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF334155),
                                 height: 1.3,
                               ),
                               maxLines: _isExpanded ? null : 2,
-                              overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                              overflow: _isExpanded
+                                  ? TextOverflow.visible
+                                  : TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -601,21 +670,36 @@ class _AppNotificationCardState extends State<AppNotificationCard> {
                   ),
                   if (_isExpanded && hasAction) ...[
                     const SizedBox(height: 12),
-                    const Divider(height: 1, thickness: 1, color: Color(0xFFE9ECEF)),
+                    const Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: Color(0xFFE9ECEF),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton.icon(
                           onPressed: widget.onActionPressed,
-                          icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                          icon: const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 16,
+                          ),
                           label: Text(
-                            notification.type == 'rekomendasi_asesor' ? 'Lihat Jadwal' : 'Buka Sertifikat',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            notification.type == 'rekomendasi_asesor'
+                                ? 'Lihat Jadwal'
+                                : 'Buka Sertifikat',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           style: TextButton.styleFrom(
                             foregroundColor: const Color(0xFF4A9EDF),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
@@ -641,8 +725,9 @@ class _AppNotificationCardState extends State<AppNotificationCard> {
     } else if (difference.inHours < 24) {
       return '${difference.inHours} jam lalu';
     } else {
-      return DateFormatHelper.formatToIndonesian(dateTime.toIso8601String().split('T')[0]);
+      return DateFormatHelper.formatToIndonesian(
+        dateTime.toIso8601String().split('T')[0],
+      );
     }
   }
 }
-
