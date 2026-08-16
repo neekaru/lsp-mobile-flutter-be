@@ -68,11 +68,14 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
     });
 
     try {
+      // Data awal 10, saat scroll pagination ambil 20
+      final int limit = _currentPage == 1 ? 10 : 20;
+
       final res = await AsesorService.getAsesiList(
         search: _searchQuery,
         status: _selectedTab,
         page: _currentPage,
-        perPage: 20,
+        perPage: limit,
       );
 
       if (res != null) {
