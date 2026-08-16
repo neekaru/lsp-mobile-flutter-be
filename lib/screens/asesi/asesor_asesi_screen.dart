@@ -211,6 +211,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                 controller: _searchController,
                 onSubmitted: _onSearch,
                 textInputAction: TextInputAction.search,
+                textAlignVertical: TextAlignVertical.center,
                 decoration: InputDecoration(
                   hintText: _selectedTab == 'belum'
                       ? 'Cari asesi belum dinilai...'
