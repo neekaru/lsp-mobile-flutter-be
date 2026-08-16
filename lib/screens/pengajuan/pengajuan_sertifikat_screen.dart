@@ -13,6 +13,7 @@ import '../../widgets/pengajuan/dokumen_persyaratan_form.dart';
 import 'asesmen_mandiri_uji_screen.dart';
 import 'pengajuan_sertifikat_data_logic.dart';
 import 'pengajuan_sertifikat_flow_logic.dart';
+import 'pengajuan_sertifikat_skema_logic.dart';
 
 class PengajuanSertifikatScreen extends StatefulWidget {
   /// Pre-select skema when opened from Detail Skema → Daftar Sekarang.
@@ -30,7 +31,10 @@ class PengajuanSertifikatScreen extends StatefulWidget {
 }
 
 class PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen>
-    with PengajuanSertifikatDataLogic, PengajuanSertifikatFlowLogic {
+    with
+        PengajuanSertifikatSkemaLogic,
+        PengajuanSertifikatDataLogic,
+        PengajuanSertifikatFlowLogic {
   @override
   void initState() {
     super.initState();
