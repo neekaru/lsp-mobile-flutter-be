@@ -759,21 +759,6 @@ class AsesiInfoUtamaCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
-              Icon(Icons.info_outline_rounded, size: 18, color: Color(0xFF2563EB)),
-              SizedBox(width: 8),
-              Text(
-                'Informasi Utama Asesi',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
           AsesiDetailRow('Tempat, Tanggal Lahir', ttl),
           AsesiDetailRow('Jenis Kelamin', jenisKel),
           AsesiDetailRow('Alamat', d.alamat.isNotEmpty ? d.alamat : '-'),
