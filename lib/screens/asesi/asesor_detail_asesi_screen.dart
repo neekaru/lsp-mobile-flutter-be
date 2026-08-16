@@ -190,6 +190,11 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
                               // 3. Quick Form Tabs (Pills)
                               _buildQuickFormPills(),
 
+                              const SizedBox(height: 12),
+
+                              // 4. Collapsible Info Utama Asesi (Bisa dibuka-tutup agar layar fokus ke form)
+                              _buildCollapsibleInfoUtama(),
+
                               const SizedBox(height: 14),
 
                               // 5. Active Form Content Area (Hanya fokus menampilkan satu form yang dipilih)
