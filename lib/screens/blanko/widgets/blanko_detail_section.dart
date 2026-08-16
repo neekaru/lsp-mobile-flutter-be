@@ -5,10 +5,14 @@ class BlankoInfoItem {
   final String label;
   final String value;
 
+  /// Kalau diisi, widget ini dipakai menggantikan [value] (mis. chips jadwal).
+  final Widget? valueWidget;
+
   const BlankoInfoItem({
     required this.icon,
     required this.label,
     required this.value,
+    this.valueWidget,
   });
 }
 
@@ -83,16 +87,17 @@ class BlankoDetailSection extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      item.value.isEmpty ? '-' : item.value,
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                        height: 1.3,
-                      ),
-                    ),
+                    child: item.valueWidget ??
+                        Text(
+                          item.value.isEmpty ? '-' : item.value,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                            height: 1.3,
+                          ),
+                        ),
                   ),
                 ],
               ),

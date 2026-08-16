@@ -6,6 +6,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import 'widgets/blanko_detail_header.dart';
 import 'widgets/blanko_detail_metrics.dart';
 import 'widgets/blanko_detail_section.dart';
+import 'widgets/blanko_jadwal_id_chips.dart';
 
 class DetailPengajuanBlankoScreen extends StatefulWidget {
   final int blankoId;
@@ -167,9 +168,10 @@ class _DetailPengajuanBlankoScreenState
                           BlankoInfoItem(
                             icon: Icons.event_note_outlined,
                             label: 'Jadwal ID',
-                            value: _detail?.jadwalId.isNotEmpty == true
-                                ? _detail!.jadwalId
-                                : '-',
+                            value: '',
+                            valueWidget: BlankoJadwalIdChips(
+                              jadwalIds: _detail?.jadwalIds ?? const [],
+                            ),
                           ),
                           BlankoInfoItem(
                             icon: Icons.date_range_outlined,

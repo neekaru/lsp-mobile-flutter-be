@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class BlankoListItem {
   final int id;
   final String nomorPermohonan;
@@ -137,6 +139,7 @@ class BlankoDetailModel {
   final String nomorKeputusan;
   final String tanggalPermohonan;
   final String jadwalId;
+  final List<String> jadwalIds;
   final String tanggalKeputusan;
   final int jumlahKompeten;
   final int blankoTerkirim;
@@ -161,6 +164,7 @@ class BlankoDetailModel {
     required this.nomorKeputusan,
     required this.tanggalPermohonan,
     required this.jadwalId,
+    required this.jadwalIds,
     required this.tanggalKeputusan,
     required this.jumlahKompeten,
     required this.blankoTerkirim,
@@ -194,6 +198,14 @@ class BlankoDetailModel {
       nomorKeputusan: json['nomor_keputusan']?.toString() ?? '',
       tanggalPermohonan: json['tanggal_permohonan']?.toString() ?? '',
       jadwalId: json['jadwal_id']?.toString() ?? '',
+      jadwalIds: json['jadwal_id'] != null
+          ? (json['jadwal_id'] is List
+              ? (json['jadwal_id'] as List)
+                    .map((e) => e.toString())
+                    .where((e) => e.trim().isNotEmpty)
+                    .toList()
+              : _parseJadwalIds(json['jadwal_id']))
+          : const [],
       tanggalKeputusan: json['tanggal_keputusan']?.toString() ?? '',
       jumlahKompeten: json['jumlah_kompeten'] is int
           ? json['jumlah_kompeten']
@@ -218,5 +230,28 @@ class BlankoDetailModel {
           ? json['is_validasi']
           : int.tryParse(json['is_validasi']?.toString() ?? '') ?? 0,
     );
+  }
+
+  /// Parse jadwal_id string dari backend menjadi ID yang siap ditampilkan.
+  static List<String> _parseJadwalIds(dynamic raw) {
+    final value = raw.toString().trim();
+    if (value.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(value);
+      if (decoded is List) {
+        return decoded
+            .map((item) => item.toString())
+            .where((item) => item.trim().isNotEmpty)
+            .toList();
+      }
+    } catch (_) {
+      // Fallback di bawah menangani format comma-separated.
+    }
+    return value
+        .replaceAll(RegExp(r'[\[\]"]'), '')
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
   }
 }
