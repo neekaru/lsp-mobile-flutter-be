@@ -69,10 +69,37 @@ class AsesorAsesiItem {
   }
 }
 
+class AsesorAsesiSummary {
+  final int totalAll;
+  final int totalBelumDinilai;
+  final int totalSudahDinilai;
+  final int totalKompeten;
+  final int totalBelumKompeten;
+
+  AsesorAsesiSummary({
+    required this.totalAll,
+    required this.totalBelumDinilai,
+    required this.totalSudahDinilai,
+    required this.totalKompeten,
+    required this.totalBelumKompeten,
+  });
+
+  factory AsesorAsesiSummary.fromJson(Map<String, dynamic> json) {
+    return AsesorAsesiSummary(
+      totalAll: json['total_all'] as int? ?? 0,
+      totalBelumDinilai: json['total_belum_dinilai'] as int? ?? 0,
+      totalSudahDinilai: json['total_sudah_dinilai'] as int? ?? 0,
+      totalKompeten: json['total_kompeten'] as int? ?? 0,
+      totalBelumKompeten: json['total_belum_kompeten'] as int? ?? 0,
+    );
+  }
+}
+
 class AsesorAsesiListResponse {
   final String status;
   final String message;
   final List<AsesorAsesiItem> data;
+  final AsesorAsesiSummary? summary;
   final int total;
   final int page;
   final int perPage;
@@ -82,6 +109,7 @@ class AsesorAsesiListResponse {
     required this.status,
     required this.message,
     required this.data,
+    this.summary,
     required this.total,
     required this.page,
     required this.perPage,
@@ -90,6 +118,7 @@ class AsesorAsesiListResponse {
 
   factory AsesorAsesiListResponse.fromJson(Map<String, dynamic> json) {
     final pagination = json['pagination'] as Map<String, dynamic>? ?? {};
+    final summaryJson = json['summary'] as Map<String, dynamic>?;
     final list = (json['data'] as List<dynamic>? ?? [])
         .map((item) => AsesorAsesiItem.fromJson(item as Map<String, dynamic>))
         .toList();
@@ -98,6 +127,7 @@ class AsesorAsesiListResponse {
       status: json['status'] as String? ?? 'success',
       message: json['message'] as String? ?? '',
       data: list,
+      summary: summaryJson != null ? AsesorAsesiSummary.fromJson(summaryJson) : null,
       total: pagination['total'] as int? ?? list.length,
       page: pagination['page'] as int? ?? 1,
       perPage: pagination['per_page'] as int? ?? 20,

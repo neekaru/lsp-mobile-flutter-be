@@ -26,10 +26,12 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
   String _errorMessage = '';
 
   List<AsesorAsesiItem> _asesiList = [];
+  AsesorAsesiSummary? _summary;
   int _currentPage = 1;
   int _totalPages = 1;
   int _totalCount = 0;
   String _searchQuery = '';
+  String _selectedTab = 'belum'; // 'belum' | 'sudah'
 
   @override
   void initState() {
@@ -68,6 +70,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
     try {
       final res = await AsesorService.getAsesiList(
         search: _searchQuery,
+        status: _selectedTab,
         page: _currentPage,
         perPage: 20,
       );
@@ -78,6 +81,9 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
             _asesiList = res.data;
           } else {
             _asesiList.addAll(res.data);
+          }
+          if (res.summary != null) {
+            _summary = res.summary;
           }
           _totalCount = res.total;
           _totalPages = res.totalPages;
@@ -117,9 +123,21 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
     _fetchAsesiList();
   }
 
+  void _onTabChanged(String tab) {
+    if (_selectedTab == tab) return;
+    setState(() {
+      _selectedTab = tab;
+      _currentPage = 1;
+    });
+    _fetchAsesiList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+
+    final int belumCount = _summary?.totalBelumDinilai ?? 0;
+    final int sudahCount = _summary?.totalSudahDinilai ?? 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -132,11 +150,51 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
             rightWidget: const SizedBox(width: 32),
           ),
 
+          // 2 Tabs: Belum Dinilai vs Sudah Dinilai
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildTabButton(
+                      label: 'Belum Dinilai',
+                      badgeCount: belumCount,
+                      isActive: _selectedTab == 'belum',
+                      activeColor: const Color(0xFFEA580C),
+                      activeBadgeBg: const Color(0xFFFFEDD5),
+                      activeBadgeText: const Color(0xFFC2410C),
+                      onTap: () => _onTabChanged('belum'),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: _buildTabButton(
+                      label: 'Sudah Dinilai',
+                      badgeCount: sudahCount,
+                      isActive: _selectedTab == 'sudah',
+                      activeColor: const Color(0xFF059669),
+                      activeBadgeBg: const Color(0xFFD1FAE5),
+                      activeBadgeText: const Color(0xFF047857),
+                      onTap: () => _onTabChanged('sudah'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           // Search Bar
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
             child: Container(
-              height: 46,
+              height: 44,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
@@ -154,9 +212,11 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                 onSubmitted: _onSearch,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
-                  hintText: 'Cari nama asesi, TUK, atau jadwal...',
+                  hintText: _selectedTab == 'belum'
+                      ? 'Cari asesi belum dinilai...'
+                      : 'Cari asesi sudah dinilai...',
                   hintStyle: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 12.5,
                     color: Color(0xFF94A3B8),
                   ),
                   prefixIcon: const Icon(
@@ -177,7 +237,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 12,
+                    vertical: 11,
                   ),
                 ),
               ),
@@ -191,7 +251,9 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total: $_totalCount Asesi Diuji',
+                  _selectedTab == 'belum'
+                      ? 'Menampilkan: $_totalCount Asesi Belum Dinilai'
+                      : 'Menampilkan: $_totalCount Asesi Sudah Dinilai',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -199,7 +261,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                   ),
                 ),
                 const Text(
-                  'Diurutkan Jadwal Terbaru',
+                  'Jadwal Terbaru',
                   style: TextStyle(
                     fontSize: 11,
                     color: Color(0xFF94A3B8),
@@ -252,6 +314,71 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                           ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTabButton({
+    required String label,
+    required int badgeCount,
+    required bool isActive,
+    required Color activeColor,
+    required Color activeBadgeBg,
+    required Color activeBadgeText,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isActive
+              ? const [
+                  BoxShadow(
+                    color: Color(0x0A000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                color: isActive ? activeColor : const Color(0xFF64748B),
+              ),
+            ),
+            if (badgeCount > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: isActive ? activeBadgeBg : const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$badgeCount',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: isActive ? activeBadgeText : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
