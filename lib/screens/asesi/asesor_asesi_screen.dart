@@ -334,7 +334,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? Colors.white : Colors.transparent,
+          color: isActive ? Colors.white : null,
           borderRadius: BorderRadius.circular(8),
           boxShadow: isActive
               ? const [
@@ -344,7 +344,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                     offset: Offset(0, 1),
                   ),
                 ]
-              : null,
+              : const [],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
