@@ -3,6 +3,8 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/api_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
+import '../../widgets/jadwal/jadwal_edit_dialogs.dart';
+import '../../widgets/jadwal/jadwal_edit_status_utils.dart';
 
 class JadwalEditScreen extends StatefulWidget {
   final JadwalItem jadwal;
@@ -26,124 +28,6 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
   void initState() {
     super.initState();
     selectedStatus = widget.jadwal.status;
-  }
-
-  String _formatIndonesianDate(String yyyymmdd) {
-    try {
-      final parts = yyyymmdd.split('-');
-      if (parts.length != 3) return yyyymmdd;
-      final year = parts[0];
-      final monthIndex = int.parse(parts[1]);
-      final day = int.parse(parts[2]).toString();
-
-      final months = [
-        'Januari',
-        'Februari',
-        'Maret',
-        'April',
-        'Mei',
-        'Juni',
-        'Juli',
-        'Agustus',
-        'September',
-        'Oktober',
-        'November',
-        'Desember',
-      ];
-      final monthName = months[monthIndex - 1];
-      return '$day $monthName $year';
-    } catch (e) {
-      return yyyymmdd;
-    }
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'draft':
-      case 'waiting':
-        return const Color(0xFFFBC02D);
-      case 'completed':
-        return const Color(0xFF4CAF50);
-      case 'canceled':
-        return const Color(0xFFE53935);
-      case 'running':
-        return const Color(0xFF2196F3);
-      case 'pelaporan':
-        return const Color(0xFFFF9800);
-      default:
-        return const Color(0xFF2C6C9C);
-    }
-  }
-
-  String _getStatusLabel(String status) {
-    switch (status) {
-      case 'draft':
-      case 'waiting':
-        return 'Draft';
-      case 'completed':
-        return 'Completed';
-      case 'canceled':
-        return 'Canceled';
-      case 'running':
-        return 'Running';
-      case 'pelaporan':
-        return 'Pelaporan';
-      default:
-        return status;
-    }
-  }
-
-  String _getStatusRule(String currentStatus, String newStatus) {
-    String toCode(String s) {
-      switch (s) {
-        case 'draft':
-        case 'waiting':
-          return '0';
-        case 'completed':
-          return '1';
-        case 'canceled':
-          return '2';
-        case 'running':
-          return '3';
-        case 'pelaporan':
-          return '4';
-        default:
-          return '0';
-      }
-    }
-
-    final from = toCode(currentStatus);
-    final to = toCode(newStatus);
-
-    if (from == '0' && to == '1') return 'draft_to_completed';
-    if (from == '0' && to == '2') return 'draft_to_canceled';
-    // ACC admin draft → running
-    if (from == '0' && to == '3') {
-      return widget.jadwal.needsAcc
-          ? 'draft_acc_to_running'
-          : 'draft_to_running';
-    }
-    if (from == '1' && to == '2') return 'completed_to_canceled';
-    if (from == '1' && to == '3') return 'completed_to_running';
-    if (from == '2' && to == '3') return 'canceled_to_running';
-    if (from == '3' && to == '4') return 'running_to_pelaporan';
-    if (from == '4' && to == '2') return 'pelaporan_to_canceled';
-    if (from == '4' && to == '3') return 'pelaporan_to_running';
-    if (from == '4' && to == '1') return 'pelaporan_to_completed';
-    if (from == '4' && to == '0') return 'pelaporan_to_draft';
-    if (from == '3' && to == '0') return 'running_to_draft';
-    if (from == '1' && to == '0') return 'completed_to_draft';
-    if (from == '2' && to == '0') return 'canceled_to_draft';
-    if (from == '0' && to == '4') return 'draft_to_pelaporan';
-    if (from == '1' && to == '4') return 'completed_to_pelaporan';
-    if (from == '2' && to == '4') return 'canceled_to_pelaporan';
-
-    // Rollbacks
-    if (from == '2' && to == '1') return 'canceled_to_completed';
-    if (from == '3' && to == '2') return 'running_to_canceled';
-    if (from == '3' && to == '1') return 'running_to_completed';
-
-    return '${currentStatus}_to_$newStatus';
   }
 
   Future<void> _saveChanges() async {
@@ -170,7 +54,11 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
     });
 
     try {
-      String rule = _getStatusRule(widget.jadwal.status, selectedStatus);
+      String rule = jadwalEditStatusRule(
+        needsAcc: widget.jadwal.needsAcc,
+        currentStatus: widget.jadwal.status,
+        newStatus: selectedStatus,
+      );
 
       final result = await ApiService.updateJadwalStatus(
         jadwalId: widget.jadwal.id,
@@ -200,331 +88,23 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
   }
 
   void _showPermissionDeniedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFEBEE),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                LucideIcons.shield_alert,
-                color: Color(0xFFE53935),
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Akses Ditolak',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        content: const Text(
-          'Anda tidak memiliki izin untuk mengubah status jadwal. Hanya Admin yang dapat melakukan perubahan ini.',
-          style: TextStyle(fontSize: 14, color: Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Mengerti',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
+    showJadwalEditPermissionDeniedDialog(context);
   }
 
   Future<bool?> _showConfirmationDialog() async {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFF3E0),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  LucideIcons.circle_alert,
-                  color: Color(0xFFFF9800),
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Konfirmasi Perubahan',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                    height: 1.5,
-                  ),
-                  children: [
-                    const TextSpan(text: 'Anda akan mengubah status dari\n'),
-                    TextSpan(
-                      text: _getStatusLabel(widget.jadwal.status),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: _getStatusColor(widget.jadwal.status),
-                      ),
-                    ),
-                    const TextSpan(text: ' menjadi\n'),
-                    TextSpan(
-                      text: _getStatusLabel(selectedStatus),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: _getStatusColor(selectedStatus),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        side: const BorderSide(color: Color(0xFFE0E0E0)),
-                      ),
-                      child: const Text(
-                        'Batal',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: const Color(0xFF4FA8E8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Ya, Ubah',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+    return showJadwalEditConfirmationDialog(
+      context,
+      fromStatus: widget.jadwal.status,
+      toStatus: selectedStatus,
     );
   }
 
   void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F5E9),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  LucideIcons.circle_check,
-                  color: Color(0xFF4CAF50),
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Berhasil!',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Status jadwal berhasil diperbarui',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Close dialog
-                    Navigator.pop(context, true); // Back with refresh flag
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: const Color(0xFF4CAF50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'OK',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    showJadwalEditSuccessDialog(context);
   }
 
   void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFEBEE),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  LucideIcons.circle_x,
-                  color: Color(0xFFE53935),
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Gagal',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: const Color(0xFFE53935),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Tutup',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    showJadwalEditErrorDialog(context, message);
   }
 
   Widget _buildRadioOption(String value, String label) {
@@ -714,7 +294,7 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '${_formatIndonesianDate(widget.jadwal.tanggalMulai)} - ${_formatIndonesianDate(widget.jadwal.tanggalSelesai)}',
+                                    '${jadwalFormatIndonesianFullDate(widget.jadwal.tanggalMulai)} - ${jadwalFormatIndonesianFullDate(widget.jadwal.tanggalSelesai)}',
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,

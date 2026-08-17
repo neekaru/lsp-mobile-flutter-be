@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/auth/auth_repository.dart';
-import 'jadwal_role_cards.dart';
+import 'jadwal_admin_card.dart';
+import 'jadwal_asesi_card.dart';
+import 'jadwal_asesor_card.dart';
 
 class JadwalListItem extends StatelessWidget {
   final JadwalItem item;

@@ -3,7 +3,9 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/asesor_asesi_models.dart';
 import '../../services/asesor/asesor_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../widgets/asesi/asesi_form_sections.dart';
+import '../../widgets/asesi/asesi_ak_sections.dart';
+import '../../widgets/asesi/asesi_apl_sections.dart';
+import '../../widgets/asesi/asesi_info_cards.dart';
 
 class AsesorDetailAsesiScreen extends StatefulWidget {
   final int asesiId;

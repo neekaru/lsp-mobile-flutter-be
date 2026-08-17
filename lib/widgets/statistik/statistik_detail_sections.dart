@@ -11,7 +11,9 @@ import '../../models/dashboard_models.dart';
 import '../../models/sertifikat_models.dart';
 import '../../screens/statistik/kompetensi_teknis_detail_screen.dart';
 import '../../screens/statistik/muk_detail_screen.dart';
-import 'statistik_detail_cards.dart';
+import 'statistik_kpi_widgets.dart';
+import 'statistik_location_cards.dart';
+import 'statistik_status_cards.dart';
 
 // ── Field pencarian standar (dipakai banyak section) ──────────────────────
 class StatistikSearchField extends StatelessWidget {

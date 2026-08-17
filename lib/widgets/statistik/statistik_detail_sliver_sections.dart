@@ -9,7 +9,8 @@
 import 'package:flutter/material.dart';
 
 import '../../models/dashboard_models.dart';
-import 'statistik_detail_cards.dart';
+import 'statistik_kpi_widgets.dart';
+import 'statistik_monthly_cards.dart';
 import 'statistik_detail_sections.dart';
 
 // ── SPT 2026 ── CustomScrollView + SliverList for virtualization ──────────

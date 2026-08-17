@@ -11,7 +11,10 @@ import '../../core/navigation/main_navigator.dart' show mainNavigatorKey;
 import '../../widgets/penugasan/feedback_dialog.dart';
 import '../../widgets/penugasan/participant_widgets.dart';
 import '../../widgets/penugasan/file_upload_sheet.dart';
-import '../../widgets/penugasan/buat_laporan_steps.dart';
+import '../../widgets/penugasan/buat_laporan_step1_form.dart';
+import '../../widgets/penugasan/buat_laporan_step2_form.dart';
+import '../../widgets/penugasan/buat_laporan_step3_form.dart';
+import '../../widgets/penugasan/buat_laporan_step4_form.dart';
 
 class BuatLaporanScreen extends StatefulWidget {
   const BuatLaporanScreen({super.key});

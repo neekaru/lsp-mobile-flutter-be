@@ -6,6 +6,7 @@ import '../../../services/common/master_service.dart';
 import '../../../widgets/pendaftaran/modal_select_sheet.dart';
 import '../../../services/asesi/permohonan_service.dart';
 import '../../../widgets/pendaftaran/biodata_form_fields.dart';
+import '../../../widgets/pendaftaran/step4_biodata_sections.dart';
 
 class Step4BiodataPeserta extends StatefulWidget {
   final int? permohonanId;
@@ -745,210 +746,70 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
   }
 
   Widget _buildTopBanner() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFD1FAE5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: const Center(
-        child: Text(
-          'Biodata Peserta / APL 01',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF10B981),
-          ),
-        ),
-      ),
-    );
+    return const Step4TopBanner();
   }
 
   Widget _buildDataPesertaContent() {
-    return Column(
-      children: [
-        BiodataSelectField(
-          label: 'Skema Sertifikasi',
-          value: _skemaSertifikasi,
-          hint: 'Pilih Skema Sertifikasi',
-          onTap: _selectSkemaSertifikasi,
-        ),
-        BiodataInputField(
-          label: 'ID',
-          controller: _idController,
-          hint: 'Masukkan ID',
-        ),
-        BiodataInputField(
-          label: 'NIK',
-          controller: _nikController,
-          hint: 'Masukkan NIK',
-          rightAction: TextButton(
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size(0, 0),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Membuka dokumen KTP...'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            child: const Text(
-              'Lihat KTP',
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF3B82F6),
-              ),
-            ),
+    return DataPesertaBiodataSection(
+      skemaSertifikasi: _skemaSertifikasi,
+      onSelectSkema: _selectSkemaSertifikasi,
+      idController: _idController,
+      nikController: _nikController,
+      namaLengkapController: _namaLengkapController,
+      jenisKelamin: _jenisKelamin,
+      onSelectJenisKelamin: _selectJenisKelamin,
+      tempatLahirController: _tempatLahirController,
+      tanggalLahirController: _tanggalLahirController,
+      onSelectTanggalLahir: () => _selectDate(context),
+      alamatController: _alamatController,
+      provinsi: _provinsi,
+      onSelectProvinsi: _selectProvinsi,
+      kabupaten: _kabupaten,
+      onSelectKabupaten: _selectKabupaten,
+      kecamatan: _kecamatan,
+      onSelectKecamatan: _selectKecamatan,
+      kontakController: _kontakController,
+      onOpenWhatsApp: () => _openWhatsApp(_kontakController.text),
+      emailController: _emailController,
+      onLihatKtp: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Membuka dokumen KTP...'),
+            behavior: SnackBarBehavior.floating,
           ),
-        ),
-        BiodataInputField(
-          label: 'Nama Lengkap',
-          controller: _namaLengkapController,
-          hint: 'Masukkan Nama Lengkap',
-        ),
-        BiodataSelectField(
-          label: 'Jenis Kelamin',
-          value: _jenisKelamin,
-          hint: 'Pilih Jenis Kelamin',
-          onTap: _selectJenisKelamin,
-        ),
-        BiodataInputField(
-          label: 'Tempat Lahir',
-          controller: _tempatLahirController,
-          hint: 'Masukkan Tempat Lahir',
-        ),
-        BiodataDatePickerField(
-          label: 'Tanggal Lahir',
-          controller: _tanggalLahirController,
-          hint: 'dd/mm/yyyy',
-          onTap: () => _selectDate(context),
-        ),
-        BiodataInputField(
-          label: 'Alamat',
-          controller: _alamatController,
-          hint: 'Masukkan Alamat',
-          maxLines: 2,
-        ),
-        BiodataSelectField(
-          label: 'Provinsi',
-          value: _provinsi,
-          hint: 'Pilih Provinsi',
-          onTap: _selectProvinsi,
-        ),
-        BiodataSelectField(
-          label: 'Kabupaten/Kota',
-          value: _kabupaten,
-          hint: 'Pilih Kabupaten/Kota',
-          onTap: _selectKabupaten,
-        ),
-        BiodataSelectField(
-          label: 'Kecamatan',
-          value: _kecamatan,
-          hint: 'Pilih Kecamatan',
-          onTap: _selectKecamatan,
-        ),
-        BiodataPhoneField(
-          label: 'No.Kontak',
-          controller: _kontakController,
-          hint: 'Masukkan No.Kontak',
-          onTap: () => _openWhatsApp(_kontakController.text),
-        ),
-        BiodataInputField(
-          label: 'Email',
-          controller: _emailController,
-          hint: 'Masukkan Email',
-          keyboardType: TextInputType.emailAddress,
-          isLast: true,
-        ),
-      ],
+        );
+      },
     );
   }
 
   Widget _buildDataPendidikanContent() {
-    return Column(
-      children: [
-        BiodataSelectField(
-          label: 'Pendidikan Terakhir',
-          value: _pendidikanTerakhir,
-          hint: 'Pilih Pendidikan',
-          onTap: _selectPendidikanTerakhir,
-        ),
-        BiodataInputField(
-          label: 'Nama Sekolah/Perguruan Tinggi',
-          controller: _namaSekolahController,
-          hint: 'Masukkan Nama Sekolah',
-        ),
-        BiodataInputField(
-          label: 'Jurusan/Program Studi',
-          controller: _jurusanController,
-          hint: 'Masukkan Jurusan',
-          isLast: true,
-        ),
-      ],
+    return DataPendidikanBiodataSection(
+      pendidikanTerakhir: _pendidikanTerakhir,
+      onSelectPendidikan: _selectPendidikanTerakhir,
+      namaSekolahController: _namaSekolahController,
+      jurusanController: _jurusanController,
     );
   }
 
   Widget _buildDataPekerjaanContent() {
-    return Column(
-      children: [
-        BiodataSelectField(
-          label: 'Pekerjaan',
-          value: _pekerjaan,
-          hint: 'Pilih Pekerjaan',
-          onTap: _selectPekerjaan,
-        ),
-        BiodataInputField(
-          label: 'Perusahaan',
-          controller: _perusahaanController,
-          hint: 'Masukkan Nama Perusahaan',
-        ),
-        BiodataInputField(
-          label: 'Jabatan',
-          controller: _jabatanController,
-          hint: 'Masukkan Jabatan',
-        ),
-        BiodataInputField(
-          label: 'Alamat Organisasi/Perusahaan',
-          controller: _alamatPerusahaanController,
-          hint: 'Masukkan Alamat Perusahaan',
-          maxLines: 2,
-        ),
-        BiodataPhoneField(
-          label: 'No.Kontak Perusahaan',
-          controller: _noKontakPerusahaanController,
-          hint: 'Masukkan No.Kontak',
-          onTap: () => _openWhatsApp(_noKontakPerusahaanController.text),
-        ),
-        BiodataSelectField(
-          label: 'TUK',
-          value: _tuk,
-          hint: 'Pilih TUK',
-          onTap: _selectTUK,
-        ),
-        BiodataSelectField(
-          label: 'Pra Asessmen Checked',
-          value: _asesorShortName.isNotEmpty && _asesorEmail.isNotEmpty
-              ? '$_asesorShortName ($_asesorEmail)'
-              : _asesorShortName,
-          hint: 'Pilih Asesor',
-          onTap: _selectPraAsesmenChecked,
-        ),
-        BiodataSelectField(
-          label: 'Perangkat Asesmen',
-          value: _namaPerangkatAsesmen.isNotEmpty && _kodePerangkatAsesmen.isNotEmpty
-              ? '$_namaPerangkatAsesmen [$_kodePerangkatAsesmen]'
-              : _namaPerangkatAsesmen,
-          hint: 'Pilih Perangkat',
-          onTap: _selectPerangkatAsesmen,
-          isLast: true,
-        ),
-      ],
+    return DataPekerjaanBiodataSection(
+      pekerjaan: _pekerjaan,
+      onSelectPekerjaan: _selectPekerjaan,
+      perusahaanController: _perusahaanController,
+      jabatanController: _jabatanController,
+      alamatPerusahaanController: _alamatPerusahaanController,
+      noKontakPerusahaanController: _noKontakPerusahaanController,
+      onOpenWhatsAppPerusahaan: () => _openWhatsApp(_noKontakPerusahaanController.text),
+      tuk: _tuk,
+      onSelectTUK: _selectTUK,
+      asesorValue: _asesorShortName.isNotEmpty && _asesorEmail.isNotEmpty
+          ? '$_asesorShortName ($_asesorEmail)'
+          : _asesorShortName,
+      onSelectAsesor: _selectPraAsesmenChecked,
+      perangkatValue: _namaPerangkatAsesmen.isNotEmpty && _kodePerangkatAsesmen.isNotEmpty
+          ? '$_namaPerangkatAsesmen [$_kodePerangkatAsesmen]'
+          : _namaPerangkatAsesmen,
+      onSelectPerangkat: _selectPerangkatAsesmen,
     );
   }
 }
