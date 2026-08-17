@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/asesor_asesi_models.dart';
 import '../../services/asesor/asesor_service.dart';
+import '../../utils/date_format_helper.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import 'asesor_detail_asesi_screen.dart';
 
@@ -549,11 +550,15 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          item.nik.isNotEmpty ? 'NIK: ${item.nik}' : 'ID: ${item.id}',
+                          item.jadwalNama.isNotEmpty
+                              ? item.jadwalNama
+                              : (item.skema.isNotEmpty ? item.skema : '-'),
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: 11.5,
                             color: Color(0xFF64748B),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -617,7 +622,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
 
               const SizedBox(height: 6),
 
-              // Jadwal Row
+              // Jadwal Row (Berapa hari sudah lewat tanggal asesmen)
               Row(
                 children: [
                   const Icon(
@@ -636,10 +641,11 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                   ),
                   Expanded(
                     child: Text(
-                      item.jadwalNama.isNotEmpty ? item.jadwalNama : item.skema,
-                      style: const TextStyle(
+                      _formatJadwalStatus(item.jadwalTanggal),
+                      style: TextStyle(
                         fontSize: 11.5,
-                        color: Color(0xFF334155),
+                        fontWeight: FontWeight.w600,
+                        color: _getJadwalStatusColor(item.jadwalTanggal),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -658,5 +664,53 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
         ),
       ),
     );
+  }
+
+  String _formatJadwalStatus(String dateStr) {
+    if (dateStr.trim().isEmpty || dateStr == '-') {
+      return '-';
+    }
+    final parsed = DateFormatHelper.parseDate(dateStr);
+    if (parsed == null) {
+      return dateStr;
+    }
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final scheduledDate = DateTime(parsed.year, parsed.month, parsed.day);
+    final diff = today.difference(scheduledDate).inDays;
+
+    if (diff > 0) {
+      return 'Lewat $diff Hari';
+    } else if (diff == 0) {
+      return 'Hari Ini';
+    } else {
+      final daysLeft = -diff;
+      if (daysLeft == 1) {
+        return 'Besok';
+      }
+      return '$daysLeft Hari Lagi';
+    }
+  }
+
+  Color _getJadwalStatusColor(String dateStr) {
+    if (dateStr.trim().isEmpty || dateStr == '-') {
+      return const Color(0xFF64748B);
+    }
+    final parsed = DateFormatHelper.parseDate(dateStr);
+    if (parsed == null) {
+      return const Color(0xFF334155);
+    }
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final scheduledDate = DateTime(parsed.year, parsed.month, parsed.day);
+    final diff = today.difference(scheduledDate).inDays;
+
+    if (diff > 0) {
+      return const Color(0xFFDC2626);
+    } else if (diff == 0) {
+      return const Color(0xFF059669);
+    } else {
+      return const Color(0xFF2563EB);
+    }
   }
 }
