@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/asesor_asesi_models.dart';
 import '../../services/api_service.dart';
+import '../../utils/date_format_helper.dart';
 
 Future<void> _openDocumentUrl(BuildContext context, String? rawUrl) async {
   if (rawUrl == null || rawUrl.trim().isEmpty) return;
@@ -437,7 +438,10 @@ class APL01Section extends StatelessWidget {
           if (apl01?.catatan.isNotEmpty == true)
             AsesiDetailRow('Catatan', apl01!.catatan),
           if (apl01?.tanggalValidasi.isNotEmpty == true)
-            AsesiDetailRow('Tanggal Validasi', apl01!.tanggalValidasi),
+            AsesiDetailRow(
+              'Tanggal Validasi',
+              DateFormatHelper.formatToIndonesianWithTime(apl01!.tanggalValidasi),
+            ),
           const SizedBox(height: 16),
 
           // 1. PERSYARATAN DASAR
@@ -626,7 +630,14 @@ class AK01Section extends StatelessWidget {
           const SizedBox(height: 12),
           AsesiDetailRow('Pernyataan Asesi', ak01?.persetujuan ?? 'Asesi Menyetujui Pelaksanaan Asesmen Sesuai Prosedur LSP'),
           AsesiDetailRow('TUK Pelaksanaan', ak01?.tuk ?? detailData?.tukNama ?? '-'),
-          AsesiDetailRow('Tanggal Asesmen', ak01?.tglAsesmen ?? detailData?.jadwalTanggal ?? '-'),
+          AsesiDetailRow(
+            'Tanggal Asesmen',
+            ak01?.tglAsesmen.isNotEmpty == true
+                ? DateFormatHelper.formatToIndonesian(ak01!.tglAsesmen)
+                : (detailData?.jadwalTanggal.isNotEmpty == true
+                    ? DateFormatHelper.formatToIndonesian(detailData!.jadwalTanggal)
+                    : '-'),
+          ),
           AsesiDetailRow('Status Tanda Tangan', ak01?.tandaTangan == true ? 'Sudah Ditandatangani' : 'Belum Ditandatangani'),
         ],
       ),
@@ -753,7 +764,7 @@ class AK05Section extends StatelessWidget {
           AsesiDetailRow(
             'Tanggal Rekomendasi',
             ak05?.tanggalRekomendasi.isNotEmpty == true
-                ? ak05!.tanggalRekomendasi
+                ? DateFormatHelper.formatToIndonesianWithTime(ak05!.tanggalRekomendasi)
                 : 'Belum diisi asesor',
           ),
           AsesiDetailRow('Pencapaian Unjuk Kerja', ak05?.pencapaian ?? 'Semua kriteria unjuk kerja telah terpenuhi'),
@@ -1032,7 +1043,12 @@ class AsesiInfoUtamaCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           AsesiDetailRow('Jadwal Asesmen', d.jadwalNama.isNotEmpty ? d.jadwalNama : '-'),
-          AsesiDetailRow('Tanggal Jadwal', d.jadwalTanggal.isNotEmpty ? d.jadwalTanggal : '-'),
+          AsesiDetailRow(
+            'Tanggal Jadwal',
+            d.jadwalTanggal.isNotEmpty
+                ? DateFormatHelper.formatToIndonesian(d.jadwalTanggal)
+                : '-',
+          ),
           AsesiDetailRow('TUK', d.tukNama.isNotEmpty ? d.tukNama : '-'),
         ],
       ),

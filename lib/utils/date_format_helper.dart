@@ -67,6 +67,27 @@ class DateFormatHelper {
     return clean;
   }
 
+  /// Format tanggal beserta jam ke format Indonesia
+  /// Input: "2026-03-16T15:04:45Z" atau "2026-03-16 15:04:45"
+  /// Output: "16 Maret 2026, 15:04 WIB"
+  static String formatToIndonesianWithTime(String dateString) {
+    if (dateString.trim().isEmpty || dateString == '-') return '-';
+    try {
+      DateTime? dt = DateTime.tryParse(dateString.trim());
+      if (dt != null) {
+        dt = dt.toLocal();
+        try {
+          final formatter = DateFormat('dd MMMM yyyy, HH:mm', 'id_ID');
+          return '${formatter.format(dt)} WIB';
+        } catch (_) {
+          final formatter = DateFormat('dd MMMM yyyy, HH:mm');
+          return '${formatter.format(dt)} WIB';
+        }
+      }
+    } catch (_) {}
+    return formatToIndonesian(dateString);
+  }
+
   /// Format tanggal ke format pendek (dd-MM-yyyy)
   /// Input: "2028-03-08Z"
   /// Output: "08-03-2028"
