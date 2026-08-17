@@ -149,9 +149,14 @@ class AsesorAsesiDetailData {
   final String email;
   final String institusi;
   final String pendidikan;
+  final String jurusan;
   final String pekerjaan;
   final String organisasi;
   final String jabatan;
+  final String alamatCompany;
+  final String telpCompany;
+  final String emailCompany;
+  final String kodePosCompany;
   final String skemaSertifikat;
   final String idSkema;
   final int jadwalId;
@@ -182,9 +187,14 @@ class AsesorAsesiDetailData {
     required this.email,
     required this.institusi,
     required this.pendidikan,
+    this.jurusan = '',
     required this.pekerjaan,
     required this.organisasi,
     required this.jabatan,
+    this.alamatCompany = '',
+    this.telpCompany = '',
+    this.emailCompany = '',
+    this.kodePosCompany = '',
     required this.skemaSertifikat,
     required this.idSkema,
     required this.jadwalId,
@@ -217,9 +227,14 @@ class AsesorAsesiDetailData {
       email: json['email'] as String? ?? '',
       institusi: json['institusi'] as String? ?? '',
       pendidikan: json['pendidikan'] as String? ?? '',
+      jurusan: json['jurusan'] as String? ?? '',
       pekerjaan: json['pekerjaan'] as String? ?? '',
       organisasi: json['organisasi'] as String? ?? '',
       jabatan: json['jabatan'] as String? ?? '',
+      alamatCompany: json['alamat_company'] as String? ?? '',
+      telpCompany: json['telp_company'] as String? ?? '',
+      emailCompany: json['email_company'] as String? ?? '',
+      kodePosCompany: json['kode_pos_company'] as String? ?? '',
       skemaSertifikat: json['skema_sertifikat'] as String? ?? '',
       idSkema: json['id_skema']?.toString() ?? '',
       jadwalId: json['jadwal_id'] as int? ?? 0,
@@ -245,6 +260,8 @@ class APL01Data {
   final String rekomendasi;
   final String catatan;
   final String tanggalValidasi;
+  final List<BuktiDokumenItem> persyaratanDasar;
+  final List<BuktiDokumenItem> persyaratanAdministratif;
   final List<BuktiDokumenItem> buktiDokumen;
 
   APL01Data({
@@ -252,6 +269,8 @@ class APL01Data {
     required this.rekomendasi,
     required this.catatan,
     required this.tanggalValidasi,
+    this.persyaratanDasar = const [],
+    this.persyaratanAdministratif = const [],
     required this.buktiDokumen,
   });
 
@@ -265,14 +284,24 @@ class APL01Data {
       rawRekom = 'Perlu Perbaikan Dokumen';
     }
 
+    final dasarList = (json['persyaratan_dasar'] as List<dynamic>? ?? [])
+        .map((e) => BuktiDokumenItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final adminList = (json['persyaratan_administratif'] as List<dynamic>? ?? [])
+        .map((e) => BuktiDokumenItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final buktiList = (json['bukti_dokumen'] as List<dynamic>? ?? [])
+        .map((e) => BuktiDokumenItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     return APL01Data(
       status: json['status'] as String? ?? 'Terverifikasi',
       rekomendasi: rawRekom,
       catatan: json['catatan'] as String? ?? '',
       tanggalValidasi: json['tanggal_validasi'] as String? ?? '',
-      buktiDokumen: (json['bukti_dokumen'] as List<dynamic>? ?? [])
-          .map((e) => BuktiDokumenItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      persyaratanDasar: dasarList,
+      persyaratanAdministratif: adminList,
+      buktiDokumen: buktiList,
     );
   }
 }
@@ -280,13 +309,17 @@ class APL01Data {
 class BuktiDokumenItem {
   final String nama;
   final String jenis;
+  final String? jenisBukti;
   final bool ada;
+  final String? fileName;
   final String? url;
 
   BuktiDokumenItem({
     required this.nama,
     required this.jenis,
+    this.jenisBukti,
     required this.ada,
+    this.fileName,
     this.url,
   });
 
@@ -294,7 +327,9 @@ class BuktiDokumenItem {
     return BuktiDokumenItem(
       nama: json['nama'] as String? ?? '',
       jenis: json['jenis'] as String? ?? 'Wajib',
+      jenisBukti: json['jenis_bukti'] as String?,
       ada: json['ada'] as bool? ?? true,
+      fileName: json['file_name'] as String?,
       url: json['url'] as String?,
     );
   }

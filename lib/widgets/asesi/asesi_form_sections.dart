@@ -7,8 +7,40 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/asesor_asesi_models.dart';
+import '../../services/api_service.dart';
+
+Future<void> _openDocumentUrl(BuildContext context, String? rawUrl) async {
+  if (rawUrl == null || rawUrl.trim().isEmpty) return;
+  String fullUrl = rawUrl.trim();
+  if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+    final baseUrl = ApiService.baseUrl.replaceAll(RegExp(r'/+$'), '');
+    final path = fullUrl.startsWith('/') ? fullUrl : '/$fullUrl';
+    fullUrl = '$baseUrl$path';
+  }
+  final uri = Uri.tryParse(fullUrl);
+  if (uri != null) {
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Tidak dapat membuka file: $fullUrl')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuka file: $e')),
+        );
+      }
+    }
+  }
+}
 
 /// Row label–nilai standar untuk detail asesi.
 class AsesiDetailRow extends StatelessWidget {
@@ -131,40 +163,136 @@ class DocItem extends StatelessWidget {
   final String name;
   final String jenis;
   final bool ada;
+  final String? url;
+  final int? index;
 
-  const DocItem({super.key, required this.name, required this.jenis, required this.ada});
+  const DocItem({
+    super.key,
+    required this.name,
+    required this.jenis,
+    required this.ada,
+    this.url,
+    this.index,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+    final hasUrl = url != null && url!.trim().isNotEmpty;
+    final isClickable = ada && hasUrl;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.all(10.0),
+      decoration: BoxDecoration(
+        color: ada ? const Color(0xFFF8FAFC) : const Color(0xFFFDF2F2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: ada ? const Color(0xFFE2E8F0) : const Color(0xFFFECACA),
+        ),
+      ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            ada ? Icons.check_circle_rounded : Icons.cancel_rounded,
-            size: 16,
-            color: ada ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+          Padding(
+            padding: const EdgeInsets.only(top: 2.0),
+            child: Icon(
+              ada ? Icons.check_circle_rounded : Icons.cancel_rounded,
+              size: 18,
+              color: ada ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+            ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              name,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF334155)),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: jenis == 'Wajib' ? const Color(0xFFFEF2F2) : const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              jenis,
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.bold,
-                color: jenis == 'Wajib' ? const Color(0xFFDC2626) : const Color(0xFF2563EB),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (index != null)
+                      Text(
+                        '$index. ',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: ada ? const Color(0xFF1E293B) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: jenis == 'Wajib'
+                            ? const Color(0xFFFEF2F2)
+                            : (jenis == 'Administratif'
+                                ? const Color(0xFFF0FDF4)
+                                : const Color(0xFFEFF6FF)),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        jenis,
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                          color: jenis == 'Wajib'
+                              ? const Color(0xFFDC2626)
+                              : (jenis == 'Administratif'
+                                  ? const Color(0xFF16A34A)
+                                  : const Color(0xFF2563EB)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                if (isClickable)
+                  InkWell(
+                    borderRadius: BorderRadius.circular(4),
+                    onTap: () => _openDocumentUrl(context, url),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(
+                            LucideIcons.external_link,
+                            size: 13,
+                            color: Color(0xFF2563EB),
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Buka Dokumen',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2563EB),
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Text(
+                    ada ? 'Dokumen terlampir' : 'Belum diunggah',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: ada ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
@@ -283,6 +411,9 @@ class APL01Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final apl01 = detailData?.apl01;
+    final dasarList = apl01?.persyaratanDasar ?? [];
+    final adminList = apl01?.persyaratanAdministratif ?? [];
+    final allDocs = apl01?.buktiDokumen ?? [];
 
     return FormSectionCard(
       child: Column(
@@ -307,24 +438,87 @@ class APL01Section extends StatelessWidget {
             AsesiDetailRow('Catatan', apl01!.catatan),
           if (apl01?.tanggalValidasi.isNotEmpty == true)
             AsesiDetailRow('Tanggal Validasi', apl01!.tanggalValidasi),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
+
+          // 1. PERSYARATAN DASAR
           const Text(
-            'Bukti Kelengkapan Pemohon:',
+            'PERSYARATAN DASAR',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12.5,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF475569),
+              color: Color(0xFF1E293B),
+              letterSpacing: 0.3,
             ),
           ),
           const SizedBox(height: 8),
-          if (apl01 != null && apl01.buktiDokumen.isNotEmpty)
-            ...apl01.buktiDokumen.map((doc) => DocItem(name: doc.nama, jenis: doc.jenis, ada: doc.ada))
+          if (dasarList.isNotEmpty)
+            ...dasarList.asMap().entries.map(
+                  (entry) => DocItem(
+                    index: entry.key + 1,
+                    name: entry.value.nama,
+                    jenis: entry.value.jenis,
+                    ada: entry.value.ada,
+                    url: entry.value.url,
+                  ),
+                )
+          else if (allDocs.any((d) => d.jenis == 'Dasar' || (d.jenis == 'Wajib' && d.jenisBukti != 'foto' && d.jenisBukti != 'ktp_kk')))
+            ...allDocs
+                .where((d) => d.jenis == 'Dasar' || (d.jenis == 'Wajib' && d.jenisBukti != 'foto' && d.jenisBukti != 'ktp_kk'))
+                .toList()
+                .asMap()
+                .entries
+                .map(
+                  (entry) => DocItem(
+                    index: entry.key + 1,
+                    name: entry.value.nama,
+                    jenis: entry.value.jenis,
+                    ada: entry.value.ada,
+                    url: entry.value.url,
+                  ),
+                )
           else ...[
-            const DocItem(name: 'Pas Foto 3x4 Background Merah', jenis: 'Wajib', ada: true),
-            const DocItem(name: 'Kartu Tanda Penduduk (KTP)', jenis: 'Wajib', ada: true),
-            const DocItem(name: 'Ijazah Terakhir / Transkrip', jenis: 'Wajib', ada: true),
-            const DocItem(name: 'Curriculum Vitae (CV)', jenis: 'Wajib', ada: true),
-            const DocItem(name: 'Portofolio / Sertifikat Terkait', jenis: 'Tambahan', ada: true),
+            const DocItem(index: 1, name: 'Foto Copy Transkrip Nilai / Ijazah Terakhir', jenis: 'Dasar', ada: true),
+            const DocItem(index: 2, name: 'Foto Copy Sertifikat Pelatihan Berbasis Kompetensi', jenis: 'Dasar', ada: false),
+            const DocItem(index: 3, name: 'Surat Keterangan Pengalaman Kerja di Bidang Terkait', jenis: 'Dasar', ada: false),
+          ],
+
+          const SizedBox(height: 18),
+
+          // 2. PERSYARATAN ADMINISTRATIF
+          const Text(
+            'PERSYARATAN ADMINISTRATIF',
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (adminList.isNotEmpty)
+            ...adminList.asMap().entries.map(
+                  (entry) => DocItem(
+                    index: entry.key + 1,
+                    name: entry.value.nama,
+                    jenis: entry.value.jenis,
+                    ada: entry.value.ada,
+                    url: entry.value.url,
+                  ),
+                )
+          else ...[
+            DocItem(
+              index: 1,
+              name: 'Pasfoto *',
+              jenis: 'Wajib',
+              ada: detailData?.fotoProfilUrl != null && detailData!.fotoProfilUrl!.isNotEmpty,
+              url: detailData?.fotoProfilUrl,
+            ),
+            DocItem(
+              index: 2,
+              name: 'Identitas Pribadi (KTP / Kartu Pelajar) *',
+              jenis: 'Wajib',
+              ada: (detailData?.nik.isNotEmpty ?? false),
+            ),
           ],
         ],
       ),
@@ -733,7 +927,7 @@ class AsesiHeaderCard extends StatelessWidget {
   }
 }
 
-/// Kartu informasi utama asesi (TTL, jenis kelamin, alamat, dll).
+/// Kartu informasi utama asesi (Data Pribadi, Data Pekerjaan Sekarang, Data Asesmen).
 class AsesiInfoUtamaCard extends StatelessWidget {
   final AsesorAsesiDetailData? detailData;
 
@@ -751,6 +945,13 @@ class AsesiInfoUtamaCard extends StatelessWidget {
         : (d.jenisKelamin == '2' || d.jenisKelamin.toLowerCase().contains('perempuan')
             ? 'Perempuan'
             : (d.jenisKelamin.isNotEmpty ? d.jenisKelamin : '-'));
+
+    final hasPekerjaan = d.pekerjaan.isNotEmpty ||
+        d.organisasi.isNotEmpty ||
+        d.jabatan.isNotEmpty ||
+        d.alamatCompany.isNotEmpty ||
+        d.telpCompany.isNotEmpty ||
+        d.emailCompany.isNotEmpty;
 
     return Container(
       width: double.infinity,
@@ -770,12 +971,66 @@ class AsesiInfoUtamaCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'a. Data Pribadi',
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          const SizedBox(height: 6),
           AsesiDetailRow('Tempat, Tanggal Lahir', ttl),
           AsesiDetailRow('Jenis Kelamin', jenisKel),
-          AsesiDetailRow('Alamat', d.alamat.isNotEmpty ? d.alamat : '-'),
+          AsesiDetailRow('Alamat Domisili', d.alamat.isNotEmpty ? d.alamat : '-'),
           AsesiDetailRow('No. Telepon / HP', d.noTelepon.isNotEmpty ? d.noTelepon : '-'),
           AsesiDetailRow('Email', d.email.isNotEmpty ? d.email : '-'),
+          AsesiDetailRow('Pendidikan Terakhir', d.pendidikan.isNotEmpty ? d.pendidikan : '-'),
           AsesiDetailRow('Institusi / Sekolah', d.institusi.isNotEmpty ? d.institusi : '-'),
+          if (d.jurusan.isNotEmpty)
+            AsesiDetailRow('Jurusan / Prodi', d.jurusan),
+
+          if (hasPekerjaan) ...[
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: Color(0xFFF1F5F9)),
+            const SizedBox(height: 12),
+            const Text(
+              'b. Data Pekerjaan Sekarang',
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 6),
+            if (d.pekerjaan.isNotEmpty)
+              AsesiDetailRow('Pekerjaan', d.pekerjaan),
+            if (d.organisasi.isNotEmpty)
+              AsesiDetailRow('Nama Perusahaan / Institusi', d.organisasi),
+            if (d.jabatan.isNotEmpty)
+              AsesiDetailRow('Jabatan', d.jabatan),
+            if (d.alamatCompany.isNotEmpty)
+              AsesiDetailRow('Alamat Perusahaan', d.alamatCompany),
+            if (d.telpCompany.isNotEmpty)
+              AsesiDetailRow('No. Telp Perusahaan', d.telpCompany),
+            if (d.emailCompany.isNotEmpty)
+              AsesiDetailRow('Email Perusahaan', d.emailCompany),
+            if (d.kodePosCompany.isNotEmpty)
+              AsesiDetailRow('Kode Pos', d.kodePosCompany),
+          ],
+
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 12),
+          const Text(
+            'c. Data Asesmen',
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          const SizedBox(height: 6),
           AsesiDetailRow('Jadwal Asesmen', d.jadwalNama.isNotEmpty ? d.jadwalNama : '-'),
           AsesiDetailRow('Tanggal Jadwal', d.jadwalTanggal.isNotEmpty ? d.jadwalTanggal : '-'),
           AsesiDetailRow('TUK', d.tukNama.isNotEmpty ? d.tukNama : '-'),
