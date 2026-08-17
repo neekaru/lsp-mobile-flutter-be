@@ -211,40 +211,54 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                   ),
                 ],
               ),
-              child: TextField(
-                controller: _searchController,
-                onSubmitted: _onSearch,
-                textInputAction: TextInputAction.search,
-                textAlignVertical: TextAlignVertical.center,
-                decoration: InputDecoration(
-                  hintText: _selectedTab == 'belum'
-                      ? 'Cari asesi belum dinilai...'
-                      : 'Cari asesi sudah dinilai...',
-                  hintStyle: const TextStyle(
-                    fontSize: 12.5,
-                    color: Color(0xFF94A3B8),
-                  ),
-                  prefixIcon: const Icon(
+              child: Row(
+                children: [
+                  const SizedBox(width: 12),
+                  const Icon(
                     Icons.search_rounded,
                     color: Color(0xFF64748B),
                     size: 20,
                   ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear_rounded, size: 18),
-                          color: const Color(0xFF94A3B8),
-                          onPressed: () {
-                            _searchController.clear();
-                            _onSearch('');
-                          },
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 11,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onSubmitted: _onSearch,
+                      onChanged: (val) {
+                        setState(() {});
+                      },
+                      textInputAction: TextInputAction.search,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                      ),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: _selectedTab == 'belum'
+                            ? 'Cari asesi belum dinilai...'
+                            : 'Cari asesi sudah dinilai...',
+                        hintStyle: const TextStyle(
+                          fontSize: 12.5,
+                          color: Color(0xFF94A3B8),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
                   ),
-                ),
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.clear_rounded, size: 18),
+                      color: const Color(0xFF94A3B8),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      onPressed: () {
+                        _searchController.clear();
+                        _onSearch('');
+                      },
+                    ),
+                  const SizedBox(width: 4),
+                ],
               ),
             ),
           ),
