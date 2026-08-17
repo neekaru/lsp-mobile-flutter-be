@@ -605,4 +605,40 @@ class AsesorService {
       return null;
     }
   }
+
+  /// 21. Update Asesi Recommendation
+  /// PUT /api/asesor/asesi/:id/rekomendasi
+  static Future<Map<String, dynamic>?> updateAsesiRekomendasi({
+    required int asesiId,
+    required String rekomendasiAsesor, // "1" (Kompeten), "2" (Belum Kompeten), "0" (Belum Dinilai)
+    String? isKompeten,
+    String? pencapaian,
+    String? unitBk,
+    String? saranTindakLanjut,
+    String? peliharaKompetensi,
+  }) async {
+    try {
+      final Map<String, dynamic> payload = {
+        'rekomendasi_asesor': rekomendasiAsesor,
+      };
+      if (isKompeten != null) payload['is_kompeten'] = isKompeten;
+      if (pencapaian != null) payload['pencapaian'] = pencapaian;
+      if (unitBk != null) payload['unit_bk'] = unitBk;
+      if (saranTindakLanjut != null) payload['saran_tindak_lanjut'] = saranTindakLanjut;
+      if (peliharaKompetensi != null) payload['pelihara_kompetensi'] = peliharaKompetensi;
+
+      final response = await _dio.put(
+        ApiRoutes.asesorAsesiUpdateRekomendasi(asesiId),
+        data: payload,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error updating asesi rekomendasi: $e');
+      return null;
+    }
+  }
 }

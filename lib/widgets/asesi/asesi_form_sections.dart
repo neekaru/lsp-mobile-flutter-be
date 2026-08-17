@@ -548,9 +548,13 @@ class AK05Section extends StatelessWidget {
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
-          AsesiDetailRow('Rekomendasi Akhir Asesor', ak05?.rekomendasi ?? detailData?.rekomendasiAsesor ?? 'Kompeten'),
-          if (ak05?.tanggalRekomendasi.isNotEmpty == true)
-            AsesiDetailRow('Tanggal Rekomendasi', ak05!.tanggalRekomendasi),
+          AsesiDetailRow('Rekomendasi Akhir Asesor', ak05?.rekomendasi ?? detailData?.rekomendasiAsesor ?? 'Belum Dinilai'),
+          AsesiDetailRow(
+            'Tanggal Rekomendasi',
+            ak05?.tanggalRekomendasi.isNotEmpty == true
+                ? ak05!.tanggalRekomendasi
+                : 'Belum diisi asesor',
+          ),
           AsesiDetailRow('Pencapaian Unjuk Kerja', ak05?.pencapaian ?? 'Semua kriteria unjuk kerja telah terpenuhi'),
           AsesiDetailRow('Unit yang Belum Kompeten', ak05?.unitBk ?? '-'),
           AsesiDetailRow('Saran Tindak Lanjut', ak05?.saranTindakLanjut ?? 'Pertahankan kompetensi di bidang terkait'),
