@@ -256,9 +256,18 @@ class APL01Data {
   });
 
   factory APL01Data.fromJson(Map<String, dynamic> json) {
+    String rawRekom = json['rekomendasi'] as String? ?? '';
+    if (rawRekom.isEmpty || rawRekom == '0' || rawRekom == '1') {
+      rawRekom = 'Diterima Sebagai Peserta Asesmen';
+    } else if (rawRekom == '2') {
+      rawRekom = 'Tidak Diterima Sebagai Peserta Asesmen';
+    } else if (rawRekom == '3') {
+      rawRekom = 'Perlu Perbaikan Dokumen';
+    }
+
     return APL01Data(
       status: json['status'] as String? ?? 'Terverifikasi',
-      rekomendasi: json['rekomendasi'] as String? ?? 'Diterima Sebagai Peserta Asesmen',
+      rekomendasi: rawRekom,
       catatan: json['catatan'] as String? ?? '',
       tanggalValidasi: json['tanggal_validasi'] as String? ?? '',
       buktiDokumen: (json['bukti_dokumen'] as List<dynamic>? ?? [])

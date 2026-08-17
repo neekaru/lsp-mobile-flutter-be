@@ -295,7 +295,14 @@ class APL01Section extends StatelessWidget {
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
-          AsesiDetailRow('Rekomendasi Admin', apl01?.rekomendasi ?? 'Diterima Sebagai Peserta Asesmen'),
+          AsesiDetailRow(
+            'Rekomendasi Admin',
+            (apl01?.rekomendasi != null &&
+                    apl01!.rekomendasi.isNotEmpty &&
+                    apl01.rekomendasi != '0')
+                ? apl01.rekomendasi
+                : 'Diterima Sebagai Peserta Asesmen',
+          ),
           if (apl01?.catatan.isNotEmpty == true)
             AsesiDetailRow('Catatan', apl01!.catatan),
           if (apl01?.tanggalValidasi.isNotEmpty == true)
