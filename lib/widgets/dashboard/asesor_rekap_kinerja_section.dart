@@ -208,18 +208,18 @@ class _AsesorRekapKinerjaSectionState extends State<AsesorRekapKinerjaSection> {
           const SizedBox(height: 16),
 
           // 3. Section Title Bulanan
-          const Row(
+          Row(
             children: [
               Text(
-                'Rincian Bulanan (2026)',
-                style: TextStyle(
+                'Rincian Bulanan (${data.tahun})',
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0F172A),
                 ),
               ),
-              Spacer(),
-              Text(
+              const Spacer(),
+              const Text(
                 'SPT | Asesi',
                 style: TextStyle(
                   fontSize: 11,
@@ -229,6 +229,8 @@ class _AsesorRekapKinerjaSectionState extends State<AsesorRekapKinerjaSection> {
               ),
             ],
           ),
+
+          const SizedBox(height: 10),
 
           // 4. Grid of 12 Months
           _buildMonthlyGrid(data.bulanan),
@@ -301,6 +303,7 @@ class _AsesorRekapKinerjaSectionState extends State<AsesorRekapKinerjaSection> {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 8,
