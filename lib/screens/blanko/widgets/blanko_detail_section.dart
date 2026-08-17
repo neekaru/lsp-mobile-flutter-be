@@ -5,14 +5,18 @@ class BlankoInfoItem {
   final String label;
   final String value;
 
-  /// Kalau diisi, widget ini dipakai menggantikan [value] (mis. chips jadwal).
+  /// Kalau diisi, widget ini dipakai menggantikan [value] (mis. chips/cards jadwal).
   final Widget? valueWidget;
+
+  /// Jika true, valueWidget akan dirender di bawah label dengan lebar penuh.
+  final bool isFullWidth;
 
   const BlankoInfoItem({
     required this.icon,
     required this.label,
     required this.value,
     this.valueWidget,
+    this.isFullWidth = false,
   });
 }
 
@@ -62,6 +66,39 @@ class BlankoDetailSection extends StatelessWidget {
             final idx = entry.key;
             final item = entry.value;
             final isLast = idx == items.length - 1;
+
+            if (item.isFullWidth && item.valueWidget != null) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          item.icon,
+                          size: 16,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          item.label,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    item.valueWidget!,
+                  ],
+                ),
+              );
+            }
+
             return Padding(
               padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
               child: Row(

@@ -167,10 +167,12 @@ class _DetailPengajuanBlankoScreenState
                           ),
                           BlankoInfoItem(
                             icon: Icons.event_note_outlined,
-                            label: 'Jadwal ID',
+                            label: 'Jadwal Asesmen',
                             value: '',
+                            isFullWidth: true,
                             valueWidget: BlankoJadwalIdChips(
                               jadwalIds: _detail?.jadwalIds ?? const [],
+                              jadwalList: _detail?.jadwalList,
                             ),
                           ),
                           BlankoInfoItem(

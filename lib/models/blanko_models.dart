@@ -140,6 +140,7 @@ class BlankoDetailModel {
   final String tanggalPermohonan;
   final String jadwalId;
   final List<String> jadwalIds;
+  final List<BlankoJadwalDetailItem> jadwalList;
   final String tanggalKeputusan;
   final int jumlahKompeten;
   final int blankoTerkirim;
@@ -165,6 +166,7 @@ class BlankoDetailModel {
     required this.tanggalPermohonan,
     required this.jadwalId,
     required this.jadwalIds,
+    this.jadwalList = const [],
     required this.tanggalKeputusan,
     required this.jumlahKompeten,
     required this.blankoTerkirim,
@@ -205,6 +207,12 @@ class BlankoDetailModel {
                     .where((e) => e.trim().isNotEmpty)
                     .toList()
               : _parseJadwalIds(json['jadwal_id']))
+          : const [],
+      jadwalList: json['jadwal_list'] is List
+          ? (json['jadwal_list'] as List)
+              .whereType<Map<String, dynamic>>()
+              .map((e) => BlankoJadwalDetailItem.fromJson(e))
+              .toList()
           : const [],
       tanggalKeputusan: json['tanggal_keputusan']?.toString() ?? '',
       jumlahKompeten: json['jumlah_kompeten'] is int
@@ -253,5 +261,38 @@ class BlankoDetailModel {
         .map((item) => item.trim())
         .where((item) => item.isNotEmpty)
         .toList();
+  }
+}
+
+class BlankoJadwalDetailItem {
+  final int id;
+  final String namaJadwal;
+  final String tanggal;
+  final String tuk;
+  final String skema;
+  final int jumlahPeserta;
+
+  const BlankoJadwalDetailItem({
+    required this.id,
+    required this.namaJadwal,
+    required this.tanggal,
+    required this.tuk,
+    this.skema = '',
+    this.jumlahPeserta = 0,
+  });
+
+  factory BlankoJadwalDetailItem.fromJson(Map<String, dynamic> json) {
+    return BlankoJadwalDetailItem(
+      id: json['id'] is int
+          ? json['id']
+          : int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      namaJadwal: json['nama_jadwal']?.toString() ?? '',
+      tanggal: json['tanggal']?.toString() ?? '',
+      tuk: json['tuk']?.toString() ?? '',
+      skema: json['skema']?.toString() ?? '',
+      jumlahPeserta: json['jumlah_peserta'] is int
+          ? json['jumlah_peserta']
+          : int.tryParse(json['jumlah_peserta']?.toString() ?? '') ?? 0,
+    );
   }
 }
