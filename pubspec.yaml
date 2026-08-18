@@ -21,6 +21,7 @@ dependencies:
   syncfusion_flutter_maps: ^33.2.7
   file_picker: ^11.0.2
   url_launcher: ^6.3.2
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

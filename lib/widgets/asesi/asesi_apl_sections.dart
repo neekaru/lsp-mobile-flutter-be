@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../models/asesor_asesi_models.dart';
 import '../../services/asesor/asesor_service.dart';
@@ -182,8 +183,9 @@ class _APL02SectionState extends State<APL02Section> {
 
   void _initValues() {
     final apl02 = widget.detailData?.apl02;
-    _selectedTanggal = (apl02?.tanggal.isNotEmpty ?? false)
-        ? apl02!.tanggal
+    final tgl = apl02?.tanggal.trim() ?? '';
+    _selectedTanggal = (tgl.isNotEmpty && !tgl.startsWith('0000') && !tgl.startsWith('0001'))
+        ? tgl
         : DateTime.now().toIso8601String().substring(0, 10);
     _selectedRekomendasi = (apl02?.praAsesmen != null &&
             apl02!.praAsesmen != '0' &&
@@ -199,7 +201,7 @@ class _APL02SectionState extends State<APL02Section> {
     _selectedKandidat = (apl02?.kandidat.isNotEmpty ?? false)
         ? apl02!.kandidat
         : '1';
-    _selectedMapaId = apl02?.idMapa;
+    _selectedMapaId = (apl02?.idMapa != null && apl02!.idMapa! > 0) ? apl02.idMapa : null;
     if (_selectedMapaId == null && (apl02?.mapaOptions.isNotEmpty ?? false)) {
       _selectedMapaId = apl02!.mapaOptions.first.id;
     }
@@ -481,8 +483,17 @@ class _APL02SectionState extends State<APL02Section> {
               ),
               child: Column(
                 children: [
-                  const Icon(LucideIcons.qr_code, size: 84, color: Color(0xFF0F172A)),
-                  const SizedBox(height: 4),
+                  if (apl02?.qrCodeData != null && apl02!.qrCodeData.isNotEmpty)
+                    QrImageView(
+                      data: apl02.qrCodeData,
+                      version: QrVersions.auto,
+                      size: 110.0,
+                      backgroundColor: Colors.white,
+                      errorCorrectionLevel: QrErrorCorrectLevel.M,
+                    )
+                  else
+                    const Icon(LucideIcons.qr_code, size: 84, color: Color(0xFF0F172A)),
+                  const SizedBox(height: 6),
                   const Text(
                     'Tanda Tangan Elektronik Asesor Terverifikasi',
                     style: TextStyle(fontSize: 10.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),

@@ -11,6 +11,7 @@ class DateFormatHelper {
     if (input.trim().isEmpty) return null;
     try {
       String clean = input.trim();
+      if (clean.startsWith('0000') || clean.startsWith('0001')) return null;
       // Remove trailing Z or z
       if (clean.toLowerCase().endsWith('z')) {
         clean = clean.substring(0, clean.length - 1).trim();
@@ -28,6 +29,7 @@ class DateFormatHelper {
         final day = int.parse(dmYMatch.group(1)!);
         final month = int.parse(dmYMatch.group(2)!);
         final year = int.parse(dmYMatch.group(3)!);
+        if (year <= 1) return null;
         return DateTime(year, month, day);
       }
 
@@ -37,10 +39,13 @@ class DateFormatHelper {
         final year = int.parse(yMDMatch.group(1)!);
         final month = int.parse(yMDMatch.group(2)!);
         final day = int.parse(yMDMatch.group(3)!);
+        if (year <= 1) return null;
         return DateTime(year, month, day);
       }
 
-      return DateTime.tryParse(clean);
+      final dt = DateTime.tryParse(clean);
+      if (dt != null && dt.year <= 1) return null;
+      return dt;
     } catch (_) {
       return null;
     }
@@ -50,8 +55,9 @@ class DateFormatHelper {
   /// Input: "2028-03-08T00:00:00Z" atau "08-03-2028Z"
   /// Output: "08 Maret 2028"
   static String formatToIndonesian(String dateString) {
-    if (dateString.trim().isEmpty || dateString == '-') return '-';
-    final parsed = parseDate(dateString);
+    final cleanStr = dateString.trim();
+    if (cleanStr.isEmpty || cleanStr == '-' || cleanStr.startsWith('0000') || cleanStr.startsWith('0001')) return '-';
+    final parsed = parseDate(cleanStr);
     if (parsed != null) {
       try {
         final formatter = DateFormat('dd MMMM yyyy', 'id_ID');
@@ -62,7 +68,7 @@ class DateFormatHelper {
       }
     }
     // Fallback: strip Z and time if parse fails
-    String clean = dateString.replaceAll(RegExp(r'[Zz]'), '').trim();
+    String clean = cleanStr.replaceAll(RegExp(r'[Zz]'), '').trim();
     if (clean.contains('T')) clean = clean.split('T')[0];
     return clean;
   }
