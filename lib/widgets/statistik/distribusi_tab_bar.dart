@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Switch tab "Asesor Aktif" / "Sebaran Skema".
 class DistribusiTabBar extends StatelessWidget {

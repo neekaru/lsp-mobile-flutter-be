@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class StatusNotificationDialog {
   /// Show Success Dialog (NO back arrow, NO X close button)

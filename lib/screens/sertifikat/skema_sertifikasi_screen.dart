@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import '../../widgets/sertifikat/skema_card.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../models/sertifikat_models.dart';
 import '../../services/sertifikat/sertifikat_service.dart';

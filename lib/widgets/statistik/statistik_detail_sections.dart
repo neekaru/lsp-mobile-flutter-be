@@ -5,7 +5,7 @@
 // statistik_detail_screen.dart agar screen hanya berisi state + navigasi.
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../models/dashboard_models.dart';
 import '../../models/sertifikat_models.dart';

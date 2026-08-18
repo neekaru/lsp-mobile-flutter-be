@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Vector-drawn crisp Google Icon widget with high aesthetic standard.
 class GoogleIcon extends StatelessWidget {

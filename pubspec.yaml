@@ -23,6 +23,7 @@ dependencies:
   url_launcher: ^6.3.2
   qr_flutter: ^4.1.0
 
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

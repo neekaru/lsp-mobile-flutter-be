@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Item jadwal yang terlambat (telat X hari) — tab Asesor Aktif.
 class LateScheduleItem extends StatelessWidget {

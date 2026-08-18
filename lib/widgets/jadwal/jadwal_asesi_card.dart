@@ -5,7 +5,7 @@
 // dipelihara.
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../models/jadwal_models.dart';
 import 'jadwal_card_common.dart';

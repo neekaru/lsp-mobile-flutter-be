@@ -1,5 +1,5 @@
 // ignore_for_file: deprecated_member_use
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/navigation/main_navigator.dart' show mainNavigatorKey, MainNavigatorState;
 import '../../services/api_service.dart';

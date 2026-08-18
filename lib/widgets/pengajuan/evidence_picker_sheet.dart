@@ -1,5 +1,5 @@
 // ignore_for_file: deprecated_member_use
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// One selectable evidence row. [id] is unique even when [name] collides.
 class _EvidenceItem {

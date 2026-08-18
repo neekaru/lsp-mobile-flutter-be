@@ -5,7 +5,7 @@
 // dipelihara.
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Kolom kecil (Waktu / Asesor / Peserta) di kartu asesi & asesor.
 class JadwalInfoColumn extends StatelessWidget {

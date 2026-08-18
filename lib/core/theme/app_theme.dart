@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Tema global aplikasi LSP Digital Mobile.
 class AppTheme {

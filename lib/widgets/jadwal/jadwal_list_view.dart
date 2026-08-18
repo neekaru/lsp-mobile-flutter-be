@@ -5,7 +5,7 @@
 // dari jadwal_screen.dart.
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../models/jadwal_models.dart';
 import '../../screens/jadwal/jadwal_detail_screen.dart';

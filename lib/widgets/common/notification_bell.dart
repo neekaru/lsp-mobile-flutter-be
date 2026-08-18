@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../services/api_service.dart';
 import '../../services/common/app_notification_storage.dart';
 import '../../services/common/notification_service.dart';

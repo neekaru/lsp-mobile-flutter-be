@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../widgets/jadwal/detail_helpers.dart';
 import '../../widgets/jadwal/jadwal_detail_views.dart';

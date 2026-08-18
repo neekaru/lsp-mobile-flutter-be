@@ -4,7 +4,7 @@
 // Kartu & dialog statistik asesor. Diekstrak dari rangkuman_asesor.dart.
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../screens/jadwal/jadwal_detail_screen.dart';
 import '../../models/dashboard_models.dart';

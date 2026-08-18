@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../common/custom_app_bar.dart';
 import 'statistics_menu_accordion.dart';
 import '../../screens/statistik/statistik_detail_screen.dart';

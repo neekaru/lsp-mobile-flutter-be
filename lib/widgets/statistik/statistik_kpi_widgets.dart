@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Item KPI kecil (label + nilai + warna).
 class KpiItem {

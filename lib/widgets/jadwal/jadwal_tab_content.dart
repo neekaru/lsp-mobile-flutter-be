@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Pembungkus tab jadwal agar tetap hidup (keep-alive) saat berpindah tab.
 class JadwalTabContent extends StatefulWidget {

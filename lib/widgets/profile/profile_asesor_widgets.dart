@@ -5,7 +5,7 @@
 // profile_asesor_screen.dart.
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Kartu ringkasan kecil (nilai + label + sublabel).
 class ProfileRingkasanCard extends StatelessWidget {

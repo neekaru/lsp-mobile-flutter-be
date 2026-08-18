@@ -5,7 +5,7 @@
 // Diekstrak dari profile_admin_screen.dart.
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Ilustrasi sertifikat kecil (biru dengan pita merah & segel emas).
 class AdminCertificateIllustration extends StatelessWidget {
