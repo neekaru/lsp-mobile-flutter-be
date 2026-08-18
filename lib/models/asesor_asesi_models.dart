@@ -335,12 +335,61 @@ class BuktiDokumenItem {
   }
 }
 
+class MapaOption {
+  final int id;
+  final String namaMapa;
+  final String displayText;
+
+  MapaOption({
+    required this.id,
+    required this.namaMapa,
+    required this.displayText,
+  });
+
+  factory MapaOption.fromJson(Map<String, dynamic> json) {
+    return MapaOption(
+      id: json['id'] as int? ?? 0,
+      namaMapa: json['nama_mapa'] as String? ?? '',
+      displayText: json['display_text'] as String? ?? '',
+    );
+  }
+}
+
+class KandidatOption {
+  final String id;
+  final String label;
+
+  KandidatOption({
+    required this.id,
+    required this.label,
+  });
+
+  factory KandidatOption.fromJson(Map<String, dynamic> json) {
+    return KandidatOption(
+      id: json['id']?.toString() ?? '',
+      label: json['label'] as String? ?? '',
+    );
+  }
+}
+
 class APL02Data {
   final String status;
   final int totalUnit;
   final int totalK;
   final int totalBK;
   final List<APL02UnitItem> units;
+  final String praAsesmen;
+  final String rekomendasi;
+  final String catatanRekomendasi;
+  final String tanggal;
+  final bool isApproved;
+  final String kandidat;
+  final String kandidatLabel;
+  final int? idMapa;
+  final String namaMapa;
+  final String qrCodeData;
+  final List<MapaOption> mapaOptions;
+  final List<KandidatOption> kandidatOptions;
 
   APL02Data({
     required this.status,
@@ -348,6 +397,18 @@ class APL02Data {
     required this.totalK,
     required this.totalBK,
     required this.units,
+    this.praAsesmen = '0',
+    this.rekomendasi = 'Belum Diverifikasi',
+    this.catatanRekomendasi = 'Di rekomendasi menjadi peserta uji kompetensi',
+    this.tanggal = '',
+    this.isApproved = false,
+    this.kandidat = '1',
+    this.kandidatLabel = '',
+    this.idMapa,
+    this.namaMapa = '',
+    this.qrCodeData = '',
+    this.mapaOptions = const [],
+    this.kandidatOptions = const [],
   });
 
   factory APL02Data.fromJson(Map<String, dynamic> json) {
@@ -358,6 +419,22 @@ class APL02Data {
       totalBK: json['total_bk'] as int? ?? 0,
       units: (json['units'] as List<dynamic>? ?? [])
           .map((e) => APL02UnitItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      praAsesmen: json['pra_asesmen']?.toString() ?? '0',
+      rekomendasi: json['rekomendasi'] as String? ?? 'Belum Diverifikasi',
+      catatanRekomendasi: json['catatan_rekomendasi'] as String? ?? 'Di rekomendasi menjadi peserta uji kompetensi',
+      tanggal: json['tanggal'] as String? ?? '',
+      isApproved: json['is_approved'] as bool? ?? false,
+      kandidat: json['kandidat']?.toString() ?? '1',
+      kandidatLabel: json['kandidat_label'] as String? ?? '',
+      idMapa: json['id_mapa'] as int?,
+      namaMapa: json['nama_mapa'] as String? ?? '',
+      qrCodeData: json['qr_code_data'] as String? ?? '',
+      mapaOptions: (json['mapa_options'] as List<dynamic>? ?? [])
+          .map((e) => MapaOption.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      kandidatOptions: (json['kandidat_options'] as List<dynamic>? ?? [])
+          .map((e) => KandidatOption.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
   }

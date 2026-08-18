@@ -354,6 +354,7 @@ class ApiRoutes {
   static const String asesorAsesi = '/api/asesor/asesi';
   static String asesorAsesiDetail(int id) => '/api/asesor/asesi/$id';
   static String asesorAsesiUpdateRekomendasi(int id) => '/api/asesor/asesi/$id/rekomendasi';
+  static String asesorAsesiUpdateAPL02(int id) => '/api/asesor/asesi/$id/apl02';
 }
 
 // ============================================================================

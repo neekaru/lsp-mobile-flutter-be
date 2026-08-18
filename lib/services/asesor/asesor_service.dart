@@ -641,4 +641,42 @@ class AsesorService {
       return null;
     }
   }
+
+  /// 22. Update FR-APL.02 / Pra-Asesmen & MAPA Recommendation
+  /// PUT /api/asesor/asesi/:id/apl02
+  static Future<Map<String, dynamic>?> updateAPL02({
+    required int asesiId,
+    required String praAsesmen, // "1" (Asesmen Dilanjutkan), "2" (Tidak dapat dilanjutkan), "0"
+    required String catatanRekomendasi,
+    required String tanggal,
+    required bool isApproved,
+    required String kandidat,
+    int? idMapa,
+  }) async {
+    try {
+      final Map<String, dynamic> payload = {
+        'pra_asesmen': praAsesmen,
+        'catatan_rekomendasi': catatanRekomendasi,
+        'tanggal': tanggal,
+        'is_approved': isApproved,
+        'kandidat': kandidat,
+      };
+      if (idMapa != null && idMapa > 0) {
+        payload['id_mapa'] = idMapa;
+      }
+
+      final response = await _dio.put(
+        ApiRoutes.asesorAsesiUpdateAPL02(asesiId),
+        data: payload,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error updating APL-02: $e');
+      return null;
+    }
+  }
 }
