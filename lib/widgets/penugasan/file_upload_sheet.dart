@@ -49,12 +49,12 @@ class _FileUploadSheetState extends State<FileUploadSheet> {
 
   Future<void> _pickFile() async {
     try {
-      final result = await FilePicker.pickFiles(
+      final files = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: widget.allowedExtensions,
       );
-      if (result == null || result.files.isEmpty) return;
-      final file = result.files.first;
+      if (files.isEmpty) return;
+      final file = files.first;
       if (file.path == null || file.path!.isEmpty) return;
       setState(() {
         _tempFileName = file.name;

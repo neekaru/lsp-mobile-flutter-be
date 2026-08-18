@@ -196,13 +196,10 @@ Future<void> showAdminBeritaFormDialog({
                                   ? null
                                   : () async {
                                       try {
-                                        final result = await FilePicker.pickFiles(
+                                        final file = await FilePicker.pickFile(
                                           type: FileType.image,
-                                          allowMultiple: false,
                                         );
-                                        if (result != null && result.files.isNotEmpty) {
-                                          final file = result.files.single;
-                                          if (file.path == null) return;
+                                        if (file != null && file.path != null) {
                                           setModalState(() => isUploadingFoto = true);
                                           final uploaded = await ApiService.uploadBeritaFoto(file.path!);
                                           if (!ctx.mounted) return;

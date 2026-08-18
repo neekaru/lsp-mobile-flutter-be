@@ -24,14 +24,11 @@ class PersyaratanDasarTable extends StatefulWidget {
 class _PersyaratanDasarTableState extends State<PersyaratanDasarTable> {
   Future<void> _pickAndUpload(String key, String label) async {
     try {
-      final result = await FilePicker.pickFiles(
+      final file = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
-        allowMultiple: false,
-        withData: false,
       );
-      if (result == null || result.files.isEmpty) return;
-      final file = result.files.first;
+      if (file == null) return;
       final path = file.path;
       if (path == null || path.isEmpty) {
         if (mounted) {

@@ -219,12 +219,11 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
 
   Future<void> _pickAndUploadPhoto() async {
     try {
-      final result = await FilePicker.pickFiles(
+      final file = await FilePicker.pickFile(
         type: FileType.image,
-        allowMultiple: false,
       );
-      if (result != null && result.files.isNotEmpty) {
-        final filePath = result.files.single.path;
+      if (file != null) {
+        final filePath = file.path;
         if (filePath == null) return;
         setState(() => _isUploadingPhoto = true);
         final uploaded = await ApiService.uploadProfilePhoto(filePath);

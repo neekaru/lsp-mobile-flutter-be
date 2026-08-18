@@ -67,7 +67,6 @@ class AppNotificationStorage {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage(
     aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
       resetOnError: true,
     ),
   );

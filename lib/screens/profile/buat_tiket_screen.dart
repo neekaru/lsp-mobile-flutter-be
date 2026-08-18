@@ -214,12 +214,12 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
                           ElevatedButton(
                             onPressed: () async {
                               try {
-                                final result = await FilePicker.pickFiles(
+                                final files = await FilePicker.pickFiles(
                                   type: FileType.custom,
                                   allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
                                 );
-                                if (result != null && result.files.isNotEmpty) {
-                                  final file = result.files.first;
+                                if (files.isNotEmpty) {
+                                  final file = files.first;
                                   if (file.path == null || file.path!.isEmpty) {
                                     return;
                                   }

@@ -26,15 +26,14 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
 
   Future<void> _pickFiles() async {
     try {
-      final result = await FilePicker.pickFiles(
+      final files = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'png'],
-        allowMultiple: true,
       );
 
-      if (result != null && result.files.isNotEmpty) {
+      if (files.isNotEmpty) {
         setState(() {
-          for (var file in result.files) {
+          for (var file in files) {
             if (!_uploadedFiles.any((f) => f['name'] == file.name)) {
               final double kb = file.size / 1024;
               final double mb = kb / 1024;
