@@ -1,7 +1,7 @@
 name: lsp_digital_mobile
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.2.1-beta.66+106
+version: 1.2.1-beta.76+107
 
 environment:
   sdk: ^3.11.1
@@ -17,13 +17,13 @@ dependencies:
   januscaler_flutter_ringtone_player: ^1.0.2
   flutter_secure_storage: ^9.2.2
   http: ^1.6.0
-  intl: ^0.19.0
+  intl: 0.20.3
   syncfusion_flutter_maps: ^33.2.7
   file_picker: ^11.0.2
   url_launcher: ^6.3.2
   qr_flutter: ^4.1.0
 
-  material_ui: any
+  material_ui: ^1.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
