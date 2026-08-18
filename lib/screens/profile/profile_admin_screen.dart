@@ -12,6 +12,7 @@ import 'struktur_organisasi_screen.dart';
 import 'tugas_tanggung_jawab_screen.dart';
 import '../../widgets/profile/profile_admin_widgets.dart';
 import '../../widgets/profile/profile_asesor_widgets.dart';
+import '../../utils/url_helper.dart';
 
 class ProfileAdminScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -362,15 +363,9 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
                         builder: (context) {
                           final user = AuthRepository.currentUserInstance;
                           final rawPhoto = user?.fotoProfilUrl;
-                          String? photoUrl;
-                          if (rawPhoto != null && rawPhoto.isNotEmpty) {
-                            if (rawPhoto.startsWith('http://') || rawPhoto.startsWith('https://')) {
-                              photoUrl = rawPhoto;
-                            } else {
-                              final normalized = rawPhoto.startsWith('/') ? rawPhoto : '/$rawPhoto';
-                              photoUrl = '${ApiService.baseUrl}$normalized';
-                            }
-                          }
+                          final photoUrl = (rawPhoto != null && rawPhoto.isNotEmpty)
+                              ? UrlHelper.resolveUrl(rawPhoto)
+                              : null;
                           return Stack(
                             children: [
                               GestureDetector(

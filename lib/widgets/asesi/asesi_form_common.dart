@@ -11,15 +11,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/asesor_asesi_models.dart';
 import '../../services/api_service.dart';
+import '../../utils/url_helper.dart';
 
 Future<void> _openDocumentUrl(BuildContext context, String? rawUrl) async {
   if (rawUrl == null || rawUrl.trim().isEmpty) return;
-  String fullUrl = rawUrl.trim();
-  if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
-    final baseUrl = ApiService.baseUrl.replaceAll(RegExp(r'/+$'), '');
-    final path = fullUrl.startsWith('/') ? fullUrl : '/$fullUrl';
-    fullUrl = '$baseUrl$path';
-  }
+  final fullUrl = UrlHelper.resolveUrl(rawUrl);
   final uri = Uri.tryParse(fullUrl);
   if (uri != null) {
     try {

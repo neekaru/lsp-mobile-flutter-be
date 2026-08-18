@@ -14,6 +14,7 @@ import 'keamanan_screen.dart';
 import '../../widgets/profile/ringkasan_widget.dart';
 import '../../widgets/profile/menu_profil_widget.dart';
 import 'public_profile_screen.dart';
+import '../../utils/url_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -475,15 +476,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Builder(
                     builder: (context) {
                       final rawPhoto = user.fotoProfilUrl;
-                      String? photoUrl;
-                      if (rawPhoto != null && rawPhoto.isNotEmpty) {
-                        if (rawPhoto.startsWith('http://') || rawPhoto.startsWith('https://')) {
-                          photoUrl = rawPhoto;
-                        } else {
-                          final normalized = rawPhoto.startsWith('/') ? rawPhoto : '/$rawPhoto';
-                          photoUrl = '${ApiService.baseUrl}$normalized';
-                        }
-                      }
+                      final photoUrl = (rawPhoto != null && rawPhoto.isNotEmpty)
+                          ? UrlHelper.resolveUrl(rawPhoto)
+                          : null;
                       return Stack(
                         children: [
                           GestureDetector(

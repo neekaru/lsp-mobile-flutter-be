@@ -30,7 +30,9 @@ class APL01Section extends StatelessWidget {
         children: [
           FormSectionHeader(
             title: 'FR-APL.01 Permohonan Sertifikasi',
-            status: apl01?.status ?? 'Terverifikasi',
+            status: (apl01?.status != null && apl01!.status.isNotEmpty)
+                ? apl01.status
+                : 'Belum Terverifikasi',
           ),
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
@@ -41,7 +43,7 @@ class APL01Section extends StatelessWidget {
                     apl01!.rekomendasi.isNotEmpty &&
                     apl01.rekomendasi != '0')
                 ? apl01.rekomendasi
-                : 'Diterima Sebagai Peserta Asesmen',
+                : 'Belum Diverifikasi',
           ),
           if (apl01?.catatan.isNotEmpty == true)
             AsesiDetailRow('Catatan', apl01!.catatan),

@@ -15,6 +15,7 @@ import 'tiket_bantuan_screen.dart';
 import '../dashboard/faq_screen.dart';
 import 'public_profile_screen.dart';
 import '../../widgets/profile/profile_asesor_widgets.dart';
+import '../../utils/url_helper.dart';
 
 class ProfileAsesorScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -408,15 +409,9 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
                         Builder(
                           builder: (context) {
                             final rawPhoto = _profileData?['foto_profil_url']?.toString() ?? user.fotoProfilUrl;
-                            String? photoUrl;
-                            if (rawPhoto != null && rawPhoto.isNotEmpty) {
-                              if (rawPhoto.startsWith('http://') || rawPhoto.startsWith('https://')) {
-                                photoUrl = rawPhoto;
-                              } else {
-                                final normalized = rawPhoto.startsWith('/') ? rawPhoto : '/$rawPhoto';
-                                photoUrl = '${ApiService.baseUrl}$normalized';
-                              }
-                            }
+                            final photoUrl = (rawPhoto != null && rawPhoto.isNotEmpty)
+                                ? UrlHelper.resolveUrl(rawPhoto)
+                                : null;
                             return Stack(
                               children: [
                                 GestureDetector(
