@@ -283,11 +283,25 @@ class _APL02SectionState extends State<APL02Section> {
     }
   }
 
+  String _resolveQrCodeUrl() {
+    final raw = widget.detailData?.apl02.qrCodeData.trim() ?? '';
+    if (raw.startsWith('http://') || raw.startsWith('https://')) {
+      return raw;
+    }
+    final asesiId = widget.detailData?.id ?? 0;
+    final jadwalId = widget.detailData?.jadwalId ?? 0;
+    if (asesiId > 0 && jadwalId > 0) {
+      return 'https://sertifikasi.lspdigital.id/qrcode/e_dokumen/0/$jadwalId/$asesiId/validasi_apl02';
+    }
+    return raw;
+  }
+
   @override
   Widget build(BuildContext context) {
     final apl02 = widget.detailData?.apl02;
     final kandidatOptions = apl02?.kandidatOptions ?? [];
     final mapaOptions = apl02?.mapaOptions ?? [];
+    final qrUrl = _resolveQrCodeUrl();
 
     return FormSectionCard(
       child: Column(
@@ -483,9 +497,9 @@ class _APL02SectionState extends State<APL02Section> {
               ),
               child: Column(
                 children: [
-                  if (apl02?.qrCodeData != null && apl02!.qrCodeData.isNotEmpty)
+                  if (qrUrl.isNotEmpty)
                     QrImageView(
-                      data: apl02.qrCodeData,
+                      data: qrUrl,
                       version: QrVersions.auto,
                       size: 110.0,
                       backgroundColor: Colors.white,
