@@ -627,8 +627,11 @@ class _APL02SectionState extends State<APL02Section> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<int>(
                 isExpanded: true,
-                value: _selectedMapaId,
-                hint: const Text('Pilih MAPA...', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                value: (mapaOptions.any((m) => m.id == _selectedMapaId)) ? _selectedMapaId : null,
+                hint: Text(
+                  mapaOptions.isEmpty ? 'Tidak ada pilihan MAPA untuk skema ini' : 'Pilih MAPA...',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                ),
                 style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
                 items: mapaOptions.map((m) {
                   return DropdownMenuItem<int>(
@@ -640,13 +643,15 @@ class _APL02SectionState extends State<APL02Section> {
                     ),
                   );
                 }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _selectedMapaId = val;
-                    });
-                  }
-                },
+                onChanged: mapaOptions.isEmpty
+                    ? null
+                    : (val) {
+                        if (val != null) {
+                          setState(() {
+                            _selectedMapaId = val;
+                          });
+                        }
+                      },
               ),
             ),
           ),
