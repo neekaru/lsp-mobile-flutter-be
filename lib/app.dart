@@ -14,6 +14,14 @@ class MainApp extends StatelessWidget {
       title: 'LSP Monitoring',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      builder: (BuildContext context, Widget? child) {
+        return MaterialUiCompatibilityBridge(child: child!);
+      },
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: const [
+        Locale('id', 'ID'),
+        Locale('en', 'US'),
+      ],
       home: const SplashScreen(),
     );
   }
