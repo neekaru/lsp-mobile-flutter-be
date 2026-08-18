@@ -223,10 +223,11 @@ class _BuatTiketScreenState extends State<BuatTiketScreen> {
                                   if (file.path == null || file.path!.isEmpty) {
                                     return;
                                   }
+                                  final fileLength = await file.length();
                                   setSheetState(() {
                                     tempFileName = file.name;
                                     tempFilePath = file.path;
-                                    final double kb = file.size / 1024;
+                                    final double kb = fileLength / 1024;
                                     final double mb = kb / 1024;
                                     tempFileSize = mb >= 1
                                         ? '${mb.toStringAsFixed(1)} MB'

@@ -56,10 +56,11 @@ class _FileUploadSheetState extends State<FileUploadSheet> {
       if (files.isEmpty) return;
       final file = files.first;
       if (file.path == null || file.path!.isEmpty) return;
+      final fileLength = await file.length();
       setState(() {
         _tempFileName = file.name;
         _tempFilePath = file.path;
-        final double kb = file.size / 1024;
+        final double kb = fileLength / 1024;
         final double mb = kb / 1024;
         _tempFileSize = mb >= 1
             ? '${mb.toStringAsFixed(1)} MB'

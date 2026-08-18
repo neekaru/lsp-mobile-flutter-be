@@ -32,23 +32,24 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
       );
 
       if (files.isNotEmpty) {
-        setState(() {
-          for (var file in files) {
-            if (!_uploadedFiles.any((f) => f['name'] == file.name)) {
-              final double kb = file.size / 1024;
-              final double mb = kb / 1024;
-              final String sizeStr = mb >= 1
-                  ? '${mb.toStringAsFixed(1)} MB'
-                  : '${kb.toStringAsFixed(1)} KB';
+        for (var file in files) {
+          if (!_uploadedFiles.any((f) => f['name'] == file.name)) {
+            final fileLength = await file.length();
+            final double kb = fileLength / 1024;
+            final double mb = kb / 1024;
+            final String sizeStr = mb >= 1
+                ? '${mb.toStringAsFixed(1)} MB'
+                : '${kb.toStringAsFixed(1)} KB';
+            setState(() {
               _uploadedFiles.add({
                 'name': file.name,
                 'size': sizeStr,
                 'path': file.path,
                 'status': 'pending',
               });
-            }
+            });
           }
-        });
+        }
       }
     } catch (e) {
       debugPrint('Error picking files: $e');
