@@ -389,7 +389,7 @@ class _APL02SectionState extends State<APL02Section> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    DateFormatHelper.formatToIndonesianDate(_selectedTanggal),
+                    DateFormatHelper.formatToIndonesian(_selectedTanggal),
                     style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
                   ),
                   const Icon(LucideIcons.calendar, size: 16, color: Color(0xFF2563EB)),
