@@ -348,7 +348,7 @@ class MapaOption {
 
   factory MapaOption.fromJson(Map<String, dynamic> json) {
     return MapaOption(
-      id: json['id'] as int? ?? 0,
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
       namaMapa: json['nama_mapa'] as String? ?? '',
       displayText: json['display_text'] as String? ?? '',
     );
@@ -414,9 +414,9 @@ class APL02Data {
   factory APL02Data.fromJson(Map<String, dynamic> json) {
     return APL02Data(
       status: json['status'] as String? ?? 'Lengkap',
-      totalUnit: json['total_unit'] as int? ?? 0,
-      totalK: json['total_k'] as int? ?? 0,
-      totalBK: json['total_bk'] as int? ?? 0,
+      totalUnit: int.tryParse(json['total_unit']?.toString() ?? '') ?? 0,
+      totalK: int.tryParse(json['total_k']?.toString() ?? '') ?? 0,
+      totalBK: int.tryParse(json['total_bk']?.toString() ?? '') ?? 0,
       units: (json['units'] as List<dynamic>? ?? [])
           .map((e) => APL02UnitItem.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -427,7 +427,7 @@ class APL02Data {
       isApproved: json['is_approved'] as bool? ?? false,
       kandidat: json['kandidat']?.toString() ?? '1',
       kandidatLabel: json['kandidat_label'] as String? ?? '',
-      idMapa: json['id_mapa'] as int?,
+      idMapa: json['id_mapa'] != null ? int.tryParse(json['id_mapa'].toString()) : null,
       namaMapa: json['nama_mapa'] as String? ?? '',
       qrCodeData: json['qr_code_data'] as String? ?? '',
       mapaOptions: (json['mapa_options'] as List<dynamic>? ?? [])
