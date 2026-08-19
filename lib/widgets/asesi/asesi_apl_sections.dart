@@ -203,8 +203,29 @@ class _APL02SectionState extends State<APL02Section> {
         : '1';
     _selectedMapaId = (apl02?.idMapa != null && apl02!.idMapa! > 0) ? apl02.idMapa : null;
     if (_selectedMapaId == null && (apl02?.mapaOptions.isNotEmpty ?? false)) {
-      _selectedMapaId = apl02!.mapaOptions.first.id;
+      final validList = _filterMapaOptions(apl02!.mapaOptions, _selectedKandidat);
+      _selectedMapaId = validList.isNotEmpty ? validList.first.id : apl02.mapaOptions.first.id;
     }
+  }
+
+  bool _isPortofolio(MapaOption m) {
+    final t = '${m.namaMapa} ${m.displayText}'.toLowerCase();
+    return t.contains('portofolio') || t.contains('porotofolio') || t.contains('portfolio');
+  }
+
+  List<MapaOption> _filterMapaOptions(List<MapaOption> options, String kandidat) {
+    final isExp = kandidat == '3';
+    final filtered = options.where((m) {
+      final isPort = _isPortofolio(m);
+      if (isExp) {
+        return isPort;
+      } else {
+        return !isPort ||
+            m.namaMapa.toLowerCase().contains('observasi') ||
+            m.namaMapa.toLowerCase().contains('terstruktur');
+      }
+    }).toList();
+    return filtered.isNotEmpty ? filtered : options;
   }
 
   @override
@@ -617,6 +638,11 @@ class _APL02SectionState extends State<APL02Section> {
                   if (val != null) {
                     setState(() {
                       _selectedKandidat = val;
+                      final validOptions = _filterMapaOptions(mapaOptions, val);
+                      if (validOptions.isNotEmpty &&
+                          !validOptions.any((m) => m.id == _selectedMapaId)) {
+                        _selectedMapaId = validOptions.first.id;
+                      }
                     });
                   }
                 },
@@ -626,48 +652,66 @@ class _APL02SectionState extends State<APL02Section> {
           const SizedBox(height: 12),
 
           // Field MAPA
-          const Text(
-            'MAPA :',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'MAPA :',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+              ),
+              Text(
+                _selectedKandidat == '3' ? '(Metode Portofolio)' : '(Metode Observasi & Terstruktur)',
+                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
+              ),
+            ],
           ),
           const SizedBox(height: 5),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFCBD5E1)),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                isExpanded: true,
-                value: (mapaOptions.any((m) => m.id == _selectedMapaId)) ? _selectedMapaId : null,
-                hint: Text(
-                  mapaOptions.isEmpty ? 'Tidak ada pilihan MAPA untuk skema ini' : 'Pilih MAPA...',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+          Builder(
+            builder: (context) {
+              final isExp = _selectedKandidat == '3';
+              final effectiveList = _filterMapaOptions(mapaOptions, _selectedKandidat);
+
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
                 ),
-                style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
-                items: mapaOptions.map((m) {
-                  return DropdownMenuItem<int>(
-                    value: m.id,
-                    child: Text(
-                      m.displayText,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    isExpanded: true,
+                    value: (effectiveList.any((m) => m.id == _selectedMapaId)) ? _selectedMapaId : null,
+                    hint: Text(
+                      effectiveList.isEmpty
+                          ? 'Tidak ada pilihan MAPA untuk skema ini'
+                          : (isExp ? 'Pilih MAPA Portofolio...' : 'Pilih MAPA Observasi/Terstruktur...'),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                     ),
-                  );
-                }).toList(),
-                onChanged: mapaOptions.isEmpty
-                    ? null
-                    : (val) {
-                        if (val != null) {
-                          setState(() {
-                            _selectedMapaId = val;
-                          });
-                        }
-                      },
-              ),
-            ),
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
+                    items: effectiveList.map((m) {
+                      return DropdownMenuItem<int>(
+                        value: m.id,
+                        child: Text(
+                          m.displayText,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: effectiveList.isEmpty
+                        ? null
+                        : (val) {
+                            if (val != null) {
+                              setState(() {
+                                _selectedMapaId = val;
+                              });
+                            }
+                          },
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 18),
 
