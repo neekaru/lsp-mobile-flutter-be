@@ -35,7 +35,7 @@ class APL01Section extends StatelessWidget {
             title: 'FR-APL.01 Permohonan Sertifikasi',
             status: (apl01?.status != null && apl01!.status.isNotEmpty)
                 ? apl01.status
-                : 'Belum Terverifikasi',
+                : 'Belum Tervalidasi',
           ),
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
@@ -46,7 +46,7 @@ class APL01Section extends StatelessWidget {
                     apl01!.rekomendasi.isNotEmpty &&
                     apl01.rekomendasi != '0')
                 ? apl01.rekomendasi
-                : 'Belum Diverifikasi',
+                : 'Belum Divalidasi',
           ),
           if (apl01?.catatan.isNotEmpty == true)
             AsesiDetailRow('Catatan', apl01!.catatan),
@@ -364,7 +364,7 @@ class _APL02SectionState extends State<APL02Section> {
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
               child: Text(
-                'Data unit kompetensi telah terverifikasi kompeten pada skema sertifikasi.',
+                'Data unit kompetensi telah tervalidasi kompeten pada skema sertifikasi.',
                 style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
               ),
             ),
@@ -479,7 +479,7 @@ class _APL02SectionState extends State<APL02Section> {
           ),
           const SizedBox(height: 14),
 
-          // QR Code Digital Verification Preview
+          // QR Code Digital Validation Preview
           Center(
             child: Container(
               padding: const EdgeInsets.all(12),
@@ -509,7 +509,7 @@ class _APL02SectionState extends State<APL02Section> {
                     const Icon(LucideIcons.qr_code, size: 84, color: Color(0xFF0F172A)),
                   const SizedBox(height: 6),
                   const Text(
-                    'Tanda Tangan Elektronik Asesor Terverifikasi',
+                    'Tanda Tangan Elektronik Asesor Tervalidasi',
                     style: TextStyle(fontSize: 10.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
                   ),
                 ],
