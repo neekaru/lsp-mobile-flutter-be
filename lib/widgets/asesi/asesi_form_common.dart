@@ -17,23 +17,51 @@ Future<void> _openDocumentUrl(BuildContext context, String? rawUrl) async {
   if (rawUrl == null || rawUrl.trim().isEmpty) return;
   final fullUrl = UrlHelper.resolveUrl(rawUrl);
   final uri = Uri.tryParse(fullUrl);
-  if (uri != null) {
+  if (uri != null && uri.hasScheme) {
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Tidak dapat membuka file: $fullUrl')),
-          );
-        }
+      // First try externalApplication - good for PDF, images in other apps
+      if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        return; // Success
+      }
+      
+      // Fallback to platformDefault for iOS or when external fails on Android
+      if (await launchUrl(uri, mode: LaunchMode.platformDefault)) {
+        return; // Success
+      }
+      
+      // If both launch modes fail, show error
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Tidak dapat membuka file: $fullUrl'),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal membuka file: $e')),
+          SnackBar(
+            content: Text('Gagal membuka file: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
+    }
+  } else {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('URL tidak valid: $fullUrl'),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
     }
   }
 }

@@ -676,10 +676,11 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
 
     final Uri waUrl = Uri.parse('https://wa.me/$formattedPhone');
     try {
-      if (await canLaunchUrl(waUrl)) {
-        await launchUrl(waUrl, mode: LaunchMode.externalApplication);
-      } else {
-        await launchUrl(waUrl, mode: LaunchMode.externalApplication);
+      if (await launchUrl(waUrl, mode: LaunchMode.externalApplication)) {
+        return; // Success
+      }
+      if (await launchUrl(waUrl, mode: LaunchMode.platformDefault)) {
+        return; // Fallback success
       }
     } catch (e) {
       if (!mounted) return;

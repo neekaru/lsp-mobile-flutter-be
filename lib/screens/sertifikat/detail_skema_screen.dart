@@ -62,18 +62,26 @@ class _DetailSkemaScreenState extends State<DetailSkemaScreen> {
     final link = _detail?.linkDownload ?? '';
     if (link.isNotEmpty) {
       final uri = Uri.parse(link);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tidak dapat membuka tautan dokumen.'),
-              backgroundColor: Colors.redAccent,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+      try {
+        if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+          return; // Success
         }
+        if (await launchUrl(uri, mode: LaunchMode.platformDefault)) {
+          return; // Fallback success
+        }
+      } catch (e) {
+        // Launch failed for both modes
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak dapat membuka tautan dokumen.'),
+            backgroundColor: Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 3),
+          ),
+        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -718,18 +718,26 @@ class _DetailSertifikatScreenState extends State<DetailSertifikatScreen> {
             final url = await AsesiService.downloadSertifikat(widget.item.id);
             if (url != null && url.isNotEmpty) {
               final uri = Uri.parse(url);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              } else {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Tidak dapat membuka link download.'),
-                      backgroundColor: Colors.red,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
+              try {
+                if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                  return; // Success
                 }
+                if (await launchUrl(uri, mode: LaunchMode.platformDefault)) {
+                  return; // Fallback success
+                }
+              } catch (e) {
+                // Launch failed for both modes
+              }
+              
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Tidak dapat membuka link download.'),
+                    backgroundColor: Color(0xFFDC2626),
+                    behavior: SnackBarBehavior.floating,
+                    duration: Duration(seconds: 3),
+                  ),
+                );
               }
             } else {
               if (context.mounted) {
