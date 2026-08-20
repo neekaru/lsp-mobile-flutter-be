@@ -612,6 +612,10 @@ class AsesorService {
     required int asesiId,
     required String rekomendasiAsesor, // "1" (Kompeten), "2" (Belum Kompeten), "0" (Belum Dinilai)
     String? isKompeten,
+    String? pesan,
+    String? catatan,
+    String? komentarObservasi,
+    String? hasilObservasi,
     String? pencapaian,
     String? unitBk,
     String? saranTindakLanjut,
@@ -622,9 +626,19 @@ class AsesorService {
         'rekomendasi_asesor': rekomendasiAsesor,
       };
       if (isKompeten != null) payload['is_kompeten'] = isKompeten;
+      if (pesan != null && pesan.isNotEmpty) payload['pesan'] = pesan;
+      if (catatan != null && catatan.isNotEmpty) payload['catatan'] = catatan;
+      if (komentarObservasi != null && komentarObservasi.isNotEmpty) {
+        payload['komentar_observasi'] = komentarObservasi;
+      }
+      if (hasilObservasi != null && hasilObservasi.isNotEmpty) {
+        payload['hasil_observasi'] = hasilObservasi;
+      }
       if (pencapaian != null) payload['pencapaian'] = pencapaian;
       if (unitBk != null) payload['unit_bk'] = unitBk;
-      if (saranTindakLanjut != null) payload['saran_tindak_lanjut'] = saranTindakLanjut;
+      if (saranTindakLanjut != null && saranTindakLanjut.isNotEmpty) {
+        payload['saran_tindak_lanjut'] = saranTindakLanjut;
+      }
       if (peliharaKompetensi != null) payload['pelihara_kompetensi'] = peliharaKompetensi;
 
       final response = await _dio.put(

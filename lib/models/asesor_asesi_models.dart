@@ -164,7 +164,12 @@ class AsesorAsesiDetailData {
   final String jadwalTanggal;
   final String tukNama;
   final String rekomendasiAsesor;
+  final String rekomendasiAsesorCode;
+  final String rekomendasiAsesorLabel;
   final String isKompeten;
+  final String pesanAsesor;
+  final String catatanAsesor;
+  final String saranTindakLanjut;
   final String? fotoProfilUrl;
   final APL01Data apl01;
   final APL02Data apl02;
@@ -202,7 +207,12 @@ class AsesorAsesiDetailData {
     required this.jadwalTanggal,
     required this.tukNama,
     required this.rekomendasiAsesor,
+    this.rekomendasiAsesorCode = '0',
+    this.rekomendasiAsesorLabel = 'Belum Dinilai',
     required this.isKompeten,
+    this.pesanAsesor = '',
+    this.catatanAsesor = '',
+    this.saranTindakLanjut = '',
     this.fotoProfilUrl,
     required this.apl01,
     required this.apl02,
@@ -214,6 +224,15 @@ class AsesorAsesiDetailData {
   });
 
   factory AsesorAsesiDetailData.fromJson(Map<String, dynamic> json) {
+    final rawRekom = json['rekomendasi_asesor'] as String? ?? 'Belum Dinilai';
+    final rekomCode = json['rekomendasi_asesor_code']?.toString() ??
+        (rawRekom == 'Kompeten' ? '1' : (rawRekom == 'Belum Kompeten' ? '2' : '0'));
+    final rekomLabel = json['rekomendasi_asesor_label'] as String? ?? rawRekom;
+    final pesan = json['pesan_asesor'] as String? ??
+        json['saran_tindak_lanjut'] as String? ??
+        json['catatan_asesor'] as String? ??
+        '';
+
     return AsesorAsesiDetailData(
       id: json['id'] as int? ?? 0,
       noPeserta: json['no_peserta'] as String? ?? '',
@@ -241,8 +260,13 @@ class AsesorAsesiDetailData {
       jadwalNama: json['jadwal_nama'] as String? ?? '',
       jadwalTanggal: json['jadwal_tanggal'] as String? ?? '',
       tukNama: json['tuk_nama'] as String? ?? '',
-      rekomendasiAsesor: json['rekomendasi_asesor'] as String? ?? 'Belum Dinilai',
+      rekomendasiAsesor: rawRekom,
+      rekomendasiAsesorCode: rekomCode,
+      rekomendasiAsesorLabel: rekomLabel,
       isKompeten: json['is_kompeten'] as String? ?? '',
+      pesanAsesor: pesan,
+      catatanAsesor: json['catatan_asesor'] as String? ?? pesan,
+      saranTindakLanjut: json['saran_tindak_lanjut'] as String? ?? pesan,
       fotoProfilUrl: json['foto_profil_url'] as String?,
       apl01: APL01Data.fromJson(json['apl01'] as Map<String, dynamic>? ?? {}),
       apl02: APL02Data.fromJson(json['apl02'] as Map<String, dynamic>? ?? {}),
@@ -499,6 +523,12 @@ class AK02Data {
   final String hasilLisan;
   final String hasilEsai;
   final String komentarObservasi;
+  final String rekomendasiAsesor;
+  final String rekomendasi;
+  final String rekomendasiLabel;
+  final String pesan;
+  final String catatan;
+  final String saranTindakLanjut;
 
   AK02Data({
     required this.status,
@@ -507,9 +537,26 @@ class AK02Data {
     required this.hasilLisan,
     required this.hasilEsai,
     required this.komentarObservasi,
+    this.rekomendasiAsesor = '0',
+    this.rekomendasi = 'Belum Dinilai',
+    this.rekomendasiLabel = 'Belum Dinilai',
+    this.pesan = '',
+    this.catatan = '',
+    this.saranTindakLanjut = '',
   });
 
   factory AK02Data.fromJson(Map<String, dynamic> json) {
+    final rawRekom = json['rekomendasi'] as String? ??
+        json['rekomendasi_label'] as String? ??
+        'Belum Dinilai';
+    final rawCode = json['rekomendasi_asesor']?.toString() ??
+        (rawRekom == 'Kompeten' ? '1' : (rawRekom == 'Belum Kompeten' ? '2' : '0'));
+    final pesanText = json['pesan'] as String? ??
+        json['catatan'] as String? ??
+        json['komentar_observasi'] as String? ??
+        json['saran_tindak_lanjut'] as String? ??
+        '';
+
     return AK02Data(
       status: json['status'] as String? ?? 'Selesai',
       hasilObservasi: json['hasil_observasi'] as String? ?? 'Kompeten',
@@ -517,6 +564,12 @@ class AK02Data {
       hasilLisan: json['hasil_lisan'] as String? ?? 'Kompeten',
       hasilEsai: json['hasil_esai'] as String? ?? 'Kompeten',
       komentarObservasi: json['komentar_observasi'] as String? ?? '',
+      rekomendasiAsesor: rawCode,
+      rekomendasi: rawRekom,
+      rekomendasiLabel: json['rekomendasi_label'] as String? ?? rawRekom,
+      pesan: pesanText,
+      catatan: json['catatan'] as String? ?? pesanText,
+      saranTindakLanjut: json['saran_tindak_lanjut'] as String? ?? pesanText,
     );
   }
 }
