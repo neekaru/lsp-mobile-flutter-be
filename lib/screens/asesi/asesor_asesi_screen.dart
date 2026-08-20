@@ -154,7 +154,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
             rightWidget: const SizedBox(width: 32),
           ),
 
-          // 2 Tabs: Belum Dinilai vs Sudah Dinilai
+          // 2 Tabs: Belum Rekomendasi vs Sudah Rekomendasi
           Padding(
             padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
             child: Container(
@@ -168,7 +168,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                 children: [
                   Expanded(
                     child: _buildTabButton(
-                      label: 'Belum Dinilai',
+                      label: 'Belum Rekomendasi',
                       badgeCount: belumCount,
                       isActive: _selectedTab == 'belum',
                       activeColor: const Color(0xFFEA580C),
@@ -180,7 +180,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: _buildTabButton(
-                      label: 'Sudah Dinilai',
+                      label: 'Sudah Rekomendasi',
                       badgeCount: sudahCount,
                       isActive: _selectedTab == 'sudah',
                       activeColor: const Color(0xFF059669),
@@ -235,8 +235,8 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: _selectedTab == 'belum'
-                            ? 'Cari asesi belum dinilai...'
-                            : 'Cari asesi sudah dinilai...',
+                            ? 'Cari asesi belum rekomendasi...'
+                            : 'Cari asesi sudah rekomendasi...',
                         hintStyle: const TextStyle(
                           fontSize: 12.5,
                           color: Color(0xFF94A3B8),
@@ -271,8 +271,8 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
               children: [
                 Text(
                   _selectedTab == 'belum'
-                      ? 'Menampilkan: $_totalCount Asesi Belum Dinilai'
-                      : 'Menampilkan: $_totalCount Asesi Sudah Dinilai',
+                      ? 'Menampilkan: $_totalCount Asesi Belum Rekomendasi'
+                      : 'Menampilkan: $_totalCount Asesi Sudah Rekomendasi',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

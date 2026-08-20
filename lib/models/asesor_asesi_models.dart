@@ -634,22 +634,64 @@ class AK02Data {
   }
 }
 
+class AK03Item {
+  final int no;
+  final String komponen;
+  final String hasil; // "Ya", "Tidak", or "-"
+  final String catatanKomentar;
+
+  AK03Item({
+    required this.no,
+    required this.komponen,
+    this.hasil = 'Ya',
+    this.catatanKomentar = '',
+  });
+
+  factory AK03Item.fromJson(Map<String, dynamic> json) {
+    return AK03Item(
+      no: json['no'] as int? ?? 0,
+      komponen: json['komponen'] as String? ?? '',
+      hasil: json['hasil'] as String? ?? 'Ya',
+      catatanKomentar: json['catatan_komentar'] as String? ?? '',
+    );
+  }
+}
+
 class AK03Data {
   final String status;
+  final String namaAsesi;
+  final String tanggalMulai;
+  final String tanggalSelesai;
+  final List<AK03Item> items;
   final String umpanBalik;
   final String catatan;
+  final bool isSudahDiisi;
 
   AK03Data({
     required this.status,
+    this.namaAsesi = '',
+    this.tanggalMulai = '',
+    this.tanggalSelesai = '',
+    this.items = const [],
     required this.umpanBalik,
     required this.catatan,
+    this.isSudahDiisi = false,
   });
 
   factory AK03Data.fromJson(Map<String, dynamic> json) {
+    final rawItems = (json['items'] as List<dynamic>? ?? [])
+        .map((e) => AK03Item.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     return AK03Data(
       status: json['status'] as String? ?? 'Telah Diisi',
+      namaAsesi: json['nama_asesi'] as String? ?? '',
+      tanggalMulai: json['tanggal_mulai'] as String? ?? '',
+      tanggalSelesai: json['tanggal_selesai'] as String? ?? '',
+      items: rawItems,
       umpanBalik: json['umpan_balik'] as String? ?? 'Proses asesmen berjalan baik dan sesuai prosedur',
       catatan: json['catatan'] as String? ?? '',
+      isSudahDiisi: json['is_sudah_diisi'] as bool? ?? (rawItems.isNotEmpty),
     );
   }
 }
