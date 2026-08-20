@@ -490,27 +490,87 @@ class APL02UnitItem {
   }
 }
 
+class BuktiAK01Item {
+  final String nama;
+  final bool checked;
+
+  BuktiAK01Item({
+    required this.nama,
+    required this.checked,
+  });
+
+  factory BuktiAK01Item.fromJson(Map<String, dynamic> json) {
+    return BuktiAK01Item(
+      nama: json['nama'] as String? ?? '',
+      checked: json['checked'] as bool? ?? false,
+    );
+  }
+}
+
 class AK01Data {
   final String status;
-  final String persetujuan;
-  final String tglAsesmen;
+  final String judulSkema;
+  final String nomorSkema;
   final String tuk;
+  final String namaAsesor;
+  final String namaAsesi;
+  final List<BuktiAK01Item> buktiDikumpulkan;
+  final String hariTanggal;
+  final String waktu;
+  final String persetujuan;
+  final String persetujuanBanding;
+  final String persetujuanKerahasiaan;
+  final String persetujuanAsesi;
+  final String tglAsesmen;
+  final bool tandaTanganAsesi;
+  final bool tandaTanganAsesor;
   final bool tandaTangan;
 
   AK01Data({
     required this.status,
-    required this.persetujuan,
-    required this.tglAsesmen,
+    this.judulSkema = '',
+    this.nomorSkema = '',
     required this.tuk,
+    this.namaAsesor = '',
+    this.namaAsesi = '',
+    this.buktiDikumpulkan = const [],
+    this.hariTanggal = '',
+    this.waktu = '08:00 WIB',
+    required this.persetujuan,
+    this.persetujuanBanding = 'Bahwa Saya Sudah Mendapatkan Penjelasan Hak dan Prosedur Banding Oleh Asesor.',
+    this.persetujuanKerahasiaan = 'Menyatakan tidak akan membuka hasil pekerjaan yang saya peroleh karena penugasan saya sebagai asesor dalam pekerjaan Asesmen kepada siapapun atau organisasi apapun selain kepada pihak yang berwenang sehubungan dengan kewajiban saya sebagai Asesor yang ditugaskan oleh LSP.\n\nMenyatakan setuju untuk melaksanakan asesmen jarak jauh sesuai dengan prosedur yang ditentukan.',
+    this.persetujuanAsesi = 'Saya setuju mengikuti asesmen tatap muka / asesmen jarak jauh dengan pemahaman bahwa informasi yang dikumpulkan hanya digunakan untuk pengembangan profesional dan hanya dapat diakses oleh orang tertentu saja.',
+    required this.tglAsesmen,
+    this.tandaTanganAsesi = true,
+    this.tandaTanganAsesor = true,
     required this.tandaTangan,
   });
 
   factory AK01Data.fromJson(Map<String, dynamic> json) {
+    final buktiList = (json['bukti_dikumpulkan'] as List<dynamic>? ?? [])
+        .map((e) => BuktiAK01Item.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     return AK01Data(
       status: json['status'] as String? ?? 'Disetujui',
-      persetujuan: json['persetujuan'] as String? ?? 'Asesi Menyetujui Seluruh Proses dan Tata Tertib Asesmen',
-      tglAsesmen: json['tgl_asesmen'] as String? ?? '',
+      judulSkema: json['judul_skema'] as String? ?? '',
+      nomorSkema: json['nomor_skema'] as String? ?? '',
       tuk: json['tuk'] as String? ?? '',
+      namaAsesor: json['nama_asesor'] as String? ?? '',
+      namaAsesi: json['nama_asesi'] as String? ?? '',
+      buktiDikumpulkan: buktiList,
+      hariTanggal: json['hari_tanggal'] as String? ?? json['tgl_asesmen'] as String? ?? '',
+      waktu: json['waktu'] as String? ?? '08:00 WIB',
+      persetujuan: json['persetujuan'] as String? ?? 'Asesi Menyetujui Seluruh Proses dan Tata Tertib Asesmen',
+      persetujuanBanding: json['persetujuan_banding'] as String? ??
+          'Bahwa Saya Sudah Mendapatkan Penjelasan Hak dan Prosedur Banding Oleh Asesor.',
+      persetujuanKerahasiaan: json['persetujuan_kerahasiaan'] as String? ??
+          'Menyatakan tidak akan membuka hasil pekerjaan yang saya peroleh karena penugasan saya sebagai asesor dalam pekerjaan Asesmen kepada siapapun atau organisasi apapun selain kepada pihak yang berwenang sehubungan dengan kewajiban saya sebagai Asesor yang ditugaskan oleh LSP.\n\nMenyatakan setuju untuk melaksanakan asesmen jarak jauh sesuai dengan prosedur yang ditentukan.',
+      persetujuanAsesi: json['persetujuan_asesi'] as String? ??
+          'Saya setuju mengikuti asesmen tatap muka / asesmen jarak jauh dengan pemahaman bahwa informasi yang dikumpulkan hanya digunakan untuk pengembangan profesional dan hanya dapat diakses oleh orang tertentu saja.',
+      tglAsesmen: json['tgl_asesmen'] as String? ?? '',
+      tandaTanganAsesi: json['tanda_tangan_asesi'] as bool? ?? true,
+      tandaTanganAsesor: json['tanda_tangan_asesor'] as bool? ?? true,
       tandaTangan: json['tanda_tangan'] as bool? ?? true,
     );
   }
