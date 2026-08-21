@@ -724,6 +724,10 @@ class AK05Data {
   final String unitBk;
   final String saranTindakLanjut;
   final String peliharaKompetensi;
+  final String skVerifikasiTuk;
+  final String linkFolderRekaman;
+  final String kuota;
+  final String namaAsesor;
 
   AK05Data({
     required this.status,
@@ -733,6 +737,10 @@ class AK05Data {
     required this.unitBk,
     required this.saranTindakLanjut,
     required this.peliharaKompetensi,
+    this.skVerifikasiTuk = '',
+    this.linkFolderRekaman = '',
+    this.kuota = '',
+    this.namaAsesor = '',
   });
 
   factory AK05Data.fromJson(Map<String, dynamic> json) {
@@ -744,6 +752,10 @@ class AK05Data {
       unitBk: json['unit_bk'] as String? ?? '-',
       saranTindakLanjut: json['saran_tindak_lanjut'] as String? ?? 'Pertahankan dan terus kembangkan kompetensi',
       peliharaKompetensi: json['pelihara_kompetensi'] as String? ?? 'Mengikuti pelatihan berkelanjutan',
+      skVerifikasiTuk: (json['sk_verifikasi_tuk'] ?? json['nomor_sk_verifikasi_tuk'])?.toString() ?? '',
+      linkFolderRekaman: (json['link_folder_rekaman'] ?? json['link_rekaman'] ?? json['folder_rekaman'])?.toString() ?? '',
+      kuota: json['kuota']?.toString() ?? '',
+      namaAsesor: json['nama_asesor'] as String? ?? '',
     );
   }
 }

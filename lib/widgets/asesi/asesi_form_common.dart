@@ -13,7 +13,7 @@ import '../../models/asesor_asesi_models.dart';
 import '../../services/api_service.dart';
 import '../../utils/url_helper.dart';
 
-Future<void> _openDocumentUrl(BuildContext context, String? rawUrl) async {
+Future<void> openDocumentUrl(BuildContext context, String? rawUrl) async {
   if (rawUrl == null || rawUrl.trim().isEmpty) return;
   final fullUrl = UrlHelper.resolveUrl(rawUrl);
   final uri = Uri.tryParse(fullUrl);
@@ -282,7 +282,7 @@ class DocItem extends StatelessWidget {
                 if (isClickable)
                   InkWell(
                     borderRadius: BorderRadius.circular(4),
-                    onTap: () => _openDocumentUrl(context, url),
+                    onTap: () => openDocumentUrl(context, url),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2.0),
                       child: Row(

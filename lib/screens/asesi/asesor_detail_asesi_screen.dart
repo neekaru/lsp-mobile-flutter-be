@@ -492,7 +492,10 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
       case 'AK04':
         return AK04Section(detailData: _detailData);
       case 'AK05':
-        return AK05Section(detailData: _detailData);
+        return AK05Section(
+          detailData: _detailData,
+          onSaveSuccess: _fetchDetail,
+        );
       default:
         return APL01Section(detailData: _detailData);
     }

@@ -1105,14 +1105,91 @@ class AK04Section extends StatelessWidget {
 }
 
 // ── 7. AK-05 ──────────────────────────────────────────────────────────────
-class AK05Section extends StatelessWidget {
+class AK05Section extends StatefulWidget {
   final AsesorAsesiDetailData? detailData;
+  final VoidCallback? onSaveSuccess;
 
-  const AK05Section({super.key, required this.detailData});
+  const AK05Section({super.key, required this.detailData, this.onSaveSuccess});
+
+  @override
+  State<AK05Section> createState() => _AK05SectionState();
+}
+
+class _AK05SectionState extends State<AK05Section> {
+  late String _selectedKompetensi;
+  late String _selectedRekomendasi;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncValues();
+  }
+
+  @override
+  void didUpdateWidget(covariant AK05Section oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.detailData != widget.detailData) _syncValues();
+  }
+
+  void _syncValues() {
+    final detail = widget.detailData;
+    final ak05 = detail?.ak05;
+    _selectedKompetensi = _normaliseScore(detail?.isKompeten ?? '');
+    _selectedRekomendasi = _normaliseRecommendation(
+      detail?.rekomendasiAsesorCode ?? ak05?.rekomendasi ?? '',
+    );
+  }
+
+  String _normaliseScore(String value) {
+    final score = value.trim().toUpperCase();
+    return score == 'K' || score == '1' ? 'K' : score == 'BK' || score == '2' ? 'BK' : '0';
+  }
+
+  String _normaliseRecommendation(String value) {
+    final recommendation = value.trim().toUpperCase();
+    if (recommendation == '1' || recommendation == 'K' || recommendation == 'KOMPETEN') return '1';
+    if (recommendation == '2' || recommendation == 'BK' || recommendation.contains('BELUM')) return '2';
+    return '0';
+  }
+
+  Future<void> _saveAssessment() async {
+    final asesiId = widget.detailData?.id;
+    if (asesiId == null || asesiId == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ID Asesi tidak valid.')));
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    final result = await AsesorService.updateAsesiRekomendasi(
+      asesiId: asesiId,
+      rekomendasiAsesor: _selectedRekomendasi,
+      isKompeten: _selectedKompetensi == '0' ? null : _selectedKompetensi,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    final success = result?['status'] == 'success';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result?['message'] ?? (success ? 'Penilaian berhasil disimpan.' : 'Gagal menyimpan penilaian.')),
+        backgroundColor: success ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+      ),
+    );
+    if (success) widget.onSaveSuccess?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final ak05 = detailData?.ak05;
+    final detail = widget.detailData;
+    final ak05 = detail?.ak05;
+    final kuota = ak05?.kuota.isNotEmpty == true ? ak05!.kuota : '-';
+    final tanggal = detail?.jadwalTanggal.isNotEmpty == true
+        ? DateFormatHelper.formatToIndonesian(detail!.jadwalTanggal)
+        : '-';
+    final skVerifikasi = ak05?.skVerifikasiTuk.isNotEmpty == true ? ak05!.skVerifikasiTuk : '-';
+    final linkRekaman = ak05?.linkFolderRekaman ?? '';
+    final namaAsesor = ak05?.namaAsesor.isNotEmpty == true ? ak05!.namaAsesor : '-';
 
     return FormSectionCard(
       child: Column(
@@ -1123,20 +1200,118 @@ class AK05Section extends StatelessWidget {
             status: ak05?.status ?? 'Selesai',
           ),
           const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
-          const SizedBox(height: 12),
-          AsesiDetailRow('Rekomendasi Akhir Asesor', ak05?.rekomendasi ?? detailData?.rekomendasiAsesor ?? 'Belum Dinilai'),
-          AsesiDetailRow(
-            'Tanggal Rekomendasi',
-            ak05?.tanggalRekomendasi.isNotEmpty == true
-                ? DateFormatHelper.formatToIndonesianWithTime(ak05!.tanggalRekomendasi)
-                : 'Belum diisi asesor',
+          _buildCardTitle(Icons.info_outline_rounded, 'Informasi Asesmen & Link'),
+          const SizedBox(height: 8),
+          AsesiDetailRow('Skema Sertifikasi', detail?.skemaSertifikat ?? '-'),
+          AsesiDetailRow('Nama Jadwal', detail?.jadwalNama ?? '-'),
+          AsesiDetailRow('Kuota & Tanggal', '$kuota peserta · $tanggal'),
+          AsesiDetailRow('SK Verifikasi TUK', skVerifikasi),
+          _buildLinkRow(context, linkRekaman),
+          const SizedBox(height: 16),
+          _buildCardTitle(Icons.fact_check_outlined, 'Sistem Penilaian Asesi'),
+          const SizedBox(height: 10),
+          _buildDropdown<String>(
+            label: 'Kompetensi Asesi',
+            value: _selectedKompetensi,
+            items: const [
+              DropdownMenuItem(value: '0', child: Text('Pilih penilaian')),
+              DropdownMenuItem(value: 'K', child: Text('Kompeten (K)')),
+              DropdownMenuItem(value: 'BK', child: Text('Belum Kompeten (BK)')),
+            ],
+            onChanged: (value) => setState(() => _selectedKompetensi = value ?? '0'),
           ),
-          AsesiDetailRow('Pencapaian Unjuk Kerja', ak05?.pencapaian ?? 'Semua kriteria unjuk kerja telah terpenuhi'),
-          AsesiDetailRow('Unit yang Belum Kompeten', ak05?.unitBk ?? '-'),
-          AsesiDetailRow('Saran Tindak Lanjut', ak05?.saranTindakLanjut ?? 'Pertahankan kompetensi di bidang terkait'),
-          AsesiDetailRow('Pemeliharaan Kompetensi', ak05?.peliharaKompetensi ?? 'Mengikuti pelatihan berkelanjutan dan sertifikasi ulang'),
+          const SizedBox(height: 10),
+          _buildDropdown<String>(
+            label: 'Rekomendasi Asesor',
+            value: _selectedRekomendasi,
+            items: const [
+              DropdownMenuItem(value: '0', child: Text('Pilih rekomendasi')),
+              DropdownMenuItem(value: '1', child: Text('Kompeten (K)')),
+              DropdownMenuItem(value: '2', child: Text('Belum Kompeten (BK)')),
+            ],
+            onChanged: (value) => setState(() => _selectedRekomendasi = value ?? '0'),
+          ),
+          const SizedBox(height: 10),
+          AsesiDetailRow('Asesor Kompetensi', namaAsesor),
+          SizedBox(
+            width: double.infinity,
+            height: 42,
+            child: ElevatedButton.icon(
+              onPressed: _isSubmitting ? null : _saveAssessment,
+              icon: _isSubmitting
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.save_outlined, size: 17),
+              label: Text(_isSubmitting ? 'Menyimpan...' : 'Simpan Penilaian'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCardTitle(IconData icon, String title) {
+    return Row(
+      children: [
+        Icon(icon, size: 17, color: const Color(0xFF2563EB)),
+        const SizedBox(width: 7),
+        Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+      ],
+    );
+  }
+
+  Widget _buildLinkRow(BuildContext context, String url) {
+    final hasLink = url.trim().isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(width: 135, child: Text('Rekaman Asesmen', style: TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500))),
+          const SizedBox(width: 8),
+          Expanded(
+            child: hasLink
+                ? InkWell(
+                    onTap: () => openDocumentUrl(context, url),
+                    child: const Row(children: [Icon(Icons.folder_open_outlined, size: 15, color: Color(0xFF2563EB)), SizedBox(width: 5), Text('Buka folder rekaman', style: TextStyle(fontSize: 12, color: Color(0xFF2563EB), fontWeight: FontWeight.w600, decoration: TextDecoration.underline))]),
+                  )
+                : const Text('Belum tersedia', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdown<T>({
+    required String label,
+    required T value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
+          style: const TextStyle(fontSize: 12.5, color: Color(0xFF1E293B), fontWeight: FontWeight.w600),
+          items: items,
+          onChanged: onChanged,
+        ),
       ),
     );
   }
