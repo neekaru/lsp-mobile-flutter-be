@@ -86,6 +86,13 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
       'short': '7. AK-05',
       'desc': 'Rekomendasi Akhir & Tindak Lanjut',
     },
+    {
+      'id': 'AK06',
+      'code': 'FR-AK.06',
+      'title': '8. FR-AK.06 Meninjau Proses Asesmen',
+      'short': '8. AK-06',
+      'desc': 'Tinjauan Proses & Dimensi Kompetensi',
+    },
   ];
 
   @override
@@ -493,6 +500,11 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
         return AK04Section(detailData: _detailData);
       case 'AK05':
         return AK05Section(
+          detailData: _detailData,
+          onSaveSuccess: _fetchDetail,
+        );
+      case 'AK06':
+        return AK06Section(
           detailData: _detailData,
           onSaveSuccess: _fetchDetail,
         );

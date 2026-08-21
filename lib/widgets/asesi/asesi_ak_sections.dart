@@ -1316,3 +1316,387 @@ class _AK05SectionState extends State<AK05Section> {
     );
   }
 }
+
+// ── 8. AK-06 ──────────────────────────────────────────────────────────────
+class AK06Section extends StatefulWidget {
+  final AsesorAsesiDetailData? detailData;
+  final VoidCallback? onSaveSuccess;
+
+  const AK06Section({super.key, required this.detailData, this.onSaveSuccess});
+
+  @override
+  State<AK06Section> createState() => _AK06SectionState();
+}
+
+class _AK06SectionState extends State<AK06Section> {
+  bool _isPenjelasanExpanded = false;
+  bool _isSubmitting = false;
+
+  final TextEditingController _rekomendasiController = TextEditingController();
+
+  // Prinsip asesmen: '0' = belum dipilih, '1' = Ya/Terpenuhi, '2' = Tidak/Belum
+  late String _prinsipValid;
+  late String _prinsipReliable;
+  late String _prinsipFlexible;
+  late String _prinsipFair;
+
+  // Dimensi kompetensi: '0' = belum dipilih, '1' = Ya/Terpenuhi, '2' = Tidak/Belum
+  late String _taskSkill;
+  late String _taskManagementSkill;
+  late String _contingencyManagementSkill;
+  late String _jobRoleEnvironmentSkill;
+  late String _transferSkill;
+
+  static const String _penjelasanText =
+      'Formulir ini digunakan untuk meninjau proses asesmen yang telah dilaksanakan. '
+      'Asesor memeriksa apakah prosedur asesmen sudah sesuai, prinsip asesmen '
+      '(Valid, Reliable, Flexible, Fair) terpenuhi, serta konsistensi keputusan asesmen '
+      'terhadap seluruh dimensi kompetensi.';
+
+  @override
+  void initState() {
+    super.initState();
+    _syncFromData();
+  }
+
+  @override
+  void didUpdateWidget(covariant AK06Section oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.detailData != widget.detailData) _syncFromData();
+  }
+
+  @override
+  void dispose() {
+    _rekomendasiController.dispose();
+    super.dispose();
+  }
+
+  void _syncFromData() {
+    final ak06 = widget.detailData?.ak06;
+    _prinsipValid = ak06?.prinsipValid ?? '0';
+    _prinsipReliable = ak06?.prinsipReliable ?? '0';
+    _prinsipFlexible = ak06?.prinsipFlexible ?? '0';
+    _prinsipFair = ak06?.prinsipFair ?? '0';
+    _taskSkill = ak06?.taskSkill ?? '0';
+    _taskManagementSkill = ak06?.taskManagementSkill ?? '0';
+    _contingencyManagementSkill = ak06?.contingencyManagementSkill ?? '0';
+    _jobRoleEnvironmentSkill = ak06?.jobRoleEnvironmentSkill ?? '0';
+    _transferSkill = ak06?.transferSkill ?? '0';
+    final rekom = ak06?.rekomendasiPeningkatan ?? '';
+    if (_rekomendasiController.text != rekom) {
+      _rekomendasiController.text = rekom;
+    }
+  }
+
+  Future<void> _saveReview() async {
+    final asesiId = widget.detailData?.id;
+    if (asesiId == null || asesiId == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID Asesi tidak valid.'), backgroundColor: Color(0xFFDC2626)),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    final result = await AsesorService.updateAK06(
+      asesiId: asesiId,
+      data: {
+        'prinsip_valid': _prinsipValid,
+        'prinsip_reliable': _prinsipReliable,
+        'prinsip_flexible': _prinsipFlexible,
+        'prinsip_fair': _prinsipFair,
+        'task_skill': _taskSkill,
+        'task_management_skill': _taskManagementSkill,
+        'contingency_management_skill': _contingencyManagementSkill,
+        'job_role_environment_skill': _jobRoleEnvironmentSkill,
+        'transfer_skill': _transferSkill,
+        'rekomendasi_peningkatan': _rekomendasiController.text.trim(),
+      },
+    );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    final success = result?['status'] == 'success';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result?['message'] ?? (success ? 'Tinjauan proses asesmen berhasil disimpan.' : 'Gagal menyimpan tinjauan proses asesmen.')),
+        backgroundColor: success ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+      ),
+    );
+    if (success) widget.onSaveSuccess?.call();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ak06 = widget.detailData?.ak06;
+
+    return FormSectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FormSectionHeader(
+            title: 'FR-AK.06 Meninjau Proses Asesmen',
+            status: ak06?.status ?? 'Selesai',
+          ),
+          const SizedBox(height: 12),
+
+          // ── Card 1: Penjelasan (Dropdown expand/collapse) ──
+          _buildExpansionCard(
+            icon: Icons.help_outline_rounded,
+            title: 'Penjelasan Proses Asesmen',
+            expanded: _isPenjelasanExpanded,
+            onToggle: () => setState(() => _isPenjelasanExpanded = !_isPenjelasanExpanded),
+            child: const Padding(
+              padding: EdgeInsets.fromLTRB(0, 4, 0, 2),
+              child: Text(
+                _penjelasanText,
+                style: TextStyle(fontSize: 11.5, color: Color(0xFF475569), height: 1.45),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // ── Card 2: Aspek yang Dikaji Ulang & Prinsip Asesmen ──
+          _buildCardTitle(Icons.fact_check_outlined, 'Aspek yang Dikaji Ulang & Prinsip Asesmen'),
+          const SizedBox(height: 10),
+          _buildInfoRow(
+            'Prosedur Asesmen',
+            ak06?.prosedur.isNotEmpty == true ? ak06!.prosedur : 'Proses asesmen dilaksanakan sesuai prosedur yang ditetapkan',
+          ),
+          const SizedBox(height: 10),
+          _buildOptionDropdown(
+            label: 'Prinsip Valid',
+            value: _prinsipValid,
+            onChanged: (v) => setState(() => _prinsipValid = v ?? '0'),
+          ),
+          const SizedBox(height: 8),
+          _buildOptionDropdown(
+            label: 'Prinsip Reliable',
+            value: _prinsipReliable,
+            onChanged: (v) => setState(() => _prinsipReliable = v ?? '0'),
+          ),
+          const SizedBox(height: 8),
+          _buildOptionDropdown(
+            label: 'Prinsip Flexible',
+            value: _prinsipFlexible,
+            onChanged: (v) => setState(() => _prinsipFlexible = v ?? '0'),
+          ),
+          const SizedBox(height: 8),
+          _buildOptionDropdown(
+            label: 'Prinsip Fair',
+            value: _prinsipFair,
+            onChanged: (v) => setState(() => _prinsipFair = v ?? '0'),
+          ),
+          const SizedBox(height: 14),
+
+          // ── Card 3: Pemenuhan Dimensi Kompetensi ──
+          _buildCardTitle(Icons.grid_view_rounded, 'Pemenuhan Dimensi Kompetensi'),
+          const SizedBox(height: 6),
+          const Text(
+            'Konsistensi keputusan asesmen — bukti dari rentang asesmen diperiksa terhadap konsistensi dimensi kompetensi:',
+            style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), height: 1.4),
+          ),
+          const SizedBox(height: 10),
+          _buildOptionDropdown(
+            label: 'Task Skill',
+            value: _taskSkill,
+            onChanged: (v) => setState(() => _taskSkill = v ?? '0'),
+          ),
+          const SizedBox(height: 8),
+          _buildOptionDropdown(
+            label: 'Task Management Skill',
+            value: _taskManagementSkill,
+            onChanged: (v) => setState(() => _taskManagementSkill = v ?? '0'),
+          ),
+          const SizedBox(height: 8),
+          _buildOptionDropdown(
+            label: 'Contingency Management Skill',
+            value: _contingencyManagementSkill,
+            onChanged: (v) => setState(() => _contingencyManagementSkill = v ?? '0'),
+          ),
+          const SizedBox(height: 8),
+          _buildOptionDropdown(
+            label: 'Job Role/Environment Skill',
+            value: _jobRoleEnvironmentSkill,
+            onChanged: (v) => setState(() => _jobRoleEnvironmentSkill = v ?? '0'),
+          ),
+          const SizedBox(height: 8),
+          _buildOptionDropdown(
+            label: 'Transfer Skill',
+            value: _transferSkill,
+            onChanged: (v) => setState(() => _transferSkill = v ?? '0'),
+          ),
+          const SizedBox(height: 14),
+
+          // Rekomendasi untuk peningkatan
+          const Text(
+            'Rekomendasi untuk peningkatan:',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+          ),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: _rekomendasiController,
+            maxLines: 3,
+            style: const TextStyle(fontSize: 12.5, color: Color(0xFF1E293B)),
+            decoration: InputDecoration(
+              hintText: 'Tuliskan rekomendasi untuk peningkatan proses asesmen...',
+              hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              contentPadding: const EdgeInsets.all(12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Tombol Simpan Perubahan
+          SizedBox(
+            width: double.infinity,
+            height: 42,
+            child: ElevatedButton.icon(
+              onPressed: _isSubmitting ? null : _saveReview,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              icon: _isSubmitting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.save_outlined, size: 17),
+              label: Text(
+                _isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardTitle(IconData icon, String title) {
+    return Row(
+      children: [
+        Icon(icon, size: 17, color: const Color(0xFF2563EB)),
+        const SizedBox(width: 7),
+        Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(label, style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(value, style: const TextStyle(fontSize: 11.5, color: Color(0xFF1E293B), fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionDropdown({
+    required String label,
+    required String value,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
+          style: const TextStyle(fontSize: 12.5, color: Color(0xFF1E293B), fontWeight: FontWeight.w600),
+          items: const [
+            DropdownMenuItem(value: '0', child: Text('Pilih')),
+            DropdownMenuItem(value: '1', child: Text('Terpenuhi')),
+            DropdownMenuItem(value: '2', child: Text('Belum Terpenuhi')),
+          ],
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpansionCard({
+    required IconData icon,
+    required String title,
+    required bool expanded,
+    required VoidCallback onToggle,
+    required Widget child,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: onToggle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  Icon(icon, size: 17, color: const Color(0xFF2563EB)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    ),
+                  ),
+                  Icon(
+                    expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                    size: 20,
+                    color: const Color(0xFF2563EB),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (expanded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+              child: child,
+            ),
+        ],
+      ),
+    );
+  }
+}

@@ -693,4 +693,25 @@ class AsesorService {
       return null;
     }
   }
+
+  /// Update FR-AK.06 / Meninjau Proses Asesmen
+  /// PUT /api/asesor/asesi/:id/ak06
+  static Future<Map<String, dynamic>?> updateAK06({
+    required int asesiId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.put(
+        ApiRoutes.asesorAsesiUpdateAK06(asesiId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error updating AK-06: $e');
+      return null;
+    }
+  }
 }
