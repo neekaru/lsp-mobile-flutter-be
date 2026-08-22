@@ -557,7 +557,7 @@ class AK01Data {
       namaAsesi: json['nama_asesi'] as String? ?? '',
       buktiDikumpulkan: buktiList,
       hariTanggal: json['hari_tanggal'] as String? ?? json['tgl_asesmen'] as String? ?? '',
-      waktu: json['waktu'] as String? ?? '08:00 WIB',
+      waktu: _normalizeWaktu(json['waktu']),
       persetujuan: json['persetujuan'] as String? ?? 'Asesi Menyetujui Seluruh Proses dan Tata Tertib Asesmen',
       persetujuanBanding: json['persetujuan_banding'] as String? ??
           'Bahwa Saya Sudah Mendapatkan Penjelasan Hak dan Prosedur Banding Oleh Asesor.',
@@ -570,6 +570,17 @@ class AK01Data {
       tandaTanganAsesor: json['tanda_tangan_asesor'] as bool? ?? true,
       tandaTangan: json['tanda_tangan'] as bool? ?? true,
     );
+  }
+
+  static String _normalizeWaktu(dynamic raw) {
+    final str = raw?.toString().trim() ?? '';
+    if (str.isEmpty || str == '0' || str == '00:00:00' || str == '00:00' || str == '-') {
+      return '08:00 WIB';
+    }
+    if (!str.toLowerCase().contains('wib') && !str.toLowerCase().contains('wita') && !str.toLowerCase().contains('wit')) {
+      return '$str WIB';
+    }
+    return str;
   }
 }
 

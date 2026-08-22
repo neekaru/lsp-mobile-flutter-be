@@ -202,7 +202,12 @@ class AK01Section extends StatelessWidget {
               children: [
                 _buildScheduleRow('Hari / Tanggal', tglFormatted),
                 const SizedBox(height: 4),
-                _buildScheduleRow('Waktu', ak01?.waktu.isNotEmpty == true ? ak01!.waktu : '08:00 WIB'),
+                _buildScheduleRow(
+                  'Waktu',
+                  (ak01 != null && ak01.waktu.trim().isNotEmpty && ak01.waktu.trim() != '0')
+                      ? (ak01.waktu.toLowerCase().contains('wib') ? ak01.waktu : '${ak01.waktu} WIB')
+                      : '08:00 WIB',
+                ),
                 const SizedBox(height: 4),
                 _buildScheduleRow('TUK', tuk),
               ],
