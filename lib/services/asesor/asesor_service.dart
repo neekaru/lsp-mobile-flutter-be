@@ -694,48 +694,6 @@ class AsesorService {
     }
   }
 
-  /// Update FR-AK.05 / Laporan Asesmen
-  /// PUT /api/asesor/asesi/:id/ak05
-  static Future<Map<String, dynamic>?> updateAK05({
-    required int asesiId,
-    required Map<String, dynamic> data,
-  }) async {
-    try {
-      final response = await _dio.put(
-        ApiRoutes.asesorAsesiUpdateAK05(asesiId),
-        data: data,
-      );
-      if (response.statusCode == 200 && response.data != null) {
-        return response.data as Map<String, dynamic>;
-      }
-      return null;
-    } catch (e) {
-      debugPrint('🔴 Error updating AK-05: $e');
-      return null;
-    }
-  }
-
-  /// Update FR-AK.06 / Meninjau Proses Asesmen
-  /// PUT /api/asesor/asesi/:id/ak06
-  static Future<Map<String, dynamic>?> updateAK06({
-    required int asesiId,
-    required Map<String, dynamic> data,
-  }) async {
-    try {
-      final response = await _dio.put(
-        ApiRoutes.asesorAsesiUpdateAK06(asesiId),
-        data: data,
-      );
-      if (response.statusCode == 200 && response.data != null) {
-        return response.data as Map<String, dynamic>;
-      }
-      return null;
-    } catch (e) {
-      debugPrint('🔴 Error updating AK-06: $e');
-      return null;
-    }
-  }
-
   /// Get FR.IA.01 Ceklis Observasi
   /// GET /api/asesor/asesi/:id/ia01
   static Future<Map<String, dynamic>?> getIA01(int asesiId) async {

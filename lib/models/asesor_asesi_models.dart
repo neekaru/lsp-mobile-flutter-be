@@ -177,8 +177,6 @@ class AsesorAsesiDetailData {
   final AK02Data ak02;
   final AK03Data ak03;
   final AK04Data ak04;
-  final AK05Data ak05;
-  final AK06Data ak06;
 
   AsesorAsesiDetailData({
     required this.id,
@@ -221,8 +219,6 @@ class AsesorAsesiDetailData {
     required this.ak02,
     required this.ak03,
     required this.ak04,
-    required this.ak05,
-    required this.ak06,
   });
 
   factory AsesorAsesiDetailData.fromJson(Map<String, dynamic> json) {
@@ -276,8 +272,6 @@ class AsesorAsesiDetailData {
       ak02: AK02Data.fromJson(json['ak02'] as Map<String, dynamic>? ?? {}),
       ak03: AK03Data.fromJson(json['ak03'] as Map<String, dynamic>? ?? {}),
       ak04: AK04Data.fromJson(json['ak04'] as Map<String, dynamic>? ?? {}),
-      ak05: AK05Data.fromJson(json['ak05'] as Map<String, dynamic>? ?? {}),
-      ak06: AK06Data.fromJson(json['ak06'] as Map<String, dynamic>? ?? {}),
     );
   }
 }
@@ -759,108 +753,6 @@ class AK04Data {
       pertanyaan: items,
       alasanBanding: json['alasan_banding'] as String? ?? '',
     );
-  }
-}
-
-class AK05Data {
-  final String status;
-  final String rekomendasi;
-  final String tanggalRekomendasi;
-  final String pencapaian;
-  final String unitBk;
-  final String saranTindakLanjut;
-  final String peliharaKompetensi;
-  final String skVerifikasiTuk;
-  final String linkFolderRekaman;
-  final String kuota;
-  final String namaAsesor;
-
-  AK05Data({
-    required this.status,
-    required this.rekomendasi,
-    required this.tanggalRekomendasi,
-    required this.pencapaian,
-    required this.unitBk,
-    required this.saranTindakLanjut,
-    required this.peliharaKompetensi,
-    this.skVerifikasiTuk = '',
-    this.linkFolderRekaman = '',
-    this.kuota = '',
-    this.namaAsesor = '',
-  });
-
-  factory AK05Data.fromJson(Map<String, dynamic> json) {
-    return AK05Data(
-      status: json['status'] as String? ?? 'Selesai',
-      rekomendasi: json['rekomendasi'] as String? ?? 'Kompeten',
-      tanggalRekomendasi: json['tanggal_rekomendasi'] as String? ?? '',
-      pencapaian: json['pencapaian'] as String? ?? 'Semua unit kompetensi telah tercapai dengan baik',
-      unitBk: json['unit_bk'] as String? ?? '-',
-      saranTindakLanjut: json['saran_tindak_lanjut'] as String? ?? 'Pertahankan dan terus kembangkan kompetensi',
-      peliharaKompetensi: json['pelihara_kompetensi'] as String? ?? 'Mengikuti pelatihan berkelanjutan',
-      skVerifikasiTuk: (json['sk_verifikasi_tuk'] ?? json['nomor_sk_verifikasi_tuk'])?.toString() ?? '',
-      linkFolderRekaman: (json['link_folder_rekaman'] ?? json['link_rekaman'] ?? json['folder_rekaman'])?.toString() ?? '',
-      kuota: json['kuota']?.toString() ?? '',
-      namaAsesor: json['nama_asesor'] as String? ?? '',
-    );
-  }
-}
-
-class AK06Data {
-  final String status;
-  final String penjelasan;
-  final String prosedur;
-  final String prinsipValid;
-  final String prinsipReliable;
-  final String prinsipFlexible;
-  final String prinsipFair;
-  final String taskSkill;
-  final String taskManagementSkill;
-  final String contingencyManagementSkill;
-  final String jobRoleEnvironmentSkill;
-  final String transferSkill;
-  final String rekomendasiPeningkatan;
-
-  AK06Data({
-    required this.status,
-    this.penjelasan = '',
-    this.prosedur = '',
-    this.prinsipValid = '0',
-    this.prinsipReliable = '0',
-    this.prinsipFlexible = '0',
-    this.prinsipFair = '0',
-    this.taskSkill = '0',
-    this.taskManagementSkill = '0',
-    this.contingencyManagementSkill = '0',
-    this.jobRoleEnvironmentSkill = '0',
-    this.transferSkill = '0',
-    this.rekomendasiPeningkatan = '',
-  });
-
-  factory AK06Data.fromJson(Map<String, dynamic> json) {
-    return AK06Data(
-      status: json['status'] as String? ?? 'Selesai',
-      penjelasan: json['penjelasan'] as String? ?? '',
-      prosedur: json['prosedur'] as String? ?? '',
-      prinsipValid: _normalizeOption(json['prinsip_valid']),
-      prinsipReliable: _normalizeOption(json['prinsip_reliable']),
-      prinsipFlexible: _normalizeOption(json['prinsip_flexible']),
-      prinsipFair: _normalizeOption(json['prinsip_fair']),
-      taskSkill: _normalizeOption(json['task_skill']),
-      taskManagementSkill: _normalizeOption(json['task_management_skill']),
-      contingencyManagementSkill: _normalizeOption(json['contingency_management_skill']),
-      jobRoleEnvironmentSkill: _normalizeOption(json['job_role_environment_skill']),
-      transferSkill: _normalizeOption(json['transfer_skill']),
-      rekomendasiPeningkatan: json['rekomendasi_peningkatan'] as String? ?? '',
-    );
-  }
-
-  static String _normalizeOption(dynamic raw) {
-    final value = raw?.toString().trim().toLowerCase() ?? '';
-    if (value.isEmpty || value == '0' || value == '-' || value == 'null' || value == 'false') return '0';
-    if (value == '1' || value == 'true' || value == 'ya' || value == 'terpenuhi' || value == 'k' || value == 'kompeten') return '1';
-    if (value == '2' || value == 'tidak' || value == 'belum' || value == 'belum terpenuhi' || value == 'bk' || value == 'belum kompeten') return '2';
-    return '0';
   }
 }
 
