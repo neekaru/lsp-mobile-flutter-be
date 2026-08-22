@@ -699,22 +699,65 @@ class AK03Data {
   }
 }
 
+class AK04PertanyaanItem {
+  final int no;
+  final String pertanyaan;
+  final String? jawaban; // 'Ya', 'Tidak', or null
+
+  AK04PertanyaanItem({
+    required this.no,
+    required this.pertanyaan,
+    this.jawaban,
+  });
+
+  factory AK04PertanyaanItem.fromJson(Map<String, dynamic> json) {
+    return AK04PertanyaanItem(
+      no: json['no'] as int? ?? 1,
+      pertanyaan: json['pertanyaan'] as String? ?? '',
+      jawaban: json['jawaban'] as String?,
+    );
+  }
+}
+
 class AK04Data {
   final String status;
   final bool adaBanding;
+  final String namaAsesi;
+  final String namaAsesor;
+  final String tanggalAsesmen;
+  final String skema;
+  final String noSkema;
+  final List<AK04PertanyaanItem> pertanyaan;
   final String alasanBanding;
 
   AK04Data({
     required this.status,
     required this.adaBanding,
+    this.namaAsesi = '',
+    this.namaAsesor = '',
+    this.tanggalAsesmen = '',
+    this.skema = '',
+    this.noSkema = '',
+    this.pertanyaan = const [],
     required this.alasanBanding,
   });
 
   factory AK04Data.fromJson(Map<String, dynamic> json) {
+    final rawList = json['pertanyaan'];
+    List<AK04PertanyaanItem> items = [];
+    if (rawList is List) {
+      items = rawList.map((e) => AK04PertanyaanItem.fromJson(e as Map<String, dynamic>)).toList();
+    }
     return AK04Data(
       status: json['status'] as String? ?? 'Tidak Ada Permohonan Banding',
       adaBanding: json['ada_banding'] as bool? ?? false,
-      alasanBanding: json['alasan_banding'] as String? ?? '-',
+      namaAsesi: json['nama_asesi'] as String? ?? '',
+      namaAsesor: json['nama_asesor'] as String? ?? '',
+      tanggalAsesmen: json['tanggal_asesmen'] as String? ?? '',
+      skema: json['skema'] as String? ?? '',
+      noSkema: json['no_skema'] as String? ?? '',
+      pertanyaan: items,
+      alasanBanding: json['alasan_banding'] as String? ?? '',
     );
   }
 }

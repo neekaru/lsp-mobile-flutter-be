@@ -1118,24 +1118,166 @@ class AK04Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ak04 = detailData?.ak04;
+    final adaBanding = ak04?.adaBanding == true;
+
+    final pertanyaanList = (ak04 != null && ak04.pertanyaan.isNotEmpty)
+        ? ak04.pertanyaan
+        : [
+            AK04PertanyaanItem(no: 1, pertanyaan: 'Apakah Proses Banding telah dijelaskan kepada anda?', jawaban: null),
+            AK04PertanyaanItem(no: 2, pertanyaan: 'Apakah anda telah mendiskusikan banding dengan asesor?', jawaban: null),
+            AK04PertanyaanItem(no: 3, pertanyaan: 'Apakah anda mau melibatkan "orang lain" membantu anda dalam Proses Banding?', jawaban: null),
+          ];
 
     return FormSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FormSectionHeader(
-            title: 'FR-AK.04 Banding Asesmen',
-            status: ak04?.status ?? 'Tidak Ada Banding',
-            statusColor: const Color(0xFF2563EB),
+            title: 'FR.AK.04 Banding Asesmen',
+            status: adaBanding ? 'Ada Permohonan Banding' : 'Tidak Ada Permohonan Banding',
+            statusColor: adaBanding ? const Color(0xFFDC2626) : const Color(0xFF16A34A),
           ),
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
-          AsesiDetailRow('Permohonan Banding', ak04?.adaBanding == true ? 'Ada Pengajuan Banding' : 'Tidak Ada Pengajuan Banding'),
-          if (ak04?.alasanBanding.isNotEmpty == true && ak04!.alasanBanding != '-')
-            AsesiDetailRow('Alasan Banding', ak04.alasanBanding),
+
+          // Info Peserta & Asesor
+          AsesiDetailRow('Nama Asesi', ak04?.namaAsesi.isNotEmpty == true ? ak04!.namaAsesi : (detailData?.namaLengkap ?? '-')),
+          AsesiDetailRow('Nama Asesor', ak04?.namaAsesor.isNotEmpty == true ? ak04!.namaAsesor : (detailData?.namaAsesor ?? '-')),
+          AsesiDetailRow('Tanggal Asesmen', ak04?.tanggalAsesmen.isNotEmpty == true ? ak04!.tanggalAsesmen : (detailData?.jadwalTanggal ?? '-')),
+          const SizedBox(height: 14),
+
+          // Header Table
+          const Text(
+            'Jawablah dengan Ya atau Tidak pertanyaan-pertanyaan berikut ini :',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF334155),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Table Checklist BNSP
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(6),
+                  1: FixedColumnWidth(48),
+                  2: FixedColumnWidth(56),
+                },
+                children: [
+                  TableRow(
+                    decoration: const BoxDecoration(color: Color(0xFFF8FAFC)),
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        child: Text(
+                          'Pertanyaan Proses Banding',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                        ),
+                      ),
+                      Container(
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: const Text(
+                          'YA',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                        ),
+                      ),
+                      Container(
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: const Text(
+                          'TIDAK',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  ...pertanyaanList.map((p) {
+                    final isYa = p.jawaban != null && p.jawaban!.toLowerCase() == 'ya';
+                    final isTidak = p.jawaban != null && p.jawaban!.toLowerCase() == 'tidak';
+
+                    return TableRow(
+                      decoration: const BoxDecoration(
+                        border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+                      ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          child: Text(
+                            '${p.no}. ${p.pertanyaan}',
+                            style: const TextStyle(fontSize: 11.5, color: Color(0xFF1E293B)),
+                          ),
+                        ),
+                        Container(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: _buildCheckboxSquare(isYa),
+                        ),
+                        Container(
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: _buildCheckboxSquare(isTidak),
+                        ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Skema Sertifikasi
+          const Text(
+            'Banding ini diajukan atas keputusan asesmen yang dibuat terhadap Skema Sertifikasi berikut :',
+            style: TextStyle(
+              fontSize: 11.5,
+              color: Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(height: 6),
+          AsesiDetailRow('Skema Sertifikasi', ak04?.skema.isNotEmpty == true ? ak04!.skema : (detailData?.skema ?? '-')),
+          if (ak04?.noSkema.isNotEmpty == true)
+            AsesiDetailRow('No. Skema Sertifikasi', ak04!.noSkema),
+
+          const SizedBox(height: 8),
+          AsesiDetailRow(
+            'Alasan Banding',
+            adaBanding && ak04?.alasanBanding.isNotEmpty == true ? ak04!.alasanBanding : '(Tidak ada permohonan banding)',
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCheckboxSquare(bool isChecked) {
+    return Container(
+      width: 18,
+      height: 18,
+      decoration: BoxDecoration(
+        color: isChecked ? const Color(0xFF2563EB) : Colors.white,
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(
+          color: isChecked ? const Color(0xFF2563EB) : const Color(0xFF94A3B8),
+          width: 1.5,
+        ),
+      ),
+      child: isChecked
+          ? const Icon(
+              LucideIcons.check,
+              size: 14,
+              color: Colors.white,
+            )
+          : null,
     );
   }
 }
