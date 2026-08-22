@@ -208,8 +208,12 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
 
           const SizedBox(height: 14),
 
-          // ── 4. Card Keputusan Observasi Unit ──
-          _buildKeputusanObservasiCard(currentUnit),
+          // ── 4. Card Keputusan Observasi Unit (hanya unit terakhir) ──
+          // ──    unit non-terakhir: tampilkan catatan saja ──
+          if (_selectedUnitIndex == widget.units.length - 1)
+            _buildKeputusanObservasiCard(currentUnit)
+          else
+            _buildCatatanOnlyCard(currentUnit),
 
           const SizedBox(height: 18),
 
@@ -620,6 +624,51 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
             ),
             const SizedBox(height: 10),
           ],
+
+          _buildInputField(
+            label: 'Catatan Asesor untuk Unit Ini',
+            controller: catatanCtrl,
+            hint: 'Catatan pengamatan atau unjuk kerja asesi...',
+            onChanged: (v) => currentUnit.catatanUnit = v,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCatatanOnlyCard(IA01UnitKompetensi currentUnit) {
+    final catatanCtrl =
+        _catatanControllers[_selectedUnitIndex] ?? TextEditingController();
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Unit Kompetensi ${currentUnit.noUnit}',
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 12),
 
           _buildInputField(
             label: 'Catatan Asesor untuk Unit Ini',
