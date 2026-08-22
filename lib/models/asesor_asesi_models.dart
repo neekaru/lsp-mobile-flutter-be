@@ -756,6 +756,26 @@ class AK04Data {
   }
 }
 
+class AK06AspectItem {
+  final String aspect;
+  final String kesesuaian;
+  final String catatan;
+
+  AK06AspectItem({
+    required this.aspect,
+    required this.kesesuaian,
+    this.catatan = '',
+  });
+
+  factory AK06AspectItem.fromJson(Map<String, dynamic> json) {
+    return AK06AspectItem(
+      aspect: json['aspect'] as String? ?? '',
+      kesesuaian: json['kesesuaian'] as String? ?? 'Ya',
+      catatan: json['catatan'] as String? ?? '',
+    );
+  }
+}
+
 class JadwalAK05PesertaItem {
   final int id;
   final String noPeserta;

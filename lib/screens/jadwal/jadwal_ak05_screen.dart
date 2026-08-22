@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/asesor_asesi_models.dart';
 import '../../services/api_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../widgets/asesi/asesi_ak_sections.dart';
+import '../../widgets/asesi/asesi_form_common.dart';
 
 class JadwalAK05Screen extends StatefulWidget {
   final int jadwalId;
@@ -565,9 +565,9 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         '$label: $count',

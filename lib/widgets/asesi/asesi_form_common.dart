@@ -10,7 +10,6 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/asesor_asesi_models.dart';
-import '../../services/api_service.dart';
 import '../../utils/url_helper.dart';
 
 Future<void> openDocumentUrl(BuildContext context, String? rawUrl) async {

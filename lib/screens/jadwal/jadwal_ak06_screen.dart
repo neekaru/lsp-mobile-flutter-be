@@ -4,7 +4,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/asesor_asesi_models.dart';
 import '../../services/api_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
-import '../../widgets/asesi/asesi_ak_sections.dart';
+import '../../widgets/asesi/asesi_form_common.dart';
 
 class JadwalAK06Screen extends StatefulWidget {
   final int jadwalId;
