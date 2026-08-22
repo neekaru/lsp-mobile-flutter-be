@@ -208,12 +208,19 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
 
           const SizedBox(height: 14),
 
-          // ── 4. Card Keputusan Observasi Unit (hanya unit terakhir) ──
+          // ── 4. Card untuk semua unit (non-last) ──
           // ──    unit non-terakhir: tampilkan catatan saja ──
-          if (_selectedUnitIndex == widget.units.length - 1)
-            _buildKeputusanObservasiCard(currentUnit)
-          else
+          if (_selectedUnitIndex != widget.units.length - 1) ...[
             _buildCatatanOnlyCard(currentUnit),
+          ],
+          
+          // ── 5. Card Keputusan & Rekomendasi (HANYA unit terakhir) ──
+          // ──    juga tampilkan catatan lagi di unit terakhir ──
+          if (_selectedUnitIndex == widget.units.length - 1) ...[
+            _buildKeputusanObservasiCard(currentUnit),
+            const SizedBox(height: 10),
+            _buildCatatanOnlyCard(currentUnit),
+          ],
 
           const SizedBox(height: 18),
 
@@ -674,6 +681,39 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
             label: 'Catatan Asesor untuk Unit Ini',
             controller: catatanCtrl,
             hint: 'Catatan pengamatan atau unjuk kerja asesi...',
+            onChanged: (v) => currentUnit.catatanUnit = v,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCatatanSummaryCard(IA01UnitKompetensi currentUnit) {
+    final catatanCtrl =
+        _catatanControllers[_selectedUnitIndex] ?? TextEditingController();
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInputField(
+            label: 'Catatan Asesor untuk Seluruh Unit (Ringkasan Keseluruhan)',
+            controller: catatanCtrl,
+            hint: 'Catatan ringkasan keseluruhan observasi dan rekapan seluruh unit kompetensi...',
             onChanged: (v) => currentUnit.catatanUnit = v,
           ),
         ],
