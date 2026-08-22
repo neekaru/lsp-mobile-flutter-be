@@ -10,6 +10,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../models/asesor_asesi_models.dart';
+import '../../screens/instrumen/instrumen_asesmen_screen.dart';
 import '../../services/asesor/asesor_service.dart';
 import '../../utils/date_format_helper.dart';
 import 'asesi_form_common.dart';
@@ -713,7 +714,76 @@ class _APL02SectionState extends State<APL02Section> {
               );
             },
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
+
+          // ── Link ke Halaman Instrumen Asesmen (FR.IA.01, IA.02, IA.03, IA.05) ──
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: const [
+                    Icon(LucideIcons.clipboard_check, size: 18, color: Color(0xFF2563EB)),
+                    SizedBox(width: 8),
+                    Text(
+                      'Instrumen Asesmen (FR.IA)',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E40AF),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                const Text(
+                  'Karena metode observasi langsung dipilih, Anda dapat mengisi lembar FR.IA.01 (Ceklis Observasi), IA.02, IA.03, dan IA.05.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF475569), height: 1.35),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => InstrumenAsesmenScreen(
+                            asesiId: widget.detailData?.id ?? 0,
+                            namaAsesi: widget.detailData?.namaLengkap ?? 'Peserta Asesmen',
+                            skema: widget.detailData?.skemaSertifikat ?? 'Skema Sertifikasi',
+                            tuk: widget.detailData?.tukNama ?? 'TUK',
+                            jadwal: widget.detailData?.jadwalNama ?? 'Jadwal Asesmen',
+                            initialForm: 'IA01',
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    ),
+                    icon: const Icon(LucideIcons.external_link, size: 15),
+                    label: const Text(
+                      'Buka Ceklis Observasi (FR.IA.01)',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
 
           // Save Button
           SizedBox(
@@ -722,7 +792,7 @@ class _APL02SectionState extends State<APL02Section> {
             child: ElevatedButton.icon(
               onPressed: _isSubmitting ? null : _submitAPL02,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
+                backgroundColor: const Color(0xFF1E293B),
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(

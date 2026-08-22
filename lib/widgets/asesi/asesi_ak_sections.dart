@@ -6,8 +6,10 @@
 // ============================================================================
 
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../models/asesor_asesi_models.dart';
+import '../../screens/instrumen/instrumen_asesmen_screen.dart';
 import '../../services/asesor/asesor_service.dart';
 import '../../utils/date_format_helper.dart';
 import 'asesi_form_common.dart';
@@ -575,6 +577,40 @@ class _AK02SectionState extends State<AK02Section> {
           AsesiDetailRow('Hasil Uji Praktik / Demonstrasi', ak02?.hasilPraktik ?? 'Kompeten'),
           AsesiDetailRow('Hasil Pertanyaan Lisan', ak02?.hasilLisan ?? 'Kompeten'),
           AsesiDetailRow('Hasil Tes Tertulis / Esai', ak02?.hasilEsai ?? 'Kompeten'),
+
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => InstrumenAsesmenScreen(
+                      asesiId: widget.detailData?.id ?? 0,
+                      namaAsesi: widget.detailData?.namaLengkap ?? 'Peserta Asesmen',
+                      skema: widget.detailData?.skemaSertifikat ?? 'Skema Sertifikasi',
+                      tuk: widget.detailData?.tukNama ?? 'TUK',
+                      jadwal: widget.detailData?.jadwalNama ?? 'Jadwal Asesmen',
+                      initialForm: 'IA01',
+                    ),
+                  ),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                backgroundColor: const Color(0xFFEFF6FF),
+                foregroundColor: const Color(0xFF2563EB),
+                side: const BorderSide(color: Color(0xFF93C5FD)),
+                padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              ),
+              icon: const Icon(LucideIcons.clipboard_list, size: 15),
+              label: const Text(
+                'Lihat / Isi Ceklis Observasi (FR.IA.01)',
+                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
 
           const SizedBox(height: 16),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),

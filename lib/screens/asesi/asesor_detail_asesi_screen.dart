@@ -1,11 +1,16 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/asesor_asesi_models.dart';
+import '../../models/instrumen_asesmen_models.dart';
 import '../../services/asesor/asesor_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/asesi/asesi_ak_sections.dart';
 import '../../widgets/asesi/asesi_apl_sections.dart';
 import '../../widgets/asesi/asesi_info_cards.dart';
+import '../../widgets/instrumen/ia01_observasi_widget.dart';
+import '../../widgets/instrumen/ia02_tugas_praktik_widget.dart';
+import '../../widgets/instrumen/ia03_pertanyaan_lisan_widget.dart';
+import '../../widgets/instrumen/ia05_pertanyaan_tertulis_widget.dart';
 
 class AsesorDetailAsesiScreen extends StatefulWidget {
   final int asesiId;
@@ -92,6 +97,34 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
       'title': '8. FR-AK.06 Meninjau Proses Asesmen',
       'short': '8. AK-06',
       'desc': 'Tinjauan Proses & Dimensi Kompetensi',
+    },
+    {
+      'id': 'IA01',
+      'code': 'FR-IA.01',
+      'title': '9. FR-IA.01 Ceklis Observasi',
+      'short': '9. IA-01',
+      'desc': 'Ceklis Observasi Tempat Kerja / Simulasi',
+    },
+    {
+      'id': 'IA02',
+      'code': 'FR-IA.02',
+      'title': '10. FR-IA.02 Tugas Praktik',
+      'short': '10. IA-02',
+      'desc': 'Tugas Praktik Demonstrasi Peserta',
+    },
+    {
+      'id': 'IA03',
+      'code': 'FR-IA.03',
+      'title': '11. FR-IA.03 Pertanyaan Lisan',
+      'short': '11. IA-03',
+      'desc': 'Pertanyaan Untuk Mendukung Observasi',
+    },
+    {
+      'id': 'IA05',
+      'code': 'FR-IA.05',
+      'title': '12. FR-IA.05 Pertanyaan Tertulis',
+      'short': '12. IA-05',
+      'desc': 'Pilihan Ganda / Esai & Lembar Jawaban',
     },
   ];
 
@@ -507,6 +540,28 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
         return AK06Section(
           detailData: _detailData,
           onSaveSuccess: _fetchDetail,
+        );
+      case 'IA01':
+        return IA01ObservasiWidget(
+          units: InstrumenAsesmenMock.generateDefaultIA01Units(),
+        );
+      case 'IA02':
+        return IA02TugasPraktikWidget(
+          data: InstrumenAsesmenMock.generateDefaultIA02Data(
+            namaAsesi: _detailData?.namaLengkap ?? widget.namaAsesi,
+          ),
+        );
+      case 'IA03':
+        return IA03PertanyaanLisanWidget(
+          data: InstrumenAsesmenMock.generateDefaultIA03Data(
+            namaAsesi: _detailData?.namaLengkap ?? widget.namaAsesi,
+          ),
+        );
+      case 'IA05':
+        return IA05PertanyaanTertulisWidget(
+          data: InstrumenAsesmenMock.generateDefaultIA05Data(
+            namaAsesi: _detailData?.namaLengkap ?? widget.namaAsesi,
+          ),
         );
       default:
         return APL01Section(detailData: _detailData);
