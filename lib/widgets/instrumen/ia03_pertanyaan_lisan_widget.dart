@@ -39,7 +39,7 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Semua pertanyaan ditandai Tercapai (Ya).'),
+        content: Text('Semua pertanyaan lisan ditandai Tercapai (Ya).'),
         backgroundColor: Color(0xFF16A34A),
         duration: Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
@@ -49,91 +49,191 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final total = widget.data.items.length;
+    final totalYa = widget.data.items.where((i) => i.pencapaian == 'Ya').length;
+    final totalTidak = widget.data.items.where((i) => i.pencapaian == 'Tidak').length;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 1. Yellow Title Banner (FR.IA.03) ──
+          // ── 1. Card Header & Quick Action ──
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFFFDE047), // Yellow BNSP banner
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-              ),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x06000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ],
             ),
-            child: const Text(
-              'FR.IA.03. Pertanyaan Untuk Mendukung Observasi',
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
-                letterSpacing: 0.2,
-              ),
-            ),
-          ),
-
-          // ── Quick Action: Pilih Semua Ya ──
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF8FAFC),
-              border: Border(
-                left: BorderSide(color: Color(0xFFCBD5E1)),
-                right: BorderSide(color: Color(0xFFCBD5E1)),
-                bottom: BorderSide(color: Color(0xFFCBD5E1)),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Icon(LucideIcons.message_circle, size: 16, color: Color(0xFF2563EB)),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Total ${widget.data.items.length} Pertanyaan Lisan',
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF334155),
+                    const Row(
+                      children: [
+                        Icon(LucideIcons.message_circle, size: 18, color: Color(0xFF2563EB)),
+                        SizedBox(width: 8),
+                        Text(
+                          'FR.IA.03 Pertanyaan Lisan',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Total: $total Soal',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2563EB),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                TextButton.icon(
-                  onPressed: _markAllYa,
-                  style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                  ),
-                  icon: const Icon(LucideIcons.check_check, size: 14),
-                  label: const Text(
-                    'Pilih Semua Ya',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                const SizedBox(height: 10),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const SizedBox(height: 10),
+
+                // Stats & Quick Action Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        _buildBadge('Ya: $totalYa', const Color(0xFF16A34A)),
+                        const SizedBox(width: 6),
+                        _buildBadge('Tidak: $totalTidak', const Color(0xFFDC2626)),
+                      ],
+                    ),
+                    InkWell(
+                      onTap: _markAllYa,
+                      borderRadius: BorderRadius.circular(6),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2563EB),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(LucideIcons.check_check, size: 14, color: Colors.white),
+                            SizedBox(width: 5),
+                            Text(
+                              'Pilih Semua Ya',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // ── 2. List of Pertanyaan as Cards ──
+          ...widget.data.items.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final item = entry.value;
+            return _buildPertanyaanCard(idx + 1, item);
+          }),
+
+          const SizedBox(height: 14),
+
+          // ── 3. Card Umpan Balik Asesi ──
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x06000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(LucideIcons.message_square, size: 17, color: Color(0xFF2563EB)),
+                    SizedBox(width: 8),
+                    Text(
+                      'Umpan Balik untuk Asesi',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _umpanBalikCtrl,
+                  maxLines: 3,
+                  style: const TextStyle(fontSize: 12.5),
+                  decoration: InputDecoration(
+                    hintText: 'Tuliskan umpan balik atau tanggapan untuk asesi terkait pertanyaan pendukung observasi...',
+                    hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    contentPadding: const EdgeInsets.all(12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-
-          // ── 2. Table Pertanyaan & Pencapaian ──
-          _buildPertanyaanTable(),
-
-          // ── 3. Umpan Balik Untuk Asesi Box ──
-          _buildUmpanBalikBox(),
-
           const SizedBox(height: 18),
 
-          // ── 4. Bottom Action Save Button ──
+          // ── 4. Bottom Save Button ──
           SizedBox(
             width: double.infinity,
             height: 44,
@@ -142,7 +242,7 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
                 widget.data.umpanBalikUntukAsesi = _umpanBalikCtrl.text.trim();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Pertanyaan pendukung observasi FR.IA.03 berhasil disimpan (UI Mode).'),
+                    content: Text('Pertanyaan pendukung observasi FR.IA.03 berhasil disimpan.'),
                     backgroundColor: Color(0xFF16A34A),
                     behavior: SnackBarBehavior.floating,
                   ),
@@ -157,7 +257,7 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
               ),
               icon: const Icon(LucideIcons.save, size: 16),
               label: const Text(
-                'Simpan Form FR.IA.03',
+                'Simpan Pertanyaan Lisan (IA.03)',
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ),
@@ -169,298 +269,239 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
     );
   }
 
-  /// Tabel Pertanyaan dan Kolom Pencapaian (Ya / Tidak)
-  Widget _buildPertanyaanTable() {
+  Widget _buildPertanyaanCard(int no, IA03PertanyaanItem item) {
+    final isYa = item.pencapaian == 'Ya';
+    final isTidak = item.pencapaian == 'Tidak';
+
     return Container(
-      decoration: const BoxDecoration(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          left: BorderSide(color: Color(0xFFCBD5E1)),
-          right: BorderSide(color: Color(0xFFCBD5E1)),
-          bottom: BorderSide(color: Color(0xFFCBD5E1)),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isYa
+              ? const Color(0xFFBBF7D0)
+              : isTidak
+                  ? const Color(0xFFFECACA)
+                  : const Color(0xFFE2E8F0),
+          width: isYa || isTidak ? 1.5 : 1.0,
         ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Table Header
-          Container(
-            color: const Color(0xFFF1F5F9),
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: [
-                const SizedBox(
-                  width: 42,
-                  child: Text(
-                    'No',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          // Header: No & Pertanyaan
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isYa
+                      ? const Color(0xFF16A34A)
+                      : isTidak
+                          ? const Color(0xFFDC2626)
+                          : const Color(0xFF64748B),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '$no',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-                const VerticalDivider(width: 1, color: Color(0xFFCBD5E1)),
-                const Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text(
-                      'Pertanyaan',
-                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                    ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  item.pertanyaan,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                    height: 1.35,
                   ),
                 ),
-                const VerticalDivider(width: 1, color: Color(0xFFCBD5E1)),
-                SizedBox(
-                  width: 100,
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Pencapaian',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: const [
-                          Expanded(
-                            child: Text(
-                              'Ya',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              'Tidak',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFDC2626)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const Divider(height: 1, color: Color(0xFFCBD5E1)),
+          const SizedBox(height: 10),
 
-          // Table Rows
-          ...widget.data.items.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final item = entry.value;
-            final isLast = idx == widget.data.items.length - 1;
+          // Kunci Jawaban / Jawaban yang Diharapkan
+          if (item.kunciJawaban.isNotEmpty) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFF1F5F9)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Kunci Jawaban / Jawaban yang Diharapkan:',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    item.kunciJawaban,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF334155), height: 1.35),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
 
-            return Column(
-              children: [
-                Container(
-                  color: idx.isEven ? Colors.white : const Color(0xFFFAFAFA),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: IntrinsicHeight(
+          // Tanggapan Asesi (jika ada)
+          if (item.tanggapanAsesi.isNotEmpty) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFDBEAFE)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Jawaban / Tanggapan Asesi:',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1D4ED8)),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    item.tanggapanAsesi,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF1E40AF), height: 1.35),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+
+          // Interactive Segmented Buttons (Ya / Tidak)
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      item.pencapaian = 'Ya';
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    decoration: BoxDecoration(
+                      color: isYa ? const Color(0xFFDCFCE7) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isYa ? const Color(0xFF16A34A) : const Color(0xFFCBD5E1),
+                        width: isYa ? 1.5 : 1.0,
+                      ),
+                    ),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // No
-                        SizedBox(
-                          width: 42,
-                          child: Text(
-                            '${item.no}',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF334155),
-                            ),
-                          ),
+                        Icon(
+                          isYa ? LucideIcons.circle_check : LucideIcons.circle,
+                          size: 16,
+                          color: isYa ? const Color(0xFF16A34A) : const Color(0xFF94A3B8),
                         ),
-                        const VerticalDivider(width: 1, color: Color(0xFFE2E8F0)),
-
-                        // Pertanyaan & Kunci Jawaban
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.pertanyaan,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF1E293B),
-                                    height: 1.4,
-                                  ),
-                                ),
-                                if (item.kunciJawaban.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF1F5F9),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Panduan Jawaban / Tanggapan yang Diharapkan:',
-                                          style: TextStyle(
-                                            fontSize: 10.5,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF64748B),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 3),
-                                        Text(
-                                          item.kunciJawaban,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Color(0xFF475569),
-                                            height: 1.35,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                        const VerticalDivider(width: 1, color: Color(0xFFE2E8F0)),
-
-                        // Ya & Tidak Radio Selectors
-                        SizedBox(
-                          width: 100,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Ya
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      item.pencapaian = 'Ya';
-                                    });
-                                  },
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    child: Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: item.pencapaian == 'Ya'
-                                              ? const Color(0xFF16A34A)
-                                              : const Color(0xFF94A3B8),
-                                          width: item.pencapaian == 'Ya' ? 5 : 1.5,
-                                        ),
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // Tidak
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      item.pencapaian = 'Tidak';
-                                    });
-                                  },
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    child: Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: item.pencapaian == 'Tidak'
-                                              ? const Color(0xFFDC2626)
-                                              : const Color(0xFF94A3B8),
-                                          width: item.pencapaian == 'Tidak' ? 5 : 1.5,
-                                        ),
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                        const SizedBox(width: 6),
+                        Text(
+                          'Tercapai (Ya)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isYa ? FontWeight.bold : FontWeight.w500,
+                            color: isYa ? const Color(0xFF15803D) : const Color(0xFF64748B),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                if (!isLast) const Divider(height: 1, color: Color(0xFFE2E8F0)),
-              ],
-            );
-          }),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      item.pencapaian = 'Tidak';
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    decoration: BoxDecoration(
+                      color: isTidak ? const Color(0xFFFEE2E2) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isTidak ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                        width: isTidak ? 1.5 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          isTidak ? LucideIcons.circle_x : LucideIcons.circle,
+                          size: 16,
+                          color: isTidak ? const Color(0xFFDC2626) : const Color(0xFF94A3B8),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Belum (Tidak)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isTidak ? FontWeight.bold : FontWeight.w500,
+                            color: isTidak ? const Color(0xFFB91C1C) : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  /// Baris Bawah: Umpan Balik Untuk Asesi Box
-  Widget _buildUmpanBalikBox() {
+  Widget _buildBadge(String label, Color color) {
     return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(8),
-          bottomRight: Radius.circular(8),
-        ),
-        border: Border(
-          left: BorderSide(color: Color(0xFFCBD5E1)),
-          right: BorderSide(color: Color(0xFFCBD5E1)),
-          bottom: BorderSide(color: Color(0xFFCBD5E1)),
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Left Label
-            Container(
-              width: 145,
-              padding: const EdgeInsets.all(12),
-              color: const Color(0xFFF8FAFC),
-              alignment: Alignment.topLeft,
-              child: const Text(
-                'Umpan Balik Untuk Asesi:',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-            ),
-            const VerticalDivider(width: 1, color: Color(0xFFCBD5E1)),
-            // Right Textarea
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: _umpanBalikCtrl,
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    hintText: 'Tuliskan catatan dan umpan balik atas respon pertanyaan lisan asesi...',
-                    hintStyle: TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.all(4),
-                  ),
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B), height: 1.35),
-                ),
-              ),
-            ),
-          ],
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: color,
         ),
       ),
     );

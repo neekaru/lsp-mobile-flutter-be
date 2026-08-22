@@ -341,9 +341,9 @@ class IA02TugasPraktikData {
   final String validatorNama;
   final String validatorNomorMet;
   final String validatorTandaTangan;
-  final String skenarioTugas;
-  final String perlengkapanPeralatan;
-  final String durasiWaktu;
+  String skenarioTugas;
+  String perlengkapanPeralatan;
+  String durasiWaktu;
   final String fileTugasPraktek;
   String? fileTugasPraktekUrl;
   String linkHasilPraktek;
