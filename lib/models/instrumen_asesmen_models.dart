@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Item Langkah Kerja & Poin Observasi (FR.IA.01)
 class IA01Item {
   final int no;

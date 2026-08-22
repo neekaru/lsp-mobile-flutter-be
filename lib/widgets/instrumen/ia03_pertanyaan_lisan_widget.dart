@@ -94,7 +94,7 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
               children: [
                 Row(
                   children: [
-                    const Icon(LucideIcons.message_circle_question, size: 16, color: Color(0xFF2563EB)),
+                    const Icon(LucideIcons.message_circle, size: 16, color: Color(0xFF2563EB)),
                     const SizedBox(width: 6),
                     Text(
                       'Total ${widget.data.items.length} Pertanyaan Lisan',
@@ -400,7 +400,7 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
                 if (!isLast) const Divider(height: 1, color: Color(0xFFE2E8F0)),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );

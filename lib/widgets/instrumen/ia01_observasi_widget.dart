@@ -78,7 +78,6 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
     }
 
     final currentUnit = widget.units[_selectedUnitIndex];
-    final catatanCtrl = _catatanControllers[_selectedUnitIndex] ?? TextEditingController();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
@@ -225,7 +224,7 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
               children: [
                 Row(
                   children: [
-                    const Icon(LucideIcons.check_circle_2, size: 16, color: Color(0xFF2563EB)),
+                    const Icon(LucideIcons.circle_check, size: 16, color: Color(0xFF2563EB)),
                     const SizedBox(width: 6),
                     Text(
                       'Observasi Unit ${currentUnit.noUnit} (${currentUnit.items.length} Langkah)',
@@ -585,7 +584,7 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
                 if (!isLast) const Divider(height: 1, color: Color(0xFFE2E8F0)),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );

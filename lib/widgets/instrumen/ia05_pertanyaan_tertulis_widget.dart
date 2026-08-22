@@ -118,7 +118,7 @@ class _IA05PertanyaanTertulisWidgetState extends State<IA05PertanyaanTertulisWid
               children: [
                 Row(
                   children: [
-                    const Icon(LucideIcons.file_question, size: 16, color: Color(0xFF65A30D)),
+                    const Icon(LucideIcons.file_text, size: 16, color: Color(0xFF65A30D)),
                     const SizedBox(width: 6),
                     Text(
                       'Total $totalSoal Soal Tertulis (Benar: $totalBenar)',
@@ -535,7 +535,7 @@ class _IA05PertanyaanTertulisWidgetState extends State<IA05PertanyaanTertulisWid
                 if (!isLast) const Divider(height: 1, color: Color(0xFFE2E8F0)),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );
