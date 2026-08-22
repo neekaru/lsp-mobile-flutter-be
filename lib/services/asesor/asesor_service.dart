@@ -879,4 +879,76 @@ class AsesorService {
       return null;
     }
   }
+
+  /// Get FR.AK.05 Laporan Asesmen Jadwal
+  /// GET /api/asesor/jadwal/:id/ak05
+  static Future<Map<String, dynamic>?> getJadwalAK05(int jadwalId) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorJadwalAK05(jadwalId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching Jadwal AK-05: $e');
+      return null;
+    }
+  }
+
+  /// Save FR.AK.05 Laporan Asesmen Jadwal
+  /// POST /api/asesor/jadwal/:id/ak05
+  static Future<Map<String, dynamic>?> saveJadwalAK05({
+    required int jadwalId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesorJadwalAK05(jadwalId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error saving Jadwal AK-05: $e');
+      return null;
+    }
+  }
+
+  /// Get FR.AK.06 Meninjau Proses Asesmen Jadwal
+  /// GET /api/asesor/jadwal/:id/ak06
+  static Future<Map<String, dynamic>?> getJadwalAK06(int jadwalId) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorJadwalAK06(jadwalId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching Jadwal AK-06: $e');
+      return null;
+    }
+  }
+
+  /// Save FR.AK.06 Meninjau Proses Asesmen Jadwal
+  /// POST /api/asesor/jadwal/:id/ak06
+  static Future<Map<String, dynamic>?> saveJadwalAK06({
+    required int jadwalId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesorJadwalAK06(jadwalId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error saving Jadwal AK-06: $e');
+      return null;
+    }
+  }
 }

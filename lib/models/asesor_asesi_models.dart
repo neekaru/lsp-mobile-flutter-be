@@ -863,3 +863,191 @@ class AK06Data {
     return '0';
   }
 }
+
+class JadwalAK05PesertaItem {
+  final int id;
+  final String noPeserta;
+  final String namaLengkap;
+  final String nik;
+  String rekomendasiAsesor; // "1", "2", "0"
+  String rekomendasiLabel;  // "Kompeten", "Belum Kompeten", "Belum Dinilai"
+  String unitBk;
+
+  JadwalAK05PesertaItem({
+    required this.id,
+    required this.noPeserta,
+    required this.namaLengkap,
+    required this.nik,
+    required this.rekomendasiAsesor,
+    required this.rekomendasiLabel,
+    this.unitBk = '',
+  });
+
+  factory JadwalAK05PesertaItem.fromJson(Map<String, dynamic> json) {
+    final rawCode = json['rekomendasi_asesor']?.toString() ?? '0';
+    var label = json['rekomendasi_label']?.toString() ?? '';
+    if (label.isEmpty) {
+      if (rawCode == '1') {
+        label = 'Kompeten';
+      } else if (rawCode == '2') {
+        label = 'Belum Kompeten';
+      } else {
+        label = 'Belum Dinilai';
+      }
+    }
+    return JadwalAK05PesertaItem(
+      id: json['id'] as int? ?? 0,
+      noPeserta: json['no_peserta'] as String? ?? '',
+      namaLengkap: json['nama_lengkap'] as String? ?? '',
+      nik: json['nik'] as String? ?? '',
+      rekomendasiAsesor: rawCode,
+      rekomendasiLabel: label,
+      unitBk: json['unit_bk'] as String? ?? '',
+    );
+  }
+}
+
+class JadwalAK05DetailData {
+  final int jadwalId;
+  final String namaJadwal;
+  final String skema;
+  final String kodeSkema;
+  final String tuk;
+  final String tanggal;
+  final String kuota;
+  final String skVerifikasiTuk;
+  final String linkFolderRekaman;
+  final String linkVertuk;
+  final String namaAsesor;
+  final int totalPeserta;
+  final int totalKompeten;
+  final int totalBelumKompeten;
+  final int totalBelumDinilai;
+  final List<JadwalAK05PesertaItem> peserta;
+  final String pencapaian;
+  final String unitBk;
+  final String saranTindakLanjut;
+  final String peliharaKompetensi;
+  final String catatan;
+  final String statusLaporan;
+
+  JadwalAK05DetailData({
+    required this.jadwalId,
+    required this.namaJadwal,
+    required this.skema,
+    required this.kodeSkema,
+    required this.tuk,
+    required this.tanggal,
+    required this.kuota,
+    required this.skVerifikasiTuk,
+    required this.linkFolderRekaman,
+    required this.linkVertuk,
+    required this.namaAsesor,
+    required this.totalPeserta,
+    required this.totalKompeten,
+    required this.totalBelumKompeten,
+    required this.totalBelumDinilai,
+    required this.peserta,
+    required this.pencapaian,
+    required this.unitBk,
+    required this.saranTindakLanjut,
+    required this.peliharaKompetensi,
+    required this.catatan,
+    required this.statusLaporan,
+  });
+
+  factory JadwalAK05DetailData.fromJson(Map<String, dynamic> json) {
+    final rawPeserta = json['peserta'];
+    List<JadwalAK05PesertaItem> pesertaList = [];
+    if (rawPeserta is List) {
+      pesertaList = rawPeserta
+          .map((e) => JadwalAK05PesertaItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return JadwalAK05DetailData(
+      jadwalId: json['jadwal_id'] as int? ?? 0,
+      namaJadwal: json['nama_jadwal'] as String? ?? '',
+      skema: json['skema'] as String? ?? '',
+      kodeSkema: json['kode_skema'] as String? ?? '',
+      tuk: json['tuk'] as String? ?? '',
+      tanggal: json['tanggal'] as String? ?? '',
+      kuota: json['kuota'] as String? ?? '20 Peserta',
+      skVerifikasiTuk: json['sk_verifikasi_tuk'] as String? ?? '-',
+      linkFolderRekaman: json['link_folder_rekaman'] as String? ?? '',
+      linkVertuk: json['link_vertuk'] as String? ?? '',
+      namaAsesor: json['nama_asesor'] as String? ?? '',
+      totalPeserta: json['total_peserta'] as int? ?? pesertaList.length,
+      totalKompeten: json['total_kompeten'] as int? ?? 0,
+      totalBelumKompeten: json['total_belum_kompeten'] as int? ?? 0,
+      totalBelumDinilai: json['total_belum_dinilai'] as int? ?? 0,
+      peserta: pesertaList,
+      pencapaian: json['pencapaian'] as String? ?? '',
+      unitBk: json['unit_bk'] as String? ?? '',
+      saranTindakLanjut: json['saran_tindak_lanjut'] as String? ?? '',
+      peliharaKompetensi: json['pelihara_kompetensi'] as String? ?? '',
+      catatan: json['catatan'] as String? ?? '',
+      statusLaporan: json['status_laporan'] as String? ?? 'Draft',
+    );
+  }
+}
+
+class JadwalAK06DetailData {
+  final int jadwalId;
+  final String namaJadwal;
+  final String skema;
+  final String tuk;
+  final String tanggal;
+  final String namaAsesor;
+  final String penjelasanAsesmen;
+  final List<AK06AspectItem> prinsipAsesmen;
+  final List<AK06AspectItem> dimensiKompetensi;
+  final String rekomendasi;
+  final String catatan;
+  final String statusTinjauan;
+
+  JadwalAK06DetailData({
+    required this.jadwalId,
+    required this.namaJadwal,
+    required this.skema,
+    required this.tuk,
+    required this.tanggal,
+    required this.namaAsesor,
+    required this.penjelasanAsesmen,
+    required this.prinsipAsesmen,
+    required this.dimensiKompetensi,
+    required this.rekomendasi,
+    required this.catatan,
+    required this.statusTinjauan,
+  });
+
+  factory JadwalAK06DetailData.fromJson(Map<String, dynamic> json) {
+    final rawPrinsip = json['prinsip_asesmen'];
+    List<AK06AspectItem> prinsipList = [];
+    if (rawPrinsip is List) {
+      prinsipList = rawPrinsip
+          .map((e) => AK06AspectItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    final rawDimensi = json['dimensi_kompetensi'];
+    List<AK06AspectItem> dimensiList = [];
+    if (rawDimensi is List) {
+      dimensiList = rawDimensi
+          .map((e) => AK06AspectItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return JadwalAK06DetailData(
+      jadwalId: json['jadwal_id'] as int? ?? 0,
+      namaJadwal: json['nama_jadwal'] as String? ?? '',
+      skema: json['skema'] as String? ?? '',
+      tuk: json['tuk'] as String? ?? '',
+      tanggal: json['tanggal'] as String? ?? '',
+      namaAsesor: json['nama_asesor'] as String? ?? '',
+      penjelasanAsesmen: json['penjelasan_asesmen'] as String? ?? '',
+      prinsipAsesmen: prinsipList,
+      dimensiKompetensi: dimensiList,
+      rekomendasi: json['rekomendasi'] as String? ?? '',
+      catatan: json['catatan'] as String? ?? '',
+      statusTinjauan: json['status_tinjauan'] as String? ?? 'Selesai',
+    );
+  }
+}

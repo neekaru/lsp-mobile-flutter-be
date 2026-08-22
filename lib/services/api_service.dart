@@ -374,4 +374,14 @@ class ApiService {
       );
   static Future<bool> deleteAdminBerita(int id) =>
       BeritaService.deleteAdminBerita(id);
+
+  // ── Jadwal AK.05 & AK.06 Kolektif ──────────────────────────────────────────
+  static Future<Map<String, dynamic>?> getJadwalAK05(int jadwalId) =>
+      AsesorService.getJadwalAK05(jadwalId);
+  static Future<Map<String, dynamic>?> saveJadwalAK05(int jadwalId, Map<String, dynamic> data) =>
+      AsesorService.saveJadwalAK05(jadwalId: jadwalId, data: data);
+  static Future<Map<String, dynamic>?> getJadwalAK06(int jadwalId) =>
+      AsesorService.getJadwalAK06(jadwalId);
+  static Future<Map<String, dynamic>?> saveJadwalAK06(int jadwalId, Map<String, dynamic> data) =>
+      AsesorService.saveJadwalAK06(jadwalId: jadwalId, data: data);
 }

@@ -5,6 +5,8 @@ import '../../models/jadwal_models.dart';
 import '../../services/api_service.dart';
 import '../../screens/jadwal/profil_asesor_screen.dart';
 import '../../screens/jadwal/asesi_list_screen.dart';
+import '../../screens/jadwal/jadwal_ak05_screen.dart';
+import '../../screens/jadwal/jadwal_ak06_screen.dart';
 import 'detail_helpers.dart';
 
 // ============================================================================
@@ -340,6 +342,42 @@ class JadwalDetailAsesorView extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => AsesiListScreen(
+                    jadwalId: jadwal.id,
+                    jadwalTitle: jadwal.skema,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Card 4: FR-AK.05 Laporan Asesmen
+          ActionButtonCard(
+            icon: Icons.assignment_turned_in_rounded,
+            title: 'FR-AK.05 Laporan Asesmen',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => JadwalAK05Screen(
+                    jadwalId: jadwal.id,
+                    jadwalTitle: jadwal.skema,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Card 5: FR-AK.06 Meninjau Proses Asesmen
+          ActionButtonCard(
+            icon: Icons.rate_review_rounded,
+            title: 'FR-AK.06 Meninjau Proses Asesmen',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => JadwalAK06Screen(
                     jadwalId: jadwal.id,
                     jadwalTitle: jadwal.skema,
                   ),
