@@ -14,6 +14,31 @@ class IA01Item {
     this.catatan = '',
   });
 
+  factory IA01Item.fromJson(Map<String, dynamic> json) {
+    var rawPoin = json['poin_observasi'];
+    List<String> poinList = [];
+    if (rawPoin is List) {
+      poinList = rawPoin.map((e) => e.toString()).toList();
+    }
+    return IA01Item(
+      no: json['no'] as int? ?? 1,
+      langkahKerja: json['langkah_kerja'] as String? ?? '',
+      poinObservasi: poinList,
+      penilaian: json['penilaian'] as String?,
+      catatan: json['catatan'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'no': no,
+      'langkah_kerja': langkahKerja,
+      'poin_observasi': poinObservasi,
+      'penilaian': penilaian,
+      'catatan': catatan,
+    };
+  }
+
   IA01Item copyWith({
     int? no,
     String? langkahKerja,
@@ -56,6 +81,41 @@ class IA01UnitKompetensi {
     this.perluBuktiTambahan = 'Tidak',
     this.alasanBuktiTambahan = '',
   });
+
+  factory IA01UnitKompetensi.fromJson(Map<String, dynamic> json) {
+    var rawItems = json['items'];
+    List<IA01Item> itemsList = [];
+    if (rawItems is List) {
+      itemsList = rawItems.map((e) => IA01Item.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return IA01UnitKompetensi(
+      noUnit: json['no_unit'] as int? ?? 1,
+      kodeUnit: json['kode_unit'] as String? ?? '',
+      judulUnit: json['judul_unit'] as String? ?? '',
+      items: itemsList,
+      rekomendasiUnit: json['rekomendasi_unit'] as String?,
+      catatanUnit: json['catatan_unit'] as String? ?? '',
+      perluPertanyaanPendukung: json['perlu_pertanyaan_pendukung'] as String? ?? 'Tidak',
+      alasanPertanyaanPendukung: json['alasan_pertanyaan_pendukung'] as String? ?? 'Sudah terpenuhi saat TPD',
+      perluBuktiTambahan: json['perlu_bukti_tambahan'] as String? ?? 'Tidak',
+      alasanBuktiTambahan: json['alasan_bukti_tambahan'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'no_unit': noUnit,
+      'kode_unit': kodeUnit,
+      'judul_unit': judulUnit,
+      'items': items.map((e) => e.toJson()).toList(),
+      'rekomendasi_unit': rekomendasiUnit,
+      'catatan_unit': catatanUnit,
+      'perlu_pertanyaan_pendukung': perluPertanyaanPendukung,
+      'alasan_pertanyaan_pendukung': alasanPertanyaanPendukung,
+      'perlu_bukti_tambahan': perluBuktiTambahan,
+      'alasan_bukti_tambahan': alasanBuktiTambahan,
+    };
+  }
 
   /// Status apakah seluruh item sudah dinilai
   bool get isSemuaDinilai => items.every((item) => item.penilaian != null && item.penilaian!.isNotEmpty);
@@ -309,6 +369,36 @@ class IA02TugasPraktikData {
     this.catatan = '',
     this.rekomendasi,
   });
+
+  factory IA02TugasPraktikData.fromJson(Map<String, dynamic> json) {
+    return IA02TugasPraktikData(
+      namaAsesi: json['nama_asesi'] as String? ?? '',
+      penyusunStatus: json['penyusun_status'] as String? ?? 'Penyusun',
+      penyusunNama: json['penyusun_nama'] as String? ?? '',
+      penyusunNomorMet: json['penyusun_nomor_met'] as String? ?? '',
+      penyusunTandaTangan: json['penyusun_tanda_tangan'] as String? ?? 'Tervalidasi Sistem',
+      validatorStatus: json['validator_status'] as String? ?? 'Validator',
+      validatorNama: json['validator_nama'] as String? ?? '',
+      validatorNomorMet: json['validator_nomor_met'] as String? ?? '',
+      validatorTandaTangan: json['validator_tanda_tangan'] as String? ?? 'Tervalidasi Sistem',
+      skenarioTugas: json['skenario_tugas'] as String? ?? '',
+      perlengkapanPeralatan: json['perlengkapan_peralatan'] as String? ?? '',
+      durasiWaktu: json['durasi_waktu'] as String? ?? '120 Menit',
+      fileTugasPraktek: json['file_tugas_praktek'] as String? ?? 'Belum Upload Tugas TPD',
+      fileTugasPraktekUrl: json['file_tugas_praktek_url'] as String?,
+      linkHasilPraktek: json['link_hasil_praktek'] as String? ?? '',
+      catatan: json['catatan'] as String? ?? '',
+      rekomendasi: json['rekomendasi'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'link_hasil_praktek': linkHasilPraktek,
+      'catatan': catatan,
+      'rekomendasi': rekomendasi,
+    };
+  }
 }
 
 /// Item Pertanyaan untuk FR.IA.03
@@ -326,6 +416,26 @@ class IA03PertanyaanItem {
     this.tanggapanAsesi = '',
     this.pencapaian,
   });
+
+  factory IA03PertanyaanItem.fromJson(Map<String, dynamic> json) {
+    return IA03PertanyaanItem(
+      no: json['no'] as int? ?? 1,
+      pertanyaan: json['pertanyaan'] as String? ?? '',
+      kunciJawaban: json['kunci_jawaban'] as String? ?? '',
+      tanggapanAsesi: json['tanggapan_asesi'] as String? ?? '',
+      pencapaian: json['pencapaian'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'no': no,
+      'pertanyaan': pertanyaan,
+      'kunci_jawaban': kunciJawaban,
+      'tanggapan_asesi': tanggapanAsesi,
+      'pencapaian': pencapaian,
+    };
+  }
 }
 
 /// Model Data untuk FR.IA.03 (Pertanyaan Untuk Mendukung Observasi)
@@ -342,6 +452,28 @@ class IA03Data {
     this.catatan = '',
   });
 
+  factory IA03Data.fromJson(Map<String, dynamic> json) {
+    var rawItems = json['items'];
+    List<IA03PertanyaanItem> itemsList = [];
+    if (rawItems is List) {
+      itemsList = rawItems.map((e) => IA03PertanyaanItem.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return IA03Data(
+      namaAsesi: json['nama_asesi'] as String? ?? '',
+      items: itemsList,
+      umpanBalikUntukAsesi: json['umpan_balik_untuk_asesi'] as String? ?? '',
+      catatan: json['catatan'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'items': items.map((e) => e.toJson()).toList(),
+      'umpan_balik_untuk_asesi': umpanBalikUntukAsesi,
+      'catatan': catatan,
+    };
+  }
+
   bool get isSemuaDinilai => items.every((i) => i.pencapaian != null && i.pencapaian!.isNotEmpty);
 }
 
@@ -356,6 +488,22 @@ class IA05SoalOption {
     required this.teks,
     this.isKunci = false,
   });
+
+  factory IA05SoalOption.fromJson(Map<String, dynamic> json) {
+    return IA05SoalOption(
+      kode: json['kode'] as String? ?? '',
+      teks: json['teks'] as String? ?? '',
+      isKunci: json['is_kunci'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'kode': kode,
+      'teks': teks,
+      'is_kunci': isKunci,
+    };
+  }
 }
 
 /// Item Soal Tertulis FR.IA.05
@@ -376,6 +524,33 @@ class IA05SoalItem {
     this.catatan = '',
   });
 
+  factory IA05SoalItem.fromJson(Map<String, dynamic> json) {
+    var rawOptions = json['options'];
+    List<IA05SoalOption> opts = [];
+    if (rawOptions is List) {
+      opts = rawOptions.map((e) => IA05SoalOption.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return IA05SoalItem(
+      no: json['no'] as int? ?? 1,
+      pertanyaan: json['pertanyaan'] as String? ?? '',
+      options: opts,
+      jawabanAsesi: json['jawaban_asesi'] as String? ?? '',
+      pencapaian: json['pencapaian'] as String?,
+      catatan: json['catatan'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'no': no,
+      'pertanyaan': pertanyaan,
+      'options': options.map((e) => e.toJson()).toList(),
+      'jawaban_asesi': jawabanAsesi,
+      'pencapaian': pencapaian,
+      'catatan': catatan,
+    };
+  }
+
   /// Kunci jawaban (misal 'C. social blade')
   String get kunciText {
     final k = options.firstWhere((o) => o.isKunci, orElse: () => IA05SoalOption(kode: '', teks: ''));
@@ -395,6 +570,26 @@ class IA05Data {
     required this.items,
     this.catatanAsesor = '',
   });
+
+  factory IA05Data.fromJson(Map<String, dynamic> json) {
+    var rawItems = json['items'];
+    List<IA05SoalItem> itemsList = [];
+    if (rawItems is List) {
+      itemsList = rawItems.map((e) => IA05SoalItem.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return IA05Data(
+      namaAsesi: json['nama_asesi'] as String? ?? '',
+      items: itemsList,
+      catatanAsesor: json['catatan_asesor'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'items': items.map((e) => e.toJson()).toList(),
+      'catatan_asesor': catatanAsesor,
+    };
+  }
 
   int get totalBenar => items.where((i) => i.pencapaian == 'Ya').length;
   bool get isSemuaDinilai => items.every((i) => i.pencapaian != null && i.pencapaian!.isNotEmpty);

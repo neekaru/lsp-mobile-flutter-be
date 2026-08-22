@@ -694,6 +694,27 @@ class AsesorService {
     }
   }
 
+  /// Update FR-AK.05 / Laporan Asesmen
+  /// PUT /api/asesor/asesi/:id/ak05
+  static Future<Map<String, dynamic>?> updateAK05({
+    required int asesiId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.put(
+        ApiRoutes.asesorAsesiUpdateAK05(asesiId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error updating AK-05: $e');
+      return null;
+    }
+  }
+
   /// Update FR-AK.06 / Meninjau Proses Asesmen
   /// PUT /api/asesor/asesi/:id/ak06
   static Future<Map<String, dynamic>?> updateAK06({
@@ -711,6 +732,150 @@ class AsesorService {
       return null;
     } catch (e) {
       debugPrint('🔴 Error updating AK-06: $e');
+      return null;
+    }
+  }
+
+  /// Get FR.IA.01 Ceklis Observasi
+  /// GET /api/asesor/asesi/:id/ia01
+  static Future<Map<String, dynamic>?> getIA01(int asesiId) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorAsesiIA01(asesiId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching IA-01: $e');
+      return null;
+    }
+  }
+
+  /// Save FR.IA.01 Ceklis Observasi
+  /// POST /api/asesor/asesi/:id/ia01
+  static Future<Map<String, dynamic>?> saveIA01({
+    required int asesiId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesorAsesiIA01(asesiId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error saving IA-01: $e');
+      return null;
+    }
+  }
+
+  /// Get FR.IA.02 Tugas Praktik Demonstrasi
+  /// GET /api/asesor/asesi/:id/ia02
+  static Future<Map<String, dynamic>?> getIA02(int asesiId) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorAsesiIA02(asesiId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching IA-02: $e');
+      return null;
+    }
+  }
+
+  /// Save FR.IA.02 Tugas Praktik Demonstrasi
+  /// POST /api/asesor/asesi/:id/ia02
+  static Future<Map<String, dynamic>?> saveIA02({
+    required int asesiId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesorAsesiIA02(asesiId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error saving IA-02: $e');
+      return null;
+    }
+  }
+
+  /// Get FR.IA.03 Pertanyaan Lisan Pendukung Observasi
+  /// GET /api/asesor/asesi/:id/ia03
+  static Future<Map<String, dynamic>?> getIA03(int asesiId) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorAsesiIA03(asesiId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching IA-03: $e');
+      return null;
+    }
+  }
+
+  /// Save FR.IA.03 Pertanyaan Lisan Pendukung Observasi
+  /// POST /api/asesor/asesi/:id/ia03
+  static Future<Map<String, dynamic>?> saveIA03({
+    required int asesiId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesorAsesiIA03(asesiId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error saving IA-03: $e');
+      return null;
+    }
+  }
+
+  /// Get FR.IA.05 Pertanyaan Tertulis
+  /// GET /api/asesor/asesi/:id/ia05
+  static Future<Map<String, dynamic>?> getIA05(int asesiId) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorAsesiIA05(asesiId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching IA-05: $e');
+      return null;
+    }
+  }
+
+  /// Save FR.IA.05 Pertanyaan Tertulis
+  /// POST /api/asesor/asesi/:id/ia05
+  static Future<Map<String, dynamic>?> saveIA05({
+    required int asesiId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesorAsesiIA05(asesiId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error saving IA-05: $e');
       return null;
     }
   }
