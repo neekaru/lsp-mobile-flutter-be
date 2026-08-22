@@ -1143,7 +1143,7 @@ class AK04Section extends StatelessWidget {
 
           // Info Peserta & Asesor
           AsesiDetailRow('Nama Asesi', ak04?.namaAsesi.isNotEmpty == true ? ak04!.namaAsesi : (detailData?.namaLengkap ?? '-')),
-          AsesiDetailRow('Nama Asesor', ak04?.namaAsesor.isNotEmpty == true ? ak04!.namaAsesor : (detailData?.namaAsesor ?? '-')),
+          AsesiDetailRow('Nama Asesor', ak04?.namaAsesor.isNotEmpty == true ? ak04!.namaAsesor : (detailData?.ak01.namaAsesor.isNotEmpty == true ? detailData!.ak01.namaAsesor : '-')),
           AsesiDetailRow('Tanggal Asesmen', ak04?.tanggalAsesmen.isNotEmpty == true ? ak04!.tanggalAsesmen : (detailData?.jadwalTanggal ?? '-')),
           const SizedBox(height: 14),
 
@@ -1245,7 +1245,7 @@ class AK04Section extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          AsesiDetailRow('Skema Sertifikasi', ak04?.skema.isNotEmpty == true ? ak04!.skema : (detailData?.skema ?? '-')),
+          AsesiDetailRow('Skema Sertifikasi', ak04?.skema.isNotEmpty == true ? ak04!.skema : (detailData?.skemaSertifikat ?? '-')),
           if (ak04?.noSkema.isNotEmpty == true)
             AsesiDetailRow('No. Skema Sertifikasi', ak04!.noSkema),
 
