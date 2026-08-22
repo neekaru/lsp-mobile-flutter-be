@@ -729,56 +729,80 @@ class _APL02SectionState extends State<APL02Section> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: const [
-                    Icon(LucideIcons.clipboard_check, size: 18, color: Color(0xFF2563EB)),
-                    SizedBox(width: 8),
-                    Text(
-                      'Instrumen Asesmen (FR.IA)',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E40AF),
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(LucideIcons.clipboard_check, size: 18, color: Color(0xFF2563EB)),
+                        SizedBox(width: 8),
+                        Text(
+                          'Instrumen Asesmen (FR.IA)',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E40AF),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDBEAFE),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'Observasi Langsung',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1D4ED8),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 6),
                 const Text(
-                  'Karena metode observasi langsung dipilih, Anda dapat mengisi lembar FR.IA.01 (Ceklis Observasi), IA.02, IA.03, dan IA.05.',
+                  'Sesuai metode yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:',
                   style: TextStyle(fontSize: 11, color: Color(0xFF475569), height: 1.35),
                 ),
                 const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => InstrumenAsesmenScreen(
-                            asesiId: widget.detailData?.id ?? 0,
-                            namaAsesi: widget.detailData?.namaLengkap ?? 'Peserta Asesmen',
-                            skema: widget.detailData?.skemaSertifikat ?? 'Skema Sertifikasi',
-                            tuk: widget.detailData?.tukNama ?? 'TUK',
-                            jadwal: widget.detailData?.jadwalNama ?? 'Jadwal Asesmen',
-                            initialForm: 'IA01',
-                          ),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+
+                // Quick buttons for IA.01, IA.02, IA.03, IA.05
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildIAQuickButton(
+                      context,
+                      code: 'FR.IA.01',
+                      label: 'IA.01 Observasi',
+                      formId: 'IA01',
+                      color: const Color(0xFF2563EB),
                     ),
-                    icon: const Icon(LucideIcons.external_link, size: 15),
-                    label: const Text(
-                      'Buka Ceklis Observasi (FR.IA.01)',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    _buildIAQuickButton(
+                      context,
+                      code: 'FR.IA.02',
+                      label: 'IA.02 Tugas Praktik',
+                      formId: 'IA02',
+                      color: const Color(0xFF0284C7),
                     ),
-                  ),
+                    _buildIAQuickButton(
+                      context,
+                      code: 'FR.IA.03',
+                      label: 'IA.03 Tanya Lisan',
+                      formId: 'IA03',
+                      color: const Color(0xFFD97706),
+                    ),
+                    _buildIAQuickButton(
+                      context,
+                      code: 'FR.IA.05',
+                      label: 'IA.05 Tanya Tertulis',
+                      formId: 'IA05',
+                      color: const Color(0xFF16A34A),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -816,6 +840,72 @@ class _APL02SectionState extends State<APL02Section> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildIAQuickButton(
+    BuildContext context, {
+    required String code,
+    required String label,
+    required String formId,
+    required Color color,
+  }) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InstrumenAsesmenScreen(
+              asesiId: widget.detailData?.id ?? 0,
+              namaAsesi: widget.detailData?.namaLengkap ?? 'Peserta Asesmen',
+              skema: widget.detailData?.skemaSertifikat ?? 'Skema Sertifikasi',
+              tuk: widget.detailData?.tukNama ?? 'TUK',
+              jadwal: widget.detailData?.jadwalNama ?? 'Jadwal Asesmen',
+              initialForm: formId,
+            ),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: color.withValues(alpha: 0.35)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.08),
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(LucideIcons.external_link, size: 11, color: color),
+          ],
+        ),
       ),
     );
   }
