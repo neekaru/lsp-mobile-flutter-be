@@ -66,7 +66,8 @@ class ApiClient {
 
                 final isAuthPath =
                     error.requestOptions.path.contains(ApiRoutes.authLogin) ||
-                    error.requestOptions.path.contains(ApiRoutes.authRefresh);
+                    error.requestOptions.path.contains(ApiRoutes.authRefresh) ||
+                    error.requestOptions.path.contains(ApiRoutes.authLogout);
 
                 if (error.response?.statusCode == 401 && !isAuthPath) {
                   // A request that was already retried after a refresh and still
@@ -94,9 +95,13 @@ class ApiClient {
                       if (refreshResponse.statusCode == 200) {
                         final newAccessToken =
                             refreshResponse.data['data']['access_token'];
+                        final newRefreshToken =
+                            refreshResponse.data['data']['refresh_token']
+                                as String? ??
+                            refreshToken;
                         await TokenStorage.instance.saveTokens(
                           accessToken: newAccessToken,
-                          refreshToken: refreshToken,
+                          refreshToken: newRefreshToken,
                         );
 
                         error.requestOptions.headers['Authorization'] =
