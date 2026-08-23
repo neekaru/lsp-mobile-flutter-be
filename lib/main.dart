@@ -13,6 +13,7 @@ import 'core/notifications/firebase_message_handler.dart';
 import 'services/common/geojson_manager.dart';
 import 'services/common/notification_service.dart';
 import 'services/auth/token_storage.dart';
+import 'services/session_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,6 +90,11 @@ void main() async {
   GeoJsonManager.instance.initialize().catchError(
     (e) => debugPrint('⚠️ GeoJSON pre-warm failed: $e'),
   );
+
+  // Register the app-level token-expiry listener. This covers the window
+  // before MainNavigatorState mounts (splash/onboarding/login) so an expired
+  // session during cold start never leaves the user stuck.
+  SessionManager.init();
 
   runApp(const MainApp());
 }

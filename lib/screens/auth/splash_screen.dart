@@ -6,9 +6,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../services/api_service.dart';
 import '../../services/auth/token_storage.dart';
 import '../../services/auth/auth_repository.dart';
+import '../../services/session_manager.dart';
 import '../../services/common/notification_service.dart';
 import '../../models/auth_models.dart';
 import '../../core/navigation/main_navigator.dart';
+import 'login_screen.dart';
 import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -179,11 +181,20 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         await TokenStorage.instance.hasSeenOnboarding();
     if (!mounted) return;
 
-    final Widget nextScreen = loggedInUser != null
-        ? MainNavigator(key: mainNavigatorKey)
-        : (seenOnboarding
+    // If a token expired during cold start (before the main shell mounted),
+    // route straight to login instead of silently entering the guest shell.
+    final bool forceLogin = SessionManager.forcedLogoutPending;
+    if (forceLogin) {
+      SessionManager.resetForcedLogout();
+    }
+
+    final Widget nextScreen = forceLogin
+        ? const LoginScreen()
+        : (loggedInUser != null
             ? MainNavigator(key: mainNavigatorKey)
-            : const OnboardingScreen());
+            : (seenOnboarding
+                ? MainNavigator(key: mainNavigatorKey)
+                : const OnboardingScreen()));
 
     Navigator.of(context).pushReplacement(
         PageRouteBuilder(
