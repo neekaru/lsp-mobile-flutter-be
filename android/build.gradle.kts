@@ -20,12 +20,24 @@ subprojects {
 }
 
 subprojects {
-    project.afterEvaluate {
-        val android = project.extensions.findByName("android")
-        if (android is com.android.build.gradle.BaseExtension) {
-            val currentSdk = android.compileSdkVersion
-            if (currentSdk == "android-37" || currentSdk == "37") {
-                android.compileSdkVersion(35)
+    if (project.name != "app") {
+        if (!project.state.executed) {
+            project.afterEvaluate {
+                val android = project.extensions.findByName("android")
+                if (android is com.android.build.gradle.BaseExtension) {
+                    val currentSdk = android.compileSdkVersion
+                    if (currentSdk == "android-37" || currentSdk == "37") {
+                        android.compileSdkVersion(36)
+                    }
+                }
+            }
+        } else {
+            val android = project.extensions.findByName("android")
+            if (android is com.android.build.gradle.BaseExtension) {
+                val currentSdk = android.compileSdkVersion
+                if (currentSdk == "android-37" || currentSdk == "37") {
+                    android.compileSdkVersion(36)
+                }
             }
         }
     }

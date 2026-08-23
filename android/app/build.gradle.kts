@@ -22,7 +22,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "id.lspdigital.mobile"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
