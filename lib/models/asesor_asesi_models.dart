@@ -1007,38 +1007,35 @@ class AK06PrinsipItem {
 }
 
 class AK06DimensiItem {
-  final String aspek;
-  bool taskSkill;
-  bool taskManagementSkill;
-  bool contingencyManagementSkill;
-  bool jobRoleEnvironmentSkill;
-  bool transferSkill;
+  String taskSkill;
+  String taskManagementSkill;
+  String contingencyManagementSkill;
+  String jobRoleEnvironmentSkill;
+  String transferSkill;
 
   AK06DimensiItem({
-    this.aspek = 'Konsistensi keputusan asesmen',
-    this.taskSkill = true,
-    this.taskManagementSkill = true,
-    this.contingencyManagementSkill = true,
-    this.jobRoleEnvironmentSkill = true,
-    this.transferSkill = true,
+    this.taskSkill = 'L (IA.01, IA.02)',
+    this.taskManagementSkill = 'L (IA.01, IA.02)',
+    this.contingencyManagementSkill = 'L (IA.01, IA.02)',
+    this.jobRoleEnvironmentSkill = 'L (IA.01, IA.02)',
+    this.transferSkill = 'L (IA.01, IA.02)',
   });
 
   factory AK06DimensiItem.fromJson(Map<String, dynamic> json) {
     return AK06DimensiItem(
-      aspek: json['aspek'] as String? ?? 'Konsistensi keputusan asesmen',
-      taskSkill: json['task_skill'] as bool? ?? true,
-      taskManagementSkill: json['task_management_skill'] as bool? ?? true,
+      taskSkill: json['task_skill']?.toString() ?? 'L (IA.01, IA.02)',
+      taskManagementSkill:
+          json['task_management_skill']?.toString() ?? 'L (IA.01, IA.02)',
       contingencyManagementSkill:
-          json['contingency_management_skill'] as bool? ?? true,
+          json['contingency_management_skill']?.toString() ?? 'L (IA.01, IA.02)',
       jobRoleEnvironmentSkill:
-          json['job_role_environment_skill'] as bool? ?? true,
-      transferSkill: json['transfer_skill'] as bool? ?? true,
+          json['job_role_environment_skill']?.toString() ?? 'L (IA.01, IA.02)',
+      transferSkill: json['transfer_skill']?.toString() ?? 'L (IA.01, IA.02)',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'aspek': aspek,
       'task_skill': taskSkill,
       'task_management_skill': taskManagementSkill,
       'contingency_management_skill': contingencyManagementSkill,

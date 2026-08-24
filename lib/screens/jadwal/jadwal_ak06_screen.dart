@@ -31,14 +31,24 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
   late TextEditingController _rekomendasiController;
   late TextEditingController _catatanController;
 
+  late TextEditingController _taskSkillController;
+  late TextEditingController _taskManagementController;
+  late TextEditingController _contingencyController;
+  late TextEditingController _jobRoleController;
+  late TextEditingController _transferSkillController;
+
   List<AK06PrinsipItem> _prinsipItems = [];
-  AK06DimensiItem _dimensiItem = AK06DimensiItem();
 
   @override
   void initState() {
     super.initState();
     _rekomendasiController = TextEditingController();
     _catatanController = TextEditingController();
+    _taskSkillController = TextEditingController(text: 'L (IA.01, IA.02)');
+    _taskManagementController = TextEditingController(text: 'L (IA.01, IA.02)');
+    _contingencyController = TextEditingController(text: 'L (IA.01, IA.02)');
+    _jobRoleController = TextEditingController(text: 'L (IA.01, IA.02)');
+    _transferSkillController = TextEditingController(text: 'L (IA.01, IA.02)');
     _fetchDetail();
   }
 
@@ -46,6 +56,11 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
   void dispose() {
     _rekomendasiController.dispose();
     _catatanController.dispose();
+    _taskSkillController.dispose();
+    _taskManagementController.dispose();
+    _contingencyController.dispose();
+    _jobRoleController.dispose();
+    _transferSkillController.dispose();
     super.dispose();
   }
 
@@ -61,7 +76,21 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
         setState(() {
           _detailData = data;
           _prinsipItems = data.prinsipAsesmen;
-          _dimensiItem = data.dimensiKompetensi;
+          _taskSkillController.text = data.dimensiKompetensi.taskSkill.isNotEmpty
+              ? data.dimensiKompetensi.taskSkill
+              : 'L (IA.01, IA.02)';
+          _taskManagementController.text = data.dimensiKompetensi.taskManagementSkill.isNotEmpty
+              ? data.dimensiKompetensi.taskManagementSkill
+              : 'L (IA.01, IA.02)';
+          _contingencyController.text = data.dimensiKompetensi.contingencyManagementSkill.isNotEmpty
+              ? data.dimensiKompetensi.contingencyManagementSkill
+              : 'L (IA.01, IA.02)';
+          _jobRoleController.text = data.dimensiKompetensi.jobRoleEnvironmentSkill.isNotEmpty
+              ? data.dimensiKompetensi.jobRoleEnvironmentSkill
+              : 'L (IA.01, IA.02)';
+          _transferSkillController.text = data.dimensiKompetensi.transferSkill.isNotEmpty
+              ? data.dimensiKompetensi.transferSkill
+              : 'L (IA.01, IA.02)';
           _rekomendasiController.text = data.rekomendasi;
           _catatanController.text = data.catatan;
         });
@@ -90,10 +119,18 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
     });
 
     try {
+      final dimensi = AK06DimensiItem(
+        taskSkill: _taskSkillController.text.trim(),
+        taskManagementSkill: _taskManagementController.text.trim(),
+        contingencyManagementSkill: _contingencyController.text.trim(),
+        jobRoleEnvironmentSkill: _jobRoleController.text.trim(),
+        transferSkill: _transferSkillController.text.trim(),
+      );
+
       final payload = {
         'penjelasan_asesmen': _detailData!.penjelasanAsesmen,
         'prinsip_asesmen': _prinsipItems.map((e) => e.toJson()).toList(),
-        'dimensi_kompetensi': _dimensiItem.toJson(),
+        'dimensi_kompetensi': dimensi.toJson(),
         'rekomendasi': _rekomendasiController.text.trim(),
         'catatan': _catatanController.text.trim(),
       };
@@ -260,13 +297,13 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           ),
           const SizedBox(height: 16),
 
-          // ── Card 2: Pemenuhan terhadap Prinsip - Prinsip Asesmen ─────────────
+          // ── Card 2: Aspek yang Dikaji Ulang & Prinsip Asesmen ─────────────────
           FormSectionCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '2. Pemenuhan terhadap Prinsip - Prinsip Asesmen',
+                  '2. Aspek yang Dikaji Ulang & Prinsip Asesmen',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -376,69 +413,20 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'Aspek: ${_dimensiItem.aspek}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF475569),
-                  ),
+                const Text(
+                  'Konsistensi keputusan asesmen / bukti unjuk kerja:',
+                  style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                 ),
                 const SizedBox(height: 12),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 12),
 
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildCheckboxChip(
-                      label: 'Task Skills',
-                      value: _dimensiItem.taskSkill,
-                      onChanged: (val) {
-                        setState(() {
-                          _dimensiItem.taskSkill = val;
-                        });
-                      },
-                    ),
-                    _buildCheckboxChip(
-                      label: 'Task Management Skills',
-                      value: _dimensiItem.taskManagementSkill,
-                      onChanged: (val) {
-                        setState(() {
-                          _dimensiItem.taskManagementSkill = val;
-                        });
-                      },
-                    ),
-                    _buildCheckboxChip(
-                      label: 'Contingency Management Skills',
-                      value: _dimensiItem.contingencyManagementSkill,
-                      onChanged: (val) {
-                        setState(() {
-                          _dimensiItem.contingencyManagementSkill = val;
-                        });
-                      },
-                    ),
-                    _buildCheckboxChip(
-                      label: 'Job Role / Environment Skills',
-                      value: _dimensiItem.jobRoleEnvironmentSkill,
-                      onChanged: (val) {
-                        setState(() {
-                          _dimensiItem.jobRoleEnvironmentSkill = val;
-                        });
-                      },
-                    ),
-                    _buildCheckboxChip(
-                      label: 'Transfer Skills',
-                      value: _dimensiItem.transferSkill,
-                      onChanged: (val) {
-                        setState(() {
-                          _dimensiItem.transferSkill = val;
-                        });
-                      },
-                    ),
-                  ],
-                ),
+                _buildDimensiField('Task Skills', _taskSkillController),
+                _buildDimensiField('Task Management Skills', _taskManagementController),
+                _buildDimensiField('Contingency Management Skills', _contingencyController),
+                _buildDimensiField('Job Role / Environment Skills', _jobRoleController),
+                _buildDimensiField('Transfer Skills', _transferSkillController),
+
                 const SizedBox(height: 16),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 16),
@@ -491,6 +479,96 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           ),
           const SizedBox(height: 40),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDimensiField(String label, TextEditingController controller) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFAFA),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: controller,
+            style: const TextStyle(fontSize: 12.5, color: Color(0xFF1E293B)),
+            decoration: InputDecoration(
+              isDense: true,
+              hintText: 'L (IA.01, IA.02)',
+              hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildQuickChip(controller, 'L (IA.01, IA.02)'),
+              _buildQuickChip(controller, 'T (IA.05, IA.06)'),
+              _buildQuickChip(controller, 'TL (IA.08, IA.09)'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickChip(TextEditingController controller, String text) {
+    final isCurrent = controller.text == text;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          controller.text = text;
+        });
+      },
+      borderRadius: BorderRadius.circular(4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: isCurrent ? const Color(0xFFEFF6FF) : Colors.white,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: isCurrent ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+          ),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 10.5,
+            fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
+            color: isCurrent ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+          ),
+        ),
       ),
     );
   }
