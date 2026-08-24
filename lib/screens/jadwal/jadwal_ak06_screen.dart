@@ -303,7 +303,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
                     child: Text(
                       data.penjelasanAsesmen.isNotEmpty
                           ? data.penjelasanAsesmen
-                          : 'Penjelasan proses asesmen dan konsultasi pra-asesmen telah dilaksanakan kepada seluruh asesi sebelum uji kompetensi berlangsung.',
+                          : 'Tidak ada penjelasan proses asesmen khusus.',
                       style: const TextStyle(
                         fontSize: 12.5,
                         color: Color(0xFF334155),
