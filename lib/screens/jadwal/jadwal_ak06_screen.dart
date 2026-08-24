@@ -31,38 +31,28 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
   late TextEditingController _rekomendasiController;
   late TextEditingController _catatanController;
 
-  // Controllers for Prinsip Asesmen (Validitas, Reliabilitas, Fleksibilitas, Keadilan)
-  final Map<String, String> _prinsipJawaban = {
-    'Validitas': 'Ya',
-    'Reliabilitas': 'Ya',
-    'Fleksibilitas': 'Ya',
-    'Keadilan': 'Ya',
+  // Instrument values for Prinsip Asesmen (Default: L (IA.01, IA.02))
+  final Map<String, String> _prinsipInstrumen = {
+    'Validitas': 'L (IA.01, IA.02)',
+    'Reliabilitas': 'L (IA.01, IA.02)',
+    'Fleksibilitas': 'L (IA.01, IA.02)',
+    'Keadilan': 'L (IA.01, IA.02)',
   };
-  final Map<String, TextEditingController> _prinsipCatatan = {};
 
-  // Controllers for Dimensi Kompetensi (5 Dimensi)
-  final Map<String, String> _dimensiJawaban = {
-    'Task Skills': 'Ya',
-    'Task Management Skills': 'Ya',
-    'Contingency Management Skills': 'Ya',
-    'Job Role / Environment Skills': 'Ya',
-    'Transfer Skills': 'Ya',
+  // Instrument values for Dimensi Kompetensi (Default: L (IA.01, IA.02))
+  final Map<String, String> _dimensiInstrumen = {
+    'Task Skills': 'L (IA.01, IA.02)',
+    'Task Management Skills': 'L (IA.01, IA.02)',
+    'Contingency Management Skills': 'L (IA.01, IA.02)',
+    'Job Role / Environment Skills': 'L (IA.01, IA.02)',
+    'Transfer Skills': 'L (IA.01, IA.02)',
   };
-  final Map<String, TextEditingController> _dimensiCatatan = {};
 
   @override
   void initState() {
     super.initState();
     _rekomendasiController = TextEditingController();
     _catatanController = TextEditingController();
-
-    for (final p in _prinsipJawaban.keys) {
-      _prinsipCatatan[p] = TextEditingController();
-    }
-    for (final d in _dimensiJawaban.keys) {
-      _dimensiCatatan[d] = TextEditingController();
-    }
-
     _fetchDetail();
   }
 
@@ -70,12 +60,6 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
   void dispose() {
     _rekomendasiController.dispose();
     _catatanController.dispose();
-    for (final c in _prinsipCatatan.values) {
-      c.dispose();
-    }
-    for (final c in _dimensiCatatan.values) {
-      c.dispose();
-    }
     super.dispose();
   }
 
@@ -94,17 +78,13 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           _catatanController.text = data.catatan;
 
           for (final item in data.prinsipAsesmen) {
-            _prinsipJawaban[item.aspect] = item.kesesuaian;
-            if (_prinsipCatatan.containsKey(item.aspect)) {
-              _prinsipCatatan[item.aspect]!.text = item.catatan;
-            }
+            _prinsipInstrumen[item.aspect] =
+                item.catatan.isNotEmpty ? item.catatan : 'L (IA.01, IA.02)';
           }
 
           for (final item in data.dimensiKompetensi) {
-            _dimensiJawaban[item.aspect] = item.kesesuaian;
-            if (_dimensiCatatan.containsKey(item.aspect)) {
-              _dimensiCatatan[item.aspect]!.text = item.catatan;
-            }
+            _dimensiInstrumen[item.aspect] =
+                item.catatan.isNotEmpty ? item.catatan : 'L (IA.01, IA.02)';
           }
         });
       } else {
@@ -132,19 +112,19 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
     });
 
     try {
-      final prinsipList = _prinsipJawaban.entries.map((e) {
+      final prinsipList = _prinsipInstrumen.entries.map((e) {
         return {
           'aspect': e.key,
-          'kesesuaian': e.value,
-          'catatan': _prinsipCatatan[e.key]?.text.trim() ?? '',
+          'kesesuaian': 'Ya',
+          'catatan': e.value,
         };
       }).toList();
 
-      final dimensiList = _dimensiJawaban.entries.map((e) {
+      final dimensiList = _dimensiInstrumen.entries.map((e) {
         return {
           'aspect': e.key,
-          'kesesuaian': e.value,
-          'catatan': _dimensiCatatan[e.key]?.text.trim() ?? '',
+          'kesesuaian': 'Ya',
+          'catatan': e.value,
         };
       }).toList();
 
@@ -158,6 +138,24 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
 
       final res = await ApiService.saveJadwalAK06(widget.jadwalId, payload);
       if (res != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tinjauan Proses Asesmen FR-AK.06 berhasil disimpan!'),
+            backgroundColor: Color(0xFF16A34A),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        _fetchDetail();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal menyimpan tinjauan asesmen.'),
+            backgroundColor: Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Tinjauan Proses Asesmen FR-AK.06 berhasil disimpan!'),
@@ -318,7 +316,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           ),
           const SizedBox(height: 16),
 
-          // ── Card 2: Aspek yang Dikaji Ulang & Prinsip Asesmen (Dropdowns) ──────
+          // ── Card 2: Aspek yang Dikaji Ulang & Prinsip Asesmen ─────────────────
           FormSectionCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,14 +333,13 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 12),
 
-                ..._prinsipJawaban.keys.map((aspect) {
+                ..._prinsipInstrumen.keys.map((aspect) {
                   return _buildAspectRow(
                     aspect: aspect,
-                    jawaban: _prinsipJawaban[aspect] ?? 'Ya',
-                    controller: _prinsipCatatan[aspect]!,
+                    selectedInstrument: _prinsipInstrumen[aspect] ?? 'L (IA.01, IA.02)',
                     onChanged: (val) {
                       setState(() {
-                        _prinsipJawaban[aspect] = val;
+                        _prinsipInstrumen[aspect] = val;
                       });
                     },
                   );
@@ -352,7 +349,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           ),
           const SizedBox(height: 16),
 
-          // ── Card 3: Pemenuhan Dimensi Kompetensi (Dropdowns) ──────────────────
+          // ── Card 3: Pemenuhan Dimensi Kompetensi ─────────────────────────────
           FormSectionCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,14 +366,13 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 12),
 
-                ..._dimensiJawaban.keys.map((aspect) {
+                ..._dimensiInstrumen.keys.map((aspect) {
                   return _buildAspectRow(
                     aspect: aspect,
-                    jawaban: _dimensiJawaban[aspect] ?? 'Ya',
-                    controller: _dimensiCatatan[aspect]!,
+                    selectedInstrument: _dimensiInstrumen[aspect] ?? 'L (IA.01, IA.02)',
                     onChanged: (val) {
                       setState(() {
-                        _dimensiJawaban[aspect] = val;
+                        _dimensiInstrumen[aspect] = val;
                       });
                     },
                   );
@@ -439,15 +435,18 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
 
   Widget _buildAspectRow({
     required String aspect,
-    required String jawaban,
-    required TextEditingController controller,
+    required String selectedInstrument,
     required ValueChanged<String> onChanged,
   }) {
-    final isYa = jawaban.toLowerCase() == 'ya';
+    final instruments = [
+      'L (IA.01, IA.02)',
+      'T (IA.05, IA.06)',
+      'TL (IA.08, IA.09)',
+    ];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: const Color(0xFFFAFAFA),
         borderRadius: BorderRadius.circular(8),
@@ -456,77 +455,77 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  aspect,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: isYa ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
-                  ),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: isYa ? 'Ya' : 'Tidak',
-                    isDense: true,
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'Ya',
-                        child: Text(
-                          'Ya',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF16A34A),
-                          ),
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Tidak',
-                        child: Text(
-                          'Tidak',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFDC2626),
-                          ),
-                        ),
-                      ),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        onChanged(val);
-                      }
-                    },
-                  ),
-                ),
-              ),
-            ],
+          Text(
+            aspect,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
           ),
           const SizedBox(height: 8),
-          TextFormField(
-            controller: controller,
-            decoration: InputDecoration(
-              hintText: 'Catatan kesesuaian $aspect...',
-              hintStyle: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: instruments.map((inst) {
+                final isSelected = selectedInstrument == inst ||
+                    (selectedInstrument.isEmpty && inst == 'L (IA.01, IA.02)');
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: InkWell(
+                    onTap: () => onChanged(inst),
+                    borderRadius: BorderRadius.circular(6),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected ? const Color(0xFFEFF6FF) : Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFFCBD5E1),
+                          width: isSelected ? 1.4 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isSelected
+                                ? LucideIcons.check_circle_2
+                                : LucideIcons.circle,
+                            size: 13,
+                            color: isSelected
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF94A3B8),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            inst,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? const Color(0xFF1D4ED8)
+                                  : const Color(0xFF475569),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
-            style: const TextStyle(fontSize: 12),
           ),
         ],
       ),
