@@ -970,6 +970,84 @@ class JadwalAK05DetailData {
   }
 }
 
+class AK06PrinsipItem {
+  final String prosedur;
+  bool valid;
+  bool reliable;
+  bool flexible;
+  bool fair;
+
+  AK06PrinsipItem({
+    required this.prosedur,
+    this.valid = true,
+    this.reliable = true,
+    this.flexible = true,
+    this.fair = true,
+  });
+
+  factory AK06PrinsipItem.fromJson(Map<String, dynamic> json) {
+    return AK06PrinsipItem(
+      prosedur: json['prosedur'] as String? ?? '',
+      valid: json['valid'] as bool? ?? true,
+      reliable: json['reliable'] as bool? ?? true,
+      flexible: json['flexible'] as bool? ?? false,
+      fair: json['fair'] as bool? ?? true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'prosedur': prosedur,
+      'valid': valid,
+      'reliable': reliable,
+      'flexible': flexible,
+      'fair': fair,
+    };
+  }
+}
+
+class AK06DimensiItem {
+  final String aspek;
+  bool taskSkill;
+  bool taskManagementSkill;
+  bool contingencyManagementSkill;
+  bool jobRoleEnvironmentSkill;
+  bool transferSkill;
+
+  AK06DimensiItem({
+    this.aspek = 'Konsistensi keputusan asesmen',
+    this.taskSkill = true,
+    this.taskManagementSkill = true,
+    this.contingencyManagementSkill = true,
+    this.jobRoleEnvironmentSkill = true,
+    this.transferSkill = true,
+  });
+
+  factory AK06DimensiItem.fromJson(Map<String, dynamic> json) {
+    return AK06DimensiItem(
+      aspek: json['aspek'] as String? ?? 'Konsistensi keputusan asesmen',
+      taskSkill: json['task_skill'] as bool? ?? true,
+      taskManagementSkill: json['task_management_skill'] as bool? ?? true,
+      contingencyManagementSkill:
+          json['contingency_management_skill'] as bool? ?? true,
+      jobRoleEnvironmentSkill:
+          json['job_role_environment_skill'] as bool? ?? true,
+      transferSkill: json['transfer_skill'] as bool? ?? true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'aspek': aspek,
+      'task_skill': taskSkill,
+      'task_management_skill': taskManagementSkill,
+      'contingency_management_skill': contingencyManagementSkill,
+      'job_role_environment_skill': jobRoleEnvironmentSkill,
+      'transfer_skill': transferSkill,
+    };
+  }
+}
+
 class JadwalAK06DetailData {
   final int jadwalId;
   final String namaJadwal;
@@ -978,8 +1056,8 @@ class JadwalAK06DetailData {
   final String tanggal;
   final String namaAsesor;
   final String penjelasanAsesmen;
-  final List<AK06AspectItem> prinsipAsesmen;
-  final List<AK06AspectItem> dimensiKompetensi;
+  final List<AK06PrinsipItem> prinsipAsesmen;
+  final AK06DimensiItem dimensiKompetensi;
   final String rekomendasi;
   final String catatan;
   final String statusTinjauan;
@@ -1001,19 +1079,55 @@ class JadwalAK06DetailData {
 
   factory JadwalAK06DetailData.fromJson(Map<String, dynamic> json) {
     final rawPrinsip = json['prinsip_asesmen'];
-    List<AK06AspectItem> prinsipList = [];
+    List<AK06PrinsipItem> prinsipList = [];
     if (rawPrinsip is List) {
       prinsipList = rawPrinsip
-          .map((e) => AK06AspectItem.fromJson(e as Map<String, dynamic>))
+          .map((e) => AK06PrinsipItem.fromJson(e as Map<String, dynamic>))
           .toList();
     }
-    final rawDimensi = json['dimensi_kompetensi'];
-    List<AK06AspectItem> dimensiList = [];
-    if (rawDimensi is List) {
-      dimensiList = rawDimensi
-          .map((e) => AK06AspectItem.fromJson(e as Map<String, dynamic>))
-          .toList();
+    if (prinsipList.isEmpty) {
+      prinsipList = [
+        AK06PrinsipItem(
+            prosedur: 'Rencana asesmen',
+            valid: true,
+            reliable: true,
+            flexible: true,
+            fair: true),
+        AK06PrinsipItem(
+            prosedur: 'Persiapan asesmen',
+            valid: true,
+            reliable: true,
+            flexible: true,
+            fair: true),
+        AK06PrinsipItem(
+            prosedur: 'Implementasi asesmen',
+            valid: true,
+            reliable: true,
+            flexible: true,
+            fair: true),
+        AK06PrinsipItem(
+            prosedur: 'Keputusan asesmen',
+            valid: true,
+            reliable: true,
+            flexible: false,
+            fair: true),
+        AK06PrinsipItem(
+            prosedur: 'Umpan balik asesmen',
+            valid: true,
+            reliable: true,
+            flexible: false,
+            fair: true),
+      ];
     }
+
+    AK06DimensiItem dimensi;
+    if (json['dimensi_kompetensi'] is Map<String, dynamic>) {
+      dimensi = AK06DimensiItem.fromJson(
+          json['dimensi_kompetensi'] as Map<String, dynamic>);
+    } else {
+      dimensi = AK06DimensiItem();
+    }
+
     return JadwalAK06DetailData(
       jadwalId: json['jadwal_id'] as int? ?? 0,
       namaJadwal: json['nama_jadwal'] as String? ?? '',
@@ -1023,7 +1137,7 @@ class JadwalAK06DetailData {
       namaAsesor: json['nama_asesor'] as String? ?? '',
       penjelasanAsesmen: json['penjelasan_asesmen'] as String? ?? '',
       prinsipAsesmen: prinsipList,
-      dimensiKompetensi: dimensiList,
+      dimensiKompetensi: dimensi,
       rekomendasi: json['rekomendasi'] as String? ?? '',
       catatan: json['catatan'] as String? ?? '',
       statusTinjauan: json['status_tinjauan'] as String? ?? 'Selesai',

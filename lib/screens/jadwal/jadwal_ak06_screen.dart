@@ -31,22 +31,8 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
   late TextEditingController _rekomendasiController;
   late TextEditingController _catatanController;
 
-  // Instrument values for Prinsip Asesmen (Default: L (IA.01, IA.02))
-  final Map<String, String> _prinsipInstrumen = {
-    'Validitas': 'L (IA.01, IA.02)',
-    'Reliabilitas': 'L (IA.01, IA.02)',
-    'Fleksibilitas': 'L (IA.01, IA.02)',
-    'Keadilan': 'L (IA.01, IA.02)',
-  };
-
-  // Instrument values for Dimensi Kompetensi (Default: L (IA.01, IA.02))
-  final Map<String, String> _dimensiInstrumen = {
-    'Task Skills': 'L (IA.01, IA.02)',
-    'Task Management Skills': 'L (IA.01, IA.02)',
-    'Contingency Management Skills': 'L (IA.01, IA.02)',
-    'Job Role / Environment Skills': 'L (IA.01, IA.02)',
-    'Transfer Skills': 'L (IA.01, IA.02)',
-  };
+  List<AK06PrinsipItem> _prinsipItems = [];
+  AK06DimensiItem _dimensiItem = AK06DimensiItem();
 
   @override
   void initState() {
@@ -74,18 +60,10 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
         final data = JadwalAK06DetailData.fromJson(res['data'] as Map<String, dynamic>);
         setState(() {
           _detailData = data;
+          _prinsipItems = data.prinsipAsesmen;
+          _dimensiItem = data.dimensiKompetensi;
           _rekomendasiController.text = data.rekomendasi;
           _catatanController.text = data.catatan;
-
-          for (final item in data.prinsipAsesmen) {
-            _prinsipInstrumen[item.aspect] =
-                item.catatan.isNotEmpty ? item.catatan : 'L (IA.01, IA.02)';
-          }
-
-          for (final item in data.dimensiKompetensi) {
-            _dimensiInstrumen[item.aspect] =
-                item.catatan.isNotEmpty ? item.catatan : 'L (IA.01, IA.02)';
-          }
         });
       } else {
         setState(() {
@@ -112,50 +90,16 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
     });
 
     try {
-      final prinsipList = _prinsipInstrumen.entries.map((e) {
-        return {
-          'aspect': e.key,
-          'kesesuaian': 'Ya',
-          'catatan': e.value,
-        };
-      }).toList();
-
-      final dimensiList = _dimensiInstrumen.entries.map((e) {
-        return {
-          'aspect': e.key,
-          'kesesuaian': 'Ya',
-          'catatan': e.value,
-        };
-      }).toList();
-
       final payload = {
         'penjelasan_asesmen': _detailData!.penjelasanAsesmen,
-        'prinsip_asesmen': prinsipList,
-        'dimensi_kompetensi': dimensiList,
+        'prinsip_asesmen': _prinsipItems.map((e) => e.toJson()).toList(),
+        'dimensi_kompetensi': _dimensiItem.toJson(),
         'rekomendasi': _rekomendasiController.text.trim(),
         'catatan': _catatanController.text.trim(),
       };
 
       final res = await ApiService.saveJadwalAK06(widget.jadwalId, payload);
       if (res != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tinjauan Proses Asesmen FR-AK.06 berhasil disimpan!'),
-            backgroundColor: Color(0xFF16A34A),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        _fetchDetail();
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal menyimpan tinjauan asesmen.'),
-            backgroundColor: Color(0xFFDC2626),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Tinjauan Proses Asesmen FR-AK.06 berhasil disimpan!'),
@@ -316,32 +260,101 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           ),
           const SizedBox(height: 16),
 
-          // ── Card 2: Aspek yang Dikaji Ulang & Prinsip Asesmen ─────────────────
+          // ── Card 2: Pemenuhan terhadap Prinsip - Prinsip Asesmen ─────────────
           FormSectionCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '2. Aspek yang Dikaji Ulang & Prinsip Asesmen',
+                  '2. Pemenuhan terhadap Prinsip - Prinsip Asesmen',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1E293B),
                   ),
                 ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Centang prinsip asesmen yang terpenuhi pada setiap prosedur:',
+                  style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                ),
                 const SizedBox(height: 12),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 12),
 
-                ..._prinsipInstrumen.keys.map((aspect) {
-                  return _buildAspectRow(
-                    aspect: aspect,
-                    selectedInstrument: _prinsipInstrumen[aspect] ?? 'L (IA.01, IA.02)',
-                    onChanged: (val) {
-                      setState(() {
-                        _prinsipInstrumen[aspect] = val;
-                      });
-                    },
+                ..._prinsipItems.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isFlexibleBlocked = item.prosedur.toLowerCase().contains('keputusan') ||
+                      item.prosedur.toLowerCase().contains('umpan balik');
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAFAFA),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${index + 1}. ${item.prosedur}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            _buildCheckboxChip(
+                              label: 'Valid',
+                              value: item.valid,
+                              onChanged: (val) {
+                                setState(() {
+                                  item.valid = val;
+                                });
+                              },
+                            ),
+                            _buildCheckboxChip(
+                              label: 'Reliable',
+                              value: item.reliable,
+                              onChanged: (val) {
+                                setState(() {
+                                  item.reliable = val;
+                                });
+                              },
+                            ),
+                            _buildCheckboxChip(
+                              label: 'Flexible',
+                              value: item.flexible,
+                              isBlocked: isFlexibleBlocked,
+                              onChanged: (val) {
+                                if (!isFlexibleBlocked) {
+                                  setState(() {
+                                    item.flexible = val;
+                                  });
+                                }
+                              },
+                            ),
+                            _buildCheckboxChip(
+                              label: 'Fair',
+                              value: item.fair,
+                              onChanged: (val) {
+                                setState(() {
+                                  item.fair = val;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   );
                 }),
               ],
@@ -349,34 +362,83 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           ),
           const SizedBox(height: 16),
 
-          // ── Card 3: Pemenuhan Dimensi Kompetensi ─────────────────────────────
+          // ── Card 3: Pemenuhan terhadap Dimensi Kompetensi ─────────────────────
           FormSectionCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '3. Pemenuhan Dimensi Kompetensi',
+                  '3. Pemenuhan terhadap Dimensi Kompetensi',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1E293B),
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Aspek: ${_dimensiItem.aspek}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF475569),
+                  ),
+                ),
                 const SizedBox(height: 12),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 12),
 
-                ..._dimensiInstrumen.keys.map((aspect) {
-                  return _buildAspectRow(
-                    aspect: aspect,
-                    selectedInstrument: _dimensiInstrumen[aspect] ?? 'L (IA.01, IA.02)',
-                    onChanged: (val) {
-                      setState(() {
-                        _dimensiInstrumen[aspect] = val;
-                      });
-                    },
-                  );
-                }),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildCheckboxChip(
+                      label: 'Task Skills',
+                      value: _dimensiItem.taskSkill,
+                      onChanged: (val) {
+                        setState(() {
+                          _dimensiItem.taskSkill = val;
+                        });
+                      },
+                    ),
+                    _buildCheckboxChip(
+                      label: 'Task Management Skills',
+                      value: _dimensiItem.taskManagementSkill,
+                      onChanged: (val) {
+                        setState(() {
+                          _dimensiItem.taskManagementSkill = val;
+                        });
+                      },
+                    ),
+                    _buildCheckboxChip(
+                      label: 'Contingency Management Skills',
+                      value: _dimensiItem.contingencyManagementSkill,
+                      onChanged: (val) {
+                        setState(() {
+                          _dimensiItem.contingencyManagementSkill = val;
+                        });
+                      },
+                    ),
+                    _buildCheckboxChip(
+                      label: 'Job Role / Environment Skills',
+                      value: _dimensiItem.jobRoleEnvironmentSkill,
+                      onChanged: (val) {
+                        setState(() {
+                          _dimensiItem.jobRoleEnvironmentSkill = val;
+                        });
+                      },
+                    ),
+                    _buildCheckboxChip(
+                      label: 'Transfer Skills',
+                      value: _dimensiItem.transferSkill,
+                      onChanged: (val) {
+                        setState(() {
+                          _dimensiItem.transferSkill = val;
+                        });
+                      },
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 const SizedBox(height: 16),
@@ -433,101 +495,63 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
     );
   }
 
-  Widget _buildAspectRow({
-    required String aspect,
-    required String selectedInstrument,
-    required ValueChanged<String> onChanged,
+  Widget _buildCheckboxChip({
+    required String label,
+    required bool value,
+    bool isBlocked = false,
+    required ValueChanged<bool> onChanged,
   }) {
-    final instruments = [
-      'L (IA.01, IA.02)',
-      'T (IA.05, IA.06)',
-      'TL (IA.08, IA.09)',
-    ];
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFA),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            aspect,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
+    if (isBlocked) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE2E8F0),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          '$label (N/A)',
+          style: const TextStyle(
+            fontSize: 11,
+            color: Color(0xFF94A3B8),
+            decoration: TextDecoration.lineThrough,
           ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: instruments.map((inst) {
-                final isSelected = selectedInstrument == inst ||
-                    (selectedInstrument.isEmpty && inst == 'L (IA.01, IA.02)');
+        ),
+      );
+    }
 
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: InkWell(
-                    onTap: () => onChanged(inst),
-                    borderRadius: BorderRadius.circular(6),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            isSelected ? const Color(0xFFEFF6FF) : Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: isSelected
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFFCBD5E1),
-                          width: isSelected ? 1.4 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            isSelected
-                                ? LucideIcons.check_circle_2
-                                : LucideIcons.circle,
-                            size: 13,
-                            color: isSelected
-                                ? const Color(0xFF2563EB)
-                                : const Color(0xFF94A3B8),
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            inst,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.w500,
-                              color: isSelected
-                                  ? const Color(0xFF1D4ED8)
-                                  : const Color(0xFF475569),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(6),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: value ? const Color(0xFFEFF6FF) : Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: value ? const Color(0xFF2563EB) : const Color(0xFFCBD5E1),
+            width: value ? 1.4 : 1,
           ),
-        ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              value ? LucideIcons.check_square : LucideIcons.square,
+              size: 15,
+              color: value ? const Color(0xFF2563EB) : const Color(0xFF94A3B8),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: value ? FontWeight.bold : FontWeight.w500,
+                color: value ? const Color(0xFF1D4ED8) : const Color(0xFF475569),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
