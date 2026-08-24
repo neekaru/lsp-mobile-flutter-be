@@ -349,14 +349,14 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
                 const SizedBox(width: 12),
 
                 // Title & Subtitle
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
                         children: [
-                          Text(
+                          const Text(
                             'LSP AI Assistant',
                             style: TextStyle(
                               color: Colors.white,
@@ -365,20 +365,20 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
                               letterSpacing: -0.2,
                             ),
                           ),
-                          SizedBox(width: 6),
+                          const SizedBox(width: 6),
                           // Online pill
                           Container(
                             width: 8,
                             height: 8,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: Color(0xFF10B981),
                               shape: BoxShape.circle,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 2),
-                      Text(
+                      const SizedBox(height: 2),
+                      const Text(
                         'Asisten Cerdas Asesor • Automation n8n Ready',
                         style: TextStyle(
                           color: Color(0xCCFFFFFF),
