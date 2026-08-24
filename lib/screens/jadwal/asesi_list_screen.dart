@@ -664,7 +664,10 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                     MaterialPageRoute(
                       builder: (context) => AsesorDetailAsesiScreen(
                         asesiId: item.id,
+                        namaAsesi: item.namaLengkap,
                         jadwalId: widget.jadwalId,
+                        jadwal: widget.jadwalTitle,
+                        tuk: widget.tuk ?? '',
                       ),
                     ),
                   ).then((_) => _fetchAsesiData());

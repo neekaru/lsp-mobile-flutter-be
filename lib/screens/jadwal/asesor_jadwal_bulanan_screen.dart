@@ -57,14 +57,12 @@ class _AsesorJadwalBulananScreenState extends State<AsesorJadwalBulananScreen> {
     } else {
       setState(() {
         _filteredJadwal = _allJadwal.where((j) {
-          final nama = j.namaJadwal.toLowerCase();
+          final skema = j.skema.toLowerCase();
           final tuk = j.tuk.toLowerCase();
           final status = j.statusJadwal.toLowerCase();
-          final skema = j.skema.toLowerCase();
-          return nama.contains(query) ||
+          return skema.contains(query) ||
               tuk.contains(query) ||
-              status.contains(query) ||
-              skema.contains(query);
+              status.contains(query);
         }).toList();
       });
     }
@@ -144,7 +142,7 @@ class _AsesorJadwalBulananScreenState extends State<AsesorJadwalBulananScreen> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final int totalSpt = _allJadwal.isNotEmpty ? _allJadwal.length : widget.initialSptCount;
     final int totalAsesi = _allJadwal.isNotEmpty
-        ? _allJadwal.fold<int>(0, (sum, item) => sum + item.jumlahPeserta)
+        ? _allJadwal.fold<int>(0, (sum, item) => sum + item.jumlahAsesi)
         : widget.initialAsesiCount;
 
     return Scaffold(
@@ -457,9 +455,9 @@ class _AsesorJadwalBulananScreenState extends State<AsesorJadwalBulananScreen> {
 
                 const SizedBox(height: 10),
 
-                // Nama Jadwal
+                // Nama Jadwal (Skema)
                 Text(
-                  j.namaJadwal,
+                  j.skema,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -506,7 +504,7 @@ class _AsesorJadwalBulananScreenState extends State<AsesorJadwalBulananScreen> {
                     const Icon(LucideIcons.users, size: 14, color: Color(0xFF0D9488)),
                     const SizedBox(width: 6),
                     Text(
-                      '${j.jumlahPeserta} Asesi Terdaftar',
+                      '${j.jumlahAsesi} Asesi Terdaftar',
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,

@@ -317,6 +317,7 @@ class _AsesorRekapKinerjaSectionState extends State<AsesorRekapKinerjaSection> {
         final item = monthMap[monthNum];
         final sptCount = item?.jumlahSpt ?? 0;
         final asesiCount = item?.jumlahAsesi ?? 0;
+        final hasActivity = sptCount > 0 || asesiCount > 0;
         return Material(
           color: Colors.transparent,
           child: InkWell(

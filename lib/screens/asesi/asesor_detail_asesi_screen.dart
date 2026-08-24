@@ -13,14 +13,16 @@ class AsesorDetailAsesiScreen extends StatefulWidget {
   final String skema;
   final String tuk;
   final String jadwal;
+  final int? jadwalId;
 
   const AsesorDetailAsesiScreen({
     super.key,
     required this.asesiId,
-    required this.namaAsesi,
+    this.namaAsesi = '',
     this.skema = '',
     this.tuk = '',
     this.jadwal = '',
+    this.jadwalId,
   });
 
   @override
