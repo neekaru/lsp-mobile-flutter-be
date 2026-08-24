@@ -1,7 +1,7 @@
 name: lsp_digital_mobile
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.2.1-beta.91+121
+version: 1.2.1-beta.92+122
 
 environment:
   sdk: ^3.11.1

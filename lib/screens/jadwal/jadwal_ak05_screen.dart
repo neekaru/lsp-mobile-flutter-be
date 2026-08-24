@@ -317,7 +317,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
                   children: [
                     _buildCountChip('Kompeten', data.peserta.where((p) => p.rekomendasiAsesor == '1').length, const Color(0xFF16A34A)),
                     _buildCountChip('Belum Kompeten', data.peserta.where((p) => p.rekomendasiAsesor == '2').length, const Color(0xFFDC2626)),
-                    _buildCountChip('Belum Dinilai', data.peserta.where((p) => p.rekomendasiAsesor != '1' && p.rekomendasiAsesor != '2').length, const Color(0xFF94A3B8)),
+                    _buildCountChip('Belum Rekomendasi', data.peserta.where((p) => p.rekomendasiAsesor != '1' && p.rekomendasiAsesor != '2').length, const Color(0xFF94A3B8)),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -500,7 +500,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
                       DropdownMenuItem(
                         value: '0',
                         child: Text(
-                          'Belum Dinilai',
+                          'Belum Rekomendasi',
                           style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                         ),
                       ),
@@ -528,7 +528,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
                           } else if (val == '2') {
                             p.rekomendasiLabel = 'Belum Kompeten';
                           } else {
-                            p.rekomendasiLabel = 'Belum Dinilai';
+                            p.rekomendasiLabel = 'Belum Rekomendasi';
                           }
                         });
                       }

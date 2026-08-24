@@ -132,7 +132,7 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
         ? _detailData!.noPeserta
         : 'PES-${widget.asesiId.toString().padLeft(4, '0')}';
     final String nik = _detailData?.nik ?? '-';
-    final String rekomendasi = _detailData?.rekomendasiAsesor ?? 'Belum Dinilai';
+    final String rekomendasi = _detailData?.rekomendasiAsesor ?? 'Belum Rekomendasi';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),

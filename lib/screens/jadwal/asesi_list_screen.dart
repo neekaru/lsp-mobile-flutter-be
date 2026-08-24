@@ -100,7 +100,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     } else if (status == 'BK') {
       return 'Belum Kompeten';
     } else {
-      return 'Belum Dinilai';
+      return 'Belum Rekomendasi';
     }
   }
 

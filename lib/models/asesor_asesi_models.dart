@@ -61,7 +61,7 @@ class AsesorAsesiItem {
       jadwalTanggal: json['jadwal_tanggal'] as String? ?? '',
       idTuk: json['id_tuk'] as int? ?? 0,
       tukNama: json['tuk_nama'] as String? ?? '',
-      rekomendasiAsesor: json['rekomendasi_asesor'] as String? ?? 'Belum Dinilai',
+      rekomendasiAsesor: json['rekomendasi_asesor'] as String? ?? 'Belum Rekomendasi',
       isKompeten: json['is_kompeten'] as String? ?? '',
       fotoProfil: json['foto_profil'] as String?,
       fotoProfilUrl: json['foto_profil_url'] as String?,
@@ -207,7 +207,7 @@ class AsesorAsesiDetailData {
     required this.tukNama,
     required this.rekomendasiAsesor,
     this.rekomendasiAsesorCode = '0',
-    this.rekomendasiAsesorLabel = 'Belum Dinilai',
+    this.rekomendasiAsesorLabel = 'Belum Rekomendasi',
     required this.isKompeten,
     this.pesanAsesor = '',
     this.catatanAsesor = '',
@@ -222,7 +222,7 @@ class AsesorAsesiDetailData {
   });
 
   factory AsesorAsesiDetailData.fromJson(Map<String, dynamic> json) {
-    final rawRekom = json['rekomendasi_asesor'] as String? ?? 'Belum Dinilai';
+    final rawRekom = json['rekomendasi_asesor'] as String? ?? 'Belum Rekomendasi';
     final rekomCode = json['rekomendasi_asesor_code']?.toString() ??
         (rawRekom == 'Kompeten' ? '1' : (rawRekom == 'Belum Kompeten' ? '2' : '0'));
     final rekomLabel = json['rekomendasi_asesor_label'] as String? ?? rawRekom;
@@ -606,8 +606,8 @@ class AK02Data {
     required this.hasilEsai,
     required this.komentarObservasi,
     this.rekomendasiAsesor = '0',
-    this.rekomendasi = 'Belum Dinilai',
-    this.rekomendasiLabel = 'Belum Dinilai',
+    this.rekomendasi = 'Belum Rekomendasi',
+    this.rekomendasiLabel = 'Belum Rekomendasi',
     this.pesan = '',
     this.catatan = '',
     this.saranTindakLanjut = '',
@@ -616,7 +616,7 @@ class AK02Data {
   factory AK02Data.fromJson(Map<String, dynamic> json) {
     final rawRekom = json['rekomendasi'] as String? ??
         json['rekomendasi_label'] as String? ??
-        'Belum Dinilai';
+        'Belum Rekomendasi';
     final rawCode = json['rekomendasi_asesor']?.toString() ??
         (rawRekom == 'Kompeten' ? '1' : (rawRekom == 'Belum Kompeten' ? '2' : '0'));
     final pesanText = json['pesan'] as String? ??
@@ -815,7 +815,7 @@ class JadwalAK05PesertaItem {
       } else if (rawCode == '2') {
         label = 'Belum Kompeten';
       } else {
-        label = 'Belum Dinilai';
+        label = 'Belum Rekomendasi';
       }
     }
     return JadwalAK05PesertaItem(

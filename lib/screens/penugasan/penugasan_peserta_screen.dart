@@ -107,7 +107,7 @@ class _PenugasanPesertaScreenState extends State<PenugasanPesertaScreen> {
     } else if (status == 'BK') {
       return 'Belum Kompeten';
     } else {
-      return 'Belum Dinilai';
+      return 'Belum Rekomendasi';
     }
   }
 
