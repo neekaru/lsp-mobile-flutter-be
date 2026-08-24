@@ -6,6 +6,7 @@ import '../../utils/api_routes.dart';
 import '../../models/dashboard_models.dart';
 import '../../models/asesor_statistik_models.dart';
 import '../../models/asesor_asesi_models.dart';
+import '../../models/jadwal_models.dart';
 
 // ============================================================================
 // Asesor Service
@@ -907,6 +908,33 @@ class AsesorService {
     } catch (e) {
       debugPrint('🔴 Error saving Jadwal AK-06: $e');
       return null;
+    }
+  }
+
+  /// Get list of Jadwal Asesor filtered by Tahun and Bulan (e.g. from Rincian Bulanan Statistik)
+  /// GET /api/asesor/jadwal?tahun=2026&bulan=1
+  static Future<List<JadwalItem>> getAsesorJadwalBulanan({
+    required int tahun,
+    required int bulan,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiRoutes.asesorJadwal,
+        queryParameters: {
+          'tahun': tahun,
+          'bulan': bulan,
+        },
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data['data'] ?? [];
+        return data
+            .map((item) => JadwalItem.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error fetching asesor jadwal bulanan ($tahun-$bulan): $e');
+      return [];
     }
   }
 }

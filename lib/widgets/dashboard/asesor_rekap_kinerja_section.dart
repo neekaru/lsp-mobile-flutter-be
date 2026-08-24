@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../models/asesor_statistik_models.dart';
 import '../../services/asesor/asesor_service.dart';
 import '../../utils/date_format_helper.dart';
+import '../../screens/jadwal/asesor_jadwal_bulanan_screen.dart';
 
 class AsesorRekapKinerjaSection extends StatefulWidget {
   final int tahun;
@@ -316,82 +317,111 @@ class _AsesorRekapKinerjaSectionState extends State<AsesorRekapKinerjaSection> {
         final item = monthMap[monthNum];
         final sptCount = item?.jumlahSpt ?? 0;
         final asesiCount = item?.jumlahAsesi ?? 0;
-        final hasActivity = sptCount > 0 || asesiCount > 0;
-
-        return Container(
-          decoration: BoxDecoration(
-            color: hasActivity ? const Color(0xFFF8FAFC) : const Color(0xFFFAFAFA),
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AsesorJadwalBulananScreen(
+                    tahun: widget.tahun,
+                    bulan: monthNum,
+                    namaBulan: monthLabels[index],
+                    initialSptCount: sptCount,
+                    initialAsesiCount: asesiCount,
+                  ),
+                ),
+              );
+            },
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: hasActivity
-                  ? const Color(0xFF93C5FD)
-                  : const Color(0xFFE2E8F0),
-              width: hasActivity ? 1.2 : 1.0,
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                monthLabels[index],
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
+            child: Container(
+              decoration: BoxDecoration(
+                color: hasActivity ? const Color(0xFFF8FAFC) : const Color(0xFFFAFAFA),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
                   color: hasActivity
-                      ? const Color(0xFF1D4ED8)
-                      : const Color(0xFF64748B),
+                      ? const Color(0xFF93C5FD)
+                      : const Color(0xFFE2E8F0),
+                  width: hasActivity ? 1.2 : 1.0,
                 ),
               ),
-              Row(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // SPT Count
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(
-                        Icons.description_outlined,
-                        size: 11,
-                        color: Color(0xFF2563EB),
-                      ),
-                      const SizedBox(width: 2),
                       Text(
-                        '$sptCount',
+                        monthLabels[index],
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: hasActivity
-                              ? const Color(0xFF1E293B)
-                              : const Color(0xFF94A3B8),
+                              ? const Color(0xFF1D4ED8)
+                              : const Color(0xFF64748B),
                         ),
                       ),
+                      if (hasActivity)
+                        const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 8.5,
+                          color: Color(0xFF93C5FD),
+                        ),
                     ],
                   ),
-                  // Asesi Count
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(
-                        Icons.people_outline,
-                        size: 11,
-                        color: Color(0xFF0D9488),
+                      // SPT Count
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.description_outlined,
+                            size: 11,
+                            color: Color(0xFF2563EB),
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '$sptCount',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: hasActivity
+                                  ? const Color(0xFF1E293B)
+                                  : const Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 2),
-                      Text(
-                        '$asesiCount',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          color: hasActivity
-                              ? const Color(0xFF0D9488)
-                              : const Color(0xFF94A3B8),
-                        ),
+                      // Asesi Count
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.people_outline,
+                            size: 11,
+                            color: Color(0xFF0D9488),
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '$asesiCount',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: hasActivity
+                                  ? const Color(0xFF0D9488)
+                                  : const Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         );
       },
