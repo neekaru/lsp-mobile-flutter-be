@@ -98,48 +98,61 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
         ),
         const SizedBox(height: 28),
 
-        // 2. Jadwal Asessmen Hari Ini Section Header
+        // 2. Jadwal Asesmen Hari Ini Section Header
         AsesorSectionHeader(
-          title: 'Jadwal Asessmen Hari Ini',
+          title: 'Jadwal Asesmen Hari Ini',
           onTapLihatSemua: _openJadwalScreen,
         ),
         const SizedBox(height: 12),
 
-        // Jadwal Hari Ini Cards
-        if (widget.data == null || widget.data!.jadwalHariIni.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.calendar_today_rounded, color: Color(0xFF94A3B8), size: 36),
-                SizedBox(height: 8),
-                Text(
-                  'Tidak ada jadwal asesmen hari ini',
-                  style: TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+        // Jadwal Hari Ini Cards (Filter running only, exclude draft)
+        () {
+          final runningList = widget.data?.jadwalHariIni
+                  .where((item) =>
+                      item.status.toLowerCase() != 'draft' &&
+                      item.status != '0' &&
+                      item.status != '1' &&
+                      item.status.toLowerCase() != 'waiting')
+                  .toList() ??
+              [];
+
+          if (runningList.isEmpty) {
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.calendar_today_rounded,
+                      color: Color(0xFF94A3B8), size: 36),
+                  SizedBox(height: 8),
+                  Text(
+                    'Tidak ada jadwal asesmen hari ini',
+                    style: TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          )
-        else
-          Column(
-            children: widget.data!.jadwalHariIni
+                ],
+              ),
+            );
+          }
+
+          return Column(
+            children: runningList
                 .map((item) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: AsesorJadwalHariIniCard(item: item),
                     ))
                 .toList(),
-          ),
+          );
+        }(),
         const SizedBox(height: 28),
 
         // 3. Jadwal Belum Lengkap Section Header

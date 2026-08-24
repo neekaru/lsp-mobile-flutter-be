@@ -19,6 +19,7 @@ import '../../widgets/dashboard/public_sertifikat_card.dart';
 import '../../widgets/dashboard/tentang_kami_section.dart';
 import '../../widgets/dashboard/bantuan_informasi_section.dart';
 import '../profile/honor_asesor_screen.dart';
+import '../profile/profile_asesor_screen.dart';
 import '../blanko/admin_pengajuan_blanko_screen.dart';
 import '../../utils/url_helper.dart';
 
@@ -206,60 +207,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 final photoUrl = (rawPhoto != null && rawPhoto.isNotEmpty)
                                     ? UrlHelper.resolveUrl(rawPhoto)
                                     : null;
-                                return Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.6),
-                                      width: 2,
-                                    ),
-                                    color: Colors.white,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.08),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
+                                return GestureDetector(
+                                  onTap: isAsesor
+                                      ? () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const ProfileAsesorScreen(),
+                                            ),
+                                          );
+                                        }
+                                      : null,
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white.withValues(alpha: 0.6),
+                                        width: 2,
                                       ),
-                                    ],
-                                  ),
-                                  child: ClipOval(
-                                    child: photoUrl != null
-                                        ? Image.network(
-                                            photoUrl,
-                                            width: 48,
-                                            height: 48,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) => const Icon(
+                                      color: Colors.white,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.08),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipOval(
+                                      child: photoUrl != null
+                                          ? Image.network(
+                                              photoUrl,
+                                              width: 48,
+                                              height: 48,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) => const Icon(
+                                                Icons.person_rounded,
+                                                size: 32,
+                                                color: Color(0xFFCBD5E1),
+                                              ),
+                                            )
+                                          : const Icon(
                                               Icons.person_rounded,
                                               size: 32,
                                               color: Color(0xFFCBD5E1),
                                             ),
-                                          )
-                                        : const Icon(
-                                            Icons.person_rounded,
-                                            size: 32,
-                                            color: Color(0xFFCBD5E1),
-                                          ),
+                                    ),
                                   ),
                                 );
                               },
                             ),
                             const SizedBox(width: 14),
-                            // Hallo, Nama User
+                            // Hallo / Selamat Datang Asesor, Nama User
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isAsesor ? 'Hallo' : 'Hallo,',
+                                    isAsesor
+                                        ? 'Selamat Datang Asesor'
+                                        : 'Hallo,',
                                     style: const TextStyle(
-                                      color: Color(
-                                        0xE6FFFFFF,
-                                      ), // white with 0.9 opacity
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xE6FFFFFF),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -278,17 +292,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  if (isAsesor) ...[
-                                    const SizedBox(height: 2),
-                                    const Text(
-                                      'Selamat Datang Asessor',
-                                      style: TextStyle(
-                                        color: Color(0xE6FFFFFF),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
                                 ],
                               ),
                             ),
@@ -424,7 +427,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ],
                           if (!isGuest) ...[
-                            const SizedBox(width: 8),
+                            if (isAsesor) ...[
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const ProfileAsesorScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.3),
+                                      width: 1.2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.person_rounded,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
                             const NotificationBell(),
                           ],
                         ],

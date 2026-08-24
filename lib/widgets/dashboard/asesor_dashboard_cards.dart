@@ -135,33 +135,66 @@ class AsesorJadwalHariIniCard extends StatelessWidget {
               width: 70,
               height: 70,
               decoration: BoxDecoration(
-                color: const Color(0xFFE2F0FD),
+                color: item.isAJJ
+                    ? const Color(0xFFEFF6FF)
+                    : const Color(0xFFE2F0FD),
                 borderRadius: BorderRadius.circular(12),
+                border: item.isAJJ
+                    ? Border.all(color: const Color(0xFFBFDBFE), width: 1.2)
+                    : null,
               ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  const Icon(
-                    Icons.calendar_month_rounded,
-                    color: Color(0xFF3F8CFF),
-                    size: 40,
-                  ),
-                  Positioned(
-                    bottom: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.calendar_month_rounded,
+                        color: const Color(0xFF3F8CFF),
+                        size: item.isAJJ ? 28 : 40,
                       ),
-                      child: const Icon(
-                        Icons.edit_rounded,
-                        color: Color(0xFF3F8CFF),
-                        size: 14,
+                      if (item.isAJJ) ...[
+                        const SizedBox(height: 3),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2563EB),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'AJJ',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (!item.isAJJ)
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.edit_rounded,
+                          color: Color(0xFF3F8CFF),
+                          size: 14,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -174,10 +207,12 @@ class AsesorJadwalHariIniCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Asesmen Mandiri',
-                          style: TextStyle(
+                          item.isAJJ
+                              ? 'Asesmen Jarak Jauh (AJJ)'
+                              : 'Asesmen Mandiri',
+                          style: const TextStyle(
                             color: Color(0xFF0F172A),
                             fontSize: 14.5,
                             fontWeight: FontWeight.bold,
@@ -220,7 +255,9 @@ class AsesorJadwalHariIniCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    item.waktu,
+                    (item.waktu.isNotEmpty && item.waktu != '0')
+                        ? item.waktu
+                        : 'Waktu Pelaksanaan',
                     style: const TextStyle(
                       color: Color(0xFF0F172A),
                       fontSize: 13,
@@ -384,6 +421,32 @@ class AsesorJadwalBelumLengkapCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (task.isAJJ) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: const Color(0xFFBFDBFE),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: const Text(
+                              'AJJ',
+                              style: TextStyle(
+                                color: Color(0xFF1D4ED8),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -576,55 +639,15 @@ class AsesorDashboardHeaderCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row: Title & Masa Aktif Asesor pill
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                'Dashboard Asesor',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              // Masa Aktif Asesor pill
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  border: Border.all(
-                    color: const Color(0x99FFFFFF), // white with 0.6 opacity
-                    width: 1.2,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.verified_user_rounded,
-                      color: Colors.white,
-                      size: 13,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Masa Aktif: $formattedExp',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          // Header Row: Title
+          const Text(
+            'Dashboard Asesor',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.3,
+            ),
           ),
           const SizedBox(height: 12),
           // Deskripsi Pemeliharaan Kompetensi / RCC Banner
@@ -680,6 +703,27 @@ class AsesorDashboardHeaderCard extends StatelessWidget {
                           fontSize: 11,
                         ),
                       ),
+                      if (formattedExp.isNotEmpty && formattedExp != '-') ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.event_available_rounded,
+                              color: Color(0xFF6EE7B7),
+                              size: 13,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Masa Aktif: $formattedExp',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

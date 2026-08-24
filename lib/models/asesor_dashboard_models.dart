@@ -84,6 +84,7 @@ class AsesorDashboardJadwal {
   final String waktu;
   final String tuk;
   final String status;
+  final String? jenisUji;
 
   const AsesorDashboardJadwal({
     required this.idJadwal,
@@ -92,7 +93,23 @@ class AsesorDashboardJadwal {
     required this.waktu,
     required this.tuk,
     required this.status,
+    this.jenisUji,
   });
+
+  bool get isAJJ => isSjj;
+  bool get isSjj {
+    if (jenisUji?.trim() == '1' || jenisUji?.trim().toUpperCase() == 'AJJ' || jenisUji?.trim().toLowerCase() == 'online') {
+      return true;
+    }
+    final s = skema.toUpperCase();
+    final t = tuk.toUpperCase();
+    return s.contains('AJJ') ||
+        s.contains('JARAK JAUH') ||
+        s.contains('ONLINE') ||
+        t.contains('AJJ') ||
+        t.contains('JARAK JAUH') ||
+        t.contains('ONLINE');
+  }
 
   factory AsesorDashboardJadwal.fromJson(Map<String, dynamic> json) {
     return AsesorDashboardJadwal(
@@ -102,6 +119,7 @@ class AsesorDashboardJadwal {
       waktu: json['waktu'] ?? '',
       tuk: json['tuk'] ?? '',
       status: json['status']?.toString() ?? '0',
+      jenisUji: json['jenis_uji']?.toString(),
     );
   }
 
@@ -117,6 +135,7 @@ class AsesorDashboardJadwal {
       jumlahAsesi: 0,
       asesor: const [],
       sisaHari: 0,
+      jenisUji: jenisUji,
     );
   }
 }
@@ -127,6 +146,7 @@ class AsesorDashboardTugas {
   final String title;
   final String subtitle;
   final String type;
+  final String? jenisUji;
 
   const AsesorDashboardTugas({
     required this.idTugas,
@@ -134,7 +154,23 @@ class AsesorDashboardTugas {
     required this.title,
     required this.subtitle,
     required this.type,
+    this.jenisUji,
   });
+
+  bool get isAJJ => isSjj;
+  bool get isSjj {
+    if (jenisUji?.trim() == '1' || jenisUji?.trim().toUpperCase() == 'AJJ' || jenisUji?.trim().toLowerCase() == 'online') {
+      return true;
+    }
+    final s = subtitle.toUpperCase();
+    final t = title.toUpperCase();
+    return s.contains('AJJ') ||
+        s.contains('JARAK JAUH') ||
+        s.contains('ONLINE') ||
+        t.contains('AJJ') ||
+        t.contains('JARAK JAUH') ||
+        t.contains('ONLINE');
+  }
 
   factory AsesorDashboardTugas.fromJson(Map<String, dynamic> json) {
     final rawIdTugas = json['id_tugas'];
@@ -155,6 +191,7 @@ class AsesorDashboardTugas {
       title: json['title']?.toString() ?? '',
       subtitle: json['subtitle']?.toString() ?? '',
       type: json['type']?.toString() ?? '',
+      jenisUji: json['jenis_uji']?.toString(),
     );
   }
 
@@ -171,6 +208,7 @@ class AsesorDashboardTugas {
       jumlahAsesi: 0,
       asesor: const [],
       sisaHari: 0,
+      jenisUji: jenisUji,
     );
   }
 }

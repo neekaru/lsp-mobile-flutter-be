@@ -80,8 +80,8 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
                 ),
                 _buildMenuItem(
                   index: 5,
-                  icon: Icons.person_rounded,
-                  label: 'Profil',
+                  icon: Icons.campaign_rounded,
+                  label: 'Marketing',
                   isAsesor: true,
                 ),
               ]
