@@ -830,6 +830,47 @@ class JadwalAK05PesertaItem {
   }
 }
 
+class JadwalAK05AsesorItem {
+  final int idMapping;
+  final int idJadwal;
+  final int idAsesor;
+  final String namaAsesor;
+  final String noReg;
+  final String masaAktif;
+  final String linkRekaman;
+  final int totalK;
+  final int totalBk;
+  final int totalBelum;
+
+  JadwalAK05AsesorItem({
+    required this.idMapping,
+    required this.idJadwal,
+    required this.idAsesor,
+    required this.namaAsesor,
+    required this.noReg,
+    required this.masaAktif,
+    required this.linkRekaman,
+    required this.totalK,
+    required this.totalBk,
+    required this.totalBelum,
+  });
+
+  factory JadwalAK05AsesorItem.fromJson(Map<String, dynamic> json) {
+    return JadwalAK05AsesorItem(
+      idMapping: json['id_mapping'] as int? ?? 0,
+      idJadwal: json['id_jadwal'] as int? ?? 0,
+      idAsesor: json['id_asesor'] as int? ?? 0,
+      namaAsesor: json['nama_asesor'] as String? ?? '',
+      noReg: json['no_reg'] as String? ?? '-',
+      masaAktif: json['masa_aktif'] as String? ?? '-',
+      linkRekaman: json['link_rekaman'] as String? ?? '',
+      totalK: json['total_k'] as int? ?? 0,
+      totalBk: json['total_bk'] as int? ?? 0,
+      totalBelum: json['total_belum'] as int? ?? 0,
+    );
+  }
+}
+
 class JadwalAK05DetailData {
   final int jadwalId;
   final String namaJadwal;
@@ -840,12 +881,14 @@ class JadwalAK05DetailData {
   final String kuota;
   final String skVerifikasiTuk;
   final String linkFolderRekaman;
+  final String linkRekamanAsesor;
   final String linkVertuk;
   final String namaAsesor;
   final int totalPeserta;
   final int totalKompeten;
   final int totalBelumKompeten;
   final int totalBelumDinilai;
+  final List<JadwalAK05AsesorItem> daftarAsesor;
   final List<JadwalAK05PesertaItem> peserta;
   final String pencapaian;
   final String unitBk;
@@ -864,12 +907,14 @@ class JadwalAK05DetailData {
     required this.kuota,
     required this.skVerifikasiTuk,
     required this.linkFolderRekaman,
+    required this.linkRekamanAsesor,
     required this.linkVertuk,
     required this.namaAsesor,
     required this.totalPeserta,
     required this.totalKompeten,
     required this.totalBelumKompeten,
     required this.totalBelumDinilai,
+    required this.daftarAsesor,
     required this.peserta,
     required this.pencapaian,
     required this.unitBk,
@@ -887,6 +932,15 @@ class JadwalAK05DetailData {
           .map((e) => JadwalAK05PesertaItem.fromJson(e as Map<String, dynamic>))
           .toList();
     }
+
+    final rawAsesor = json['daftar_asesor'];
+    List<JadwalAK05AsesorItem> asesorList = [];
+    if (rawAsesor is List) {
+      asesorList = rawAsesor
+          .map((e) => JadwalAK05AsesorItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+
     return JadwalAK05DetailData(
       jadwalId: json['jadwal_id'] as int? ?? 0,
       namaJadwal: json['nama_jadwal'] as String? ?? '',
@@ -897,12 +951,14 @@ class JadwalAK05DetailData {
       kuota: json['kuota'] as String? ?? '20 Peserta',
       skVerifikasiTuk: json['sk_verifikasi_tuk'] as String? ?? '-',
       linkFolderRekaman: json['link_folder_rekaman'] as String? ?? '',
+      linkRekamanAsesor: json['link_rekaman_asesor'] as String? ?? '',
       linkVertuk: json['link_vertuk'] as String? ?? '',
       namaAsesor: json['nama_asesor'] as String? ?? '',
       totalPeserta: json['total_peserta'] as int? ?? pesertaList.length,
       totalKompeten: json['total_kompeten'] as int? ?? 0,
       totalBelumKompeten: json['total_belum_kompeten'] as int? ?? 0,
       totalBelumDinilai: json['total_belum_dinilai'] as int? ?? 0,
+      daftarAsesor: asesorList,
       peserta: pesertaList,
       pencapaian: json['pencapaian'] as String? ?? '',
       unitBk: json['unit_bk'] as String? ?? '',

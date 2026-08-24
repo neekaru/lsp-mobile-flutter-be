@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -27,6 +28,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
   String _errorMessage = '';
   JadwalAK05DetailData? _detailData;
 
+  late TextEditingController _linkRekamanController;
   late TextEditingController _pencapaianController;
   late TextEditingController _unitBkController;
   late TextEditingController _saranController;
@@ -36,6 +38,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
   @override
   void initState() {
     super.initState();
+    _linkRekamanController = TextEditingController();
     _pencapaianController = TextEditingController();
     _unitBkController = TextEditingController();
     _saranController = TextEditingController();
@@ -46,6 +49,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
 
   @override
   void dispose() {
+    _linkRekamanController.dispose();
     _pencapaianController.dispose();
     _unitBkController.dispose();
     _saranController.dispose();
@@ -65,6 +69,9 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
         final data = JadwalAK05DetailData.fromJson(res['data'] as Map<String, dynamic>);
         setState(() {
           _detailData = data;
+          _linkRekamanController.text = data.linkRekamanAsesor.isNotEmpty
+              ? data.linkRekamanAsesor
+              : data.linkFolderRekaman;
           _pencapaianController.text = data.pencapaian;
           _unitBkController.text = data.unitBk;
           _saranController.text = data.saranTindakLanjut;
@@ -105,6 +112,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
       }).toList();
 
       final payload = {
+        'link_rekaman_asesmen': _linkRekamanController.text.trim(),
         'pencapaian': _pencapaianController.text.trim(),
         'unit_bk': _unitBkController.text.trim(),
         'saran_tindak_lanjut': _saranController.text.trim(),
@@ -213,7 +221,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Card 1: Informasi Asesmen & Link ──────────────────────────────────
+          // ── Card 1: Informasi Asesmen & Link Folder ──────────────────────────
           FormSectionCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,41 +241,407 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
                 AsesiDetailRow('TUK', data.tuk.isNotEmpty ? data.tuk : '-'),
                 AsesiDetailRow('Kuota & Tanggal', '${data.kuota} • ${data.tanggal}'),
                 AsesiDetailRow('SK Verifikasi TUK', data.skVerifikasiTuk),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
 
-                // Link Folder Rekaman (disatukan)
+                // Link Folder Rekaman Cloud LSP
                 if (data.linkFolderRekaman.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  InkWell(
-                    onTap: () => _launchURL(data.linkFolderRekaman),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFBFDBFE)),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Link Folder Rekaman :',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF64748B),
+                        ),
                       ),
-                      child: const Row(
-                        children: [
-                          Icon(LucideIcons.folder, size: 18, color: Color(0xFF2563EB)),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'Buka Folder Rekaman Asesmen',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF2563EB),
-                              ),
-                            ),
+                      const SizedBox(width: 8),
+                      InkWell(
+                        onTap: () => _launchURL(data.linkFolderRekaman),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFBFDBFE)),
                           ),
-                          Icon(LucideIcons.external_link, size: 16, color: Color(0xFF2563EB)),
-                        ],
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(LucideIcons.cloud, size: 14, color: Color(0xFF2563EB)),
+                              SizedBox(width: 4),
+                              Text(
+                                'Link Folder Cloud',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      InkWell(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: data.linkFolderRekaman));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Link Folder Cloud berhasil disalin!'),
+                              backgroundColor: Color(0xFF2563EB),
+                              behavior: SnackBarBehavior.floating,
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFFCBD5E1)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(LucideIcons.copy, size: 13, color: Color(0xFF475569)),
+                              SizedBox(width: 4),
+                              Text(
+                                'Copy',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF475569),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                ],
+
+                // Field Input: Link Rekaman Asesmen
+                const Text(
+                  'Link Rekaman Asesmen :',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFCBD5E1)),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 10),
+                      const Icon(LucideIcons.video, size: 18, color: Color(0xFF64748B)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _linkRekamanController,
+                          style: const TextStyle(fontSize: 12.5, color: Color(0xFF1E293B)),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            hintText: 'https://cloud.lspdigital.id/s/... atau Google Drive',
+                            hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(vertical: 10),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Tempel dari Clipboard',
+                        icon: const Icon(LucideIcons.clipboard, size: 16, color: Color(0xFF64748B)),
+                        onPressed: () async {
+                          final data = await Clipboard.getData('text/plain');
+                          if (data?.text != null && data!.text!.isNotEmpty) {
+                            setState(() {
+                              _linkRekamanController.text = data.text!.trim();
+                            });
+                          }
+                        },
+                      ),
+                      if (_linkRekamanController.text.isNotEmpty)
+                        IconButton(
+                          tooltip: 'Buka Tautan',
+                          icon: const Icon(LucideIcons.external_link, size: 16, color: Color(0xFF2563EB)),
+                          onPressed: () => _launchURL(_linkRekamanController.text.trim()),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Keterangan Box
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '*Keterangan : Link rekaman bisa menggunakan Link Folder Cloud atau Link Google Drive pribadi, pastikan link dapat diakses oleh asesor dan admin.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF475569),
+                          height: 1.35,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'Rekaman berisi :\n1. Hasil Pekerjaan atau Project Asesi\n2. Rekaman Verifikasi TUK, Rekaman Pra Asesmen, Rekaman Asesmen',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF64748B),
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ── Card 1.5: Asesor Bertugas & Link Dokumentasi / Rekaman Uji ─────────
+          FormSectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Asesor Bertugas & Link Rekaman Uji',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '${data.daftarAsesor.isNotEmpty ? data.daftarAsesor.length : 1} Asesor',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2563EB),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const SizedBox(height: 10),
+
+                if (data.daftarAsesor.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '1. ${data.namaAsesor}',
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        if (_linkRekamanController.text.isNotEmpty)
+                          InkWell(
+                            onTap: () => _launchURL(_linkRekamanController.text.trim()),
+                            child: Text(
+                              _linkRekamanController.text.trim(),
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                color: Color(0xFF2563EB),
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          )
+                        else
+                          const Text(
+                            '(Belum ada link rekaman)',
+                            style: TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
+                          ),
+                      ],
+                    ),
+                  )
+                else
+                  ...data.daftarAsesor.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final as = entry.value;
+                    final link = as.linkRekaman.isNotEmpty
+                        ? as.linkRekaman
+                        : (_linkRekamanController.text.isNotEmpty
+                            ? _linkRekamanController.text.trim()
+                            : '');
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 22,
+                                height: 22,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF2563EB),
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '${index + 1}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${as.masaAktif} • ${as.noReg}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF64748B),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      as.namaAsesor,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          // Link Rekaman Asesor
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(LucideIcons.link, size: 14, color: Color(0xFF2563EB)),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: link.isNotEmpty
+                                      ? InkWell(
+                                          onTap: () => _launchURL(link),
+                                          child: Text(
+                                            link,
+                                            style: const TextStyle(
+                                              fontSize: 11.5,
+                                              color: Color(0xFF2563EB),
+                                              fontWeight: FontWeight.w500,
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'Belum ada link rekaman tersimpan',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Color(0xFF94A3B8),
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                ),
+                                if (link.isNotEmpty)
+                                  InkWell(
+                                    onTap: () {
+                                      Clipboard.setData(ClipboardData(text: link));
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Link rekaman berhasil disalin!'),
+                                          backgroundColor: Color(0xFF2563EB),
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    },
+                                    child: const Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 4),
+                                      child: Icon(LucideIcons.copy, size: 14, color: Color(0xFF64748B)),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          // Summary K / BK / Belum
+                          Row(
+                            children: [
+                              _buildCountChip('K', as.totalK, const Color(0xFF16A34A)),
+                              const SizedBox(width: 6),
+                              _buildCountChip('BK', as.totalBk, const Color(0xFFDC2626)),
+                              const SizedBox(width: 6),
+                              _buildCountChip('Belum', as.totalBelum, const Color(0xFF94A3B8)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
               ],
             ),
           ),
