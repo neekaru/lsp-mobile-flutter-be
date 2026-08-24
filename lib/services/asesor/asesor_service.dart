@@ -657,6 +657,27 @@ class AsesorService {
     }
   }
 
+  /// Update Collective / Batch Recommendation for Schedule
+  /// POST /api/asesor/jadwal/:id/rekomendasi-kolektif
+  static Future<bool> updateRekomendasiKolektif({
+    required int jadwalId,
+    required List<Map<String, dynamic>> peserta,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/asesor/jadwal/$jadwalId/rekomendasi-kolektif',
+        data: {
+          'jadwal_id': jadwalId,
+          'peserta': peserta,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('🔴 Error updating collective rekomendasi: $e');
+      return false;
+    }
+  }
+
   /// 22. Update FR-APL.02 / Pra-Asesmen & MAPA Recommendation
   /// PUT /api/asesor/asesi/:id/apl02
   static Future<Map<String, dynamic>?> updateAPL02({

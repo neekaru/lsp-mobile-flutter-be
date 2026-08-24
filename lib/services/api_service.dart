@@ -228,6 +228,14 @@ class ApiService {
   );
   static Future<AsesiListResponse> getAsesiList(int jadwalId) =>
       JadwalService.getAsesiList(jadwalId);
+  static Future<bool> updateRekomendasiKolektif({
+    required int jadwalId,
+    required List<Map<String, dynamic>> peserta,
+  }) =>
+      AsesorService.updateRekomendasiKolektif(
+        jadwalId: jadwalId,
+        peserta: peserta,
+      );
   static Future<ParticipantDetailResponse?> getParticipantDetail(
     int jadwalId,
     int pesertaId,

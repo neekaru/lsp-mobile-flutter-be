@@ -405,16 +405,46 @@ class NotificationMeta {
 class AsesiItem {
   final int id;
   final String namaLengkap;
-  final String? hasilRekomendasi; // 'K', 'BK', or null
+  final String? hasilRekomendasi; // 'K', 'BK', or '-'
+  final String? rekomendasiAsesor; // '1', '2', '0'
+  final String? rekomendasiAsesorLabel;
+  final String? noPeserta;
+  final String? nik;
   final String? kota;
   final String? namaAsesor;
+
+  // Verification indicators
+  final bool isAPL01Valid;
+  final String statusAPL01;
+  final String colorAPL01;
+
+  final bool isAPL02Valid;
+  final String statusAPL02;
+  final String colorAPL02;
+
+  final bool isAK02Valid;
+  final String statusAK02;
+  final String colorAK02;
 
   const AsesiItem({
     required this.id,
     required this.namaLengkap,
     this.hasilRekomendasi,
+    this.rekomendasiAsesor,
+    this.rekomendasiAsesorLabel,
+    this.noPeserta,
+    this.nik,
     this.kota,
     this.namaAsesor,
+    this.isAPL01Valid = false,
+    this.statusAPL01 = 'Belum Lengkap',
+    this.colorAPL01 = 'red',
+    this.isAPL02Valid = false,
+    this.statusAPL02 = 'Belum Lengkap',
+    this.colorAPL02 = 'red',
+    this.isAK02Valid = false,
+    this.statusAK02 = 'Belum Dinilai',
+    this.colorAK02 = 'red',
   });
 
   factory AsesiItem.fromJson(Map<String, dynamic> json) {
@@ -425,18 +455,41 @@ class AsesiItem {
         json['alamat'];
     final kotaStr = rawKota?.toString().trim();
     final asesorStr = json['nama_asesor']?.toString().trim();
+    final rekomCode = json['rekomendasi_asesor']?.toString().trim() ?? '';
+    final hasilRekom = json['hasil_rekomendasi']?.toString().trim() ??
+        (rekomCode == '1' ? 'K' : (rekomCode == '2' ? 'BK' : '-'));
+
     return AsesiItem(
       id: json['id'] ?? 0,
       namaLengkap: json['nama_lengkap'] ?? '',
-      hasilRekomendasi: json['hasil_rekomendasi'],
+      hasilRekomendasi: hasilRekom.isNotEmpty ? hasilRekom : '-',
+      rekomendasiAsesor: rekomCode.isNotEmpty ? rekomCode : null,
+      rekomendasiAsesorLabel: json['rekomendasi_asesor_label'] ?? json['status_penilaian'],
+      noPeserta: json['no_peserta']?.toString(),
+      nik: json['nik']?.toString(),
       kota: (kotaStr != null && kotaStr.isNotEmpty) ? kotaStr : null,
       namaAsesor: (asesorStr != null && asesorStr.isNotEmpty) ? asesorStr : null,
+      isAPL01Valid: json['is_apl01_valid'] == true,
+      statusAPL01: json['status_apl01']?.toString() ?? (json['is_apl01_valid'] == true ? 'Lengkap' : 'Belum Lengkap'),
+      colorAPL01: json['color_apl01']?.toString() ?? (json['is_apl01_valid'] == true ? 'green' : 'red'),
+      isAPL02Valid: json['is_apl02_valid'] == true,
+      statusAPL02: json['status_apl02']?.toString() ?? (json['is_apl02_valid'] == true ? 'Lengkap' : 'Belum Lengkap'),
+      colorAPL02: json['color_apl02']?.toString() ?? (json['is_apl02_valid'] == true ? 'green' : 'red'),
+      isAK02Valid: json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2',
+      statusAK02: json['status_ak02']?.toString() ?? (json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2' ? 'Sudah Dinilai' : 'Belum Dinilai'),
+      colorAK02: json['color_ak02']?.toString() ?? (json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2' ? 'green' : 'red'),
     );
   }
 }
 
 class AsesiMeta {
   final int jadwalId;
+  final String namaJadwal;
+  final String tuk;
+  final String tanggal;
+  final String tanggalAkhir;
+  final String waktuAsesmen;
+  final String lokasiAsesmen;
   final int totalAsesi;
   final int jumlahKompeten;
   final int jumlahBelumKompeten;
@@ -444,6 +497,12 @@ class AsesiMeta {
 
   const AsesiMeta({
     required this.jadwalId,
+    this.namaJadwal = '',
+    this.tuk = '',
+    this.tanggal = '',
+    this.tanggalAkhir = '',
+    this.waktuAsesmen = '',
+    this.lokasiAsesmen = '',
     required this.totalAsesi,
     required this.jumlahKompeten,
     required this.jumlahBelumKompeten,
@@ -453,6 +512,12 @@ class AsesiMeta {
   factory AsesiMeta.fromJson(Map<String, dynamic> json) {
     return AsesiMeta(
       jadwalId: json['jadwal_id'] ?? 0,
+      namaJadwal: json['nama_jadwal'] ?? json['jadwal'] ?? '',
+      tuk: json['tuk'] ?? json['nama_tuk'] ?? '',
+      tanggal: json['tanggal'] ?? json['tanggal_asesmen'] ?? '',
+      tanggalAkhir: json['tanggal_akhir'] ?? '',
+      waktuAsesmen: json['waktu_asesmen'] ?? '',
+      lokasiAsesmen: json['lokasi_asesmen'] ?? '',
       totalAsesi: json['total_asesi'] ?? 0,
       jumlahKompeten: json['jumlah_kompeten'] ?? 0,
       jumlahBelumKompeten: json['jumlah_belum_kompeten'] ?? 0,
@@ -462,13 +527,34 @@ class AsesiMeta {
 }
 
 class AsesiListResponse {
+  final String namaJadwal;
+  final String tuk;
+  final String tanggal;
+  final String tanggalAkhir;
+  final String waktuAsesmen;
+  final String lokasiAsesmen;
   final List<AsesiItem> data;
   final AsesiMeta meta;
 
-  const AsesiListResponse({required this.data, required this.meta});
+  const AsesiListResponse({
+    this.namaJadwal = '',
+    this.tuk = '',
+    this.tanggal = '',
+    this.tanggalAkhir = '',
+    this.waktuAsesmen = '',
+    this.lokasiAsesmen = '',
+    required this.data,
+    required this.meta,
+  });
 
   factory AsesiListResponse.fromJson(Map<String, dynamic> json) {
     return AsesiListResponse(
+      namaJadwal: json['nama_jadwal'] ?? json['jadwal'] ?? '',
+      tuk: json['tuk'] ?? json['nama_tuk'] ?? '',
+      tanggal: json['tanggal'] ?? json['tanggal_asesmen'] ?? '',
+      tanggalAkhir: json['tanggal_akhir'] ?? '',
+      waktuAsesmen: json['waktu_asesmen'] ?? '',
+      lokasiAsesmen: json['lokasi_asesmen'] ?? '',
       data:
           (json['data'] as List<dynamic>?)
               ?.map((item) => AsesiItem.fromJson(item))

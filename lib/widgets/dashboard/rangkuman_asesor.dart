@@ -98,9 +98,9 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
         ),
         const SizedBox(height: 28),
 
-        // 2. Jadwal Asessmen Hari Ini Section Header
+        // 2. Jadwal Asesmen Hari Ini Section Header
         AsesorSectionHeader(
-          title: 'Jadwal Asessmen Hari Ini',
+          title: 'Jadwal Asesmen Hari Ini',
           onTapLihatSemua: _openJadwalScreen,
         ),
         const SizedBox(height: 12),
@@ -176,21 +176,13 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
             ),
           )
         else
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 360),
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.zero,
-              itemCount: widget.data!.jadwalBelumLengkap.length,
-              itemBuilder: (context, index) {
-                final task = widget.data!.jadwalBelumLengkap[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: AsesorJadwalBelumLengkapCard(task: task),
-                );
-              },
-            ),
+          Column(
+            children: widget.data!.jadwalBelumLengkap
+                .map((task) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: AsesorJadwalBelumLengkapCard(task: task),
+                    ))
+                .toList(),
           ),
         const SizedBox(height: 16),
       ],

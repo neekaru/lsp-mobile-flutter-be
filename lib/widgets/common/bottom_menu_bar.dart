@@ -62,18 +62,24 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
                 ),
                 _buildMenuItem(
                   index: 2,
+                  icon: Icons.auto_awesome_rounded,
+                  label: 'AI',
+                  isAsesor: true,
+                ),
+                _buildMenuItem(
+                  index: 3,
                   icon: Icons.bar_chart_rounded,
                   label: 'Statistik',
                   isAsesor: true,
                 ),
                 _buildMenuItem(
-                  index: 3,
+                  index: 4,
                   icon: Icons.groups_rounded,
                   label: 'Asesi',
                   isAsesor: true,
                 ),
                 _buildMenuItem(
-                  index: 4,
+                  index: 5,
                   icon: Icons.person_rounded,
                   label: 'Profil',
                   isAsesor: true,
@@ -186,8 +192,11 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          margin: const EdgeInsets.symmetric(horizontal: 1),
+          padding: EdgeInsets.symmetric(
+            vertical: isAsesor ? 4 : 6,
+            horizontal: isAsesor ? 2 : 4,
+          ),
           decoration: BoxDecoration(
             color: isActive
                 ? activeColor.withValues(alpha: 0.12)
@@ -212,13 +221,13 @@ class _BottomMenuBarState extends State<BottomMenuBar> {
               Icon(
                 icon,
                 color: itemColor,
-                size: isActive ? 26 : 24,
+                size: isAsesor ? (isActive ? 24 : 22) : (isActive ? 26 : 24),
               ),
               const SizedBox(height: 3),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 10.5,
+                  fontSize: isAsesor ? 10.0 : 10.5,
                   fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   color: itemColor,
                 ),

@@ -7,6 +7,7 @@ import '../../screens/dashboard/dashboard_screen.dart';
 import '../../screens/dashboard/statistik_screen.dart';
 import '../../screens/jadwal/jadwal_screen.dart';
 import '../../screens/asesi/asesor_asesi_screen.dart';
+import '../../screens/ai/asesor_ai_screen.dart';
 import '../../screens/statistik/statistik_asesor_screen.dart';
 import '../../screens/profile/profile_admin_screen.dart';
 import '../../screens/profile/profile_asesor_screen.dart';
@@ -63,6 +64,10 @@ class MainNavigatorState extends State<MainNavigator> {
         _screens = [
           DashboardScreen(onNavigateToJadwal: () => setTab(1)),
           JadwalScreen(onBackToHome: () => setTab(0)),
+          AsesorAiScreen(
+            onBackToHome: () => setTab(0),
+            onNavigateToJadwal: () => setTab(1),
+          ),
           StatistikAsesorScreen(onBackToHome: () => setTab(0)),
           AsesorAsesiScreen(onBackToHome: () => setTab(0)),
           ProfileAsesorScreen(onBackToHome: () => setTab(0)),

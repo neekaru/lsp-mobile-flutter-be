@@ -283,6 +283,8 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                         builder: (context) => AsesiListScreen(
                                           jadwalId: widget.jadwal.id,
                                           jadwalTitle: widget.jadwal.skema,
+                                          tanggal: widget.jadwal.tanggalMulai,
+                                          tuk: widget.jadwal.tuk,
                                         ),
                                       ),
                                     );

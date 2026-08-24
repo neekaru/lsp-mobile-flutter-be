@@ -273,63 +273,15 @@ class JadwalDetailAsesorView extends StatelessWidget {
           ActionButtonCard(
             icon: Icons.description_rounded,
             title: 'Lihat Surat Tugas',
-            onTap: () async {
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) =>
-                    const Center(child: CircularProgressIndicator()),
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fitur Surat Tugas belum diimplementasikan.'),
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: Color(0xFF4FA8E8),
+                  duration: Duration(seconds: 2),
+                ),
               );
-              try {
-                final fileUrl = await ApiService.getSuratTugas(
-                  jadwal.id,
-                );
-                if (context.mounted) {
-                  Navigator.pop(context); // Dismiss loading dialog
-                }
-                if (fileUrl != null && fileUrl.isNotEmpty) {
-                  final uri = Uri.parse(fileUrl);
-                  try {
-                    if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-                      return; // Success
-                    }
-                    if (await launchUrl(uri, mode: LaunchMode.platformDefault)) {
-                      return; // Fallback success
-                    }
-                  } catch (e) {
-                    // Launch failed for both modes
-                  }
-                  
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Tidak dapat membuka file PDF Surat Tugas.',
-                        ),
-                        backgroundColor: Color(0xFFDC2626),
-                        behavior: SnackBarBehavior.floating,
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  }
-                } else if (context.mounted) {
-                  throw Exception('Surat tugas belum tersedia');
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  Navigator.pop(context); // Dismiss loading dialog
-                }
-                final errorMsg = e.toString().replaceAll('Exception: ', '');
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(errorMsg),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: Colors.redAccent,
-                    ),
-                  );
-                }
-              }
             },
           ),
           const SizedBox(height: 12),
@@ -345,6 +297,8 @@ class JadwalDetailAsesorView extends StatelessWidget {
                   builder: (context) => AsesiListScreen(
                     jadwalId: jadwal.id,
                     jadwalTitle: jadwal.skema,
+                    tanggal: jadwal.tanggalMulai,
+                    tuk: jadwal.tuk,
                   ),
                 ),
               );
