@@ -635,8 +635,8 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              value ? LucideIcons.check_square : LucideIcons.square,
-              size: 15,
+              value ? Icons.check_box : Icons.check_box_outline_blank,
+              size: 16,
               color: value ? const Color(0xFF2563EB) : const Color(0xFF94A3B8),
             ),
             const SizedBox(width: 5),
