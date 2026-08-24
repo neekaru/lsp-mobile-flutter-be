@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import '../../../models/blanko_models.dart';
@@ -330,6 +331,7 @@ class BlankoJadwalIdChips extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -356,52 +358,71 @@ class _JadwalIdSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final safeBottom = MediaQuery.of(context).viewInsets.bottom;
+    final mediaQuery = MediaQuery.of(context);
+    final bottomInset = mediaQuery.viewInsets.bottom;
+    final bottomPadding = math.max(mediaQuery.padding.bottom, 16.0) + bottomInset;
     final totalCount = items.isNotEmpty ? items.length : ids.length;
 
     return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(20, 16, 20, 16 + safeBottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.event_note_outlined,
-                    size: 20, color: Color(0xFF2563EB)),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'Daftar Jadwal Asesmen',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+      top: false,
+      bottom: true,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: mediaQuery.size.height * 0.8,
+        ),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, 12, 20, bottomPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  const Icon(Icons.event_note_outlined,
+                      size: 20, color: Color(0xFF2563EB)),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Daftar Jadwal Asesmen',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
                     ),
                   ),
-                ),
-                Text(
-                  '$totalCount jadwal',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
+                  Text(
+                    '$totalCount jadwal',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(Icons.close_rounded,
-                      size: 20, color: Color(0xFF94A3B8)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: SingleChildScrollView(
-                child: items.isNotEmpty
-                    ? Column(
-                        children: items
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close_rounded,
+                        size: 20, color: Color(0xFF94A3B8)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: items.isNotEmpty
+                      ? Column(
+                          children: items
                             .map(
                               (item) => Container(
                                 margin: const EdgeInsets.only(bottom: 8),
@@ -540,8 +561,9 @@ class _JadwalIdSheet extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Future<void> _copyAll(BuildContext context) async {
     final copyText = items.isNotEmpty
