@@ -40,14 +40,6 @@ class StatistikAppBar extends StatelessWidget {
           ),
           color: Colors.white,
           elevation: 3,
-          onSelected: (String value) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => StatistikDetailScreen(menuKey: value),
-              ),
-            );
-          },
           itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
             PopupMenuItem<String>(
               enabled: false,

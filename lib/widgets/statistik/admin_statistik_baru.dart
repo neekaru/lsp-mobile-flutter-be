@@ -139,7 +139,6 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
                     ),
                     color: Colors.white,
                     elevation: 3,
-                    onSelected: _handleStatisticsMenuSelection,
                     itemBuilder: (context) => <PopupMenuEntry<String>>[
                       PopupMenuItem<String>(
                         enabled: false,
@@ -248,7 +247,13 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
     );
   }
 
+  DateTime _lastMenuNavTime = DateTime.fromMillisecondsSinceEpoch(0);
+
   void _handleStatisticsMenuSelection(String value) {
+    final now = DateTime.now();
+    if (now.difference(_lastMenuNavTime).inMilliseconds < 600) return;
+    _lastMenuNavTime = now;
+
     Navigator.push(
       context,
       MaterialPageRoute(

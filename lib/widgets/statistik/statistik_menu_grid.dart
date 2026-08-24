@@ -88,9 +88,15 @@ class StatistikMenuGrid extends StatelessWidget {
     );
   }
 
+  static DateTime _lastGridNavTime = DateTime.fromMillisecondsSinceEpoch(0);
+
   Widget _buildMenuButton(BuildContext context, _MenuItem item) {
     return GestureDetector(
       onTap: () {
+        final now = DateTime.now();
+        if (now.difference(_lastGridNavTime).inMilliseconds < 600) return;
+        _lastGridNavTime = now;
+
         Navigator.push(
           context,
           MaterialPageRoute(

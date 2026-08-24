@@ -555,6 +555,8 @@ class MUKSection extends StatelessWidget {
     required this.onClearSearch,
   });
 
+  static DateTime _lastMukDetailNavTime = DateTime.fromMillisecondsSinceEpoch(0);
+
   @override
   Widget build(BuildContext context) {
     final filteredList = items
@@ -592,6 +594,10 @@ class MUKSection extends StatelessWidget {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () {
+                      final now = DateTime.now();
+                      if (now.difference(_lastMukDetailNavTime).inMilliseconds < 600) return;
+                      _lastMukDetailNavTime = now;
+
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => MUKDetailScreen(
