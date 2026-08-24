@@ -7,6 +7,7 @@ import '../../screens/jadwal/profil_asesor_screen.dart';
 import '../../screens/jadwal/asesi_list_screen.dart';
 import '../../screens/jadwal/jadwal_ak05_screen.dart';
 import '../../screens/jadwal/jadwal_ak06_screen.dart';
+import '../../screens/asesi/asesi_ak03_form_screen.dart';
 import 'detail_helpers.dart';
 
 // ============================================================================
@@ -743,6 +744,87 @@ class JadwalDetailAsesiView extends StatelessWidget {
                 ChecklistItem(title: 'Portofolio Lengkap'),
                 ChecklistItem(title: 'Bukti Kompetensi Valid'),
                 ChecklistItem(title: 'Pra Asesmen Disetujui'),
+
+                const SizedBox(height: 14),
+                const Divider(height: 1, color: Color(0xFFECEFF1)),
+                const SizedBox(height: 14),
+
+                // FR-AK.03 Umpan Balik Asesi Action Button
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFF93C5FD),
+                      width: 1,
+                    ),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AsesiAK03FormScreen(
+                              jadwal: jadwal,
+                            ),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Color(0xFF2F80ED),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.rate_review_outlined,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'FR-AK.03 Umpan Balik Asesmen',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E40AF),
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Klik untuk mengisi evaluasi & umpan balik',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF3B82F6),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 14,
+                              color: Color(0xFF2F80ED),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

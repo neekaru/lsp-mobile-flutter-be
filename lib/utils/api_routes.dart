@@ -169,6 +169,7 @@ class ApiRoutes {
   static const String asesiInstansi = '/api/asesi/instansi';
   static const String asesiSertifikat = '/api/asesi/sertifikat';
   static const String asesiJadwal = '/api/asesi/jadwal';
+  static String asesiAK03(int jadwalId) => '/api/asesi/jadwal/$jadwalId/ak03';
   static String asesiSertifikatDetail(int id) => '/api/asesi/sertifikat/$id';
   static String asesiSertifikatUploadTtd(int id) =>
       '/api/asesi/sertifikat/$id/upload-ttd';

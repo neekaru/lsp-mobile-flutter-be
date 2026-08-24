@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import '../../models/asesor_asesi_models.dart';
 import '../../utils/api_routes.dart';
 import '../api_client.dart';
 
@@ -277,6 +278,45 @@ class AsesiService {
     } catch (e) {
       debugPrint('Error uploading portofolio: $e');
       return null;
+    }
+  }
+
+  /// 12. Get FR-AK.03 Umpan Balik Asesi (GET /api/asesi/jadwal/:id/ak03)
+  static Future<AK03Data?> getAK03(int jadwalId) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesiAK03(jadwalId));
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'] as Map<String, dynamic>?;
+        if (data != null) {
+          return AK03Data.fromJson(data);
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting AK-03: $e');
+      return null;
+    }
+  }
+
+  /// 13. Save FR-AK.03 Umpan Balik Asesi (POST /api/asesi/jadwal/:id/ak03)
+  static Future<bool> saveAK03(int jadwalId, {
+    required List<Map<String, dynamic>> items,
+    required String umpanBalik,
+    required String catatan,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesiAK03(jadwalId),
+        data: {
+          'items': items,
+          'umpan_balik': umpanBalik,
+          'catatan': catatan,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error saving AK-03: $e');
+      return false;
     }
   }
 }
