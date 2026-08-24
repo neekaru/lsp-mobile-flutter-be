@@ -33,6 +33,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
   int _totalCount = 0;
   String _searchQuery = '';
   String _selectedTab = 'belum'; // 'belum' | 'sudah'
+  String _selectedDateFilter = 'all'; // 'all' | 'today' | 'yesterday' | 'YYYY-MM-DD'
 
   @override
   void initState() {
@@ -75,6 +76,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
       final res = await AsesorService.getAsesiList(
         search: _searchQuery,
         status: _selectedTab,
+        filterDate: _selectedDateFilter,
         page: _currentPage,
         perPage: limit,
       );
@@ -136,6 +138,47 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
     _fetchAsesiList();
   }
 
+  void _onDateFilterChanged(String dateFilter) {
+    if (_selectedDateFilter == dateFilter) return;
+    setState(() {
+      _selectedDateFilter = dateFilter;
+      _currentPage = 1;
+    });
+    _fetchAsesiList();
+  }
+
+  Future<void> _pickCustomDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      helpText: 'Pilih Tanggal Jadwal Asesmen',
+      cancelText: 'Batal',
+      confirmText: 'Pilih',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF2563EB),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF1E293B),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final formatted =
+          "${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      _onDateFilterChanged(formatted);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
@@ -194,70 +237,119 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
             ),
           ),
 
-          // Search Bar
+          // Search Bar & Date Filter Button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x04000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x04000000),
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 12),
+                        const Icon(
+                          Icons.search_rounded,
+                          color: Color(0xFF64748B),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            onSubmitted: _onSearch,
+                            onChanged: (val) {
+                              setState(() {});
+                            },
+                            textInputAction: TextInputAction.search,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF1E293B),
+                            ),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              hintText: _selectedTab == 'belum'
+                                  ? 'Cari asesi belum rekomendasi...'
+                                  : 'Cari asesi sudah rekomendasi...',
+                              hintStyle: const TextStyle(
+                                fontSize: 12.5,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ),
+                        if (_searchController.text.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.clear_rounded, size: 18),
+                            color: const Color(0xFF94A3B8),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                            onPressed: () {
+                              _searchController.clear();
+                              _onSearch('');
+                            },
+                          ),
+                        const SizedBox(width: 4),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                _buildDateFilterMenuButton(),
+              ],
+            ),
+          ),
+
+          // Horizontal Quick Date Filter Chips
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
               child: Row(
                 children: [
-                  const SizedBox(width: 12),
-                  const Icon(
-                    Icons.search_rounded,
-                    color: Color(0xFF64748B),
-                    size: 20,
+                  _buildDateChip(
+                    label: 'Semua',
+                    value: 'all',
+                    icon: Icons.all_inclusive_rounded,
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onSubmitted: _onSearch,
-                      onChanged: (val) {
-                        setState(() {});
-                      },
-                      textInputAction: TextInputAction.search,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF1E293B),
-                      ),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        hintText: _selectedTab == 'belum'
-                            ? 'Cari asesi belum rekomendasi...'
-                            : 'Cari asesi sudah rekomendasi...',
-                        hintStyle: const TextStyle(
-                          fontSize: 12.5,
-                          color: Color(0xFF94A3B8),
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
+                  const SizedBox(width: 8),
+                  _buildDateChip(
+                    label: 'Hari Ini (Today)',
+                    value: 'today',
+                    icon: Icons.today_rounded,
                   ),
-                  if (_searchController.text.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.clear_rounded, size: 18),
-                      color: const Color(0xFF94A3B8),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                      onPressed: () {
-                        _searchController.clear();
-                        _onSearch('');
-                      },
+                  const SizedBox(width: 8),
+                  _buildDateChip(
+                    label: 'Kemarin (Yesterday)',
+                    value: 'yesterday',
+                    icon: Icons.history_rounded,
+                  ),
+                  if (_selectedDateFilter != 'all' &&
+                      _selectedDateFilter != 'today' &&
+                      _selectedDateFilter != 'yesterday') ...[
+                    const SizedBox(width: 8),
+                    _buildDateChip(
+                      label: _selectedDateFilter,
+                      value: _selectedDateFilter,
+                      icon: Icons.calendar_month_rounded,
+                      isCustom: true,
                     ),
-                  const SizedBox(width: 4),
+                  ],
                 ],
               ),
             ),
@@ -269,16 +361,19 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  _selectedTab == 'belum'
-                      ? 'Menampilkan: $_totalCount Asesi Belum Rekomendasi'
-                      : 'Menampilkan: $_totalCount Asesi Sudah Rekomendasi',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF64748B),
+                Expanded(
+                  child: Text(
+                    '${_selectedTab == 'belum' ? 'Menampilkan: $_totalCount Asesi Belum Rekomendasi' : 'Menampilkan: $_totalCount Asesi Sudah Rekomendasi'}${_selectedDateFilter == 'today' ? ' (Hari Ini)' : (_selectedDateFilter == 'yesterday' ? ' (Kemarin)' : (_selectedDateFilter != 'all' ? ' ($_selectedDateFilter)' : ''))}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
                 const Text(
                   'Jadwal Terbaru',
                   style: TextStyle(
@@ -333,6 +428,229 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                           ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDateFilterMenuButton() {
+    final bool isFiltered = _selectedDateFilter != 'all';
+    return PopupMenuButton<String>(
+      tooltip: 'Filter Tanggal Jadwal Asesmen',
+      onSelected: (val) {
+        if (val == 'custom') {
+          _pickCustomDate();
+        } else {
+          _onDateFilterChanged(val);
+        }
+      },
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          value: 'all',
+          child: Row(
+            children: [
+              Icon(
+                Icons.all_inclusive_rounded,
+                size: 18,
+                color: _selectedDateFilter == 'all'
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF64748B),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Semua Tanggal',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: _selectedDateFilter == 'all'
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color: _selectedDateFilter == 'all'
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'today',
+          child: Row(
+            children: [
+              Icon(
+                Icons.today_rounded,
+                size: 18,
+                color: _selectedDateFilter == 'today'
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF64748B),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Hari Ini (Today)',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: _selectedDateFilter == 'today'
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color: _selectedDateFilter == 'today'
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'yesterday',
+          child: Row(
+            children: [
+              Icon(
+                Icons.history_rounded,
+                size: 18,
+                color: _selectedDateFilter == 'yesterday'
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF64748B),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Kemarin (Yesterday)',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: _selectedDateFilter == 'yesterday'
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color: _selectedDateFilter == 'yesterday'
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem<String>(
+          value: 'custom',
+          child: Row(
+            children: const [
+              Icon(
+                Icons.calendar_month_rounded,
+                size: 18,
+                color: Color(0xFF64748B),
+              ),
+              SizedBox(width: 10),
+              Text(
+                'Pilih Tanggal...',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: isFiltered ? const Color(0xFF2563EB) : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isFiltered ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x04000000),
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today_rounded,
+              color: isFiltered ? Colors.white : const Color(0xFF64748B),
+              size: 20,
+            ),
+            if (isFiltered)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF97316),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateChip({
+    required String label,
+    required String value,
+    required IconData icon,
+    bool isCustom = false,
+  }) {
+    final bool isSelected = _selectedDateFilter == value;
+    return GestureDetector(
+      onTap: () => _onDateFilterChanged(value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF2563EB) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? Colors.white : const Color(0xFF64748B),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? Colors.white : const Color(0xFF475569),
+              ),
+            ),
+            if (isCustom) ...[
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: () => _onDateFilterChanged('all'),
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

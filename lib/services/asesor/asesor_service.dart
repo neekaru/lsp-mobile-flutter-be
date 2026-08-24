@@ -554,6 +554,7 @@ class AsesorService {
   static Future<AsesorAsesiListResponse?> getAsesiList({
     String? search,
     String? status,
+    String? filterDate,
     int? jadwalId,
     int page = 1,
     int perPage = 20,
@@ -568,6 +569,9 @@ class AsesorService {
       }
       if (status != null && status.isNotEmpty && status != 'all') {
         params['status'] = status;
+      }
+      if (filterDate != null && filterDate.isNotEmpty && filterDate != 'all') {
+        params['filter_date'] = filterDate;
       }
       if (jadwalId != null && jadwalId > 0) {
         params['jadwal_id'] = jadwalId;
