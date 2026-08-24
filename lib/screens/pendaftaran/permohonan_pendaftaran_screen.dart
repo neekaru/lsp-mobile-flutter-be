@@ -166,40 +166,42 @@ class _PermohonanPendaftaranScreenState
                   ),
                   const SizedBox(height: 10),
 
-                  // Pill Filter Tabs
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    child: Row(
-                      children: [
-                        _buildFilterPill(
+                  // Pill Filter Tabs (Equal Width)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildFilterPill(
                           index: 0,
                           label: 'Semua',
                           count: _allData.length,
                         ),
-                        const SizedBox(width: 8),
-                        _buildFilterPill(
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildFilterPill(
                           index: 1,
                           label: 'Terverifikasi',
                           count: _verifiedCount,
                           badgeColor: const Color(0xFF10B981),
                         ),
-                        const SizedBox(width: 8),
-                        _buildFilterPill(
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildFilterPill(
                           index: 2,
                           label: 'Menunggu',
                           count: _pendingCount,
                           badgeColor: const Color(0xFFF59E0B),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 10),
 
-            // Main List
+            // Main Virtualized List
             Expanded(
               child: _isLoading
                   ? const Center(
@@ -264,6 +266,9 @@ class _PermohonanPendaftaranScreenState
                                 parent: BouncingScrollPhysics(),
                               ),
                               padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+                              addAutomaticKeepAlives: false,
+                              addRepaintBoundaries: true,
+                              addSemanticIndexes: false,
                               itemCount: _filteredData.length,
                               separatorBuilder: (context, index) =>
                                   const SizedBox(height: 10),
@@ -288,10 +293,11 @@ class _PermohonanPendaftaranScreenState
   }) {
     final isSelected = _selectedFilterIndex == index;
     final containerColor =
-        isSelected ? const Color(0xFF2563EB) : Colors.white;
-    final textColor = isSelected ? Colors.white : const Color(0xFF64748B);
-    final borderColor =
-        isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0);
+        isSelected ? const Color(0xFF6C8BB4) : const Color(0xFFD2E3F4);
+    final textColor = isSelected ? Colors.white : const Color(0xFF5A7EAA);
+    final defaultBadgeColor = isSelected
+        ? const Color(0xFF5A7EAA)
+        : const Color(0xFF94A3B8);
 
     return GestureDetector(
       onTap: () {
@@ -299,58 +305,50 @@ class _PermohonanPendaftaranScreenState
         _applyFilter();
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        duration: const Duration(milliseconds: 200),
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: containerColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor),
-          boxShadow: isSelected
-              ? const [
-                  BoxShadow(
-                    color: Color(0x1A2563EB),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ]
-              : null,
+          borderRadius: BorderRadius.circular(100),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: textColor,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Colors.white.withValues(alpha: 0.25)
-                    : (badgeColor ?? const Color(0xFFE2E8F0)),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              constraints: const BoxConstraints(minWidth: 16),
+            Flexible(
               child: Text(
-                '$count',
+                label,
                 style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected
-                      ? Colors.white
-                      : (badgeColor != null
-                          ? Colors.white
-                          : const Color(0xFF475569)),
-                  height: 1.0,
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: textColor,
                 ),
-                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            if (count > 0) ...[
+              const SizedBox(width: 4),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: badgeColor ?? defaultBadgeColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                constraints: const BoxConstraints(minWidth: 16),
+                child: Text(
+                  count > 999 ? '999+' : '$count',
+                  style: const TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    height: 1.0,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ],
         ),
       ),
