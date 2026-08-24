@@ -774,24 +774,24 @@ class JadwalDetailAsesiView extends StatelessWidget {
                         );
                       },
                       borderRadius: BorderRadius.circular(10),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         child: Row(
                           children: [
                             Container(
-                              padding: EdgeInsets.all(8),
-                              decoration: BoxDecoration(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
                                 color: Color(0xFF2F80ED),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.rate_review_outlined,
                                 color: Colors.white,
                                 size: 18,
                               ),
                             ),
-                            SizedBox(width: 12),
-                            Expanded(
+                            const SizedBox(width: 12),
+                            const Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -814,7 +814,7 @@ class JadwalDetailAsesiView extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            Icon(
+                            const Icon(
                               Icons.arrow_forward_ios_rounded,
                               size: 14,
                               color: Color(0xFF2F80ED),

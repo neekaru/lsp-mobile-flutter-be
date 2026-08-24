@@ -609,7 +609,7 @@ class _AsesiAK03FormScreenState extends State<AsesiAK03FormScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: isSelected ? activeColor.withValues(alpha: 0.12) : const Color(0xFFF1F5F9),
+            color: isSelected ? activeColor.withOpacity(0.12) : const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected ? activeColor : const Color(0xFFCBD5E1),
