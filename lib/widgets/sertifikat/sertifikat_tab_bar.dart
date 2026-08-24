@@ -69,18 +69,18 @@ class SertifikatTabBar extends StatelessWidget {
             if (count != null && count > 0) ...[
               const SizedBox(width: 4),
               Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
                   color: Colors.red,
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
+                  minWidth: 18,
+                  minHeight: 18,
                 ),
                 child: Center(
                   child: Text(
-                    '$count',
+                    count > 999 ? '999+' : '$count',
                     style: const TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
