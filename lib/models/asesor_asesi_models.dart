@@ -1006,44 +1006,7 @@ class AK06PrinsipItem {
   }
 }
 
-class AK06DimensiItem {
-  String taskSkill;
-  String taskManagementSkill;
-  String contingencyManagementSkill;
-  String jobRoleEnvironmentSkill;
-  String transferSkill;
 
-  AK06DimensiItem({
-    this.taskSkill = 'L (IA.01, IA.02)',
-    this.taskManagementSkill = 'L (IA.01, IA.02)',
-    this.contingencyManagementSkill = 'L (IA.01, IA.02)',
-    this.jobRoleEnvironmentSkill = 'L (IA.01, IA.02)',
-    this.transferSkill = 'L (IA.01, IA.02)',
-  });
-
-  factory AK06DimensiItem.fromJson(Map<String, dynamic> json) {
-    return AK06DimensiItem(
-      taskSkill: json['task_skill']?.toString() ?? 'L (IA.01, IA.02)',
-      taskManagementSkill:
-          json['task_management_skill']?.toString() ?? 'L (IA.01, IA.02)',
-      contingencyManagementSkill:
-          json['contingency_management_skill']?.toString() ?? 'L (IA.01, IA.02)',
-      jobRoleEnvironmentSkill:
-          json['job_role_environment_skill']?.toString() ?? 'L (IA.01, IA.02)',
-      transferSkill: json['transfer_skill']?.toString() ?? 'L (IA.01, IA.02)',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'task_skill': taskSkill,
-      'task_management_skill': taskManagementSkill,
-      'contingency_management_skill': contingencyManagementSkill,
-      'job_role_environment_skill': jobRoleEnvironmentSkill,
-      'transfer_skill': transferSkill,
-    };
-  }
-}
 
 class JadwalAK06DetailData {
   final int jadwalId;
@@ -1054,7 +1017,7 @@ class JadwalAK06DetailData {
   final String namaAsesor;
   final String penjelasanAsesmen;
   final List<AK06PrinsipItem> prinsipAsesmen;
-  final AK06DimensiItem dimensiKompetensi;
+  final List<AK06AspectItem> dimensiKompetensi;
   final String rekomendasi;
   final String catatan;
   final String statusTinjauan;
@@ -1117,12 +1080,34 @@ class JadwalAK06DetailData {
       ];
     }
 
-    AK06DimensiItem dimensi;
-    if (json['dimensi_kompetensi'] is Map<String, dynamic>) {
-      dimensi = AK06DimensiItem.fromJson(
-          json['dimensi_kompetensi'] as Map<String, dynamic>);
-    } else {
-      dimensi = AK06DimensiItem();
+    final rawDimensi = json['dimensi_kompetensi'];
+    List<AK06AspectItem> dimensiList = [];
+    if (rawDimensi is List) {
+      dimensiList = rawDimensi
+          .map((e) => AK06AspectItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    if (dimensiList.isEmpty) {
+      dimensiList = [
+        AK06AspectItem(
+            aspect: 'Task Skills', kesesuaian: 'Ya', catatan: 'L (IA.01, IA.02)'),
+        AK06AspectItem(
+            aspect: 'Task Management Skills',
+            kesesuaian: 'Ya',
+            catatan: 'L (IA.01, IA.02)'),
+        AK06AspectItem(
+            aspect: 'Contingency Management Skills',
+            kesesuaian: 'Ya',
+            catatan: 'L (IA.01, IA.02)'),
+        AK06AspectItem(
+            aspect: 'Job Role / Environment Skills',
+            kesesuaian: 'Ya',
+            catatan: 'L (IA.01, IA.02)'),
+        AK06AspectItem(
+            aspect: 'Transfer Skills',
+            kesesuaian: 'Ya',
+            catatan: 'L (IA.01, IA.02)'),
+      ];
     }
 
     return JadwalAK06DetailData(
@@ -1134,7 +1119,7 @@ class JadwalAK06DetailData {
       namaAsesor: json['nama_asesor'] as String? ?? '',
       penjelasanAsesmen: json['penjelasan_asesmen'] as String? ?? '',
       prinsipAsesmen: prinsipList,
-      dimensiKompetensi: dimensi,
+      dimensiKompetensi: dimensiList,
       rekomendasi: json['rekomendasi'] as String? ?? '',
       catatan: json['catatan'] as String? ?? '',
       statusTinjauan: json['status_tinjauan'] as String? ?? 'Selesai',

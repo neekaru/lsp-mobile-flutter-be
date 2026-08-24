@@ -76,21 +76,21 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
         setState(() {
           _detailData = data;
           _prinsipItems = data.prinsipAsesmen;
-          _taskSkillController.text = data.dimensiKompetensi.taskSkill.isNotEmpty
-              ? data.dimensiKompetensi.taskSkill
-              : 'L (IA.01, IA.02)';
-          _taskManagementController.text = data.dimensiKompetensi.taskManagementSkill.isNotEmpty
-              ? data.dimensiKompetensi.taskManagementSkill
-              : 'L (IA.01, IA.02)';
-          _contingencyController.text = data.dimensiKompetensi.contingencyManagementSkill.isNotEmpty
-              ? data.dimensiKompetensi.contingencyManagementSkill
-              : 'L (IA.01, IA.02)';
-          _jobRoleController.text = data.dimensiKompetensi.jobRoleEnvironmentSkill.isNotEmpty
-              ? data.dimensiKompetensi.jobRoleEnvironmentSkill
-              : 'L (IA.01, IA.02)';
-          _transferSkillController.text = data.dimensiKompetensi.transferSkill.isNotEmpty
-              ? data.dimensiKompetensi.transferSkill
-              : 'L (IA.01, IA.02)';
+          for (final item in data.dimensiKompetensi) {
+            final asp = item.aspect.toLowerCase();
+            final val = item.catatan.isNotEmpty ? item.catatan : 'L (IA.01, IA.02)';
+            if (asp.contains('management')) {
+              _taskManagementController.text = val;
+            } else if (asp.contains('contingency')) {
+              _contingencyController.text = val;
+            } else if (asp.contains('job') || asp.contains('environment')) {
+              _jobRoleController.text = val;
+            } else if (asp.contains('transfer')) {
+              _transferSkillController.text = val;
+            } else if (asp.contains('task')) {
+              _taskSkillController.text = val;
+            }
+          }
           _rekomendasiController.text = data.rekomendasi;
           _catatanController.text = data.catatan;
         });
@@ -119,18 +119,38 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
     });
 
     try {
-      final dimensi = AK06DimensiItem(
-        taskSkill: _taskSkillController.text.trim(),
-        taskManagementSkill: _taskManagementController.text.trim(),
-        contingencyManagementSkill: _contingencyController.text.trim(),
-        jobRoleEnvironmentSkill: _jobRoleController.text.trim(),
-        transferSkill: _transferSkillController.text.trim(),
-      );
+      final dimensiList = [
+        {
+          'aspect': 'Task Skills',
+          'kesesuaian': 'Ya',
+          'catatan': _taskSkillController.text.trim(),
+        },
+        {
+          'aspect': 'Task Management Skills',
+          'kesesuaian': 'Ya',
+          'catatan': _taskManagementController.text.trim(),
+        },
+        {
+          'aspect': 'Contingency Management Skills',
+          'kesesuaian': 'Ya',
+          'catatan': _contingencyController.text.trim(),
+        },
+        {
+          'aspect': 'Job Role / Environment Skills',
+          'kesesuaian': 'Ya',
+          'catatan': _jobRoleController.text.trim(),
+        },
+        {
+          'aspect': 'Transfer Skills',
+          'kesesuaian': 'Ya',
+          'catatan': _transferSkillController.text.trim(),
+        },
+      ];
 
       final payload = {
         'penjelasan_asesmen': _detailData!.penjelasanAsesmen,
         'prinsip_asesmen': _prinsipItems.map((e) => e.toJson()).toList(),
-        'dimensi_kompetensi': dimensi.toJson(),
+        'dimensi_kompetensi': dimensiList,
         'rekomendasi': _rekomendasiController.text.trim(),
         'catatan': _catatanController.text.trim(),
       };
