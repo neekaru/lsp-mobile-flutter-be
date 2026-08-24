@@ -130,9 +130,9 @@ class _RangkumanAsesiState extends State<RangkumanAsesi> {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           GridView.count(
+            padding: EdgeInsets.zero,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,

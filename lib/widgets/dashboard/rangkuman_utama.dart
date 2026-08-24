@@ -158,11 +158,11 @@ class _RangkumanUtamaState extends State<RangkumanUtama> {
               ),
             ],
           ),
-          const SizedBox(height: 4),
           const SizedBox(height: 12),
 
           // 2x2 Grid of Summary Cards
           GridView.count(
+            padding: EdgeInsets.zero,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
