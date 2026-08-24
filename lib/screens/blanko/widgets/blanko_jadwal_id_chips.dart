@@ -406,46 +406,63 @@ class _JadwalIdSheet extends StatelessWidget {
                               (item) => Container(
                                 margin: const EdgeInsets.only(bottom: 8),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                       color: const Color(0xFFE2E8F0)),
                                 ),
-                                child: ListTile(
-                                  dense: true,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 4),
-                                  title: Text(
-                                    item.namaJadwal.isNotEmpty
-                                        ? item.namaJadwal
-                                        : 'Jadwal #${item.id}',
-                                    style: const TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0F172A),
-                                    ),
-                                  ),
-                                  subtitle: Padding(
-                                    padding: const EdgeInsets.only(top: 4.0),
-                                    child: Text(
-                                      '${item.tanggal.isNotEmpty ? DateFormatHelper.formatToIndonesian(item.tanggal) : '-'} • ${item.tuk}',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: Color(0xFF64748B),
+                                child: Material(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(8),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      if (onSelect != null) {
+                                        onSelect!(item);
+                                      }
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 10),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item.namaJadwal.isNotEmpty
+                                                      ? item.namaJadwal
+                                                      : 'Jadwal #${item.id}',
+                                                  style: const TextStyle(
+                                                    fontSize: 12.5,
+                                                    fontWeight:
+                                                        FontWeight.bold,
+                                                    color: Color(0xFF0F172A),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  '${item.tanggal.isNotEmpty ? DateFormatHelper.formatToIndonesian(item.tanggal) : '-'} • ${item.tuk}',
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: Color(0xFF64748B),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Icon(
+                                            Icons.arrow_forward_ios_rounded,
+                                            size: 12,
+                                            color: Color(0xFF94A3B8),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                  trailing: const Icon(
-                                    Icons.arrow_forward_ios_rounded,
-                                    size: 12,
-                                    color: Color(0xFF94A3B8),
-                                  ),
-                                  onTap: () {
-                                    Navigator.pop(context);
-                                    if (onSelect != null) {
-                                      onSelect!(item);
-                                    }
-                                  },
                                 ),
                               ),
                             )
