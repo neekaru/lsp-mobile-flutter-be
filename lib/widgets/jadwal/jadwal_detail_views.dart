@@ -143,17 +143,23 @@ class JadwalDetailAsesorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String leadAsesor =
-        (detailData != null && detailData!.asesor.isNotEmpty)
-        ? detailData!.asesor.first.namaAsesor
-        : (detailData?.leadAsesor != null &&
-              detailData!.leadAsesor!.isNotEmpty)
-        ? detailData!.leadAsesor!
-        : getDisplayAsesor(jadwal);
+    final bool isAJJ = detailData?.isAJJ ?? jadwal.isAJJ;
+
+    final String namaAsesor = (detailData != null && detailData!.asesor.isNotEmpty)
+        ? detailData!.asesor.map((a) => a.namaAsesor).where((n) => n.isNotEmpty).join(', ')
+        : (detailData?.leadAsesor != null && detailData!.leadAsesor!.isNotEmpty)
+            ? detailData!.leadAsesor!
+            : getDisplayAsesor(jadwal);
 
     final String totalPeserta = (detailData?.jumlahPeserta != null)
         ? '${detailData!.jumlahPeserta} Peserta'
         : '${jadwal.jumlahAsesi} Peserta';
+
+    final String lokasiAsesmen = isAJJ
+        ? 'Daring'
+        : (detailData != null && detailData!.alamatTuk.isNotEmpty
+            ? detailData!.alamatTuk
+            : (jadwal.tuk.isNotEmpty ? jadwal.tuk : '-'));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -186,12 +192,16 @@ class JadwalDetailAsesorView extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE5F1FC),
+                        color: isAJJ
+                            ? const Color(0xFFDCFCE7)
+                            : const Color(0xFFE5F1FC),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.calendar_today_rounded,
-                        color: Color(0xFF2C6C9C),
+                        color: isAJJ
+                            ? const Color(0xFF16A34A)
+                            : const Color(0xFF2C6C9C),
                         size: 24,
                       ),
                     ),
@@ -209,12 +219,43 @@ class JadwalDetailAsesorView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            detailData?.tuk ?? jadwal.tuk,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  detailData?.tuk ?? jadwal.tuk,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              if (isAJJ) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 1.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: const Color(0xFFBFDBFE),
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'AJJ',
+                                    style: TextStyle(
+                                      color: Color(0xFF1D4ED8),
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),
@@ -245,10 +286,7 @@ class JadwalDetailAsesorView extends StatelessWidget {
                 AsesorDetailRow(
                   icon: Icons.location_on_rounded,
                   label: 'Lokasi Asesmen',
-                  value:
-                      detailData != null && detailData!.alamatTuk.isNotEmpty
-                      ? detailData!.alamatTuk
-                      : (jadwal.tuk.isNotEmpty ? jadwal.tuk : '-'),
+                  value: lokasiAsesmen,
                   iconColor: Colors.orange,
                 ),
                 AsesorDetailRow(
@@ -258,8 +296,8 @@ class JadwalDetailAsesorView extends StatelessWidget {
                 ),
                 AsesorDetailRow(
                   icon: Icons.person_outline_rounded,
-                  label: 'Lead Asesor',
-                  value: leadAsesor,
+                  label: 'Asesor',
+                  value: namaAsesor.isNotEmpty ? namaAsesor : '-',
                 ),
               ],
             ),
