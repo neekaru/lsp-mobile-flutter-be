@@ -189,10 +189,9 @@ class _APL02SectionState extends State<APL02Section> {
         ? tgl
         : DateTime.now().toIso8601String().substring(0, 10);
     _selectedRekomendasi = (apl02?.praAsesmen != null &&
-            apl02!.praAsesmen != '0' &&
-            apl02.praAsesmen.isNotEmpty)
+            apl02!.praAsesmen.isNotEmpty)
         ? apl02.praAsesmen
-        : '1';
+        : '0';
     _catatanController = TextEditingController(
       text: (apl02?.catatanRekomendasi.isNotEmpty ?? false)
           ? apl02!.catatanRekomendasi
@@ -456,6 +455,7 @@ class _APL02SectionState extends State<APL02Section> {
                 value: _selectedRekomendasi,
                 style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
                 items: const [
+                  DropdownMenuItem(value: '0', child: Text('-Pilih-')),
                   DropdownMenuItem(value: '1', child: Text('Asesmen Dilanjutkan')),
                   DropdownMenuItem(value: '2', child: Text('Tidak dapat dilanjutkan')),
                 ],
