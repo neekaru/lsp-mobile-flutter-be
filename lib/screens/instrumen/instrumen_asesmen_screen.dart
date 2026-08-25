@@ -121,11 +121,20 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
     }
   }
 
-  Future<void> _saveIA01({String? rekomendasiKeseluruhan, String? catatanKeseluruhan}) async {
+  Future<void> _saveIA01({
+    String? rekomendasiKeseluruhan,
+    String? catatanKeseluruhan,
+    String? buktiTambahanPmo,
+    String? buktiTambahan,
+    String? alasanPmo,
+  }) async {
     final payload = {
       'units': _ia01Units.map((u) => u.toJson()).toList(),
       'rekomendasi_keseluruhan': rekomendasiKeseluruhan ?? 'K',
       'catatan_keseluruhan': catatanKeseluruhan ?? '',
+      'bukti_tambahan_pmo': buktiTambahanPmo ?? '0',
+      'bukti_tambahan': buktiTambahan ?? '0',
+      'alasan_pmo': alasanPmo ?? 'Sudah terpenuhi saat TPD',
     };
     final res = await AsesorService.saveIA01(asesiId: widget.asesiId, data: payload);
     if (!mounted) return;
@@ -418,9 +427,12 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
         return IA01ObservasiWidget(
           units: _ia01Units,
           onFinished: _saveIA01,
-          onFinishedWithRekom: (rekom, catatan) => _saveIA01(
+          onFinishedWithRekom: (rekom, catatan, {alasanPmo, buktiTambahan, buktiTambahanPmo}) => _saveIA01(
             rekomendasiKeseluruhan: rekom,
             catatanKeseluruhan: catatan,
+            buktiTambahanPmo: buktiTambahanPmo,
+            buktiTambahan: buktiTambahan,
+            alasanPmo: alasanPmo,
           ),
         );
       case 'IA02':

@@ -5,7 +5,13 @@ import '../../models/instrumen_asesmen_models.dart';
 class IA01ObservasiWidget extends StatefulWidget {
   final List<IA01UnitKompetensi> units;
   final VoidCallback? onFinished;
-  final Function(String rekomendasi, String catatan)? onFinishedWithRekom;
+  final Function(
+    String rekomendasi,
+    String catatan, {
+    String? buktiTambahanPmo,
+    String? buktiTambahan,
+    String? alasanPmo,
+  })? onFinishedWithRekom;
 
   const IA01ObservasiWidget({
     super.key,
@@ -21,7 +27,11 @@ class IA01ObservasiWidget extends StatefulWidget {
 class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
   int _selectedUnitIndex = 0;
   String _rekomendasiKeseluruhan = 'K';
+  String _buktiTambahanPmo = '0'; // 0 = Tidak, 1 = Ya
+  String _buktiTambahan = '0'; // 0 = Tidak, 1 = Ya
   final TextEditingController _catatanKeseluruhanController = TextEditingController();
+  final TextEditingController _alasanPmoController =
+      TextEditingController(text: 'Sudah terpenuhi saat TPD');
   final Map<int, TextEditingController> _catatanControllers = {};
   final Map<int, TextEditingController> _alasanPertanyaanControllers = {};
   final Map<int, TextEditingController> _alasanBuktiControllers = {};
@@ -907,6 +917,122 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
             hint: 'Tuliskan catatan keseluruhan hasil observasi asesi...',
             onChanged: (v) {},
           ),
+          const SizedBox(height: 12),
+
+          // Diperlukan Pertanyaan Pendukung (PMO)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Diperlukan Pertanyaan Pendukung:',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFCBD5E1)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _buktiTambahanPmo,
+                          isExpanded: true,
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A)),
+                          items: const [
+                            DropdownMenuItem(value: '0', child: Text('Tidak')),
+                            DropdownMenuItem(value: '1', child: Text('Ya')),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setState(() => _buktiTambahanPmo = v);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Keterangan / Alasan:',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+                    ),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      height: 40,
+                      child: TextField(
+                        controller: _alasanPmoController,
+                        style: const TextStyle(fontSize: 12),
+                        decoration: InputDecoration(
+                          hintText: 'Misal: Sudah terpenuhi saat TPD',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Diperlukan Bukti Tambahan
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Diperlukan Bukti Tambahan:',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                height: 40,
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _buktiTambahan,
+                    isExpanded: true,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A)),
+                    items: const [
+                      DropdownMenuItem(value: '0', child: Text('Tidak')),
+                      DropdownMenuItem(value: '1', child: Text('Ya')),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) setState(() => _buktiTambahan = v);
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -946,7 +1072,13 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
                 });
               } else {
                 if (widget.onFinishedWithRekom != null) {
-                  widget.onFinishedWithRekom!(_rekomendasiKeseluruhan, _catatanKeseluruhanController.text);
+                  widget.onFinishedWithRekom!(
+                    _rekomendasiKeseluruhan,
+                    _catatanKeseluruhanController.text,
+                    buktiTambahanPmo: _buktiTambahanPmo,
+                    buktiTambahan: _buktiTambahan,
+                    alasanPmo: _alasanPmoController.text,
+                  );
                 } else {
                   widget.onFinished?.call();
                 }
