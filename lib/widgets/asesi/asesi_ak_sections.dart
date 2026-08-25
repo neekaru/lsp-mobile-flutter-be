@@ -564,6 +564,8 @@ class _AK02SectionState extends State<AK02Section> {
   @override
   Widget build(BuildContext context) {
     final ak02 = widget.detailData?.ak02;
+    final isPorto = (widget.detailData?.apl02.kandidat == '3') ||
+        (widget.detailData?.skemaSertifikat.toLowerCase().contains('portofolio') ?? false);
 
     return FormSectionCard(
       child: Column(
@@ -578,9 +580,6 @@ class _AK02SectionState extends State<AK02Section> {
           const SizedBox(height: 12),
 
           // Ringkasan Hasil Asesmen (Sesuai Instrumen yang digunakan)
-          final isPorto = (widget.detailData?.apl02.kandidat == '3') ||
-              (widget.detailData?.skemaSertifikat.toLowerCase().contains('portofolio') ?? false);
-
           if (isPorto) ...[
             AsesiDetailRow('Hasil Verifikasi Portofolio (FR.IA.11)', ak02?.hasilPortofolio ?? 'Kompeten'),
             AsesiDetailRow('Hasil Pertanyaan Wawancara / Lisan (FR.IA.03/09)', ak02?.hasilLisan ?? 'Kompeten'),
