@@ -52,6 +52,7 @@ class JadwalItem {
   final int? kuota;
   final String? jenisAsesmen;
   final String? jenisUji;
+  final bool? isAjj;
 
   const JadwalItem({
     required this.id,
@@ -75,14 +76,18 @@ class JadwalItem {
     this.kuota,
     this.jenisAsesmen,
     this.jenisUji,
+    this.isAjj,
   });
 
   bool get isDraft =>
       status == 'draft' || status == 'waiting' || statusJadwal == '0';
   bool get isRunning => status == 'running' || statusJadwal == '3';
 
+  bool get isAJJ => isSjj;
+
   /// Asesmen Jarak Jauh (SJJ / AJJ)
   bool get isSjj {
+    if (isAjj == true) return true;
     if (jenisUji?.trim() == '1' || jenisAsesmen?.trim() == '1') return true;
     if (jenisAsesmen != null) {
       final j = jenisAsesmen!.trim().toUpperCase();
@@ -158,6 +163,9 @@ class JadwalItem {
     final jumlahBelumKompeten = json['jumlah_belum_kompeten'] ?? 0;
     final needsAcc = json['needs_acc'] == true || json['needs_acc'] == 1;
 
+    final rawIsAjj = json['is_ajj'];
+    final isAjj = rawIsAjj == true || rawIsAjj == 1 || rawIsAjj == '1' || rawIsAjj == 'true';
+
     return JadwalItem(
       id: json['id'] ?? 0,
       skema: json['jadwal'] ?? json['nama_jadwal'] ?? '',
@@ -194,6 +202,7 @@ class JadwalItem {
                 : int.tryParse('${json['kuota']}')),
       jenisAsesmen: json['jenis_asesmen']?.toString() ?? json['jenis_tuk']?.toString(),
       jenisUji: json['jenis_uji']?.toString(),
+      isAjj: isAjj,
     );
   }
 }
@@ -599,6 +608,8 @@ class JadwalAsesorDetailData {
   final String? waktuAsesmen;
   final String? leadAsesor;
   final int? jumlahPeserta;
+  final String? jenisUji;
+  final bool? isAjj;
 
   const JadwalAsesorDetailData({
     required this.id,
@@ -616,7 +627,22 @@ class JadwalAsesorDetailData {
     this.waktuAsesmen,
     this.leadAsesor,
     this.jumlahPeserta,
+    this.jenisUji,
+    this.isAjj,
   });
+
+  bool get isAJJ => isSjj;
+  bool get isSjj {
+    if (isAjj == true) return true;
+    if (jenisUji?.trim() == '1') return true;
+    final j = jenisUji?.trim().toUpperCase();
+    if (j == 'SJJ' || j == 'AJJ' || j == '1' || (j?.contains('ONLINE') ?? false) || (j?.contains('DARING') ?? false)) {
+      return true;
+    }
+    final t = tuk.toUpperCase();
+    final s = jadwal.toUpperCase();
+    return t.contains('AJJ') || t.contains('ONLINE') || s.contains('AJJ') || s.contains('ONLINE');
+  }
 
   factory JadwalAsesorDetailData.fromJson(Map<String, dynamic> json) {
     final String rawAlamat = json['alamat_tuk']?.toString() ??
@@ -625,6 +651,8 @@ class JadwalAsesorDetailData {
         '';
     final String tukName = json['tuk']?.toString() ?? '';
     final String resolvedAlamat = rawAlamat.isNotEmpty ? rawAlamat : tukName;
+    final rawIsAjj = json['is_ajj'];
+    final isAjj = rawIsAjj == true || rawIsAjj == 1 || rawIsAjj == '1' || rawIsAjj == 'true';
 
     return JadwalAsesorDetailData(
       id: json['id'] ?? 0,
@@ -640,6 +668,8 @@ class JadwalAsesorDetailData {
       waktuAsesmen: json['waktu_asesmen'],
       leadAsesor: json['lead_asesor'],
       jumlahPeserta: json['jumlah_peserta'],
+      jenisUji: json['jenis_uji']?.toString(),
+      isAjj: isAjj,
       asesor:
           (json['asesor'] as List<dynamic>?)
               ?.map(

@@ -11,7 +11,6 @@ import '../../screens/ai/asesor_ai_screen.dart';
 import '../../screens/statistik/statistik_asesor_screen.dart';
 import '../../screens/marketing/asesor_marketing_screen.dart';
 import '../../screens/profile/profile_admin_screen.dart';
-import '../../screens/profile/profile_asesor_screen.dart';
 import '../../screens/profile/profile_screen.dart';
 import '../../screens/sertifikat/asesi_sertifikat_screen.dart';
 import '../../screens/sertifikat/sertifikat_screen.dart';

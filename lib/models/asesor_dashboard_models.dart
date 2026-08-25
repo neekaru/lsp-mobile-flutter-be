@@ -85,6 +85,7 @@ class AsesorDashboardJadwal {
   final String tuk;
   final String status;
   final String? jenisUji;
+  final bool? isAjj;
 
   const AsesorDashboardJadwal({
     required this.idJadwal,
@@ -94,10 +95,12 @@ class AsesorDashboardJadwal {
     required this.tuk,
     required this.status,
     this.jenisUji,
+    this.isAjj,
   });
 
   bool get isAJJ => isSjj;
   bool get isSjj {
+    if (isAjj == true) return true;
     if (jenisUji?.trim() == '1' || jenisUji?.trim().toUpperCase() == 'AJJ' || jenisUji?.trim().toLowerCase() == 'online') {
       return true;
     }
@@ -112,6 +115,9 @@ class AsesorDashboardJadwal {
   }
 
   factory AsesorDashboardJadwal.fromJson(Map<String, dynamic> json) {
+    final rawIsAjj = json['is_ajj'];
+    final isAjj = rawIsAjj == true || rawIsAjj == 1 || rawIsAjj == '1' || rawIsAjj == 'true';
+
     return AsesorDashboardJadwal(
       idJadwal: json['id_jadwal'] ?? 0,
       skema: json['skema'] ?? '',
@@ -120,6 +126,7 @@ class AsesorDashboardJadwal {
       tuk: json['tuk'] ?? '',
       status: json['status']?.toString() ?? '0',
       jenisUji: json['jenis_uji']?.toString(),
+      isAjj: isAjj,
     );
   }
 
@@ -136,6 +143,7 @@ class AsesorDashboardJadwal {
       asesor: const [],
       sisaHari: 0,
       jenisUji: jenisUji,
+      isAjj: isAjj,
     );
   }
 }
@@ -147,6 +155,7 @@ class AsesorDashboardTugas {
   final String subtitle;
   final String type;
   final String? jenisUji;
+  final bool? isAjj;
 
   const AsesorDashboardTugas({
     required this.idTugas,
@@ -155,10 +164,12 @@ class AsesorDashboardTugas {
     required this.subtitle,
     required this.type,
     this.jenisUji,
+    this.isAjj,
   });
 
   bool get isAJJ => isSjj;
   bool get isSjj {
+    if (isAjj == true) return true;
     if (jenisUji?.trim() == '1' || jenisUji?.trim().toUpperCase() == 'AJJ' || jenisUji?.trim().toLowerCase() == 'online') {
       return true;
     }
@@ -185,6 +196,9 @@ class AsesorDashboardTugas {
             : int.tryParse(rawIdJadwal.toString()) ?? 0)
         : parsedIdTugas;
 
+    final rawIsAjj = json['is_ajj'];
+    final isAjj = rawIsAjj == true || rawIsAjj == 1 || rawIsAjj == '1' || rawIsAjj == 'true';
+
     return AsesorDashboardTugas(
       idTugas: parsedIdTugas,
       idJadwal: parsedIdJadwal,
@@ -192,6 +206,7 @@ class AsesorDashboardTugas {
       subtitle: json['subtitle']?.toString() ?? '',
       type: json['type']?.toString() ?? '',
       jenisUji: json['jenis_uji']?.toString(),
+      isAjj: isAjj,
     );
   }
 
@@ -209,6 +224,7 @@ class AsesorDashboardTugas {
       asesor: const [],
       sisaHari: 0,
       jenisUji: jenisUji,
+      isAjj: isAjj,
     );
   }
 }

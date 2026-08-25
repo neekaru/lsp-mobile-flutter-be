@@ -69,9 +69,14 @@ class AdminLaporanListItem {
     required this.statusPermohonanBlanko,
     this.jenisAsesmen,
     this.jenisUji,
+    this.isAjj,
   });
 
+  final bool? isAjj;
+
+  bool get isAJJ => isSjj;
   bool get isSjj {
+    if (isAjj == true) return true;
     if (jenisUji?.trim() == '1' || jenisAsesmen?.trim() == '1') return true;
     if (jenisAsesmen != null) {
       final j = jenisAsesmen!.trim().toUpperCase();
@@ -99,6 +104,9 @@ class AdminLaporanListItem {
   }
 
   factory AdminLaporanListItem.fromJson(Map<String, dynamic> json) {
+    final rawIsAjj = json['is_ajj'];
+    final isAjj = rawIsAjj == true || rawIsAjj == 1 || rawIsAjj == '1' || rawIsAjj == 'true';
+
     return AdminLaporanListItem(
       id: json['id'] ?? 0,
       kodeLaporan: json['kode_laporan'] ?? '',
@@ -110,6 +118,7 @@ class AdminLaporanListItem {
       statusPermohonanBlanko: json['status_permohonan_blanko']?.toString() ?? '0',
       jenisAsesmen: json['jenis_asesmen']?.toString(),
       jenisUji: json['jenis_uji']?.toString(),
+      isAjj: isAjj,
     );
   }
 }

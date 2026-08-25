@@ -748,9 +748,14 @@ class PelaporanItemData {
     required this.statusPermohonanBlanko,
     this.jenisAsesmen,
     this.jenisUji,
+    this.isAjj,
   });
 
+  final bool? isAjj;
+
+  bool get isAJJ => isSjj;
   bool get isSjj {
+    if (isAjj == true) return true;
     if (jenisUji?.trim() == '1' || jenisAsesmen?.trim() == '1') return true;
     if (jenisAsesmen != null) {
       final j = jenisAsesmen!.trim().toUpperCase();
