@@ -97,20 +97,28 @@ class _AsesorJadwalBulananScreenState extends State<AsesorJadwalBulananScreen> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case '1':
       case 'selesai':
       case 'completed':
         return const Color(0xFF10B981); // Emerald
+      case '3':
       case 'sedang berjalan':
       case 'active':
       case 'running':
         return const Color(0xFF2563EB); // Blue
+      case '0':
+      case 'draft':
       case 'menunggu verifikasi':
       case 'menunggu':
       case 'waiting':
         return const Color(0xFFD97706); // Amber
+      case '2':
       case 'dibatalkan':
       case 'cancelled':
         return const Color(0xFFDC2626); // Red
+      case '4':
+      case 'pelaporan':
+        return const Color(0xFF8B5CF6); // Purple
       default:
         return const Color(0xFF64748B); // Slate
     }
@@ -118,23 +126,81 @@ class _AsesorJadwalBulananScreenState extends State<AsesorJadwalBulananScreen> {
 
   Color _getStatusBgColor(String status) {
     switch (status.toLowerCase()) {
+      case '1':
       case 'selesai':
       case 'completed':
         return const Color(0xFFD1FAE5);
+      case '3':
       case 'sedang berjalan':
       case 'active':
       case 'running':
         return const Color(0xFFDBEAFE);
+      case '0':
+      case 'draft':
       case 'menunggu verifikasi':
       case 'menunggu':
       case 'waiting':
         return const Color(0xFFFEF3C7);
+      case '2':
       case 'dibatalkan':
       case 'cancelled':
         return const Color(0xFFFEE2E2);
+      case '4':
+      case 'pelaporan':
+        return const Color(0xFFEDE9FE);
       default:
         return const Color(0xFFF1F5F9);
     }
+  }
+
+  Widget _buildStatusChip({
+    required String title,
+    required String value,
+    required IconData icon,
+  }) {
+    Color textColor = const Color(0xFF64748B);
+    Color bgColor = const Color(0xFFF1F5F9);
+    Color iconColor = const Color(0xFF64748B);
+
+    final vLower = value.toLowerCase();
+    if (vLower == 'selesai' || vLower == 'diterima' || vLower == 'terkirim') {
+      textColor = const Color(0xFF059669);
+      bgColor = const Color(0xFFD1FAE5);
+      iconColor = const Color(0xFF059669);
+    } else if (vLower == 'sebagian' || vLower == 'proses') {
+      textColor = const Color(0xFFD97706);
+      bgColor = const Color(0xFFFEF3C7);
+      iconColor = const Color(0xFFD97706);
+    } else if (vLower == 'dibatalkan' || vLower == 'batal') {
+      textColor = const Color(0xFFDC2626);
+      bgColor = const Color(0xFFFEE2E2);
+      iconColor = const Color(0xFFDC2626);
+    }
+
+    final displayText = value.isNotEmpty ? value : '-';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: iconColor),
+          const SizedBox(width: 4),
+          Text(
+            '$title: $displayText',
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -373,8 +439,8 @@ class _AsesorJadwalBulananScreenState extends State<AsesorJadwalBulananScreen> {
   }
 
   Widget _buildJadwalCard(JadwalItem j) {
-    final statusColor = _getStatusColor(j.statusJadwal);
-    final statusBgColor = _getStatusBgColor(j.statusJadwal);
+    final statusColor = _getStatusColor(j.statusJadwalLabel.isNotEmpty ? j.statusJadwalLabel : j.statusJadwal);
+    final statusBgColor = _getStatusBgColor(j.statusJadwalLabel.isNotEmpty ? j.statusJadwalLabel : j.statusJadwal);
 
     return Container(
       width: double.infinity,
@@ -416,25 +482,10 @@ class _AsesorJadwalBulananScreenState extends State<AsesorJadwalBulananScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top row: ID & Status
+                // Top row: Status Utama & 3 Status Badges
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'ID: ${j.id}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF475569),
-                        ),
-                      ),
-                    ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
                       decoration: BoxDecoration(
@@ -442,13 +493,39 @@ class _AsesorJadwalBulananScreenState extends State<AsesorJadwalBulananScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        j.statusJadwal.isNotEmpty ? j.statusJadwal : 'Aktif',
+                        j.statusJadwalLabel.isNotEmpty
+                            ? j.statusJadwalLabel
+                            : (j.statusLabel.isNotEmpty ? j.statusLabel : (j.statusJadwal.isNotEmpty ? j.statusJadwal : 'Aktif')),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: statusColor,
                         ),
                       ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // 3 Status Badges: Status Rekaman, Status Blanko, Status Pengiriman Sertifikat
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    _buildStatusChip(
+                      title: 'Rekaman',
+                      value: j.statusRekaman.isNotEmpty ? j.statusRekaman : 'Belum',
+                      icon: LucideIcons.mic,
+                    ),
+                    _buildStatusChip(
+                      title: 'Blanko',
+                      value: j.statusBlanko.isNotEmpty ? j.statusBlanko : 'Belum',
+                      icon: LucideIcons.file_text,
+                    ),
+                    _buildStatusChip(
+                      title: 'Pengiriman',
+                      value: j.statusPengiriman.isNotEmpty ? j.statusPengiriman : 'Belum',
+                      icon: LucideIcons.truck,
                     ),
                   ],
                 ),

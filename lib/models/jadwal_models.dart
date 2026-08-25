@@ -39,6 +39,10 @@ class JadwalItem {
 
   /// Label dari BE (`status_label`), mis. Draft / Running
   final String statusLabel;
+  final String statusJadwalLabel;
+  final String statusRekaman;
+  final String statusBlanko;
+  final String statusPengiriman;
   final int jumlahAsesi;
   final List<String> asesor;
   final int sisaHari;
@@ -64,6 +68,10 @@ class JadwalItem {
     required this.status,
     this.statusJadwal = '0',
     this.statusLabel = '',
+    this.statusJadwalLabel = '',
+    this.statusRekaman = '',
+    this.statusBlanko = '',
+    this.statusPengiriman = '',
     required this.jumlahAsesi,
     required this.asesor,
     this.sisaHari = 0,
@@ -166,6 +174,11 @@ class JadwalItem {
     final rawIsAjj = json['is_ajj'];
     final isAjj = rawIsAjj == true || rawIsAjj == 1 || rawIsAjj == '1' || rawIsAjj == 'true';
 
+    final statusRekaman = json['status_rekaman']?.toString() ?? '';
+    final statusBlanko = json['status_blanko']?.toString() ?? '';
+    final statusPengiriman = json['status_pengiriman']?.toString() ?? '';
+    final statusJadwalLabel = json['status_jadwal_label']?.toString() ?? (statusLabel.isNotEmpty ? statusLabel : mapStatusCode(statusJadwal));
+
     return JadwalItem(
       id: json['id'] ?? 0,
       skema: json['jadwal'] ?? json['nama_jadwal'] ?? '',
@@ -176,6 +189,10 @@ class JadwalItem {
       status: mapStatusCode(statusJadwal),
       statusJadwal: statusJadwal,
       statusLabel: statusLabel,
+      statusJadwalLabel: statusJadwalLabel,
+      statusRekaman: statusRekaman,
+      statusBlanko: statusBlanko,
+      statusPengiriman: statusPengiriman,
       jumlahAsesi: totalAsesi,
       asesor: _parseAsesor(json['asesor']),
       sisaHari: daysOverdue is int
