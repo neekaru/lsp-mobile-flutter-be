@@ -361,11 +361,21 @@ class MapaOption {
   final String namaMapa;
   final String displayText;
   final String metode;
+  final String insClo;
+  final String insPraktik;
+  final String insObservasi;
+  final String insPortofolio;
+  final String insPg;
+  final String insEsai;
+  final String insLisan;
+  final String insVPortofolio;
+  final String insWawancara;
   final List<String> instrumen;
   final bool hasIA01;
   final bool hasIA02;
   final bool hasIA03;
   final bool hasIA05;
+  final bool hasIA06;
   final bool hasIA11;
 
   MapaOption({
@@ -373,21 +383,58 @@ class MapaOption {
     required this.namaMapa,
     required this.displayText,
     this.metode = 'observasi',
+    this.insClo = '0',
+    this.insPraktik = '0',
+    this.insObservasi = '0',
+    this.insPortofolio = '0',
+    this.insPg = '0',
+    this.insEsai = '0',
+    this.insLisan = '0',
+    this.insVPortofolio = '0',
+    this.insWawancara = '0',
     this.instrumen = const [],
     this.hasIA01 = true,
     this.hasIA02 = true,
     this.hasIA03 = true,
     this.hasIA05 = true,
+    this.hasIA06 = false,
     this.hasIA11 = false,
   });
 
   bool get isPortofolio =>
       metode == 'portofolio' ||
-      namaMapa.toUpperCase().contains('PORTOFOLIO');
+      namaMapa.toUpperCase().contains('PORTOFOLIO') ||
+      insPortofolio != '0' ||
+      insVPortofolio != '0';
+
+  bool isInstrumentActive(String formId, String selectedKandidat) {
+    if (selectedKandidat == '3' || isPortofolio) {
+      if (formId == 'IA11' || formId == 'IA08' || formId == 'IA09') return true;
+      if (formId == 'IA03') return hasIA03;
+      return false;
+    }
+    // Observasi / Terstruktur (Kandidat 1, 2, 4)
+    switch (formId) {
+      case 'IA01':
+        return hasIA01 && (insClo == selectedKandidat || insClo == '1' || insClo == '0');
+      case 'IA02':
+        return hasIA02 && (insPraktik == selectedKandidat || insPraktik == '1' || insPraktik == '0');
+      case 'IA03':
+        return hasIA03;
+      case 'IA05':
+        return hasIA05 && (insPg == selectedKandidat || insPg == '1' || insPg == '0');
+      case 'IA06':
+        return hasIA06 && (insEsai == selectedKandidat || insEsai == '1' || insEsai == '0');
+      default:
+        return false;
+    }
+  }
 
   factory MapaOption.fromJson(Map<String, dynamic> json) {
     final rawNama = json['nama_mapa'] as String? ?? '';
-    final isPortofolio = rawNama.toUpperCase().contains('PORTOFOLIO');
+    final isPortofolio = rawNama.toUpperCase().contains('PORTOFOLIO') ||
+        (json['ins_portofolio'] != null && json['ins_portofolio'] != '0') ||
+        (json['ins_vportofolio'] != null && json['ins_vportofolio'] != '0');
     final rawInstrumen = (json['instrumen'] as List<dynamic>?)
             ?.map((e) => e.toString())
             .toList() ??
@@ -398,11 +445,21 @@ class MapaOption {
       namaMapa: rawNama,
       displayText: json['display_text'] as String? ?? '',
       metode: json['metode'] as String? ?? (isPortofolio ? 'portofolio' : 'observasi'),
+      insClo: json['ins_clo']?.toString() ?? '0',
+      insPraktik: json['ins_praktik']?.toString() ?? '0',
+      insObservasi: json['ins_observasi']?.toString() ?? '0',
+      insPortofolio: json['ins_portofolio']?.toString() ?? '0',
+      insPg: json['ins_pg']?.toString() ?? '0',
+      insEsai: json['ins_esai']?.toString() ?? '0',
+      insLisan: json['ins_lisan']?.toString() ?? '0',
+      insVPortofolio: json['ins_vportofolio']?.toString() ?? '0',
+      insWawancara: json['ins_wawancara']?.toString() ?? '0',
       instrumen: rawInstrumen,
       hasIA01: json['has_ia01'] ?? !isPortofolio,
       hasIA02: json['has_ia02'] ?? !isPortofolio,
       hasIA03: json['has_ia03'] ?? true,
       hasIA05: json['has_ia05'] ?? !isPortofolio,
+      hasIA06: json['has_ia06'] ?? false,
       hasIA11: json['has_ia11'] ?? isPortofolio,
     );
   }

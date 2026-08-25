@@ -788,12 +788,12 @@ class _APL02SectionState extends State<APL02Section> {
                     ),
                     const SizedBox(height: 10),
 
-                    // Dynamic buttons based on selected MAPA
+                    // Dynamic buttons based on selected MAPA and candidate
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        if (!isPorto && selectedMapa.hasIA01)
+                        if (selectedMapa.isInstrumentActive('IA01', _selectedKandidat))
                           _buildIAQuickButton(
                             context,
                             code: 'FR.IA.01',
@@ -801,7 +801,7 @@ class _APL02SectionState extends State<APL02Section> {
                             formId: 'IA01',
                             color: const Color(0xFF2563EB),
                           ),
-                        if (!isPorto && selectedMapa.hasIA02)
+                        if (selectedMapa.isInstrumentActive('IA02', _selectedKandidat))
                           _buildIAQuickButton(
                             context,
                             code: 'FR.IA.02',
@@ -809,7 +809,7 @@ class _APL02SectionState extends State<APL02Section> {
                             formId: 'IA02',
                             color: const Color(0xFF0284C7),
                           ),
-                        if (selectedMapa.hasIA03)
+                        if (selectedMapa.isInstrumentActive('IA03', _selectedKandidat))
                           _buildIAQuickButton(
                             context,
                             code: 'FR.IA.03',
@@ -817,7 +817,7 @@ class _APL02SectionState extends State<APL02Section> {
                             formId: 'IA03',
                             color: const Color(0xFFD97706),
                           ),
-                        if (!isPorto && selectedMapa.hasIA05)
+                        if (selectedMapa.isInstrumentActive('IA05', _selectedKandidat))
                           _buildIAQuickButton(
                             context,
                             code: 'FR.IA.05',
@@ -825,7 +825,15 @@ class _APL02SectionState extends State<APL02Section> {
                             formId: 'IA05',
                             color: const Color(0xFF16A34A),
                           ),
-                        if (isPorto)
+                        if (selectedMapa.isInstrumentActive('IA06', _selectedKandidat))
+                          _buildIAQuickButton(
+                            context,
+                            code: 'FR.IA.06',
+                            label: 'IA.06 Tanya Esai',
+                            formId: 'IA06',
+                            color: const Color(0xFF0D9488),
+                          ),
+                        if (selectedMapa.isInstrumentActive('IA11', _selectedKandidat))
                           _buildIAQuickButton(
                             context,
                             code: 'FR.IA.11',
