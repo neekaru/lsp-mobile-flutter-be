@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/api_service.dart';
@@ -369,22 +370,23 @@ class _PenugasanDetailScreenState extends State<PenugasanDetailScreen> {
                               ),
                               onPressed: () async {
                                 final messenger = ScaffoldMessenger.of(context);
-                                final fileUrl = await ApiService.getSuratTugas(widget.jadwal.id);
-                                if (!mounted) return;
-                                if (fileUrl != null && fileUrl.isNotEmpty) {
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text('Surat Tugas: ${fileUrl.split('/').last}'),
-                                      backgroundColor: const Color(0xFF3B82F6),
-                                    ),
-                                  );
-                                } else {
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Surat Tugas belum tersedia'),
-                                      backgroundColor: Colors.orange,
-                                    ),
-                                  );
+                                try {
+                                  final fileUrl = await ApiService.getSuratTugas(widget.jadwal.id);
+                                  final targetUrl = (fileUrl != null && fileUrl.isNotEmpty)
+                                      ? fileUrl
+                                      : 'https://sertifikasi.lspdigital.id/mobile/spt_asesor/${widget.jadwal.id}';
+                                  final uri = Uri.tryParse(targetUrl);
+                                  if (uri != null) {
+                                    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                                      await launchUrl(uri, mode: LaunchMode.platformDefault);
+                                    }
+                                  }
+                                } catch (_) {
+                                  final fallbackUrl = 'https://sertifikasi.lspdigital.id/mobile/spt_asesor/${widget.jadwal.id}';
+                                  final uri = Uri.tryParse(fallbackUrl);
+                                  if (uri != null) {
+                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                  }
                                 }
                               },
                               child: Row(

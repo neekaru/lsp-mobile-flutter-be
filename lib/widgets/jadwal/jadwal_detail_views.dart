@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/jadwal_models.dart';
+import '../../services/jadwal/jadwal_service.dart';
 import '../../screens/jadwal/profil_asesor_screen.dart';
 import '../../screens/jadwal/asesi_list_screen.dart';
 import '../../screens/jadwal/jadwal_ak05_screen.dart';
@@ -308,15 +310,25 @@ class JadwalDetailAsesorView extends StatelessWidget {
           ActionButtonCard(
             icon: Icons.description_rounded,
             title: 'Lihat Surat Tugas',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Fitur Surat Tugas belum diimplementasikan.'),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: Color(0xFF4FA8E8),
-                  duration: Duration(seconds: 2),
-                ),
-              );
+            onTap: () async {
+              try {
+                final fileUrl = await JadwalService.getSuratTugas(jadwal.id);
+                final targetUrl = (fileUrl != null && fileUrl.isNotEmpty)
+                    ? fileUrl
+                    : 'https://sertifikasi.lspdigital.id/mobile/spt_asesor/${jadwal.id}';
+                final uri = Uri.tryParse(targetUrl);
+                if (uri != null) {
+                  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                    await launchUrl(uri, mode: LaunchMode.platformDefault);
+                  }
+                }
+              } catch (_) {
+                final fallbackUrl = 'https://sertifikasi.lspdigital.id/mobile/spt_asesor/${jadwal.id}';
+                final uri = Uri.tryParse(fallbackUrl);
+                if (uri != null) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              }
             },
           ),
           const SizedBox(height: 12),
