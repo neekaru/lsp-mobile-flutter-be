@@ -360,18 +360,50 @@ class MapaOption {
   final int id;
   final String namaMapa;
   final String displayText;
+  final String metode;
+  final List<String> instrumen;
+  final bool hasIA01;
+  final bool hasIA02;
+  final bool hasIA03;
+  final bool hasIA05;
+  final bool hasIA11;
 
   MapaOption({
     required this.id,
     required this.namaMapa,
     required this.displayText,
+    this.metode = 'observasi',
+    this.instrumen = const [],
+    this.hasIA01 = true,
+    this.hasIA02 = true,
+    this.hasIA03 = true,
+    this.hasIA05 = true,
+    this.hasIA11 = false,
   });
 
+  bool get isPortofolio =>
+      metode == 'portofolio' ||
+      namaMapa.toUpperCase().contains('PORTOFOLIO');
+
   factory MapaOption.fromJson(Map<String, dynamic> json) {
+    final rawNama = json['nama_mapa'] as String? ?? '';
+    final isPortofolio = rawNama.toUpperCase().contains('PORTOFOLIO');
+    final rawInstrumen = (json['instrumen'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+
     return MapaOption(
       id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
-      namaMapa: json['nama_mapa'] as String? ?? '',
+      namaMapa: rawNama,
       displayText: json['display_text'] as String? ?? '',
+      metode: json['metode'] as String? ?? (isPortofolio ? 'portofolio' : 'observasi'),
+      instrumen: rawInstrumen,
+      hasIA01: json['has_ia01'] ?? !isPortofolio,
+      hasIA02: json['has_ia02'] ?? !isPortofolio,
+      hasIA03: json['has_ia03'] ?? true,
+      hasIA05: json['has_ia05'] ?? !isPortofolio,
+      hasIA11: json['has_ia11'] ?? isPortofolio,
     );
   }
 }

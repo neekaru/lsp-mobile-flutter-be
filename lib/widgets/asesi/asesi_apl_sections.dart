@@ -716,96 +716,129 @@ class _APL02SectionState extends State<APL02Section> {
           ),
           const SizedBox(height: 14),
 
-          // ── Link ke Halaman Instrumen Asesmen (FR.IA.01, IA.02, IA.03, IA.05) ──
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFBFDBFE)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // ── Link ke Halaman Instrumen Asesmen (FR.IA) ──
+          Builder(
+            builder: (context) {
+              final selectedMapa = mapaOptions.firstWhere(
+                (m) => m.id == _selectedMapaId,
+                orElse: () => MapaOption(id: 0, namaMapa: '', displayText: ''),
+              );
+              final isPorto = selectedMapa.isPortofolio || _selectedKandidat == '3';
+              final String metodeBadge = isPorto
+                  ? 'Verifikasi Portofolio'
+                  : (selectedMapa.metode == 'terstruktur' ? 'Kegiatan Terstruktur' : 'Observasi Langsung');
+
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isPorto ? const Color(0xFFFFFBEB) : const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isPorto ? const Color(0xFFFDE68A) : const Color(0xFFBFDBFE),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      children: const [
-                        Icon(LucideIcons.clipboard_check, size: 18, color: Color(0xFF2563EB)),
-                        SizedBox(width: 8),
-                        Text(
-                          'Instrumen Asesmen (FR.IA)',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E40AF),
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              LucideIcons.clipboard_check,
+                              size: 18,
+                              color: isPorto ? const Color(0xFFD97706) : const Color(0xFF2563EB),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Instrumen Asesmen (FR.IA)',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: isPorto ? const Color(0xFF92400E) : const Color(0xFF1E40AF),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isPorto ? const Color(0xFFFEF3C7) : const Color(0xFFDBEAFE),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            metodeBadge,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: isPorto ? const Color(0xFFB45309) : const Color(0xFF1D4ED8),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDBEAFE),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'Observasi Langsung',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1D4ED8),
-                        ),
-                      ),
+                    const SizedBox(height: 6),
+                    Text(
+                      isPorto
+                          ? 'Sesuai metode Portofolio yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:'
+                          : 'Sesuai metode yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF475569), height: 1.35),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Sesuai metode yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF475569), height: 1.35),
-                ),
-                const SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
-                // Quick buttons for IA.01, IA.02, IA.03, IA.05
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildIAQuickButton(
-                      context,
-                      code: 'FR.IA.01',
-                      label: 'IA.01 Observasi',
-                      formId: 'IA01',
-                      color: const Color(0xFF2563EB),
-                    ),
-                    _buildIAQuickButton(
-                      context,
-                      code: 'FR.IA.02',
-                      label: 'IA.02 Tugas Praktik',
-                      formId: 'IA02',
-                      color: const Color(0xFF0284C7),
-                    ),
-                    _buildIAQuickButton(
-                      context,
-                      code: 'FR.IA.03',
-                      label: 'IA.03 Tanya Lisan',
-                      formId: 'IA03',
-                      color: const Color(0xFFD97706),
-                    ),
-                    _buildIAQuickButton(
-                      context,
-                      code: 'FR.IA.05',
-                      label: 'IA.05 Tanya Tertulis',
-                      formId: 'IA05',
-                      color: const Color(0xFF16A34A),
+                    // Dynamic buttons based on selected MAPA
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        if (!isPorto && selectedMapa.hasIA01)
+                          _buildIAQuickButton(
+                            context,
+                            code: 'FR.IA.01',
+                            label: 'IA.01 Observasi',
+                            formId: 'IA01',
+                            color: const Color(0xFF2563EB),
+                          ),
+                        if (!isPorto && selectedMapa.hasIA02)
+                          _buildIAQuickButton(
+                            context,
+                            code: 'FR.IA.02',
+                            label: 'IA.02 Tugas Praktik',
+                            formId: 'IA02',
+                            color: const Color(0xFF0284C7),
+                          ),
+                        if (selectedMapa.hasIA03)
+                          _buildIAQuickButton(
+                            context,
+                            code: 'FR.IA.03',
+                            label: isPorto ? 'IA.03 Tanya Lisan (Wawancara)' : 'IA.03 Tanya Lisan',
+                            formId: 'IA03',
+                            color: const Color(0xFFD97706),
+                          ),
+                        if (!isPorto && selectedMapa.hasIA05)
+                          _buildIAQuickButton(
+                            context,
+                            code: 'FR.IA.05',
+                            label: 'IA.05 Tanya Tertulis',
+                            formId: 'IA05',
+                            color: const Color(0xFF16A34A),
+                          ),
+                        if (isPorto)
+                          _buildIAQuickButton(
+                            context,
+                            code: 'FR.IA.11',
+                            label: 'IA.11 Verifikasi Portofolio',
+                            formId: 'IA11',
+                            color: const Color(0xFF7C3AED),
+                          ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
           const SizedBox(height: 14),
 
