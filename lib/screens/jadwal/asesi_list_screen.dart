@@ -154,216 +154,216 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
-      body: Column(
-        children: [
-          // Premium Gradient Header
-          Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF5B9FD8), Color(0xFF4FA8E8)],
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
-              ),
-            ),
-            padding: EdgeInsets.fromLTRB(20, statusBarHeight + 16, 20, 20),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'Daftar Peserta & Rekomendasi',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Main Body
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _errorMessage.isNotEmpty
-                    ? _buildErrorWidget()
-                    : RefreshIndicator(
-                        onRefresh: _fetchAsesiData,
-                        child: SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Schedule details reference
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE5F1FC),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: const Color(0xFFB3D7F4),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Jadwal Sertifikasi',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: Color(0xFF2C6C9C),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      widget.jadwalTitle,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1B4D70),
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Summary statistics card
-                              if (_response != null)
-                                _buildSummaryCard(_response!.meta),
-
-                              const SizedBox(height: 16),
-
-                              // Search Bar
-                              _buildSearchBar(),
-
-                              const SizedBox(height: 16),
-
-                              // List header
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Peserta (${_filteredAsesi.length})',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  if (_searchController.text.isNotEmpty)
-                                    Text(
-                                      'Hasil filter: ${_filteredAsesi.length}',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-
-                              // List of candidates
-                              if (_filteredAsesi.isEmpty)
-                                _buildEmptyWidget()
-                              else
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  padding: EdgeInsets.zero,
-                                  itemCount: _filteredAsesi.length,
-                                  itemBuilder: (context, index) {
-                                    final item = _filteredAsesi[index];
-                                    return _buildAsesiItem(item);
-                                  },
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: _isLoading || _filteredAsesi.isEmpty
-          ? null
-          : Container(
+      body: SafeArea(
+        top: false,
+        bottom: true,
+        child: Column(
+          children: [
+            // Premium Gradient Header
+            Container(
               width: double.infinity,
-              padding: EdgeInsets.fromLTRB(
-                16,
-                10,
-                16,
-                12 + MediaQuery.of(context).padding.bottom,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF5B9FD8), Color(0xFF4FA8E8)],
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
+                ),
               ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
+              padding: EdgeInsets.fromLTRB(20, statusBarHeight + 16, 20, 20),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Daftar Peserta & Rekomendasi',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              child: SizedBox(
-                height: 48,
-                child: ElevatedButton.icon(
-                  onPressed: _isSaving ? null : _saveRekomendasiKolektif,
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+            ),
+
+            // Main Body
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _errorMessage.isNotEmpty
+                      ? _buildErrorWidget()
+                      : RefreshIndicator(
+                          onRefresh: _fetchAsesiData,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Schedule details reference
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE5F1FC),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: const Color(0xFFB3D7F4),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Jadwal Sertifikasi',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Color(0xFF2C6C9C),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        widget.jadwalTitle,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1B4D70),
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Summary statistics card
+                                if (_response != null)
+                                  _buildSummaryCard(_response!.meta),
+
+                                const SizedBox(height: 16),
+
+                                // Search Bar
+                                _buildSearchBar(),
+
+                                const SizedBox(height: 16),
+
+                                // List header
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Peserta (${_filteredAsesi.length})',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    if (_searchController.text.isNotEmpty)
+                                      Text(
+                                        'Hasil filter: ${_filteredAsesi.length}',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+
+                                // List of candidates
+                                if (_filteredAsesi.isEmpty)
+                                  _buildEmptyWidget()
+                                else
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    padding: EdgeInsets.zero,
+                                    itemCount: _filteredAsesi.length,
+                                    itemBuilder: (context, index) {
+                                      final item = _filteredAsesi[index];
+                                      return _buildAsesiItem(item);
+                                    },
+                                  ),
+                              ],
+                            ),
                           ),
-                        )
-                      : const Icon(Icons.check_circle_outline_rounded,
-                          size: 20, color: Colors.white),
-                  label: Text(
-                    _isSaving
-                        ? 'Menyimpan Rekomendasi...'
-                        : 'Simpan Rekomendasi Kolektif',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                        ),
+            ),
+
+            // Persistent Footer Button
+            if (!_isLoading && _filteredAsesi.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, -3),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  ],
+                ),
+                child: SizedBox(
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: _isSaving ? null : _saveRekomendasiKolektif,
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.check_circle_outline_rounded,
+                            size: 20, color: Colors.white),
+                    label: Text(
+                      _isSaving
+                          ? 'Menyimpan Rekomendasi...'
+                          : 'Simpan Rekomendasi Kolektif',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                    elevation: 0,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
                   ),
                 ),
               ),
-            ),
+          ],
+        ),
+      ),
     );
   }
 
