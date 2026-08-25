@@ -309,11 +309,16 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
           ),
         ],
       ),
-      bottomSheet: _isLoading || _filteredAsesi.isEmpty
+      bottomNavigationBar: _isLoading || _filteredAsesi.isEmpty
           ? null
           : Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                10,
+                16,
+                12 + MediaQuery.of(context).padding.bottom,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -324,39 +329,37 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                   ),
                 ],
               ),
-              child: SafeArea(
-                child: SizedBox(
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    onPressed: _isSaving ? null : _saveRekomendasiKolektif,
-                    icon: _isSaving
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.check_circle_outline_rounded,
-                            size: 20, color: Colors.white),
-                    label: Text(
-                      _isSaving
-                          ? 'Menyimpan Rekomendasi...'
-                          : 'Simpan Rekomendasi Kolektif',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+              child: SizedBox(
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: _isSaving ? null : _saveRekomendasiKolektif,
+                  icon: _isSaving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.check_circle_outline_rounded,
+                          size: 20, color: Colors.white),
+                  label: Text(
+                    _isSaving
+                        ? 'Menyimpan Rekomendasi...'
+                        : 'Simpan Rekomendasi Kolektif',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4FA8E8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 0,
                   ),
                 ),
               ),
