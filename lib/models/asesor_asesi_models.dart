@@ -221,6 +221,8 @@ class AsesorAsesiDetailData {
     required this.ak04,
   });
 
+  String get kandidat => apl02.kandidat;
+
   factory AsesorAsesiDetailData.fromJson(Map<String, dynamic> json) {
     final rawRekom = json['rekomendasi_asesor'] as String? ?? 'Belum Rekomendasi';
     final rekomCode = json['rekomendasi_asesor_code']?.toString() ??
@@ -679,6 +681,7 @@ class AK02Data {
   final String hasilPraktik;
   final String hasilLisan;
   final String hasilEsai;
+  final String hasilPortofolio;
   final String komentarObservasi;
   final String rekomendasiAsesor;
   final String rekomendasi;
@@ -693,6 +696,7 @@ class AK02Data {
     required this.hasilPraktik,
     required this.hasilLisan,
     required this.hasilEsai,
+    this.hasilPortofolio = 'Kompeten',
     required this.komentarObservasi,
     this.rekomendasiAsesor = '0',
     this.rekomendasi = 'Belum Rekomendasi',
@@ -714,12 +718,16 @@ class AK02Data {
         json['saran_tindak_lanjut'] as String? ??
         '';
 
+    final obs = json['hasil_observasi'] as String? ?? 'Kompeten';
+    final porto = json['hasil_portofolio'] as String? ?? obs;
+
     return AK02Data(
       status: json['status'] as String? ?? 'Selesai',
-      hasilObservasi: json['hasil_observasi'] as String? ?? 'Kompeten',
+      hasilObservasi: obs,
       hasilPraktik: json['hasil_praktik'] as String? ?? 'Kompeten',
       hasilLisan: json['hasil_lisan'] as String? ?? 'Kompeten',
       hasilEsai: json['hasil_esai'] as String? ?? 'Kompeten',
+      hasilPortofolio: porto,
       komentarObservasi: json['komentar_observasi'] as String? ?? '',
       rekomendasiAsesor: rawCode,
       rekomendasi: rawRekom,
