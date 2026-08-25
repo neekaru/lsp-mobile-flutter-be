@@ -577,11 +577,16 @@ class _AK02SectionState extends State<AK02Section> {
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
 
-          // Ringkasan Hasil Asesmen
-          AsesiDetailRow('Hasil Observasi Langsung', ak02?.hasilObservasi ?? 'Kompeten'),
-          AsesiDetailRow('Hasil Uji Praktik / Demonstrasi', ak02?.hasilPraktik ?? 'Kompeten'),
-          AsesiDetailRow('Hasil Pertanyaan Lisan', ak02?.hasilLisan ?? 'Kompeten'),
-          AsesiDetailRow('Hasil Tes Tertulis / Esai', ak02?.hasilEsai ?? 'Kompeten'),
+          // Ringkasan Hasil Asesmen (Sesuai Instrumen yang digunakan)
+          if (widget.detailData?.kandidat == '3' || (widget.detailData?.skemaSertifikat.toLowerCase().contains('portofolio') ?? false)) ...[
+            AsesiDetailRow('Hasil Verifikasi Portofolio (FR.IA.11)', ak02?.hasilPortofolio ?? (ak02?.hasilObservasi ?? 'Kompeten')),
+            AsesiDetailRow('Hasil Pertanyaan Wawancara / Lisan (FR.IA.03/09)', ak02?.hasilLisan ?? 'Kompeten'),
+          ] else ...[
+            AsesiDetailRow('Hasil Observasi Langsung (FR.IA.01)', ak02?.hasilObservasi ?? 'Kompeten'),
+            AsesiDetailRow('Hasil Uji Praktik / Demonstrasi (FR.IA.02)', ak02?.hasilPraktik ?? 'Kompeten'),
+            AsesiDetailRow('Hasil Pertanyaan Lisan (FR.IA.03)', ak02?.hasilLisan ?? 'Kompeten'),
+            AsesiDetailRow('Hasil Pertanyaan Tertulis / Esai (FR.IA.05/06)', ak02?.hasilEsai ?? 'Kompeten'),
+          ],
 
           const SizedBox(height: 10),
           SizedBox(

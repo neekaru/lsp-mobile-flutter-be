@@ -5,11 +5,13 @@ import '../../models/instrumen_asesmen_models.dart';
 class IA01ObservasiWidget extends StatefulWidget {
   final List<IA01UnitKompetensi> units;
   final VoidCallback? onFinished;
+  final Function(String rekomendasi, String catatan)? onFinishedWithRekom;
 
   const IA01ObservasiWidget({
     super.key,
     required this.units,
     this.onFinished,
+    this.onFinishedWithRekom,
   });
 
   @override
@@ -18,6 +20,8 @@ class IA01ObservasiWidget extends StatefulWidget {
 
 class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
   int _selectedUnitIndex = 0;
+  String _rekomendasiKeseluruhan = 'K';
+  final TextEditingController _catatanKeseluruhanController = TextEditingController();
   final Map<int, TextEditingController> _catatanControllers = {};
   final Map<int, TextEditingController> _alasanPertanyaanControllers = {};
   final Map<int, TextEditingController> _alasanBuktiControllers = {};
@@ -36,6 +40,7 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
 
   @override
   void dispose() {
+    _catatanKeseluruhanController.dispose();
     for (var controller in _catatanControllers.values) {
       controller.dispose();
     }
@@ -54,6 +59,7 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
         item.penilaian = 'K';
       }
       unit.rekomendasiUnit = 'K';
+      _rekomendasiKeseluruhan = 'K';
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -212,19 +218,21 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
           // ──    unit non-terakhir: tampilkan catatan saja ──
           if (_selectedUnitIndex != widget.units.length - 1) ...[
             _buildCatatanOnlyCard(currentUnit),
+            const SizedBox(height: 14),
           ],
           
           // ── 5. Card Keputusan & Rekomendasi (HANYA unit terakhir) ──
-          // ──    juga tampilkan catatan lagi di unit terakhir ──
           if (_selectedUnitIndex == widget.units.length - 1) ...[
             _buildKeputusanObservasiCard(currentUnit),
-            const SizedBox(height: 10),
-            _buildCatatanOnlyCard(currentUnit),
+            const SizedBox(height: 14),
           ],
+
+          // ── 6. Card Rekomendasi Keseluruhan (Tampil di semua / unit terakhir) ──
+          _buildRekomendasiKeseluruhanCard(),
 
           const SizedBox(height: 18),
 
-          // ── 5. Bottom Navigation & Action Buttons ──
+          // ── 7. Bottom Navigation & Action Buttons ──
           _buildBottomActionBar(currentUnit),
 
           const SizedBox(height: 30),
@@ -735,6 +743,175 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
     );
   }
 
+  Widget _buildRekomendasiKeseluruhanCard() {
+    final isK = _rekomendasiKeseluruhan == 'K';
+    final isBK = _rekomendasiKeseluruhan == 'BK';
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isK ? const Color(0xFF86EFAC) : const Color(0xFFFCA5A5),
+          width: 1.5,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: isK ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(
+                  LucideIcons.award,
+                  size: 18,
+                  color: isK ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Rekomendasi Keseluruhan Observasi (FR.IA.01)',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      'Keputusan ini otomatis muncul di FR-AK.02 & Laporan FR-AK.05',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 12),
+
+          // Big Segmented Button for Overall Recommendation
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _rekomendasiKeseluruhan = 'K';
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isK ? const Color(0xFFDCFCE7) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isK ? const Color(0xFF16A34A) : const Color(0xFFCBD5E1),
+                        width: isK ? 1.8 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          isK ? LucideIcons.circle_check : LucideIcons.circle,
+                          size: 18,
+                          color: isK ? const Color(0xFF16A34A) : const Color(0xFF94A3B8),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Kompeten (K)',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isK ? FontWeight.bold : FontWeight.w600,
+                            color: isK ? const Color(0xFF15803D) : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _rekomendasiKeseluruhan = 'BK';
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isBK ? const Color(0xFFFEE2E2) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isBK ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                        width: isBK ? 1.8 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          isBK ? LucideIcons.circle_x : LucideIcons.circle,
+                          size: 18,
+                          color: isBK ? const Color(0xFFDC2626) : const Color(0xFF94A3B8),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Belum Kompeten (BK)',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isBK ? FontWeight.bold : FontWeight.w600,
+                            color: isBK ? const Color(0xFFB91C1C) : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          _buildInputField(
+            label: 'Catatan & Umpan Balik Asesor Keseluruhan',
+            controller: _catatanKeseluruhanController,
+            hint: 'Tuliskan catatan keseluruhan hasil observasi asesi...',
+            onChanged: (v) {},
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBottomActionBar(IA01UnitKompetensi currentUnit) {
     final hasNext = _selectedUnitIndex < widget.units.length - 1;
     final hasPrev = _selectedUnitIndex > 0;
@@ -768,7 +945,11 @@ class _IA01ObservasiWidgetState extends State<IA01ObservasiWidget> {
                   _selectedUnitIndex++;
                 });
               } else {
-                widget.onFinished?.call();
+                if (widget.onFinishedWithRekom != null) {
+                  widget.onFinishedWithRekom!(_rekomendasiKeseluruhan, _catatanKeseluruhanController.text);
+                } else {
+                  widget.onFinished?.call();
+                }
               }
             },
             style: ElevatedButton.styleFrom(

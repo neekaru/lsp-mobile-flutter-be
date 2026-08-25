@@ -121,16 +121,18 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
     }
   }
 
-  Future<void> _saveIA01() async {
+  Future<void> _saveIA01({String? rekomendasiKeseluruhan, String? catatanKeseluruhan}) async {
     final payload = {
       'units': _ia01Units.map((u) => u.toJson()).toList(),
+      'rekomendasi_keseluruhan': rekomendasiKeseluruhan ?? 'K',
+      'catatan_keseluruhan': catatanKeseluruhan ?? '',
     };
     final res = await AsesorService.saveIA01(asesiId: widget.asesiId, data: payload);
     if (!mounted) return;
     if (res != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ FR.IA.01 Ceklis Observasi berhasil disimpan ke database'),
+          content: Text('✅ FR.IA.01 Ceklis Observasi & Rekomendasi berhasil disimpan ke database'),
           backgroundColor: Color(0xFF16A34A),
         ),
       );
@@ -416,6 +418,10 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
         return IA01ObservasiWidget(
           units: _ia01Units,
           onFinished: _saveIA01,
+          onFinishedWithRekom: (rekom, catatan) => _saveIA01(
+            rekomendasiKeseluruhan: rekom,
+            catatanKeseluruhan: catatan,
+          ),
         );
       case 'IA02':
         if (_ia02Data == null) {
