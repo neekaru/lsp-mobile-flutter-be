@@ -971,6 +971,10 @@ class AsesorService {
         data: {
           'message': message,
         },
+        options: Options(
+          receiveTimeout: const Duration(seconds: 90),
+          sendTimeout: const Duration(seconds: 30),
+        ),
       );
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data['data'];

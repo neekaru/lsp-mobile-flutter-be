@@ -509,7 +509,9 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   child: Text(
-                    msg.text,
+                    msg.text.trim().isNotEmpty
+                        ? msg.text
+                        : 'Mohon maaf, respon dari sistem kosong atau mengalami kendala jaringan. Silakan ketuk tombol refresh untuk mencoba kembali.',
                     style: TextStyle(
                       color: isUser ? Colors.white : const Color(0xFF1E293B),
                       fontSize: 13.5,

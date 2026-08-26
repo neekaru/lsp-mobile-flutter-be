@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../sertifikat/skema_sertifikasi_screen.dart';
+import 'lead_generator_screen.dart';
 
 class AsesorMarketingScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -263,42 +264,147 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
   }
 
   Widget _buildQuickActionTools() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _buildActionCard(
-            icon: Icons.menu_book_rounded,
-            title: 'Katalog Skema',
-            subtitle: 'Lihat seluruh skema',
-            color: const Color(0xFF0284C7),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SkemaSertifikasiScreen(),
+        // Primary Lead Generator Feature Card
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LeadGeneratorScreen(),
+              ),
+            );
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-              );
-            },
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.location_searching_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Lead Generator',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          // AI Badge
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Color(0xFF16A34A),
+                              borderRadius: BorderRadius.all(Radius.circular(10)),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              child: Text(
+                                'AI Maps',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 3),
+                      Text(
+                        'Peta potensi SMK, LPK, Kampus, BLK, & Dinas Pemda',
+                        style: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildActionCard(
-            icon: Icons.share_rounded,
-            title: 'Bagikan Brosur',
-            subtitle: 'Materi promosi digital',
-            color: const Color(0xFF059669),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Tautan brosur promosi siap dibagikan.'),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: Color(0xFF059669),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.menu_book_rounded,
+                title: 'Katalog Skema',
+                subtitle: 'Lihat seluruh skema',
+                color: const Color(0xFF0284C7),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SkemaSertifikasiScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.share_rounded,
+                title: 'Bagikan Brosur',
+                subtitle: 'Materi promosi digital',
+                color: const Color(0xFF059669),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Tautan brosur promosi siap dibagikan.'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Color(0xFF059669),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ],
     );
