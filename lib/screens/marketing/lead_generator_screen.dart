@@ -104,8 +104,8 @@ class _LeadGeneratorScreenState extends State<LeadGeneratorScreen> {
   Future<void> _resolveAsesorAndLoad() async {
     setState(() => _isLoading = true);
     final user = AuthRepository.currentUserInstance;
-    if (user != null && user.id > 0) {
-      _idAsesor = user.id;
+    if (user != null && user.id.isNotEmpty) {
+      _idAsesor = int.tryParse(user.id) ?? 4;
     }
     final data = await LeadStorageService.getLeads(_idAsesor);
     if (mounted) {
