@@ -446,18 +446,21 @@ class AK02Section extends StatefulWidget {
 }
 
 class _AK02SectionState extends State<AK02Section> {
-  String _selectedRekom = '1'; // '1': Kompeten, '2': Belum Kompeten
+  String _selectedRekom = ''; // '': Belum dipilih (non-active), '1': Kompeten, '2': Belum Kompeten
   late TextEditingController _pesanController;
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    final currentCode = widget.detailData?.ak02.rekomendasiAsesor;
-    if (currentCode == '2' || widget.detailData?.rekomendasiAsesor == 'Belum Kompeten') {
+    final currentCode = widget.detailData?.ak02.rekomendasiAsesor?.trim() ?? '';
+    final generalRekom = widget.detailData?.rekomendasiAsesor?.trim().toLowerCase() ?? '';
+    if (currentCode == '2' || generalRekom == 'belum kompeten' || generalRekom == 'bk') {
       _selectedRekom = '2';
-    } else {
+    } else if (currentCode == '1' || generalRekom == 'kompeten' || generalRekom == 'k') {
       _selectedRekom = '1';
+    } else {
+      _selectedRekom = ''; // Belum rekomendasi / netral
     }
 
     final initialPesan = widget.detailData?.ak02.pesan.isNotEmpty == true
@@ -473,11 +476,14 @@ class _AK02SectionState extends State<AK02Section> {
   void didUpdateWidget(covariant AK02Section oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.detailData != widget.detailData) {
-      final currentCode = widget.detailData?.ak02.rekomendasiAsesor;
-      if (currentCode == '2' || widget.detailData?.rekomendasiAsesor == 'Belum Kompeten') {
+      final currentCode = widget.detailData?.ak02.rekomendasiAsesor?.trim() ?? '';
+      final generalRekom = widget.detailData?.rekomendasiAsesor?.trim().toLowerCase() ?? '';
+      if (currentCode == '2' || generalRekom == 'belum kompeten' || generalRekom == 'bk') {
         _selectedRekom = '2';
-      } else {
+      } else if (currentCode == '1' || generalRekom == 'kompeten' || generalRekom == 'k') {
         _selectedRekom = '1';
+      } else {
+        _selectedRekom = '';
       }
 
       final initialPesan = widget.detailData?.ak02.pesan.isNotEmpty == true
@@ -505,6 +511,17 @@ class _AK02SectionState extends State<AK02Section> {
         const SnackBar(
           content: Text('ID Asesi tidak valid.'),
           backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedRekom.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan pilih Keputusan Rekomendasi (Kompeten atau Belum Kompeten) terlebih dahulu.'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
