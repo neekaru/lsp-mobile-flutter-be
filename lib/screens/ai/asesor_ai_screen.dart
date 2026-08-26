@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import '../../services/auth/auth_repository.dart';
+import '../../services/asesor/asesor_service.dart';
 
 class AsesorAiScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -39,10 +40,10 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
   final List<_ChatMessage> _messages = [];
 
   final List<String> _quickPrompts = [
-    '🎯 Daftar Skema Sertifikasi',
+    '👥 Tampilkan asesi bulan ini',
+    '📋 Tampilkan asesi hari ini',
     '📅 Cek jadwal asesmen aktif',
-    '⏳ Laporan menunggu verifikasi',
-    '👥 Daftar asesi belum dinilai',
+    '🎯 Potensi lead sekolah & estimasi siswa',
     '📜 Syarat pemeliharaan RCC Asesor',
     '💡 Panduan penilaian uji kompetensi',
   ];
@@ -90,7 +91,7 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
     });
   }
 
-  void _sendMessage(String text) {
+  Future<void> _sendMessage(String text) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
 
@@ -108,130 +109,38 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
     _textController.clear();
     _scrollToBottom();
 
-    // Simulasi respons AI (Dummy Automation - Ready to hook with n8n webhook)
-    Future.delayed(const Duration(milliseconds: 1000), () {
+    try {
+      final aiReplyText = await AsesorService.sendAiChat(trimmed);
       if (!mounted) return;
 
-      final aiReply = _generateAiResponse(trimmed);
       setState(() {
         _isAiThinking = false;
-        _messages.add(aiReply);
+        _messages.add(
+          _ChatMessage(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            text: aiReplyText,
+            isUser: false,
+            timestamp: DateTime.now(),
+          ),
+        );
       });
       _scrollToBottom();
-    });
-  }
+    } catch (e) {
+      if (!mounted) return;
 
-  _ChatMessage _generateAiResponse(String prompt) {
-    final lower = prompt.toLowerCase();
-    final now = DateTime.now();
-
-    // 1. Cek Jadwal Asesmen
-    if (lower.contains('jadwal') ||
-        lower.contains('asesmen') ||
-        lower.contains('agenda') ||
-        lower.contains('kegiatan')) {
-      return _ChatMessage(
-        id: now.millisecondsSinceEpoch.toString(),
-        text:
-            'Berikut ringkasan jadwal asesmen aktif Anda saat ini:\n\n'
-            '1. **AJJ Network Administrator Muda**\n'
-            '   • Waktu: 28 Agustus 2026, 08:30 WIB\n'
-            '   • TUK: CV. Mitra Buana Solusindo\n'
-            '   • Status: *Asesmen Berlangsung*\n\n'
-            '2. **Sertifikasi Pemrogram Web Pratama**\n'
-            '   • Waktu: 30 Agustus 2026, 09:00 WIB\n'
-            '   • TUK: PT. Solusi Digital Indonesia\n'
-            '   • Status: *Running / Menunggu Verifikasi*\n\n'
-            'Apakah Anda ingin melihat daftar peserta pada jadwal tersebut?',
-        isUser: false,
-        timestamp: now,
-      );
+      setState(() {
+        _isAiThinking = false;
+        _messages.add(
+          _ChatMessage(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            text: 'Terjadi kendala saat menghubungi asisten AI. Silakan coba beberapa saat lagi.',
+            isUser: false,
+            timestamp: DateTime.now(),
+          ),
+        );
+      });
+      _scrollToBottom();
     }
-
-    // 2. Laporan Menunggu Verifikasi
-    if (lower.contains('laporan') ||
-        lower.contains('verifikasi') ||
-        lower.contains('tugas')) {
-      return _ChatMessage(
-        id: now.millisecondsSinceEpoch.toString(),
-        text:
-            '📋 **Status Laporan Asesmen:**\n\n'
-            'Terdapat **1 laporan** yang menunggu verifikasi Anda:\n\n'
-            '• **Sertifikasi Digital Marketing - Media Digital 290726**\n'
-            '  - Status: Menunggu Verifikasi Asesor\n'
-            '  - Kelengkapan: FR.AK.05 & FR.AK.06 belum difinalisasi\n\n'
-            'Silakan tinjau berkas pelaporan tersebut di menu **Jadwal** -> tab **Pelaporan**.',
-        isUser: false,
-        timestamp: now,
-      );
-    }
-
-    // 3. Asesi / Peserta
-    if (lower.contains('asesi') ||
-        lower.contains('peserta') ||
-        lower.contains('nilai') ||
-        lower.contains('kompeten')) {
-      return _ChatMessage(
-        id: now.millisecondsSinceEpoch.toString(),
-        text:
-            '👥 **Ringkasan Penilaian Asesi:**\n\n'
-            '• Total Asesi Ditugaskan: **12 Peserta**\n'
-            '• Belum Dinilai (FR.APL.02 / AK.01): **8 Peserta**\n'
-            '• Selesai Dinilai (Kompeten): **4 Peserta**\n\n'
-            'Anda dapat membuka tab **Asesi** di menu bawah untuk memeriksa dokumen portofolio dan asesmen mandiri tiap asesi.',
-        isUser: false,
-        timestamp: now,
-      );
-    }
-
-    // 4. RCC & Syarat Perpanjangan Asesor
-    if (lower.contains('rcc') ||
-        lower.contains('perpanjang') ||
-        lower.contains('sertifikat') ||
-        lower.contains('masa aktif') ||
-        lower.contains('spt')) {
-      return _ChatMessage(
-        id: now.millisecondsSinceEpoch.toString(),
-        text:
-            '📜 **Status Pemeliharaan Kompetensi Asesor (RCC):**\n\n'
-            '• **Total SPT Tercatat:** 6 SPT (Target 6 SPT tercapai ✅)\n'
-            '• **Status Masa Aktif:** Aktif s/d 2028\n'
-            '• **Perangkat MUK:** 4 Dokumen MUK terverifikasi\n\n'
-            'Anda telah memenuhi syarat untuk rekomendasi perpanjangan sertifikat asesor (RCC) LSP.',
-        isUser: false,
-        timestamp: now,
-      );
-    }
-
-    // 5. Panduan / MUK / Format
-    if (lower.contains('panduan') ||
-        lower.contains('muk') ||
-        lower.contains('mapa') ||
-        lower.contains('format')) {
-      return _ChatMessage(
-        id: now.millisecondsSinceEpoch.toString(),
-        text:
-            '💡 **Panduan Asesmen & Dokumen MUK:**\n\n'
-            'Langkah utama proses asesmen:\n'
-            '1. **Pra-Asesmen:** Verifikasi Form FR.APL.01 & FR.APL.02 asesi.\n'
-            '2. **Pelaksanaan Uji:** Gunakan instrumen observasi/praktik (FR.IA.01 - FR.IA.03).\n'
-            '3. **Keputusan Asesmen:** Tuangkan rekomendasi K (Kompeten) atau BK (Belum Kompeten) pada FR.AK.02.\n'
-            '4. **Laporan Asesmen:** Finalisasi laporan penugasan FR.AK.05 & FR.AK.06.',
-        isUser: false,
-        timestamp: now,
-      );
-    }
-
-    // Default Fallback Response
-    return _ChatMessage(
-      id: now.millisecondsSinceEpoch.toString(),
-      text:
-          'Terima kasih atas pertanyaannya! 🤖\n\nPesan Anda: *"$prompt"*\n\n'
-          '*(Fitur ini terhubung ke workflow automation n8n untuk integrasi data LSP dan model AI secara langsung)*\n\n'
-          'Ada hal lain yang dapat saya bantu seputar penugasan asesmen Anda?',
-      isUser: false,
-      timestamp: now,
-    );
   }
 
   void _clearChat() {

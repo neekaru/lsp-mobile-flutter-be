@@ -207,6 +207,7 @@ class ApiRoutes {
       '/api/asesor/jadwal/$jadwalId/ak06';
   static String asesorTiketDetail(int id) => '/api/asesor/tiket/$id';
   static String asesorTiketReply(int id) => '/api/asesor/tiket/$id/reply';
+  static const String asesorAiChat = '/api/asesor/ai/chat';
 
   // ============================================================================
   // Admin Tiket Routes

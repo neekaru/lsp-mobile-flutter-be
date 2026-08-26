@@ -962,4 +962,26 @@ class AsesorService {
       return [];
     }
   }
+
+  /// POST /api/asesor/ai/chat
+  static Future<String> sendAiChat(String message) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesorAiChat,
+        data: {
+          'message': message,
+        },
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'];
+        if (data != null && data['message'] != null) {
+          return data['message'].toString();
+        }
+      }
+      return 'Mohon maaf, asisten AI sedang tidak dapat merespons saat ini.';
+    } catch (e) {
+      debugPrint('🔴 Error sending AI chat: $e');
+      return 'Terjadi kendala koneksi ke server asisten AI. Silakan coba lagi.';
+    }
+  }
 }
