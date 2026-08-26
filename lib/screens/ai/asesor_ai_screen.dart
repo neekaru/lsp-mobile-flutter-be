@@ -43,9 +43,8 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
     '👥 Tampilkan asesi bulan ini',
     '📋 Tampilkan asesi hari ini',
     '📅 Cek jadwal asesmen aktif',
-    '🎯 Potensi lead sekolah & estimasi siswa',
     '📜 Syarat pemeliharaan RCC Asesor',
-    '💡 Panduan penilaian uji kompetensi',
+    '💡 Panduan pengisian FR-AK.05 & FR-AK.06',
   ];
 
   @override
