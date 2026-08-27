@@ -105,24 +105,26 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
         return true;
       case 'APL02':
         // Unlocked if APL-01 is complete / reviewed
-        return _detailData!.apl01.isApproved ||
-            _detailData!.apl01.status == 'Diterima' ||
+        return _detailData!.apl01.status == 'Diterima' ||
             _detailData!.apl01.status == 'Lengkap' ||
-            _detailData!.apl01.status != 'Belum Diverifikasi' ||
+            _detailData!.apl01.status == 'Terverifikasi' ||
+            _detailData!.apl01.rekomendasi.contains('Diterima') ||
             _detailData!.apl02.isApproved;
       case 'AK07':
         // Unlocked if APL-02 has recommendation / approved
         return _detailData!.apl02.isApproved ||
             _detailData!.apl02.rekomendasi != 'Belum Diverifikasi' ||
-            _detailData!.ak01.isApproved;
+            _detailData!.ak01.status == 'Disetujui' ||
+            _detailData!.ak01.tandaTangan;
       case 'AK01':
         // Unlocked if APL-02 and AK-07 are completed
         return _detailData!.apl02.isApproved ||
             _detailData!.apl02.rekomendasi != 'Belum Diverifikasi' ||
-            _detailData!.ak01.isApproved;
+            _detailData!.ak01.status == 'Disetujui' ||
+            _detailData!.ak01.tandaTangan;
       case 'AK02':
         // Unlocked if AK-01 is agreed / approved
-        return _detailData!.ak01.isApproved ||
+        return _detailData!.ak01.tandaTangan ||
             _detailData!.ak01.status == 'Disetujui' ||
             _detailData!.rekomendasiAsesorCode == '1' ||
             _detailData!.rekomendasiAsesorCode == '2';
@@ -130,13 +132,14 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
         // Unlocked if AK-02 has recommendation
         return _detailData!.rekomendasiAsesorCode == '1' ||
             _detailData!.rekomendasiAsesorCode == '2' ||
-            _detailData!.ak02.isApproved;
+            _detailData!.ak02.status == 'Selesai' ||
+            _detailData!.ak02.rekomendasiAsesor != '0';
       case 'AK04':
       case 'AK04A':
       case 'AK04B':
         // Unlocked if AK-03 is completed
-        return _detailData!.ak03.isApproved ||
-            _detailData!.ak03.status == 'Lengkap' ||
+        return _detailData!.ak03.isSudahDiisi ||
+            _detailData!.ak03.status == 'Telah Diisi' ||
             _detailData!.rekomendasiAsesorCode == '1' ||
             _detailData!.rekomendasiAsesorCode == '2';
       default:

@@ -100,7 +100,7 @@ class AK07Section extends StatelessWidget {
             ),
             child: const Row(
               children: [
-                Icon(LucideIcons.check_circle_2, size: 20, color: Color(0xFF16A34A)),
+                Icon(Icons.check_circle_rounded, size: 20, color: Color(0xFF16A34A)),
                 SizedBox(width: 10),
                 Expanded(
                   child: Column(

@@ -205,7 +205,7 @@ class AK04BSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  adaBanding ? LucideIcons.alert_circle : LucideIcons.check_circle_2,
+                  adaBanding ? Icons.warning_amber_rounded : Icons.check_circle_rounded,
                   size: 20,
                   color: adaBanding ? const Color(0xFFD97706) : const Color(0xFF16A34A),
                 ),
