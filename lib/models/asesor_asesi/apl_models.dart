@@ -141,22 +141,25 @@ class MapaOption {
       !isTerstruktur &&
       (metode == 'portofolio' ||
           namaMapa.toUpperCase().contains('PORTOFOLIO') ||
-          insPortofolio != '0' ||
-          insVPortofolio != '0');
+          namaMapa.toUpperCase().contains('POROTOFOLIO') ||
+          (insPortofolio != '0' && insPortofolio.isNotEmpty && insPortofolio != 'NULL') ||
+          (insVPortofolio != '0' && insVPortofolio.isNotEmpty && insVPortofolio != 'NULL') ||
+          (insWawancara != '0' && insWawancara.isNotEmpty && insWawancara != 'NULL'));
 
   bool isInstrumentActive(String formId, String selectedKandidat) {
     if (isTerstruktur) {
       if (formId == 'IA04A' || formId == 'IA04B') return true;
+      if (formId == 'IA05') return hasIA05 || (insPg != '0' && insPg.isNotEmpty && insPg != 'NULL');
+      if (formId == 'IA02') return hasIA02 || (insPraktik != '0' && insPraktik.isNotEmpty && insPraktik != 'NULL');
       if (formId == 'IA03') return hasIA03;
-      if (formId == 'IA05') return hasIA05;
       return false;
     }
-    if (selectedKandidat == '3' || isPortofolio) {
+    if (selectedKandidat == '3' || selectedKandidat == '4' || isPortofolio) {
       if (formId == 'IA11' || formId == 'IA08' || formId == 'IA09') return true;
-      if (formId == 'IA03') return hasIA03;
+      if (formId == 'IA03') return true;
       return false;
     }
-    // Observasi (Kandidat 1, 2, 4)
+    // Observasi (Kandidat 1, 2, 5)
     switch (formId) {
       case 'IA01':
         return hasIA01 && (insClo == selectedKandidat || insClo == '1' || insClo == '0');

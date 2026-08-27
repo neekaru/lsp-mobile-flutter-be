@@ -210,19 +210,27 @@ class _APL02SectionState extends State<APL02Section> {
 
   bool _isPortofolio(MapaOption m) {
     final t = '${m.namaMapa} ${m.displayText}'.toLowerCase();
-    return t.contains('portofolio') || t.contains('porotofolio') || t.contains('portfolio');
+    return m.isPortofolio || t.contains('portofolio') || t.contains('porotofolio') || t.contains('portfolio');
+  }
+
+  bool _isTerstruktur(MapaOption m) {
+    final t = '${m.namaMapa} ${m.displayText}'.toLowerCase();
+    return m.isTerstruktur || t.contains('terstruktur') || t.contains('dit');
   }
 
   List<MapaOption> _filterMapaOptions(List<MapaOption> options, String kandidat) {
-    final isExp = kandidat == '3';
+    final isExp = kandidat == '3' || kandidat == '4';
+    final isTerstrukturKandidat = kandidat == '1';
+
     final filtered = options.where((m) {
       final isPort = _isPortofolio(m);
+      final isTer = _isTerstruktur(m);
       if (isExp) {
         return isPort;
+      } else if (isTerstrukturKandidat) {
+        return isTer || !isPort;
       } else {
-        return !isPort ||
-            m.namaMapa.toLowerCase().contains('observasi') ||
-            m.namaMapa.toLowerCase().contains('terstruktur');
+        return !isPort;
       }
     }).toList();
     return filtered.isNotEmpty ? filtered : options;
@@ -615,15 +623,19 @@ class _APL02SectionState extends State<APL02Section> {
                   ),
                   KandidatOption(
                     id: '2',
-                    label: '2. Hasil Pelatihan dan / atau pendidikan dimana kurikulum belum berbasis kompetensi.',
+                    label: '2. Hasil pelatihan dan / atau pendidikan, dimana kurikulum belum berbasis kompetensi.',
                   ),
                   KandidatOption(
                     id: '3',
-                    label: '3. Pekerja berpengalaman.',
+                    label: '3. Pekerja berpengalaman, dimana berasal dari industri/tempat kerja yang dalam operasionalnya mampu telusur dengan standar kompetensi.',
                   ),
                   KandidatOption(
                     id: '4',
-                    label: '4. Pelatihan / Belajar Mandiri.',
+                    label: '4. Pekerja berpengalaman, dimana berasal dari industri/tempat kerja yang dalam operasionalnya belum berbasis kompetensi.',
+                  ),
+                  KandidatOption(
+                    id: '5',
+                    label: '5. Pelatihan / Belajar mandiri atau otodidak.',
                   ),
                 ]).map((k) {
                   return DropdownMenuItem<String>(
@@ -661,7 +673,11 @@ class _APL02SectionState extends State<APL02Section> {
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
               ),
               Text(
-                _selectedKandidat == '3' ? '(Metode Portofolio)' : '(Metode Observasi & Terstruktur)',
+                (_selectedKandidat == '3' || _selectedKandidat == '4')
+                    ? '(Metode Portofolio)'
+                    : (_selectedKandidat == '1'
+                        ? '(Metode Terstruktur / Observasi)'
+                        : '(Metode Observasi Langsung)'),
                 style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
               ),
             ],
@@ -669,7 +685,7 @@ class _APL02SectionState extends State<APL02Section> {
           const SizedBox(height: 5),
           Builder(
             builder: (context) {
-              final isExp = _selectedKandidat == '3';
+              final isExp = _selectedKandidat == '3' || _selectedKandidat == '4';
               final effectiveList = _filterMapaOptions(mapaOptions, _selectedKandidat);
 
               return Container(
