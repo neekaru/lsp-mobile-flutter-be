@@ -82,11 +82,18 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
       'desc': 'Umpan Balik & Catatan Asesi',
     },
     {
-      'id': 'AK04',
-      'code': 'FR-AK.04',
-      'title': '7. FR-AK.04 Banding Asesmen',
-      'short': '7. AK-04',
-      'desc': 'Pengajuan Permohonan Banding',
+      'id': 'AK04A',
+      'code': 'FR-AK.04A',
+      'title': '7. FR-AK.04A Permohonan Banding',
+      'short': '7. AK-04A',
+      'desc': 'Pengajuan Permohonan Banding Asesi',
+    },
+    {
+      'id': 'AK04B',
+      'code': 'FR-AK.04B',
+      'title': '8. FR-AK.04B Keputusan Banding',
+      'short': '8. AK-04B',
+      'desc': 'Keputusan Banding oleh Komite / Tim',
     },
   ];
 
@@ -125,6 +132,8 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
             _detailData!.rekomendasiAsesorCode == '2' ||
             _detailData!.ak02.isApproved;
       case 'AK04':
+      case 'AK04A':
+      case 'AK04B':
         // Unlocked if AK-03 is completed
         return _detailData!.ak03.isApproved ||
             _detailData!.ak03.status == 'Lengkap' ||
@@ -148,6 +157,8 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
       case 'AK03':
         return 'Selesaikan dan simpan rekomendasi FR-AK.02 terlebih dahulu.';
       case 'AK04':
+      case 'AK04A':
+      case 'AK04B':
         return 'Selesaikan pengisian FR-AK.03 terlebih dahulu.';
       default:
         return 'Formulir belum dapat diakses.';
@@ -656,6 +667,10 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
         );
       case 'AK03':
         return AK03Section(detailData: _detailData);
+      case 'AK04A':
+        return AK04ASection(detailData: _detailData);
+      case 'AK04B':
+        return AK04BSection(detailData: _detailData);
       case 'AK04':
         return AK04Section(detailData: _detailData);
       default:

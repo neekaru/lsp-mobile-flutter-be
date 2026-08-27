@@ -1,6 +1,5 @@
 // ============================================================================
-// FR.AK.04 Banding Asesmen (read-only).
-// Diekstrak dari asesi_ak_sections.dart.
+// FR.AK.04A Permohonan Banding & FR.AK.04B Keputusan Banding Asesmen.
 // ============================================================================
 
 import 'package:material_ui/material_ui.dart';
@@ -9,10 +8,11 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/asesor_asesi_models.dart';
 import 'asesi_form_common.dart';
 
-class AK04Section extends StatelessWidget {
+/// FR.AK.04A Permohonan Banding Asesmen (Pengajuan oleh Asesi)
+class AK04ASection extends StatelessWidget {
   final AsesorAsesiDetailData? detailData;
 
-  const AK04Section({super.key, required this.detailData});
+  const AK04ASection({super.key, required this.detailData});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class AK04Section extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           FormSectionHeader(
-            title: 'FR.AK.04 Banding Asesmen',
+            title: 'FR.AK.04A Permohonan Banding Asesmen',
             status: adaBanding ? 'Ada Permohonan Banding' : 'Tidak Ada Permohonan Banding',
             statusColor: adaBanding ? const Color(0xFFDC2626) : const Color(0xFF16A34A),
           ),
@@ -51,7 +51,7 @@ class AK04Section extends StatelessWidget {
 
           // List Pertanyaan Banding as Cards
           const Text(
-            'Pertanyaan Proses Banding :',
+            'Pertanyaan Proses Banding (Oleh Asesi) :',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -113,8 +113,8 @@ class AK04Section extends StatelessWidget {
 
           const SizedBox(height: 10),
           AsesiDetailRow(
-            'Alasan Banding',
-            adaBanding && ak04?.alasanBanding.isNotEmpty == true ? ak04!.alasanBanding : '(Tidak ada permohonan banding)',
+            'Alasan / Uraian Banding',
+            adaBanding && ak04?.alasanBanding.isNotEmpty == true ? ak04!.alasanBanding : '(Tidak ada permohonan banding dari asesi)',
           ),
         ],
       ),
@@ -158,6 +158,140 @@ class AK04Section extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// FR.AK.04B Keputusan Banding Asesmen (Keputusan oleh Tim Banding / Asesor)
+class AK04BSection extends StatelessWidget {
+  final AsesorAsesiDetailData? detailData;
+
+  const AK04BSection({super.key, required this.detailData});
+
+  @override
+  Widget build(BuildContext context) {
+    final ak04 = detailData?.ak04;
+    final adaBanding = ak04?.adaBanding == true;
+
+    return FormSectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FormSectionHeader(
+            title: 'FR.AK.04B Keputusan Banding Asesmen',
+            status: adaBanding ? 'Dalam Proses Banding' : 'Keputusan Asesor Tetap Berlaku',
+            statusColor: adaBanding ? const Color(0xFFD97706) : const Color(0xFF16A34A),
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 12),
+
+          // Info Peserta & Skema
+          AsesiDetailRow('Nama Asesi', detailData?.namaLengkap ?? '-'),
+          AsesiDetailRow('Skema Sertifikasi', detailData?.skemaSertifikat ?? '-'),
+          AsesiDetailRow('Status Permohonan', adaBanding ? 'Terdapat Permohonan Banding' : 'Tidak Ada Permohonan Banding'),
+          const SizedBox(height: 14),
+
+          // Status Keputusan Banding Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: adaBanding ? const Color(0xFFFFFBEB) : const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: adaBanding ? const Color(0xFFFDE68A) : const Color(0xFFBBF7D0)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  adaBanding ? LucideIcons.alert_circle : LucideIcons.check_circle_2,
+                  size: 20,
+                  color: adaBanding ? const Color(0xFFD97706) : const Color(0xFF16A34A),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        adaBanding ? 'Keputusan Banding: Dalam Peninjauan' : 'Keputusan Banding: Sah / Tidak Ada Banding',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: adaBanding ? const Color(0xFF92400E) : const Color(0xFF166534),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        adaBanding
+                            ? 'Permohonan banding sedang ditinjau oleh Komite / Tim Banding LSP.'
+                            : 'Hasil asesmen yang direkomendasikan oleh asesor dinyatakan sah dan berkekuatan tetap.',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: adaBanding ? const Color(0xFFB45309) : const Color(0xFF15803D),
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Rekomendasi & Catatan Tim Banding
+          AsesiDetailRow(
+            'Catatan / Rekomendasi Tim Banding',
+            adaBanding && ak04?.alasanBanding.isNotEmpty == true
+                ? ak04!.alasanBanding
+                : 'Tidak ada perubahan terhadap keputusan awal asesor.',
+          ),
+          const SizedBox(height: 12),
+
+          // Info Validasi
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                const Icon(LucideIcons.shield_check, size: 16, color: Color(0xFF2563EB)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Tervalidasi oleh Komite Teknis / Tim Banding LSP',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Composite Section backward compatibility
+class AK04Section extends StatelessWidget {
+  final AsesorAsesiDetailData? detailData;
+
+  const AK04Section({super.key, required this.detailData});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AK04ASection(detailData: detailData),
+        const SizedBox(height: 16),
+        AK04BSection(detailData: detailData),
+      ],
     );
   }
 }
