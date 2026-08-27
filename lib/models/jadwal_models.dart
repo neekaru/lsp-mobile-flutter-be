@@ -451,6 +451,10 @@ class AsesiItem {
   final bool isAK02Valid;
   final String statusAK02;
   final String colorAK02;
+  // Asesor Assignment & Edit permission
+  final int? idAsesor;
+  final bool isMyAsesi;
+  final bool canEdit;
 
   const AsesiItem({
     required this.id,
@@ -471,6 +475,9 @@ class AsesiItem {
     this.isAK02Valid = false,
     this.statusAK02 = 'Belum Dinilai',
     this.colorAK02 = 'red',
+    this.idAsesor,
+    this.isMyAsesi = true,
+    this.canEdit = true,
   });
 
   factory AsesiItem.fromJson(Map<String, dynamic> json) {
@@ -484,6 +491,12 @@ class AsesiItem {
     final rekomCode = json['rekomendasi_asesor']?.toString().trim() ?? '';
     final hasilRekom = json['hasil_rekomendasi']?.toString().trim() ??
         (rekomCode == '1' ? 'K' : (rekomCode == '2' ? 'BK' : '-'));
+
+    final idAsesorVal = json['id_asesor'] is int
+        ? json['id_asesor'] as int
+        : int.tryParse(json['id_asesor']?.toString() ?? '');
+    final isMyAsesiVal = json['is_my_asesi'] != false; // default true unless explicitly false
+    final canEditVal = json['can_edit'] != false; // default true unless explicitly false
 
     return AsesiItem(
       id: json['id'] ?? 0,
@@ -504,6 +517,9 @@ class AsesiItem {
       isAK02Valid: json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2',
       statusAK02: json['status_ak02']?.toString() ?? (json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2' ? 'Sudah Dinilai' : 'Belum Dinilai'),
       colorAK02: json['color_ak02']?.toString() ?? (json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2' ? 'green' : 'red'),
+      idAsesor: idAsesorVal,
+      isMyAsesi: isMyAsesiVal,
+      canEdit: canEditVal,
     );
   }
 }

@@ -104,11 +104,33 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     try {
       final List<Map<String, dynamic>> pesertaPayload = [];
       _rekomendasiMap.forEach((asesiId, rekom) {
-        pesertaPayload.add({
-          'asesi_id': asesiId,
-          'rekomendasi': rekom,
-        });
+        final asesi = _filteredAsesi.firstWhere(
+          (a) => a.id == asesiId,
+          orElse: () => _response?.data.firstWhere(
+                (a) => a.id == asesiId,
+                orElse: () => AsesiItem(id: asesiId, namaLengkap: '', canEdit: false),
+              ) ??
+              AsesiItem(id: asesiId, namaLengkap: '', canEdit: false),
+        );
+        if (asesi.canEdit) {
+          pesertaPayload.add({
+            'asesi_id': asesiId,
+            'rekomendasi': rekom,
+          });
+        }
       });
+
+      if (pesertaPayload.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak ada peserta yang ditugaskan kepada Anda untuk disimpan.'),
+            backgroundColor: Color(0xFFF59E0B),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
 
       final success = await ApiService.updateRekomendasiKolektif(
         jadwalId: widget.jadwalId,
@@ -650,12 +672,36 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      'No. Peserta: ${item.noPeserta ?? item.id.toString()}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'No. Peserta: ${item.noPeserta ?? item.id.toString()}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        if (item.namaAsesor != null && item.namaAsesor!.isNotEmpty) ...[
+                          const Text(' • ', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                          Icon(
+                            item.canEdit ? LucideIcons.user_check : LucideIcons.user,
+                            size: 11,
+                            color: item.canEdit ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                          ),
+                          const SizedBox(width: 3),
+                          Flexible(
+                            child: Text(
+                              item.namaAsesor!,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: item.canEdit ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -743,63 +789,146 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Container(
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: currentRekom == '1'
-                        ? const Color(0xFFE8F5E9)
-                        : (currentRekom == '2'
-                            ? const Color(0xFFFFEBEE)
-                            : const Color(0xFFF5F6F8)),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: currentRekom == '1'
-                          ? const Color(0xFFA5D6A7)
-                          : (currentRekom == '2'
-                              ? const Color(0xFFFFCDD2)
-                              : const Color(0xFFE0E0E0)),
-                    ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: currentRekom,
-                      isExpanded: true,
-                      icon: const Icon(Icons.arrow_drop_down_rounded,
-                          color: Colors.black54),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: currentRekom == '1'
-                            ? const Color(0xFF2E7D32)
-                            : (currentRekom == '2'
-                                ? const Color(0xFFC62828)
-                                : Colors.black87),
+                child: item.canEdit
+                    ? Container(
+                        height: 38,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: currentRekom == '1'
+                              ? const Color(0xFFE8F5E9)
+                              : (currentRekom == '2'
+                                  ? const Color(0xFFFFEBEE)
+                                  : const Color(0xFFF5F6F8)),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: currentRekom == '1'
+                                ? const Color(0xFFA5D6A7)
+                                : (currentRekom == '2'
+                                    ? const Color(0xFFFFCDD2)
+                                    : const Color(0xFFE0E0E0)),
+                          ),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: currentRekom,
+                            isExpanded: true,
+                            icon: const Icon(Icons.arrow_drop_down_rounded,
+                                color: Colors.black54),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: currentRekom == '1'
+                                  ? const Color(0xFF2E7D32)
+                                  : (currentRekom == '2'
+                                      ? const Color(0xFFC62828)
+                                      : Colors.black87),
+                            ),
+                            onChanged: (newVal) {
+                              if (newVal != null) {
+                                setState(() {
+                                  _rekomendasiMap[item.id] = newVal;
+                                });
+                              }
+                            },
+                            items: const [
+                              DropdownMenuItem(
+                                value: '1',
+                                child: Text('K (Kompeten)'),
+                              ),
+                              DropdownMenuItem(
+                                value: '2',
+                                child: Text('BK (Belum Kompeten)'),
+                              ),
+                              DropdownMenuItem(
+                                value: '0',
+                                child: Text('- (Belum Rekomendasi)'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : Container(
+                        height: 38,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: currentRekom == '1'
+                              ? const Color(0xFFE8F5E9)
+                              : (currentRekom == '2'
+                                  ? const Color(0xFFFFEBEE)
+                                  : const Color(0xFFF1F5F9)),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: currentRekom == '1'
+                                ? const Color(0xFFA5D6A7)
+                                : (currentRekom == '2'
+                                    ? const Color(0xFFFFCDD2)
+                                    : const Color(0xFFE2E8F0)),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  currentRekom == '1'
+                                      ? Icons.check_circle_rounded
+                                      : (currentRekom == '2'
+                                          ? Icons.cancel_rounded
+                                          : Icons.remove_circle_outline_rounded),
+                                  size: 14,
+                                  color: currentRekom == '1'
+                                      ? const Color(0xFF2E7D32)
+                                      : (currentRekom == '2'
+                                          ? const Color(0xFFC62828)
+                                          : const Color(0xFF64748B)),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  currentRekom == '1'
+                                      ? 'K (Kompeten)'
+                                      : (currentRekom == '2'
+                                          ? 'BK (Belum Kompeten)'
+                                          : '- (Belum Rekomendasi)'),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: currentRekom == '1'
+                                        ? const Color(0xFF2E7D32)
+                                        : (currentRekom == '2'
+                                            ? const Color(0xFFC62828)
+                                            : const Color(0xFF64748B)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE2E8F0),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.lock_outline_rounded,
+                                      size: 11, color: Color(0xFF64748B)),
+                                  SizedBox(width: 3),
+                                  Text(
+                                    'Hanya Lihat',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF475569),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      onChanged: (newVal) {
-                        if (newVal != null) {
-                          setState(() {
-                            _rekomendasiMap[item.id] = newVal;
-                          });
-                        }
-                      },
-                      items: const [
-                        DropdownMenuItem(
-                          value: '1',
-                          child: Text('K (Kompeten)'),
-                        ),
-                        DropdownMenuItem(
-                          value: '2',
-                          child: Text('BK (Belum Kompeten)'),
-                        ),
-                        DropdownMenuItem(
-                          value: '0',
-                          child: Text('- (Belum Rekomendasi)'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ),
             ],
           ),
