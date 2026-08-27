@@ -102,8 +102,10 @@ class MasterService {
   }
 
   /// Fetch list of Master Jadwal by skema ID (cached in-memory)
-  static Future<List<MasterJadwal>> getMasterJadwalList(int idSkema) async {
-    if (_jadwalCache.containsKey(idSkema)) return _jadwalCache[idSkema]!;
+  static Future<List<MasterJadwal>> getMasterJadwalList(int idSkema, {bool refresh = false}) async {
+    if (!refresh && _jadwalCache.containsKey(idSkema) && _jadwalCache[idSkema]!.isNotEmpty) {
+      return _jadwalCache[idSkema]!;
+    }
     try {
       final response = await _dio.get(
         ApiRoutes.masterJadwal,
@@ -111,11 +113,14 @@ class MasterService {
       );
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        _jadwalCache[idSkema] = List<MasterJadwal>.generate(
+        final list = List<MasterJadwal>.generate(
           data.length,
           (i) => MasterJadwal.fromJson(data[i] as Map<String, dynamic>),
         );
-        return _jadwalCache[idSkema]!;
+        if (list.isNotEmpty) {
+          _jadwalCache[idSkema] = list;
+        }
+        return list;
       }
       return [];
     } catch (e) {
@@ -125,17 +130,22 @@ class MasterService {
   }
 
   /// Fetch list of Sumber Anggaran (with cross-id pemberi_ids)
-  static Future<List<MasterSumberAnggaran>> getMasterSumberAnggaranList() async {
-    if (_sumberAnggaranCache != null) return _sumberAnggaranCache!;
+  static Future<List<MasterSumberAnggaran>> getMasterSumberAnggaranList({bool refresh = false}) async {
+    if (!refresh && _sumberAnggaranCache != null && _sumberAnggaranCache!.isNotEmpty) {
+      return _sumberAnggaranCache!;
+    }
     try {
       final response = await _dio.get(ApiRoutes.masterSumberAnggaran);
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        _sumberAnggaranCache = List<MasterSumberAnggaran>.generate(
+        final list = List<MasterSumberAnggaran>.generate(
           data.length,
           (i) => MasterSumberAnggaran.fromJson(data[i] as Map<String, dynamic>),
         );
-        return _sumberAnggaranCache!;
+        if (list.isNotEmpty) {
+          _sumberAnggaranCache = list;
+        }
+        return list;
       }
       return [];
     } catch (e) {
@@ -148,9 +158,10 @@ class MasterService {
   /// Pass [idSumberAnggaran] to filter by cross-id (pairs used with that sumber).
   static Future<List<MasterPemberiAnggaran>> getMasterPemberiAnggaranList({
     int? idSumberAnggaran,
+    bool refresh = false,
   }) async {
     final cacheKey = idSumberAnggaran?.toString() ?? 'all';
-    if (_pemberiAnggaranCache.containsKey(cacheKey)) {
+    if (!refresh && _pemberiAnggaranCache.containsKey(cacheKey) && _pemberiAnggaranCache[cacheKey]!.isNotEmpty) {
       return _pemberiAnggaranCache[cacheKey]!;
     }
     try {
@@ -162,11 +173,14 @@ class MasterService {
       );
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> data = response.data['data'] ?? [];
-        _pemberiAnggaranCache[cacheKey] = List<MasterPemberiAnggaran>.generate(
+        final list = List<MasterPemberiAnggaran>.generate(
           data.length,
           (i) => MasterPemberiAnggaran.fromJson(data[i] as Map<String, dynamic>),
         );
-        return _pemberiAnggaranCache[cacheKey]!;
+        if (list.isNotEmpty) {
+          _pemberiAnggaranCache[cacheKey] = list;
+        }
+        return list;
       }
       return [];
     } catch (e) {
