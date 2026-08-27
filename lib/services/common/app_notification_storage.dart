@@ -103,7 +103,22 @@ class AppNotificationStorage {
         isRead: false,
       );
 
-      list.insert(0, newNotif);
+      // Deduplicate: If an identical notification arrived recently, update it instead of adding duplicate spam
+      final existingIndex = list.indexWhere((n) =>
+          n.title == title &&
+          n.body == body &&
+          n.type == type &&
+          DateTime.now().difference(n.timestamp).inMinutes < 15);
+
+      if (existingIndex != -1) {
+        list[existingIndex] = list[existingIndex].copyWith(
+          timestamp: DateTime.now(),
+          data: data,
+          isRead: false,
+        );
+      } else {
+        list.insert(0, newNotif);
+      }
       
       // Keep only last 100 notifications to prevent memory issues
       if (list.length > 100) {
