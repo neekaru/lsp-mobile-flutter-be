@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../services/asesor/asesor_service.dart';
+import '../../widgets/common/ai_markdown_view.dart';
 
 class AsesorAiScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -287,7 +288,7 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
                       ),
                       const SizedBox(height: 2),
                       const Text(
-                        'Asisten Cerdas Asesor • Automation n8n Ready',
+                        'Asisten Cerdas Asesor • AI Assistant',
                         style: TextStyle(
                           color: Color(0xCCFFFFFF),
                           fontSize: 11,
@@ -507,15 +508,9 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
                   ),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  child: Text(
-                    msg.text.trim().isNotEmpty
-                        ? msg.text
-                        : 'Mohon maaf, respon dari sistem kosong atau mengalami kendala jaringan. Silakan ketuk tombol refresh untuk mencoba kembali.',
-                    style: TextStyle(
-                      color: isUser ? Colors.white : const Color(0xFF1E293B),
-                      fontSize: 13.5,
-                      height: 1.45,
-                    ),
+                  child: AiMarkdownView(
+                    text: msg.text,
+                    isUser: isUser,
                   ),
                 ),
                 const SizedBox(height: 4),
