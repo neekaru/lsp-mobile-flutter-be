@@ -29,6 +29,7 @@ mixin PengajuanSertifikatDataLogic on PengajuanSertifikatSkemaLogic {
     fetchProvinsi();
     fetchMasterSkema();
     fetchMasterSumberAnggaran();
+    fetchMasterPemberiAnggaran();
     fetchMasterPendidikan();
     fetchMasterPekerjaan();
     loadAsesiProfile();
@@ -406,14 +407,18 @@ mixin PengajuanSertifikatDataLogic on PengajuanSertifikatSkemaLogic {
     }
   }
 
-  Future<void> fetchMasterPemberiAnggaran(int idSumberAnggaran) async {
+  Future<void> fetchMasterPemberiAnggaran([int? idSumberAnggaran]) async {
     setState(() {
       isLoadingPemberiAnggaran = true;
-      masterPemberiAnggaranList = [];
+      if (idSumberAnggaran != null && idSumberAnggaran > 0) {
+        masterPemberiAnggaranList = [];
+      }
     });
     try {
       final list = await ApiService.getMasterPemberiAnggaranList(
-        idSumberAnggaran: idSumberAnggaran,
+        idSumberAnggaran: (idSumberAnggaran != null && idSumberAnggaran > 0)
+            ? idSumberAnggaran
+            : null,
       );
       if (mounted) {
         setState(() {

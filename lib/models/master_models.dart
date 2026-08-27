@@ -67,7 +67,7 @@ class MasterJadwal {
   factory MasterJadwal.fromJson(Map<String, dynamic> json) {
     return MasterJadwal(
       id: json['id'] is int ? json['id'] : int.parse(json['id']?.toString() ?? '0'),
-      jadwal: json['jadwal']?.toString() ?? '',
+      jadwal: (json['jadwal'] ?? json['jadual'] ?? json['nama_jadwal'] ?? '').toString(),
       tanggal: json['tanggal']?.toString() ?? '',
       kuota: json['kuota'] is int ? json['kuota'] : int.parse(json['kuota']?.toString() ?? '0'),
       statusJadwal: json['status_jadwal']?.toString() ?? '',
@@ -75,7 +75,12 @@ class MasterJadwal {
     );
   }
 
-  String get displayName => '$jadwal ($tuk)';
+  String get displayName {
+    if (tuk.isNotEmpty) {
+      return '$jadwal - $tuk';
+    }
+    return jadwal;
+  }
 }
 
 class MasterPendidikan {
@@ -146,7 +151,7 @@ class MasterSumberAnggaran {
     }
     return MasterSumberAnggaran(
       id: json['id'] is int ? json['id'] : int.parse(json['id']?.toString() ?? '0'),
-      jenisAnggaran: json['jenis_anggaran']?.toString() ?? '',
+      jenisAnggaran: (json['jenis_anggaran'] ?? json['sumber_anggaran'] ?? '').toString(),
       pemberiIds: ids,
     );
   }
@@ -188,7 +193,7 @@ class MasterPemberiAnggaran {
     }
     return MasterPemberiAnggaran(
       id: json['id'] is int ? json['id'] : int.parse(json['id']?.toString() ?? '0'),
-      instansiPemberiAnggaran: json['instansi_pemberi_anggaran']?.toString() ?? '',
+      instansiPemberiAnggaran: (json['instansi_pemberi_anggaran'] ?? json['instansi'] ?? json['nama_instansi'] ?? '').toString(),
       sumberIds: ids,
     );
   }
