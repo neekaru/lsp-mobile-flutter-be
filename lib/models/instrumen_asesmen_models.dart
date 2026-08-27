@@ -594,3 +594,163 @@ class IA05Data {
   int get totalBenar => items.where((i) => i.pencapaian == 'Ya').length;
   bool get isSemuaDinilai => items.every((i) => i.pencapaian != null && i.pencapaian!.isNotEmpty);
 }
+
+/// Model Data untuk FR.IA.04A (DIT – Daftar Instruksi Terstruktur)
+class IA04AData {
+  final int asesiId;
+  final String namaAsesi;
+  final String skema;
+  final String kodeSkema;
+  final List<Map<String, String>> units;
+  final String instruksiDit;
+  final String demonstrasiDit;
+  final String durasi;
+  final String fileTugasDit;
+  final String? fileUrl;
+  String umpanBalikDit;
+  final String penyusun;
+  final String validator;
+  final String noStMapa;
+  final String noStMkva;
+
+  IA04AData({
+    required this.asesiId,
+    required this.namaAsesi,
+    required this.skema,
+    required this.kodeSkema,
+    required this.units,
+    required this.instruksiDit,
+    required this.demonstrasiDit,
+    this.durasi = '',
+    this.fileTugasDit = 'Belum Upload Tugas DIT',
+    this.fileUrl,
+    this.umpanBalikDit = '',
+    this.penyusun = '',
+    this.validator = '',
+    this.noStMapa = '',
+    this.noStMkva = '',
+  });
+
+  factory IA04AData.fromJson(Map<String, dynamic> json) {
+    var rawUnits = json['units'];
+    List<Map<String, String>> unitsList = [];
+    if (rawUnits is List) {
+      unitsList = rawUnits.map((u) => {
+        'kode_unit': (u['kode_unit'] ?? '').toString(),
+        'judul_unit': (u['judul_unit'] ?? '').toString(),
+      }).toList();
+    }
+    return IA04AData(
+      asesiId: int.tryParse(json['asesi_id']?.toString() ?? '') ?? 0,
+      namaAsesi: json['nama_asesi'] as String? ?? '',
+      skema: json['skema'] as String? ?? '',
+      kodeSkema: json['kode_skema'] as String? ?? '',
+      units: unitsList,
+      instruksiDit: json['instruksi_dit'] as String? ?? '',
+      demonstrasiDit: json['demonstrasi_dit'] as String? ?? '',
+      durasi: json['durasi'] as String? ?? '',
+      fileTugasDit: json['file_tugas_dit'] as String? ?? 'Belum Upload Tugas DIT',
+      fileUrl: json['file_url'] as String?,
+      umpanBalikDit: json['umpan_balik_dit'] as String? ?? '',
+      penyusun: json['penyusun'] as String? ?? '',
+      validator: json['validator'] as String? ?? '',
+      noStMapa: json['no_st_mapa'] as String? ?? '',
+      noStMkva: json['no_st_mkva'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'umpan_balik_dit': umpanBalikDit,
+    };
+  }
+}
+
+/// Item Rubrik Penilaian Proyek FR.IA.04B
+class IA04BItem {
+  final int id;
+  final int no;
+  final String lingkupProyek;
+  final String pertanyaan;
+  String tanggapan;
+  final String kesesuaianStandar;
+  String? pencapaian; // 'Ya', 'Tidak', null
+
+  IA04BItem({
+    required this.id,
+    required this.no,
+    required this.lingkupProyek,
+    required this.pertanyaan,
+    this.tanggapan = '',
+    required this.kesesuaianStandar,
+    this.pencapaian,
+  });
+
+  factory IA04BItem.fromJson(Map<String, dynamic> json) {
+    return IA04BItem(
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      no: json['no'] as int? ?? 1,
+      lingkupProyek: json['lingkup_proyek'] as String? ?? '',
+      pertanyaan: json['pertanyaan'] as String? ?? '',
+      tanggapan: json['tanggapan'] as String? ?? '',
+      kesesuaianStandar: json['kesesuaian_standar'] as String? ?? '',
+      pencapaian: json['pencapaian'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'no': no,
+      'lingkup_proyek': lingkupProyek,
+      'pertanyaan': pertanyaan,
+      'tanggapan': tanggapan,
+      'kesesuaian_standar': kesesuaianStandar,
+      'pencapaian': pencapaian,
+    };
+  }
+}
+
+/// Model Data untuk FR.IA.04B (Penilaian Proyek Singkat)
+class IA04BData {
+  final int asesiId;
+  final String namaAsesi;
+  final List<IA04BItem> items;
+  String isDitKompeten; // 'K', 'BK', '0', ''
+  String catatanDit;
+  String umpanBalikDit;
+
+  IA04BData({
+    required this.asesiId,
+    required this.namaAsesi,
+    required this.items,
+    this.isDitKompeten = 'K',
+    this.catatanDit = '',
+    this.umpanBalikDit = '',
+  });
+
+  factory IA04BData.fromJson(Map<String, dynamic> json) {
+    var rawItems = json['items'];
+    List<IA04BItem> itemsList = [];
+    if (rawItems is List) {
+      itemsList = rawItems.map((e) => IA04BItem.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return IA04BData(
+      asesiId: int.tryParse(json['asesi_id']?.toString() ?? '') ?? 0,
+      namaAsesi: json['nama_asesi'] as String? ?? '',
+      items: itemsList,
+      isDitKompeten: json['is_dit_kompeten'] as String? ?? 'K',
+      catatanDit: json['catatan_dit'] as String? ?? '',
+      umpanBalikDit: json['umpan_balik_dit'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'items': items.map((e) => e.toJson()).toList(),
+      'is_dit_kompeten': isDitKompeten,
+      'catatan_dit': catatanDit,
+      'umpan_balik_dit': umpanBalikDit,
+    };
+  }
+}

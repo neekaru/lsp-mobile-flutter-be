@@ -5,6 +5,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/instrumen/ia01_observasi_widget.dart';
 import '../../widgets/instrumen/ia02_tugas_praktik_widget.dart';
 import '../../widgets/instrumen/ia03_pertanyaan_lisan_widget.dart';
+import '../../widgets/instrumen/ia04a_instruksi_terstruktur_widget.dart';
+import '../../widgets/instrumen/ia04b_penilaian_proyek_widget.dart';
 import '../../widgets/instrumen/ia05_pertanyaan_tertulis_widget.dart';
 
 import '../../services/asesor/asesor_service.dart';
@@ -15,7 +17,7 @@ class InstrumenAsesmenScreen extends StatefulWidget {
   final String skema;
   final String tuk;
   final String jadwal;
-  final String initialForm; // 'IA01', 'IA02', 'IA03', 'IA05'
+  final String initialForm; // 'IA01', 'IA02', 'IA03', 'IA04A', 'IA04B', 'IA05'
 
   const InstrumenAsesmenScreen({
     super.key,
@@ -37,6 +39,8 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
   List<IA01UnitKompetensi> _ia01Units = [];
   IA02TugasPraktikData? _ia02Data;
   IA03Data? _ia03Data;
+  IA04AData? _ia04aData;
+  IA04BData? _ia04bData;
   IA05Data? _ia05Data;
 
   final List<Map<String, String>> _iaForms = [
@@ -52,6 +56,20 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
       'code': 'FR.IA.02',
       'title': 'FR.IA.02 Tugas Praktik',
       'desc': 'Tugas Praktik Demonstrasi Peserta',
+      'status': 'Aktif',
+    },
+    {
+      'id': 'IA04A',
+      'code': 'FR.IA.04A',
+      'title': 'FR.IA.04A Instruksi Terstruktur (DIT)',
+      'desc': 'Skenario Kasus STAR & Instruksi Presentasi',
+      'status': 'Aktif',
+    },
+    {
+      'id': 'IA04B',
+      'code': 'FR.IA.04B',
+      'title': 'FR.IA.04B Penilaian Proyek',
+      'desc': 'Rubrik Penilaian Aspek Proyek Terstruktur',
       'status': 'Aktif',
     },
     {
@@ -84,13 +102,17 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
         AsesorService.getIA01(widget.asesiId),
         AsesorService.getIA02(widget.asesiId),
         AsesorService.getIA03(widget.asesiId),
+        AsesorService.getIA04A(widget.asesiId),
+        AsesorService.getIA04B(widget.asesiId),
         AsesorService.getIA05(widget.asesiId),
       ]);
 
       final res01 = futures[0];
       final res02 = futures[1];
       final res03 = futures[2];
-      final res04 = futures[3];
+      final res04a = futures[3];
+      final res04b = futures[4];
+      final res05 = futures[5];
 
       if (mounted) {
         setState(() {
@@ -107,8 +129,16 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
             _ia03Data = IA03Data.fromJson(res03['data'] as Map<String, dynamic>);
           }
 
-          if (res04 != null && res04['data'] != null) {
-            _ia05Data = IA05Data.fromJson(res04['data'] as Map<String, dynamic>);
+          if (res04a != null && res04a['data'] != null) {
+            _ia04aData = IA04AData.fromJson(res04a['data'] as Map<String, dynamic>);
+          }
+
+          if (res04b != null && res04b['data'] != null) {
+            _ia04bData = IA04BData.fromJson(res04b['data'] as Map<String, dynamic>);
+          }
+
+          if (res05 != null && res05['data'] != null) {
+            _ia05Data = IA05Data.fromJson(res05['data'] as Map<String, dynamic>);
           }
           _isLoading = false;
         });
@@ -180,6 +210,37 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
           backgroundColor: Color(0xFF16A34A),
         ),
       );
+    }
+  }
+
+  Future<void> _saveIA04A(String umpanBalik) async {
+    final payload = {'umpan_balik_dit': umpanBalik};
+    final res = await AsesorService.saveIA04A(asesiId: widget.asesiId, data: payload);
+    if (!mounted) return;
+    if (res != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ FR.IA.04A Umpan Balik DIT berhasil disimpan ke database'),
+          backgroundColor: Color(0xFF0D9488),
+        ),
+      );
+      if (_ia04aData != null) {
+        setState(() => _ia04aData!.umpanBalikDit = umpanBalik);
+      }
+    }
+  }
+
+  Future<void> _saveIA04B(IA04BData updatedData) async {
+    final res = await AsesorService.saveIA04B(asesiId: widget.asesiId, data: updatedData.toJson());
+    if (!mounted) return;
+    if (res != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ FR.IA.04B Penilaian Proyek berhasil disimpan ke database'),
+          backgroundColor: Color(0xFF16A34A),
+        ),
+      );
+      setState(() => _ia04bData = updatedData);
     }
   }
 
@@ -442,6 +503,22 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
         return IA02TugasPraktikWidget(
           data: _ia02Data!,
           onSaved: _saveIA02,
+        );
+      case 'IA04A':
+        if (_ia04aData == null) {
+          return _buildEmptyState('Belum ada instruksi proyek terstruktur (DIT) di database untuk skema ini.');
+        }
+        return IA04AInstruksiTerstrukturWidget(
+          data: _ia04aData,
+          onSave: _saveIA04A,
+        );
+      case 'IA04B':
+        if (_ia04bData == null || _ia04bData!.items.isEmpty) {
+          return _buildEmptyState('Belum ada rubrik penilaian proyek terstruktur di database untuk skema ini.');
+        }
+        return IA04BPenilaianProyekWidget(
+          data: _ia04bData,
+          onSave: _saveIA04B,
         );
       case 'IA03':
         if (_ia03Data == null || _ia03Data!.items.isEmpty) {

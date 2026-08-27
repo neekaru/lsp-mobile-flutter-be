@@ -828,6 +828,78 @@ class AsesorService {
     }
   }
 
+  /// Get FR.IA.04A DIT – Daftar Instruksi Terstruktur
+  /// GET /api/asesor/asesi/:id/ia04a
+  static Future<Map<String, dynamic>?> getIA04A(int asesiId) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorAsesiIA04A(asesiId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching IA-04A: $e');
+      return null;
+    }
+  }
+
+  /// Save FR.IA.04A DIT – Umpan Balik Asesor
+  /// POST /api/asesor/asesi/:id/ia04a
+  static Future<Map<String, dynamic>?> saveIA04A({
+    required int asesiId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesorAsesiIA04A(asesiId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error saving IA-04A: $e');
+      return null;
+    }
+  }
+
+  /// Get FR.IA.04B Penilaian Proyek Singkat / Kegiatan Terstruktur
+  /// GET /api/asesor/asesi/:id/ia04b
+  static Future<Map<String, dynamic>?> getIA04B(int asesiId) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorAsesiIA04B(asesiId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching IA-04B: $e');
+      return null;
+    }
+  }
+
+  /// Save FR.IA.04B Penilaian Proyek Singkat / Kegiatan Terstruktur
+  /// POST /api/asesor/asesi/:id/ia04b
+  static Future<Map<String, dynamic>?> saveIA04B({
+    required int asesiId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesorAsesiIA04B(asesiId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error saving IA-04B: $e');
+      return null;
+    }
+  }
+
   /// Get FR.IA.05 Pertanyaan Tertulis
   /// GET /api/asesor/asesi/:id/ia05
   static Future<Map<String, dynamic>?> getIA05(int asesiId) async {

@@ -723,20 +723,42 @@ class _APL02SectionState extends State<APL02Section> {
                 (m) => m.id == _selectedMapaId,
                 orElse: () => MapaOption(id: 0, namaMapa: '', displayText: ''),
               );
-              final isPorto = selectedMapa.isPortofolio || _selectedKandidat == '3';
-              final String metodeBadge = isPorto
-                  ? 'Verifikasi Portofolio'
-                  : (selectedMapa.metode == 'terstruktur' ? 'Kegiatan Terstruktur' : 'Observasi Langsung');
+              final isTerstruktur = selectedMapa.isTerstruktur;
+              final isPorto = !isTerstruktur && (selectedMapa.isPortofolio || _selectedKandidat == '3');
+              final String metodeBadge = isTerstruktur
+                  ? 'Kegiatan Terstruktur (DIT)'
+                  : (isPorto ? 'Verifikasi Portofolio' : 'Observasi Langsung');
+
+              Color bgColor = const Color(0xFFEFF6FF);
+              Color borderColor = const Color(0xFFBFDBFE);
+              Color iconColor = const Color(0xFF2563EB);
+              Color titleColor = const Color(0xFF1E40AF);
+              Color badgeBg = const Color(0xFFDBEAFE);
+              Color badgeText = const Color(0xFF1D4ED8);
+
+              if (isTerstruktur) {
+                bgColor = const Color(0xFFF0FDF4);
+                borderColor = const Color(0xFFBBF7D0);
+                iconColor = const Color(0xFF16A34A);
+                titleColor = const Color(0xFF166534);
+                badgeBg = const Color(0xFFDCFCE7);
+                badgeText = const Color(0xFF15803D);
+              } else if (isPorto) {
+                bgColor = const Color(0xFFFFFBEB);
+                borderColor = const Color(0xFFFDE68A);
+                iconColor = const Color(0xFFD97706);
+                titleColor = const Color(0xFF92400E);
+                badgeBg = const Color(0xFFFEF3C7);
+                badgeText = const Color(0xFFB45309);
+              }
 
               return Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isPorto ? const Color(0xFFFFFBEB) : const Color(0xFFEFF6FF),
+                  color: bgColor,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isPorto ? const Color(0xFFFDE68A) : const Color(0xFFBFDBFE),
-                  ),
+                  border: Border.all(color: borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -749,7 +771,7 @@ class _APL02SectionState extends State<APL02Section> {
                             Icon(
                               LucideIcons.clipboard_check,
                               size: 18,
-                              color: isPorto ? const Color(0xFFD97706) : const Color(0xFF2563EB),
+                              color: iconColor,
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -757,7 +779,7 @@ class _APL02SectionState extends State<APL02Section> {
                               style: TextStyle(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
-                                color: isPorto ? const Color(0xFF92400E) : const Color(0xFF1E40AF),
+                                color: titleColor,
                               ),
                             ),
                           ],
@@ -765,7 +787,7 @@ class _APL02SectionState extends State<APL02Section> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
-                            color: isPorto ? const Color(0xFFFEF3C7) : const Color(0xFFDBEAFE),
+                            color: badgeBg,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -773,7 +795,7 @@ class _APL02SectionState extends State<APL02Section> {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: isPorto ? const Color(0xFFB45309) : const Color(0xFF1D4ED8),
+                              color: badgeText,
                             ),
                           ),
                         ),
@@ -781,9 +803,11 @@ class _APL02SectionState extends State<APL02Section> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      isPorto
-                          ? 'Sesuai metode Portofolio yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:'
-                          : 'Sesuai metode yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:',
+                      isTerstruktur
+                          ? 'Sesuai metode Kegiatan Terstruktur yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:'
+                          : (isPorto
+                              ? 'Sesuai metode Portofolio yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:'
+                              : 'Sesuai metode yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:'),
                       style: const TextStyle(fontSize: 11, color: Color(0xFF475569), height: 1.35),
                     ),
                     const SizedBox(height: 10),
@@ -793,6 +817,22 @@ class _APL02SectionState extends State<APL02Section> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
+                        if (selectedMapa.isInstrumentActive('IA04A', _selectedKandidat))
+                          _buildIAQuickButton(
+                            context,
+                            code: 'FR.IA.04A',
+                            label: 'IA.04A Instruksi Terstruktur (DIT)',
+                            formId: 'IA04A',
+                            color: const Color(0xFF0D9488),
+                          ),
+                        if (selectedMapa.isInstrumentActive('IA04B', _selectedKandidat))
+                          _buildIAQuickButton(
+                            context,
+                            code: 'FR.IA.04B',
+                            label: 'IA.04B Penilaian Proyek',
+                            formId: 'IA04B',
+                            color: const Color(0xFF16A34A),
+                          ),
                         if (selectedMapa.isInstrumentActive('IA01', _selectedKandidat))
                           _buildIAQuickButton(
                             context,

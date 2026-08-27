@@ -101,6 +101,8 @@ class MapaOption {
   final bool hasIA01;
   final bool hasIA02;
   final bool hasIA03;
+  final bool hasIA04A;
+  final bool hasIA04B;
   final bool hasIA05;
   final bool hasIA06;
   final bool hasIA11;
@@ -123,24 +125,38 @@ class MapaOption {
     this.hasIA01 = true,
     this.hasIA02 = true,
     this.hasIA03 = true,
+    this.hasIA04A = false,
+    this.hasIA04B = false,
     this.hasIA05 = true,
     this.hasIA06 = false,
     this.hasIA11 = false,
   });
 
+  bool get isTerstruktur =>
+      metode == 'terstruktur' ||
+      namaMapa.toUpperCase().contains('TERSTRUKTUR') ||
+      namaMapa.toUpperCase().contains('DIT');
+
   bool get isPortofolio =>
-      metode == 'portofolio' ||
-      namaMapa.toUpperCase().contains('PORTOFOLIO') ||
-      insPortofolio != '0' ||
-      insVPortofolio != '0';
+      !isTerstruktur &&
+      (metode == 'portofolio' ||
+          namaMapa.toUpperCase().contains('PORTOFOLIO') ||
+          insPortofolio != '0' ||
+          insVPortofolio != '0');
 
   bool isInstrumentActive(String formId, String selectedKandidat) {
+    if (isTerstruktur) {
+      if (formId == 'IA04A' || formId == 'IA04B') return true;
+      if (formId == 'IA03') return hasIA03;
+      if (formId == 'IA05') return hasIA05;
+      return false;
+    }
     if (selectedKandidat == '3' || isPortofolio) {
       if (formId == 'IA11' || formId == 'IA08' || formId == 'IA09') return true;
       if (formId == 'IA03') return hasIA03;
       return false;
     }
-    // Observasi / Terstruktur (Kandidat 1, 2, 4)
+    // Observasi (Kandidat 1, 2, 4)
     switch (formId) {
       case 'IA01':
         return hasIA01 && (insClo == selectedKandidat || insClo == '1' || insClo == '0');
@@ -159,9 +175,15 @@ class MapaOption {
 
   factory MapaOption.fromJson(Map<String, dynamic> json) {
     final rawNama = json['nama_mapa'] as String? ?? '';
-    final isPortofolio = rawNama.toUpperCase().contains('PORTOFOLIO') ||
-        (json['ins_portofolio'] != null && json['ins_portofolio'] != '0') ||
-        (json['ins_vportofolio'] != null && json['ins_vportofolio'] != '0');
+    final namaUpper = rawNama.toUpperCase();
+    final isTerstruktur = json['metode'] == 'terstruktur' ||
+        namaUpper.contains('TERSTRUKTUR') ||
+        namaUpper.contains('DIT');
+    final isPortofolio = !isTerstruktur &&
+        (json['metode'] == 'portofolio' ||
+            namaUpper.contains('PORTOFOLIO') ||
+            (json['ins_portofolio'] != null && json['ins_portofolio'] != '0') ||
+            (json['ins_vportofolio'] != null && json['ins_vportofolio'] != '0'));
     final rawInstrumen = (json['instrumen'] as List<dynamic>?)
             ?.map((e) => e.toString())
             .toList() ??
@@ -171,7 +193,8 @@ class MapaOption {
       id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
       namaMapa: rawNama,
       displayText: json['display_text'] as String? ?? '',
-      metode: json['metode'] as String? ?? (isPortofolio ? 'portofolio' : 'observasi'),
+      metode: json['metode'] as String? ??
+          (isTerstruktur ? 'terstruktur' : (isPortofolio ? 'portofolio' : 'observasi')),
       insClo: json['ins_clo']?.toString() ?? '0',
       insPraktik: json['ins_praktik']?.toString() ?? '0',
       insObservasi: json['ins_observasi']?.toString() ?? '0',
@@ -182,10 +205,12 @@ class MapaOption {
       insVPortofolio: json['ins_vportofolio']?.toString() ?? '0',
       insWawancara: json['ins_wawancara']?.toString() ?? '0',
       instrumen: rawInstrumen,
-      hasIA01: json['has_ia01'] ?? !isPortofolio,
-      hasIA02: json['has_ia02'] ?? !isPortofolio,
+      hasIA01: json['has_ia01'] ?? (!isTerstruktur && !isPortofolio),
+      hasIA02: json['has_ia02'] ?? (!isTerstruktur && !isPortofolio),
       hasIA03: json['has_ia03'] ?? true,
-      hasIA05: json['has_ia05'] ?? !isPortofolio,
+      hasIA04A: json['has_ia04a'] ?? isTerstruktur,
+      hasIA04B: json['has_ia04b'] ?? isTerstruktur,
+      hasIA05: json['has_ia05'] ?? (!isPortofolio),
       hasIA06: json['has_ia06'] ?? false,
       hasIA11: json['has_ia11'] ?? isPortofolio,
     );
