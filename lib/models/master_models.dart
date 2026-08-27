@@ -31,16 +31,20 @@ class MasterSkema {
   });
 
   factory MasterSkema.fromJson(Map<String, dynamic> json) {
+    final rawNama = json['nama_skema'] ?? json['skema'] ?? json['title_skema'];
+    final namaStr = rawNama?.toString().trim() ?? '';
+    final kodeStr = json['kode_skema']?.toString().trim() ?? '';
     return MasterSkema(
       id: json['id'] is int ? json['id'] : int.parse(json['id']?.toString() ?? '0'),
-      kodeSkema: json['kode_skema']?.toString() ?? '',
-      namaSkema: json['nama_skema']?.toString() ?? '',
+      kodeSkema: kodeStr,
+      namaSkema: namaStr,
       bidang: json['bidang']?.toString(),
       statusAktif: json['status_aktif']?.toString(),
     );
   }
 
-  String get displayName => '$kodeSkema - $namaSkema';
+  String get displayName =>
+      kodeSkema.isNotEmpty ? '$kodeSkema - $namaSkema' : namaSkema;
 }
 
 class MasterJadwal {

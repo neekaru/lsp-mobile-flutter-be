@@ -75,7 +75,7 @@ class DataPengajuanForm extends StatelessWidget {
             listSkema.length,
             (i) => DropdownItemData<int>(
               value: listSkema[i].id,
-              label: '${listSkema[i].kodeSkema} - ${listSkema[i].namaSkema}',
+              label: listSkema[i].displayName,
             ),
           ),
           isLoading: isLoadingSkema,
