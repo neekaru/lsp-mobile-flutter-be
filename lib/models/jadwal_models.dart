@@ -480,6 +480,8 @@ class AsesiItem {
     this.canEdit = true,
   });
 
+  bool get isEditable => canEdit && isAPL01Valid;
+
   factory AsesiItem.fromJson(Map<String, dynamic> json) {
     final rawKota =
         json['kota'] ??
@@ -496,7 +498,10 @@ class AsesiItem {
         ? json['id_asesor'] as int
         : int.tryParse(json['id_asesor']?.toString() ?? '');
     final isMyAsesiVal = json['is_my_asesi'] != false; // default true unless explicitly false
-    final canEditVal = json['can_edit'] != false; // default true unless explicitly false
+    final isAPL01ValidVal = json['is_apl01_valid'] == true;
+    final isAPL02ValidVal = json['is_apl02_valid'] == true && isAPL01ValidVal;
+    final isAK02ValidVal = (json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2') && isAPL01ValidVal && isAPL02ValidVal;
+    final canEditVal = json['can_edit'] != false && isAPL01ValidVal;
 
     return AsesiItem(
       id: json['id'] ?? 0,
@@ -508,15 +513,15 @@ class AsesiItem {
       nik: json['nik']?.toString(),
       kota: (kotaStr != null && kotaStr.isNotEmpty) ? kotaStr : null,
       namaAsesor: (asesorStr != null && asesorStr.isNotEmpty) ? asesorStr : null,
-      isAPL01Valid: json['is_apl01_valid'] == true,
-      statusAPL01: json['status_apl01']?.toString() ?? (json['is_apl01_valid'] == true ? 'Lengkap' : 'Belum Lengkap'),
-      colorAPL01: json['color_apl01']?.toString() ?? (json['is_apl01_valid'] == true ? 'green' : 'red'),
-      isAPL02Valid: json['is_apl02_valid'] == true,
-      statusAPL02: json['status_apl02']?.toString() ?? (json['is_apl02_valid'] == true ? 'Lengkap' : 'Belum Lengkap'),
-      colorAPL02: json['color_apl02']?.toString() ?? (json['is_apl02_valid'] == true ? 'green' : 'red'),
-      isAK02Valid: json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2',
-      statusAK02: json['status_ak02']?.toString() ?? (json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2' ? 'Sudah Dinilai' : 'Belum Dinilai'),
-      colorAK02: json['color_ak02']?.toString() ?? (json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2' ? 'green' : 'red'),
+      isAPL01Valid: isAPL01ValidVal,
+      statusAPL01: json['status_apl01']?.toString() ?? (isAPL01ValidVal ? 'Lengkap' : 'Belum Lengkap'),
+      colorAPL01: json['color_apl01']?.toString() ?? (isAPL01ValidVal ? 'green' : 'red'),
+      isAPL02Valid: isAPL02ValidVal,
+      statusAPL02: isAPL02ValidVal ? (json['status_apl02']?.toString() ?? 'Lengkap') : 'Belum',
+      colorAPL02: isAPL02ValidVal ? 'green' : 'red',
+      isAK02Valid: isAK02ValidVal,
+      statusAK02: isAK02ValidVal ? (json['status_ak02']?.toString() ?? 'Sudah Dinilai') : 'Belum Dinilai',
+      colorAK02: isAK02ValidVal ? 'green' : 'red',
       idAsesor: idAsesorVal,
       isMyAsesi: isMyAsesiVal,
       canEdit: canEditVal,

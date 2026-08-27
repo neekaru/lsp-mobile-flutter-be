@@ -7,6 +7,11 @@ class AsesmenMandiriForm extends StatefulWidget {
   /// Each unit: `kode`, `judul`, `kuk_count` (label), `elemen` (list)
   final List<Map<String, dynamic>> unitKompetensi;
   final bool isLoading;
+  /// true when skema not chosen yet (no skema id).
+  final bool skemaBelumDipilih;
+  /// true when the last kompetensi fetch failed (network / server error).
+  final bool loadFailed;
+  final VoidCallback? onRetry;
   final Function(int index) onUnitTap;
   final VoidCallback? onBuktiTap;
 
@@ -16,6 +21,9 @@ class AsesmenMandiriForm extends StatefulWidget {
     required this.unitKompetensi,
     required this.onUnitTap,
     this.isLoading = false,
+    this.skemaBelumDipilih = false,
+    this.loadFailed = false,
+    this.onRetry,
     this.onBuktiTap,
   });
 
@@ -55,6 +63,73 @@ class _AsesmenMandiriFormState extends State<AsesmenMandiriForm> {
     return n;
   }
 
+  Widget _buildEmptyState() {
+    // Skema belum dipilih → arahkan balik ke Data Pengajuan.
+    if (widget.skemaBelumDipilih || widget.selectedSkema.trim().isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text(
+          'Anda belum memilih skema. Kembali ke langkah Data Pengajuan dan '
+          'pilih skema sertifikasi terlebih dahulu.',
+          style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+        ),
+      );
+    }
+    // API gagal → pesan jujur + tombol coba lagi.
+    if (widget.loadFailed) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.cloud_off_rounded,
+                    color: Color(0xFFEF4444), size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Gagal memuat unit/elemen/KUK dari server. '
+                    'Periksa koneksi Anda lalu coba lagi.',
+                    style: TextStyle(fontSize: 13, color: Color(0xFFEF4444)),
+                  ),
+                ),
+              ],
+            ),
+            if (widget.onRetry != null) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 40,
+                child: OutlinedButton.icon(
+                  onPressed: widget.onRetry,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Coba Lagi'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF378CE7),
+                    side: const BorderSide(color: Color(0xFF378CE7)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+    // Skema dipilih tapi unit kosong (jarang) → arahkan pilih ulang.
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        'Unit/elemen/KUK skema "${widget.selectedSkema}" belum termuat. '
+        'Kembali ke Data Pengajuan lalu pilih ulang skema.',
+        style: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final units = widget.unitKompetensi;
@@ -83,15 +158,7 @@ class _AsesmenMandiriFormState extends State<AsesmenMandiriForm> {
             child: Center(child: CircularProgressIndicator()),
           )
         else if (units.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              widget.selectedSkema.trim().isEmpty
-                  ? 'Unit kompetensi belum tersedia. Pilih skema di Data Pengajuan.'
-                  : 'Unit/elemen/KUK skema "${widget.selectedSkema}" belum termuat. Kembali ke Data Pengajuan lalu pilih ulang skema.',
-              style: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-            ),
-          )
+          _buildEmptyState()
         else ...[
           ...List.generate(visibleCount, (index) {
             final unit = units[index];

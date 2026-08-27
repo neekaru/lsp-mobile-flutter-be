@@ -315,6 +315,9 @@ class PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen>
           selectedSkema: selectedSkema ?? '',
           unitKompetensi: asesmenUnits,
           isLoading: isLoadingKompetensi,
+          skemaBelumDipilih: selectedSkemaId == null || selectedSkemaId! <= 0,
+          loadFailed: kompetensiLoadFailed,
+          onRetry: () => ensureKompetensiLoaded(),
           onBuktiTap: navigateToBuktiPortofolio,
           onUnitTap: () async {
             final completed = await Navigator.push<bool>(
@@ -398,6 +401,9 @@ class PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen>
           selectedSkema: selectedSkema ?? '',
           unitKompetensi: asesmenUnits,
           isLoading: isLoadingKompetensi,
+          skemaBelumDipilih: selectedSkemaId == null || selectedSkemaId! <= 0,
+          loadFailed: kompetensiLoadFailed,
+          onRetry: () => ensureKompetensiLoaded(),
           onUnitTap: (index) {
             setState(() {
               activeUnitDetailIndex = index;

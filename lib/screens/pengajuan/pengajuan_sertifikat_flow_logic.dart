@@ -231,9 +231,99 @@ mixin PengajuanSertifikatFlowLogic
     return false;
   }
 
+  /// Warning saat user coba maju ke Dokumen Portofolio / Asesmen Mandiri
+  /// padahal skema belum dipilih. Setelah ditutup, balik ke Data Pengajuan.
+  Future<void> showPilihSkemaDuluWarning() async {
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE3F2FD),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.assignment_late_rounded,
+                      color: Color(0xFF378CE7),
+                      size: 44,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Pilih Skema Dulu',
+                  style: TextStyle(
+                    color: Color(0xFF1E293B),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Anda belum memilih skema sertifikasi. Unit, Elemen, dan KUK '
+                  'baru bisa dimuat setelah skema dipilih. Kembali ke langkah '
+                  'Data Pengajuan lalu pilih skema.',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF378CE7),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Kembali ke Data Pengajuan',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    // Arahkan balik ke step Data Pengajuan (step 0).
+    if (mounted) {
+      setState(() {
+        currentStep = 0;
+      });
+    }
+  }
+
   Future<void> nextStep() async {
     if (currentStep < 5) {
-      // Step 0 → 1: warning FE jika skema sudah terdaftar (login asesi)
       if (currentStep == 0) {
         final skemaId = selectedSkemaId;
         if (skemaId != null && skemaId > 0) {
@@ -252,6 +342,13 @@ mixin PengajuanSertifikatFlowLogic
         if (!ok) return;
       }
       final next = currentStep + 1;
+      // Step 4/5 (Dokumen Portofolio & Asesmen Mandiri) butuh skema valid.
+      // Tanpa guard ini, user bisa maju dengan skema kosong → tampil 0 unit.
+      if ((next == 4 || next == 5) &&
+          (selectedSkemaId == null || selectedSkemaId! <= 0)) {
+        await showPilihSkemaDuluWarning();
+        return;
+      }
       setState(() {
         currentStep = next;
       });

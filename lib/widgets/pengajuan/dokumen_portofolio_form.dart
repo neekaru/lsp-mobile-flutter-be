@@ -7,6 +7,11 @@ class DokumenPortofolioForm extends StatelessWidget {
   /// From GET pra-asesmen kompetensi — same shape as AsesmenMandiriForm.
   final List<Map<String, dynamic>> unitKompetensi;
   final bool isLoading;
+  /// true when skema not chosen yet (no skema id).
+  final bool skemaBelumDipilih;
+  /// true when the last kompetensi fetch failed (network / server error).
+  final bool loadFailed;
+  final VoidCallback? onRetry;
   final VoidCallback? onBuktiTap;
   final VoidCallback? onUnitTap;
 
@@ -15,6 +20,9 @@ class DokumenPortofolioForm extends StatelessWidget {
     required this.selectedSkema,
     this.unitKompetensi = const [],
     this.isLoading = false,
+    this.skemaBelumDipilih = false,
+    this.loadFailed = false,
+    this.onRetry,
     this.onBuktiTap,
     this.onUnitTap,
   });
@@ -72,19 +80,76 @@ class DokumenPortofolioForm extends StatelessWidget {
             onUnitTap: onUnitTap,
           ),
           if (unitCount == 0 || (elemenCount == 0 && kukCount == 0))
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Text(
-                selectedSkema.trim().isEmpty
-                    ? 'Pilih skema di Data Pengajuan agar unit/elemen/KUK tampil.'
-                    : unitCount == 0
-                        ? 'Data unit/elemen/KUK belum termuat untuk skema ini. Pastikan skema sudah dipilih di Data Pengajuan.'
-                        : 'Elemen/KUK masih 0 — data detail sedang dimuat ulang saat Anda buka step ini. Jika tetap 0, pilih ulang skema di Data Pengajuan.',
-                style: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
-              ),
-            ),
+            _buildEmptyState(),
         ],
       ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    // Skema belum dipilih → arahkan balik ke Data Pengajuan (bukan "0").
+    if (skemaBelumDipilih || selectedSkema.trim().isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 12),
+        child: Text(
+          'Anda belum memilih skema. Kembali ke langkah Data Pengajuan dan '
+          'pilih skema sertifikasi terlebih dahulu agar unit/elemen/KUK tampil.',
+          style: TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
+        ),
+      );
+    }
+    // API gagal → pesan jujur + tombol coba lagi.
+    if (loadFailed) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.cloud_off_rounded,
+                    color: Color(0xFFEF4444), size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Gagal memuat unit/elemen/KUK dari server. '
+                    'Periksa koneksi Anda lalu coba lagi.',
+                    style: TextStyle(fontSize: 12.5, color: Color(0xFFEF4444)),
+                  ),
+                ),
+              ],
+            ),
+            if (onRetry != null) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 40,
+                child: OutlinedButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Coba Lagi'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF378CE7),
+                    side: const BorderSide(color: Color(0xFF378CE7)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+    // Skema dipilih tapi elemen/KUK 0 (data detail sedang dimuat / kosong).
+    return const Padding(
+      padding: EdgeInsets.only(top: 12),
+      child: Text(
+        'Elemen/KUK masih 0 — data detail sedang dimuat. Jika tetap 0, '
+        'kembali ke Data Pengajuan lalu pilih ulang skema.',
+        style: TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
+      ),
     );
   }
 }

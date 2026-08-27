@@ -108,11 +108,11 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
           (a) => a.id == asesiId,
           orElse: () => _response?.data.firstWhere(
                 (a) => a.id == asesiId,
-                orElse: () => AsesiItem(id: asesiId, namaLengkap: '', canEdit: false),
+                orElse: () => AsesiItem(id: asesiId, namaLengkap: '', canEdit: false, isAPL01Valid: false),
               ) ??
-              AsesiItem(id: asesiId, namaLengkap: '', canEdit: false),
+              AsesiItem(id: asesiId, namaLengkap: '', canEdit: false, isAPL01Valid: false),
         );
-        if (asesi.canEdit) {
+        if (asesi.canEdit && asesi.isAPL01Valid) {
           pesertaPayload.add({
             'asesi_id': asesiId,
             'rekomendasi': rekom,
@@ -124,7 +124,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Tidak ada peserta yang ditugaskan kepada Anda untuk disimpan.'),
+            content: Text('Hanya peserta dengan APL-01 lengkap/terverifikasi yang dapat disimpan rekomendasi.'),
             backgroundColor: Color(0xFFF59E0B),
             behavior: SnackBarBehavior.floating,
           ),
@@ -789,7 +789,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: item.canEdit
+                child: (item.canEdit && item.isAPL01Valid)
                     ? Container(
                         height: 38,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -906,21 +906,32 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE2E8F0),
+                                color: !item.isAPL01Valid
+                                    ? const Color(0xFFFEE2E2)
+                                    : const Color(0xFFE2E8F0),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.lock_outline_rounded,
-                                      size: 11, color: Color(0xFF64748B)),
-                                  SizedBox(width: 3),
+                                  Icon(
+                                    Icons.lock_outline_rounded,
+                                    size: 11,
+                                    color: !item.isAPL01Valid
+                                        ? const Color(0xFFDC2626)
+                                        : const Color(0xFF64748B),
+                                  ),
+                                  const SizedBox(width: 3),
                                   Text(
-                                    'Hanya Lihat',
+                                    !item.isAPL01Valid
+                                        ? 'APL-01 Belum'
+                                        : 'Hanya Lihat',
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
-                                      color: Color(0xFF475569),
+                                      color: !item.isAPL01Valid
+                                          ? const Color(0xFFDC2626)
+                                          : const Color(0xFF475569),
                                     ),
                                   ),
                                 ],

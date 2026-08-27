@@ -100,72 +100,115 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
   bool isFormUnlocked(String formId) {
     if (_detailData == null) return formId == 'APL01';
 
-    switch (formId) {
-      case 'APL01':
-        return true;
-      case 'APL02':
-        // Unlocked if APL-01 is complete / reviewed
-        return _detailData!.apl01.status == 'Diterima' ||
-            _detailData!.apl01.status == 'Lengkap' ||
-            _detailData!.apl01.status == 'Terverifikasi' ||
-            _detailData!.apl01.rekomendasi.contains('Diterima') ||
-            _detailData!.apl02.isApproved;
-      case 'AK07':
-        // Unlocked if APL-02 has recommendation / approved
-        return _detailData!.apl02.isApproved ||
-            _detailData!.apl02.rekomendasi != 'Belum Diverifikasi' ||
-            _detailData!.ak01.status == 'Disetujui' ||
-            _detailData!.ak01.tandaTangan;
-      case 'AK01':
-        // Unlocked if APL-02 and AK-07 are completed
-        return _detailData!.apl02.isApproved ||
-            _detailData!.apl02.rekomendasi != 'Belum Diverifikasi' ||
-            _detailData!.ak01.status == 'Disetujui' ||
-            _detailData!.ak01.tandaTangan;
-      case 'AK02':
-        // Unlocked if AK-01 is agreed / approved
-        return _detailData!.ak01.tandaTangan ||
-            _detailData!.ak01.status == 'Disetujui' ||
-            _detailData!.rekomendasiAsesorCode == '1' ||
-            _detailData!.rekomendasiAsesorCode == '2';
-      case 'AK03':
-        // Unlocked if AK-02 has recommendation
-        return _detailData!.rekomendasiAsesorCode == '1' ||
-            _detailData!.rekomendasiAsesorCode == '2' ||
-            _detailData!.ak02.status == 'Selesai' ||
-            _detailData!.ak02.rekomendasiAsesor != '0';
-      case 'AK04':
-      case 'AK04A':
-      case 'AK04B':
-        // Unlocked if AK-03 is completed
-        return _detailData!.ak03.isSudahDiisi ||
-            _detailData!.ak03.status == 'Telah Diisi' ||
-            _detailData!.rekomendasiAsesorCode == '1' ||
-            _detailData!.rekomendasiAsesorCode == '2';
-      default:
-        return true;
+    // APL-01 is always accessible to view
+    if (formId == 'APL01') {
+      return true;
     }
+
+    // 1. APL-01 must be completed & verified before ANY subsequent form can be opened
+    final isAPL01Valid = _detailData!.apl01.isCompleteOrValid;
+    if (!isAPL01Valid) {
+      return false;
+    }
+
+    // 2. APL-02 is unlocked if APL-01 is valid
+    if (formId == 'APL02') {
+      return true;
+    }
+
+    // 3. APL-02 must be approved / recommended by asesor before proceeding to AK forms
+    final isAPL02Valid = _detailData!.apl02.isCompletedOrApproved;
+    if (!isAPL02Valid) {
+      return false;
+    }
+
+    // AK-07 & AK-01 are unlocked once APL-02 is approved
+    if (formId == 'AK07' || formId == 'AK01') {
+      return true;
+    }
+
+    // 4. AK-01 must be agreed / signed
+    final isAK01Valid = _detailData!.ak01.status == 'Disetujui' || _detailData!.ak01.tandaTangan;
+    if (!isAK01Valid) {
+      return false;
+    }
+
+    // AK-02 is unlocked once AK-01 is agreed
+    if (formId == 'AK02') {
+      return true;
+    }
+
+    // 5. AK-02 must have recommendation
+    final isAK02Valid = _detailData!.rekomendasiAsesorCode == '1' ||
+        _detailData!.rekomendasiAsesorCode == '2' ||
+        _detailData!.ak02.status == 'Selesai' ||
+        (_detailData!.ak02.rekomendasiAsesor != '0' &&
+            _detailData!.ak02.rekomendasiAsesor.isNotEmpty &&
+            _detailData!.ak02.rekomendasiAsesor != 'Belum Rekomendasi');
+    if (!isAK02Valid) {
+      return false;
+    }
+
+    // AK-03 is unlocked once AK-02 is completed
+    if (formId == 'AK03') {
+      return true;
+    }
+
+    // 6. AK-03 must be filled
+    final isAK03Valid = _detailData!.ak03.isSudahDiisi ||
+        _detailData!.ak03.status == 'Telah Diisi' ||
+        _detailData!.ak03.status == 'Selesai';
+    if (!isAK03Valid) {
+      return false;
+    }
+
+    // AK-04 / AK-04A / AK-04B are unlocked once AK-03 is completed
+    if (formId == 'AK04' || formId == 'AK04A' || formId == 'AK04B') {
+      return true;
+    }
+
+    return true;
   }
 
   String getLockReason(String formId) {
-    switch (formId) {
-      case 'APL02':
-        return 'Selesaikan dan verifikasi FR-APL.01 terlebih dahulu.';
-      case 'AK07':
-        return 'Selesaikan dan simpan rekomendasi FR-APL.02 terlebih dahulu.';
-      case 'AK01':
-        return 'Selesaikan FR-APL.02 dan FR-AK.07 terlebih dahulu.';
-      case 'AK02':
-        return 'Selesaikan dan setujui formulir FR-AK.01 terlebih dahulu.';
-      case 'AK03':
-        return 'Selesaikan dan simpan rekomendasi FR-AK.02 terlebih dahulu.';
-      case 'AK04':
-      case 'AK04A':
-      case 'AK04B':
-        return 'Selesaikan pengisian FR-AK.03 terlebih dahulu.';
-      default:
-        return 'Formulir belum dapat diakses.';
+    if (_detailData == null) return 'Memuat data...';
+
+    // 1. Check APL-01 first
+    if (!_detailData!.apl01.isCompleteOrValid) {
+      return 'Selesaikan dan verifikasi FR-APL.01 terlebih dahulu.';
     }
+
+    // 2. Check APL-02
+    if (!_detailData!.apl02.isCompletedOrApproved) {
+      return 'Selesaikan dan simpan rekomendasi FR-APL.02 terlebih dahulu.';
+    }
+
+    // 3. Check AK-01
+    final isAK01Valid = _detailData!.ak01.status == 'Disetujui' || _detailData!.ak01.tandaTangan;
+    if (!isAK01Valid) {
+      return 'Selesaikan dan setujui formulir FR-AK.01 terlebih dahulu.';
+    }
+
+    // 4. Check AK-02
+    final isAK02Valid = _detailData!.rekomendasiAsesorCode == '1' ||
+        _detailData!.rekomendasiAsesorCode == '2' ||
+        _detailData!.ak02.status == 'Selesai' ||
+        (_detailData!.ak02.rekomendasiAsesor != '0' &&
+            _detailData!.ak02.rekomendasiAsesor.isNotEmpty &&
+            _detailData!.ak02.rekomendasiAsesor != 'Belum Rekomendasi');
+    if (!isAK02Valid) {
+      return 'Selesaikan dan simpan rekomendasi FR-AK.02 terlebih dahulu.';
+    }
+
+    // 5. Check AK-03
+    final isAK03Valid = _detailData!.ak03.isSudahDiisi ||
+        _detailData!.ak03.status == 'Telah Diisi' ||
+        _detailData!.ak03.status == 'Selesai';
+    if (!isAK03Valid) {
+      return 'Selesaikan pengisian FR-AK.03 terlebih dahulu.';
+    }
+
+    return 'Formulir belum dapat diakses.';
   }
 
   @override
@@ -186,6 +229,9 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
         setState(() {
           _detailData = res;
           _isLoading = false;
+          if (!isFormUnlocked(_selectedForm)) {
+            _selectedForm = 'APL01';
+          }
         });
       } else {
         setState(() {

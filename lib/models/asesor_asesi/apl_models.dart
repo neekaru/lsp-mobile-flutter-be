@@ -4,6 +4,7 @@
 // ============================================================================
 
 class APL01Data {
+  final bool isValid;
   final String status;
   final String rekomendasi;
   final String catatan;
@@ -13,6 +14,7 @@ class APL01Data {
   final List<BuktiDokumenItem> buktiDokumen;
 
   APL01Data({
+    this.isValid = false,
     required this.status,
     required this.rekomendasi,
     required this.catatan,
@@ -22,14 +24,32 @@ class APL01Data {
     required this.buktiDokumen,
   });
 
+  bool get isCompleteOrValid {
+    if (isValid) return true;
+    final s = status.toLowerCase();
+    final r = rekomendasi.toLowerCase();
+    return s == 'terverifikasi' ||
+        s == 'diterima' ||
+        s == 'lengkap' ||
+        r.contains('diterima') ||
+        (tanggalValidasi.isNotEmpty && !tanggalValidasi.startsWith('0000'));
+  }
+
   factory APL01Data.fromJson(Map<String, dynamic> json) {
+    final status = json['status'] as String? ?? 'Belum Terverifikasi';
     String rawRekom = json['rekomendasi'] as String? ?? '';
-    if (rawRekom.isEmpty || rawRekom == '0' || rawRekom == '1') {
+    if (rawRekom == '1') {
       rawRekom = 'Diterima Sebagai Peserta Asesmen';
     } else if (rawRekom == '2') {
       rawRekom = 'Tidak Diterima Sebagai Peserta Asesmen';
     } else if (rawRekom == '3') {
       rawRekom = 'Perlu Perbaikan Dokumen';
+    } else if (rawRekom.isEmpty || rawRekom == '0') {
+      if (status == 'Terverifikasi' || status == 'Diterima') {
+        rawRekom = 'Diterima Sebagai Peserta Asesmen';
+      } else {
+        rawRekom = 'Belum Diverifikasi';
+      }
     }
 
     final dasarList = (json['persyaratan_dasar'] as List<dynamic>? ?? [])
@@ -42,11 +62,20 @@ class APL01Data {
         .map((e) => BuktiDokumenItem.fromJson(e as Map<String, dynamic>))
         .toList();
 
+    final tglValidasi = json['tanggal_validasi'] as String? ?? '';
+    final parsedIsValid = json['is_valid'] as bool? ??
+        (status == 'Terverifikasi' ||
+            status == 'Diterima' ||
+            status == 'Lengkap' ||
+            rawRekom.contains('Diterima') ||
+            (tglValidasi.isNotEmpty && !tglValidasi.startsWith('0000')));
+
     return APL01Data(
-      status: json['status'] as String? ?? 'Terverifikasi',
+      isValid: parsedIsValid,
+      status: status,
       rekomendasi: rawRekom,
       catatan: json['catatan'] as String? ?? '',
-      tanggalValidasi: json['tanggal_validasi'] as String? ?? '',
+      tanggalValidasi: tglValidasi,
       persyaratanDasar: dasarList,
       persyaratanAdministratif: adminList,
       buktiDokumen: buktiList,
@@ -275,6 +304,13 @@ class APL02Data {
     this.mapaOptions = const [],
     this.kandidatOptions = const [],
   });
+
+  bool get isCompletedOrApproved {
+    return (isApproved && praAsesmen == '1') ||
+        praAsesmen == '1' ||
+        rekomendasi == 'Asesmen Dilanjutkan' ||
+        status == 'Asesmen Dilanjutkan';
+  }
 
   factory APL02Data.fromJson(Map<String, dynamic> json) {
     return APL02Data(

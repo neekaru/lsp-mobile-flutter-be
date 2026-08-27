@@ -169,6 +169,9 @@ mixin PengajuanSertifikatSkemaLogic on State<PengajuanSertifikatScreen> {
   int? kompetensiSkemaId;
   /// true only when pra-asesmen kompetensi API returned nested elemen/KUK
   bool kompetensiHasDetail = false;
+  /// true when the last kompetensi fetch failed (null/non-200/exception),
+  /// so UI can show a real error + retry instead of a silent "0 unit".
+  bool kompetensiLoadFailed = false;
 
   String sectionFromJenisBukti(String jenis, String key, String label) {
     final j = jenis.toLowerCase().trim();
@@ -332,6 +335,7 @@ mixin PengajuanSertifikatSkemaLogic on State<PengajuanSertifikatScreen> {
       isLoadingKompetensi = true;
       asesmenUnits = [];
       kompetensiHasDetail = false;
+      kompetensiLoadFailed = false;
       kukAssessments.clear();
       kukEvidence.clear();
       kompetensiSkemaId = idSkema;
@@ -346,10 +350,12 @@ mixin PengajuanSertifikatSkemaLogic on State<PengajuanSertifikatScreen> {
       if (kompetensiSkemaId != idSkema) return;
 
       if (komp == null) {
-        // Temporary shell only — kompetensiHasDetail stays false so we retry
+        // API gagal (null/non-200/exception): jangan diam-diam tampil 0.
+        // Tandai gagal agar UI munculkan pesan error + tombol coba lagi.
         setState(() {
           asesmenUnits = unitsFromCacheOnly();
           kompetensiHasDetail = false;
+          kompetensiLoadFailed = true;
           isLoadingKompetensi = false;
         });
         return;
@@ -392,6 +398,8 @@ mixin PengajuanSertifikatSkemaLogic on State<PengajuanSertifikatScreen> {
         asesmenUnits = resolved;
         // Only mark complete when API nested elemen/KUK present
         kompetensiHasDetail = hasDetail;
+        // Sukses 200 tapi elemen/KUK 0 → anggap perlu retry, bukan gagal keras.
+        kompetensiLoadFailed = false;
         isLoadingKompetensi = false;
       });
 
@@ -407,6 +415,7 @@ mixin PengajuanSertifikatSkemaLogic on State<PengajuanSertifikatScreen> {
             asesmenUnits = unitsFromCacheOnly();
           }
           kompetensiHasDetail = false;
+          kompetensiLoadFailed = true;
           isLoadingKompetensi = false;
         });
       }
@@ -431,6 +440,7 @@ mixin PengajuanSertifikatSkemaLogic on State<PengajuanSertifikatScreen> {
     asesmenUnits = [];
     kompetensiSkemaId = null;
     kompetensiHasDetail = false;
+    kompetensiLoadFailed = false;
     persyaratanDasar = [];
     persyaratanAdministratif = const [
       {
