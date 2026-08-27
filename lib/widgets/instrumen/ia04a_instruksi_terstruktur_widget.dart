@@ -45,16 +45,38 @@ class _IA04AInstruksiTerstrukturWidgetState
     super.dispose();
   }
 
+  String _cleanHtml(String htmlString) {
+    if (htmlString.isEmpty) return '';
+    String text = htmlString;
+    text = text.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+    text = text.replaceAll(RegExp(r'</p>', caseSensitive: false), '\n\n');
+    text = text.replaceAll(RegExp(r'</li>', caseSensitive: false), '\n');
+    text = text.replaceAll(RegExp(r'</tr>', caseSensitive: false), '\n');
+    text = text.replaceAll(RegExp(r'</td>', caseSensitive: false), '  ');
+    text = text.replaceAll(RegExp(r'<[^>]*>', multiLine: true), '');
+    text = text
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'");
+    text = text.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+    return text.trim();
+  }
+
   void _copyInstruction() {
+    final cleanInstruksi = _cleanHtml(widget.data?.instruksiDit ?? '');
+    final cleanDemo = _cleanHtml(widget.data?.demonstrasiDit ?? '');
     final text = '''
 INSTRUKSI TERSTRUKTUR (DIT) - ${widget.data?.skema ?? ''}
 Peserta: ${widget.data?.namaAsesi ?? ''}
 
 --- SKENARIO PROYEK (STAR) ---
-${widget.data?.instruksiDit ?? ''}
+$cleanInstruksi
 
 --- HAL YANG PERLU DIDEMONSTRASIKAN / DIPRESENTASIKAN ---
-${widget.data?.demonstrasiDit ?? ''}
+$cleanDemo
 ''';
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -216,7 +238,7 @@ ${widget.data?.demonstrasiDit ?? ''}
                 const Divider(height: 18),
                 Text(
                   d.instruksiDit.isNotEmpty
-                      ? d.instruksiDit
+                      ? _cleanHtml(d.instruksiDit)
                       : 'Instruksi terstruktur belum didefinisikan.',
                   style: const TextStyle(
                     fontSize: 12.5,
@@ -258,7 +280,7 @@ ${widget.data?.demonstrasiDit ?? ''}
                   ),
                   const Divider(height: 18),
                   Text(
-                    d.demonstrasiDit,
+                    _cleanHtml(d.demonstrasiDit),
                     style: const TextStyle(
                       fontSize: 12.5,
                       color: Color(0xFF334155),

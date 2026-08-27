@@ -54,34 +54,105 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
       'desc': 'Daftar Unit Kompetensi Mandiri',
     },
     {
+      'id': 'AK07',
+      'code': 'FR-AK.07',
+      'title': '3. FR-AK.07 Penyesuaian Wajar Beralasan',
+      'short': '3. AK-07',
+      'desc': 'Penyesuaian Wajar & Beralasan',
+    },
+    {
       'id': 'AK01',
       'code': 'FR-AK.01',
-      'title': '3. FR-AK.01 Persetujuan Asesmen',
-      'short': '3. AK-01',
+      'title': '4. FR-AK.01 Persetujuan Asesmen',
+      'short': '4. AK-01',
       'desc': 'Persetujuan & Kerahasiaan',
     },
     {
       'id': 'AK02',
       'code': 'FR-AK.02',
-      'title': '4. FR-AK.02 Rekaman Asesmen',
-      'short': '4. AK-02',
+      'title': '5. FR-AK.02 Rekaman Asesmen',
+      'short': '5. AK-02',
       'desc': 'Hasil Observasi, Praktik, Lisan & Esai',
     },
     {
       'id': 'AK03',
       'code': 'FR-AK.03',
-      'title': '5. FR-AK.03 Umpan Balik Asesi',
-      'short': '5. AK-03',
+      'title': '6. FR-AK.03 Umpan Balik Asesi',
+      'short': '6. AK-03',
       'desc': 'Umpan Balik & Catatan Asesi',
     },
     {
       'id': 'AK04',
       'code': 'FR-AK.04',
-      'title': '6. FR-AK.04 Banding Asesmen',
-      'short': '6. AK-04',
+      'title': '7. FR-AK.04 Banding Asesmen',
+      'short': '7. AK-04',
       'desc': 'Pengajuan Permohonan Banding',
     },
   ];
+
+  bool isFormUnlocked(String formId) {
+    if (_detailData == null) return formId == 'APL01';
+
+    switch (formId) {
+      case 'APL01':
+        return true;
+      case 'APL02':
+        // Unlocked if APL-01 is complete / reviewed
+        return _detailData!.apl01.isApproved ||
+            _detailData!.apl01.status == 'Diterima' ||
+            _detailData!.apl01.status == 'Lengkap' ||
+            _detailData!.apl01.status != 'Belum Diverifikasi' ||
+            _detailData!.apl02.isApproved;
+      case 'AK07':
+        // Unlocked if APL-02 has recommendation / approved
+        return _detailData!.apl02.isApproved ||
+            _detailData!.apl02.rekomendasi != 'Belum Diverifikasi' ||
+            _detailData!.ak01.isApproved;
+      case 'AK01':
+        // Unlocked if APL-02 and AK-07 are completed
+        return _detailData!.apl02.isApproved ||
+            _detailData!.apl02.rekomendasi != 'Belum Diverifikasi' ||
+            _detailData!.ak01.isApproved;
+      case 'AK02':
+        // Unlocked if AK-01 is agreed / approved
+        return _detailData!.ak01.isApproved ||
+            _detailData!.ak01.status == 'Disetujui' ||
+            _detailData!.rekomendasiAsesorCode == '1' ||
+            _detailData!.rekomendasiAsesorCode == '2';
+      case 'AK03':
+        // Unlocked if AK-02 has recommendation
+        return _detailData!.rekomendasiAsesorCode == '1' ||
+            _detailData!.rekomendasiAsesorCode == '2' ||
+            _detailData!.ak02.isApproved;
+      case 'AK04':
+        // Unlocked if AK-03 is completed
+        return _detailData!.ak03.isApproved ||
+            _detailData!.ak03.status == 'Lengkap' ||
+            _detailData!.rekomendasiAsesorCode == '1' ||
+            _detailData!.rekomendasiAsesorCode == '2';
+      default:
+        return true;
+    }
+  }
+
+  String getLockReason(String formId) {
+    switch (formId) {
+      case 'APL02':
+        return 'Selesaikan dan verifikasi FR-APL.01 terlebih dahulu.';
+      case 'AK07':
+        return 'Selesaikan dan simpan rekomendasi FR-APL.02 terlebih dahulu.';
+      case 'AK01':
+        return 'Selesaikan FR-APL.02 dan FR-AK.07 terlebih dahulu.';
+      case 'AK02':
+        return 'Selesaikan dan setujui formulir FR-AK.01 terlebih dahulu.';
+      case 'AK03':
+        return 'Selesaikan dan simpan rekomendasi FR-AK.02 terlebih dahulu.';
+      case 'AK04':
+        return 'Selesaikan pengisian FR-AK.03 terlebih dahulu.';
+      default:
+        return 'Formulir belum dapat diakses.';
+    }
+  }
 
   @override
   void initState() {
@@ -303,16 +374,47 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
                       color: Color(0xFF1E293B),
                     ),
                     items: _formList.map((item) {
+                      final unlocked = isFormUnlocked(item['id']!);
                       return DropdownMenuItem<String>(
                         value: item['id'],
-                        child: Text(
-                          item['title']!,
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          children: [
+                            if (!unlocked) ...[
+                              const Icon(LucideIcons.lock, size: 13, color: Color(0xFF94A3B8)),
+                              const SizedBox(width: 6),
+                            ],
+                            Expanded(
+                              child: Text(
+                                item['title']!,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: unlocked ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
+                                  fontWeight: unlocked ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) {
+                        if (!isFormUnlocked(val)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(LucideIcons.lock, color: Colors.white, size: 16),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: Text(getLockReason(val))),
+                                ],
+                              ),
+                              backgroundColor: const Color(0xFFE11D48),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
                         setState(() {
                           _selectedForm = val;
                         });
@@ -334,24 +436,47 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: _formList.map((item) {
-          final isSelected = _selectedForm == item['id'];
+          final formId = item['id']!;
+          final isSelected = _selectedForm == formId;
+          final unlocked = isFormUnlocked(formId);
+
           return Padding(
             padding: const EdgeInsets.only(right: 6.0),
             child: InkWell(
               borderRadius: BorderRadius.circular(8),
               onTap: () {
+                if (!unlocked) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(LucideIcons.lock, color: Colors.white, size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(getLockReason(formId))),
+                        ],
+                      ),
+                      backgroundColor: const Color(0xFFE11D48),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  return;
+                }
                 setState(() {
-                  _selectedForm = item['id']!;
+                  _selectedForm = formId;
                 });
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF2563EB) : Colors.white,
+                  color: isSelected
+                      ? const Color(0xFF2563EB)
+                      : (unlocked ? Colors.white : const Color(0xFFF8FAFC)),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+                    color: isSelected
+                        ? const Color(0xFF2563EB)
+                        : (unlocked ? const Color(0xFFE2E8F0) : const Color(0xFFCBD5E1)),
                   ),
                   boxShadow: isSelected
                       ? const [
@@ -363,13 +488,24 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
                         ]
                       : null,
                 ),
-                child: Text(
-                  item['short']!,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? Colors.white : const Color(0xFF475569),
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!unlocked) ...[
+                      const Icon(LucideIcons.lock, size: 11, color: Color(0xFF94A3B8)),
+                      const SizedBox(width: 4),
+                    ],
+                    Text(
+                      item['short']!,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                        color: isSelected
+                            ? Colors.white
+                            : (unlocked ? const Color(0xFF475569) : const Color(0xFF94A3B8)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -467,6 +603,40 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
 
   /// Menampilkan SATU form yang aktif secara fokus
   Widget _buildActiveFormContent() {
+    if (!isFormUnlocked(_selectedForm)) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
+                child: const Icon(LucideIcons.lock, size: 28, color: Color(0xFFDC2626)),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Formulir Masih Terkunci',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                getLockReason(_selectedForm),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B), height: 1.4),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     switch (_selectedForm) {
       case 'APL01':
         return APL01Section(detailData: _detailData);
@@ -475,6 +645,8 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
           detailData: _detailData,
           onSaveSuccess: _fetchDetail,
         );
+      case 'AK07':
+        return AK07Section(detailData: _detailData);
       case 'AK01':
         return AK01Section(detailData: _detailData);
       case 'AK02':

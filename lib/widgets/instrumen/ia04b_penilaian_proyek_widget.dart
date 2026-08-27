@@ -53,6 +53,26 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
     super.dispose();
   }
 
+  String _cleanHtml(String htmlString) {
+    if (htmlString.isEmpty) return '';
+    String text = htmlString;
+    text = text.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+    text = text.replaceAll(RegExp(r'</p>', caseSensitive: false), '\n\n');
+    text = text.replaceAll(RegExp(r'</li>', caseSensitive: false), '\n');
+    text = text.replaceAll(RegExp(r'</tr>', caseSensitive: false), '\n');
+    text = text.replaceAll(RegExp(r'</td>', caseSensitive: false), '  ');
+    text = text.replaceAll(RegExp(r'<[^>]*>', multiLine: true), '');
+    text = text
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'");
+    text = text.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+    return text.trim();
+  }
+
   void _setAllPencapaian(String pencapaian) {
     setState(() {
       for (var item in _items) {
@@ -333,7 +353,7 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  item.lingkupProyek.isNotEmpty ? item.lingkupProyek : 'Lingkup Penyajian Proyek',
+                  item.lingkupProyek.isNotEmpty ? _cleanHtml(item.lingkupProyek) : 'Lingkup Penyajian Proyek',
                   style: const TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.bold,
@@ -353,7 +373,7 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
             ),
             const SizedBox(height: 3),
             Text(
-              item.pertanyaan,
+              _cleanHtml(item.pertanyaan),
               style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B), height: 1.35),
             ),
             const SizedBox(height: 8),
@@ -375,7 +395,7 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Text(
-                item.tanggapan,
+                _cleanHtml(item.tanggapan),
                 style: const TextStyle(fontSize: 11.5, color: Color(0xFF334155)),
               ),
             ),
