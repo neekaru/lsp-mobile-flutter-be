@@ -361,6 +361,7 @@ class ApiRoutes {
   static const String asesorAsesi = '/api/asesor/asesi';
   static String asesorAsesiDetail(int id) => '/api/asesor/asesi/$id';
   static String asesorAsesiUpdateRekomendasi(int id) => '/api/asesor/asesi/$id/rekomendasi';
+  static String asesorAsesiUpdateAK01(int id) => '/api/asesor/asesi/$id/ak01';
   static String asesorAsesiUpdateAPL02(int id) => '/api/asesor/asesi/$id/apl02';
   static String asesorAsesiUpdateAK02(int id) => '/api/asesor/asesi/$id/ak02';
   static String asesorAsesiIA01(int id) => '/api/asesor/asesi/$id/ia01';

@@ -640,6 +640,7 @@ class JadwalAsesorDetailData {
   final String tuk;
   final String alamatTuk;
   String get lokasiAsesmen => alamatTuk;
+  String get tanggalAsesmen => tanggal;
   final String jenisTuk;
   final List<AsesorDetailItem> asesor;
   final List<AsesiItem> asesi;

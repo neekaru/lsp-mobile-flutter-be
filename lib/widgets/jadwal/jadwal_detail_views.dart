@@ -89,13 +89,13 @@ String formatAsesiDateRange(JadwalItem jadwal, [JadwalAsesorDetailData? detailDa
   try {
     String startStr = jadwal.tanggalMulai.isNotEmpty
         ? jadwal.tanggalMulai
-        : (detailData?.tanggalAsesmen?.isNotEmpty == true
-            ? detailData!.tanggalAsesmen!
-            : (detailData?.tanggal?.isNotEmpty == true ? detailData!.tanggal! : ''));
+        : (detailData != null && detailData.tanggal.isNotEmpty
+            ? detailData.tanggal
+            : '');
     String endStr = jadwal.tanggalSelesai.isNotEmpty
         ? jadwal.tanggalSelesai
-        : (detailData?.tanggalAkhir?.isNotEmpty == true
-            ? detailData!.tanggalAkhir!
+        : (detailData != null && detailData.tanggalAkhir.isNotEmpty
+            ? detailData.tanggalAkhir
             : startStr);
 
     if (startStr.isEmpty) return '-';

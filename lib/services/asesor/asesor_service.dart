@@ -720,6 +720,38 @@ class AsesorService {
     }
   }
 
+  /// Approve FR-AK.01 Persetujuan Asesmen
+  /// POST /api/asesor/asesi/:id/ak01
+  static Future<Map<String, dynamic>?> updateAK01({
+    required int asesiId,
+    String validasiAK01 = '1',
+    String opsiPersetujuanAsesmen = '1',
+    List<String>? bukti,
+  }) async {
+    try {
+      final Map<String, dynamic> payload = {
+        'validasi_ak01': validasiAK01,
+        'opsi_persetujuan_asesmen': opsiPersetujuanAsesmen,
+      };
+      if (bukti != null && bukti.isNotEmpty) {
+        payload['bukti'] = bukti;
+      }
+
+      final response = await _dio.post(
+        ApiRoutes.asesorAsesiUpdateAK01(asesiId),
+        data: payload,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error approving AK-01: $e');
+      return null;
+    }
+  }
+
   /// Get FR.IA.01 Ceklis Observasi
   /// GET /api/asesor/asesi/:id/ia01
   static Future<Map<String, dynamic>?> getIA01(int asesiId) async {
