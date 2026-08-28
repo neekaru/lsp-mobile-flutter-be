@@ -584,7 +584,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     final icon = isValid ? Icons.check_circle_rounded : Icons.cancel_rounded;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(6),
@@ -593,12 +593,12 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 11, color: textColor),
-          const SizedBox(width: 4),
+          Icon(icon, size: 10, color: textColor),
+          const SizedBox(width: 3),
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 9.5,
               fontWeight: FontWeight.bold,
               color: textColor,
             ),
