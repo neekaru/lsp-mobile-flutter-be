@@ -759,15 +759,15 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
             runSpacing: 6,
             children: [
               _buildStatusBadge(
-                label: 'APL-01: ${item.isAPL01Valid ? "Lengkap" : "Belum"}',
+                label: 'APL-01',
                 isValid: item.isAPL01Valid,
               ),
               _buildStatusBadge(
-                label: 'APL-02: ${item.isAPL02Valid ? "Lengkap" : "Belum"}',
+                label: 'APL-02',
                 isValid: item.isAPL02Valid,
               ),
               _buildStatusBadge(
-                label: 'AK-02: ${item.isAK02Valid ? "Dinilai" : "Belum"}',
+                label: 'AK-02',
                 isValid: item.isAK02Valid,
               ),
             ],
