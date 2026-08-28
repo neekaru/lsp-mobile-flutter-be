@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:material_ui/material_ui.dart';
 import '../../widgets/auth/google_icon.dart';
 import 'package:dio/dio.dart';
@@ -93,6 +94,105 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         } else {
           _errorMessage = 'Terjadi kesalahan sistem. Coba lagi nanti.';
+        }
+      });
+    }
+  }
+
+  Future<void> _handleGoogleLogin() async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
+
+      try {
+        await googleSignIn.signOut();
+      } catch (_) {}
+
+      final GoogleSignInAccount? account = await googleSignIn.signIn();
+      if (account == null) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final GoogleSignInAuthentication auth = await account.authentication;
+      final String? idToken = auth.idToken;
+
+      if (idToken == null || idToken.isEmpty) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Gagal memperoleh token Google. Coba lagi.';
+        });
+        return;
+      }
+
+      final authRepo = AuthRepository(
+        dio: ApiService.dio,
+        tokenStorage: TokenStorage.instance,
+      );
+
+      String? fcmToken;
+      try {
+        fcmToken = await NotificationService.instance.getToken();
+      } catch (e) {
+        debugPrint('Failed to get FCM Token during Google login: $e');
+      }
+
+      await authRepo.loginWithGoogle(
+        idToken: idToken,
+        platform: Platform.isIOS ? 'ios' : 'android',
+        deviceToken: fcmToken,
+      );
+
+      NotificationService.instance.registerCurrentToken();
+
+      if (!mounted) return;
+
+      mainNavigatorKey = GlobalKey<MainNavigatorState>();
+      Navigator.of(context).pushAndRemoveUntil(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              MainNavigator(key: mainNavigatorKey),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 600),
+        ),
+        (route) => false,
+      );
+    } catch (e) {
+      debugPrint('Google login failed: $e');
+
+      setState(() {
+        _isLoading = false;
+        if (e is DioException) {
+          final serverMessage = e.response?.data is Map
+              ? e.response?.data['message']?.toString() ??
+                  e.response?.data['errors']?.toString()
+              : null;
+
+          if (serverMessage != null && serverMessage.isNotEmpty) {
+            _errorMessage = serverMessage;
+          } else if (e.response?.statusCode == 404) {
+            _errorMessage =
+                'Akun Google Anda belum terdaftar di sistem LSP.';
+          } else if (e.response?.statusCode == 401) {
+            _errorMessage =
+                'Autentikasi Google gagal atau sudah kedaluwarsa.';
+          } else {
+            _errorMessage = 'Login Google gagal. Coba lagi nanti.';
+          }
+        } else {
+          _errorMessage = 'Gagal masuk dengan Google: $e';
         }
       });
     }
@@ -410,7 +510,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 140,
                         height: 36,
                         child: OutlinedButton(
-                          onPressed: () {},
+                          onPressed: _isLoading ? null : _handleGoogleLogin,
                           style: OutlinedButton.styleFrom(
                             backgroundColor: const Color(0xFFF9FAFB),
                             side: const BorderSide(

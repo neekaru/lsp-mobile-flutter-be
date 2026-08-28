@@ -63,6 +63,34 @@ class AuthRepository {
     return result;
   }
 
+  Future<LoginResult> loginWithGoogle({
+    required String idToken,
+    String? platform,
+    String? deviceToken,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiRoutes.authGoogle,
+      data: {
+        'id_token': idToken,
+        'platform': platform,
+        'device_token': deviceToken,
+      },
+    );
+
+    final data = response.data?['data'] as Map<String, dynamic>;
+    final result = LoginResult.fromJson(data);
+
+    await _tokenStorage.saveTokens(
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    );
+    await _tokenStorage.saveUserProfile(result.user);
+
+    currentUserInstance = result.user;
+
+    return result;
+  }
+
   /// Auto-create asesi (default password 123456) if missing, then save session.
   /// [account] = NIM or NIK (max 18 chars).
   Future<LoginResult> ensureAsesi({

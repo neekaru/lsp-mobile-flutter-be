@@ -1,7 +1,7 @@
 name: lsp_digital_mobile
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.2.1-beta.121+148
+version: 1.2.1-beta.122+149
 
 environment:
   sdk: ^3.11.1
@@ -20,6 +20,7 @@ dependencies:
   intl: 0.20.3
   syncfusion_flutter_maps: ^34.2.5
   file_picker: ^12.1.0
+  google_sign_in: ^6.2.2
   url_launcher: ^6.3.2
   qr_flutter: ^4.1.0
 

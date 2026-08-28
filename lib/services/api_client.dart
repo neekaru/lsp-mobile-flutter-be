@@ -66,6 +66,7 @@ class ApiClient {
 
                 final isAuthPath =
                     error.requestOptions.path.contains(ApiRoutes.authLogin) ||
+                    error.requestOptions.path.contains(ApiRoutes.authGoogle) ||
                     error.requestOptions.path.contains(ApiRoutes.authRefresh) ||
                     error.requestOptions.path.contains(ApiRoutes.authLogout);
 
