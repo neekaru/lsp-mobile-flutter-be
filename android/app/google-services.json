@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "610788998259",
-    "project_id": "lsp-mobile-697a4",
-    "storage_bucket": "lsp-mobile-697a4.firebasestorage.app"
+    "project_number": "113874406807",
+    "project_id": "lsp-digital-mobile",
+    "storage_bucket": "lsp-digital-mobile.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:610788998259:android:6adab0efb022ead6e77e06",
+        "mobilesdk_app_id": "1:113874406807:android:38e2fcc37d787fbf3ec8d2",
         "android_client_info": {
           "package_name": "id.lspdigital.mobile"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDs33-h7mxWR2B62w9hJuPZj8bOsmYjTDg"
+          "current_key": "AIzaSyDR3yIbOH_ZDn7_E9sHDEYCf6lsYR3dxeQ"
         }
       ],
       "services": {

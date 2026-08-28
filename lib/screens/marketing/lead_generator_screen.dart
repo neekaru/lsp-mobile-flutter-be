@@ -26,7 +26,7 @@ class _LeadGeneratorScreenState extends State<LeadGeneratorScreen> {
   bool _isLoading = true;
   List<LeadModel> _leads = [];
   String _selectedKategori = 'Semua';
-  String _selectedStatus = 'Semua';
+  final String _selectedStatus = 'Semua';
   int _idAsesor = 4;
 
   final List<String> _kategoriList = [

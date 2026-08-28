@@ -90,7 +90,7 @@ Future<void> showAddLeadSheet(
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: kategori,
+                    initialValue: kategori,
                     decoration: InputDecoration(
                       labelText: 'Kategori Lead',
                       border: OutlineInputBorder(
@@ -144,7 +144,7 @@ Future<void> showAddLeadSheet(
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: status,
+                    initialValue: status,
                     decoration: InputDecoration(
                       labelText: 'Status Lead',
                       border: OutlineInputBorder(

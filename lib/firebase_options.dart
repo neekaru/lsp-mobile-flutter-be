@@ -44,38 +44,37 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBd6fBf5BjHSl1MrZdsDqWCi7NM1pCuR8w',
-    appId: '1:610788998259:web:f878f9b63463da7ce77e06',
-    messagingSenderId: '610788998259',
-    projectId: 'lsp-mobile-697a4',
-    authDomain: 'lsp-mobile-697a4.firebaseapp.com',
-    storageBucket: 'lsp-mobile-697a4.firebasestorage.app',
-    measurementId: 'G-W96DHNDVV6',
+    apiKey: 'AIzaSyDR3yIbOH_ZDn7_E9sHDEYCf6lsYR3dxeQ',
+    appId: '1:113874406807:web:f878f9b63463da7ce77e06',
+    messagingSenderId: '113874406807',
+    projectId: 'lsp-digital-mobile',
+    authDomain: 'lsp-digital-mobile.firebaseapp.com',
+    storageBucket: 'lsp-digital-mobile.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDs33-h7mxWR2B62w9hJuPZj8bOsmYjTDg',
-    appId: '1:610788998259:android:6adab0efb022ead6e77e06',
-    messagingSenderId: '610788998259',
-    projectId: 'lsp-mobile-697a4',
-    storageBucket: 'lsp-mobile-697a4.firebasestorage.app',
+    apiKey: 'AIzaSyDR3yIbOH_ZDn7_E9sHDEYCf6lsYR3dxeQ',
+    appId: '1:113874406807:android:38e2fcc37d787fbf3ec8d2',
+    messagingSenderId: '113874406807',
+    projectId: 'lsp-digital-mobile',
+    storageBucket: 'lsp-digital-mobile.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAo2PpKEKdH8x0y4TjUgCt-XZFxp_eN-No',
-    appId: '1:610788998259:ios:676c4689a16158c5e77e06',
-    messagingSenderId: '610788998259',
-    projectId: 'lsp-mobile-697a4',
-    storageBucket: 'lsp-mobile-697a4.firebasestorage.app',
+    apiKey: 'AIzaSyDR3yIbOH_ZDn7_E9sHDEYCf6lsYR3dxeQ',
+    appId: '1:113874406807:ios:676c4689a16158c5e77e06',
+    messagingSenderId: '113874406807',
+    projectId: 'lsp-digital-mobile',
+    storageBucket: 'lsp-digital-mobile.firebasestorage.app',
     iosBundleId: 'com.example.lspDigitalMobile',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAo2PpKEKdH8x0y4TjUgCt-XZFxp_eN-No',
-    appId: '1:610788998259:ios:676c4689a16158c5e77e06',
-    messagingSenderId: '610788998259',
-    projectId: 'lsp-mobile-697a4',
-    storageBucket: 'lsp-mobile-697a4.firebasestorage.app',
+    apiKey: 'AIzaSyDR3yIbOH_ZDn7_E9sHDEYCf6lsYR3dxeQ',
+    appId: '1:113874406807:ios:676c4689a16158c5e77e06',
+    messagingSenderId: '113874406807',
+    projectId: 'lsp-digital-mobile',
+    storageBucket: 'lsp-digital-mobile.firebasestorage.app',
     iosBundleId: 'com.example.lspDigitalMobile',
   );
 }
