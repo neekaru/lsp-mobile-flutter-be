@@ -85,36 +85,56 @@ String getDisplayAsesor(JadwalItem jadwal) {
     return jadwal.asesor.first;
   }
 
-String formatAsesiDateRange(JadwalItem jadwal) {
-    try {
-      final start = DateTime.tryParse(jadwal.tanggalMulai);
-      final end = DateTime.tryParse(jadwal.tanggalSelesai);
-      if (start == null || end == null) {
-        return '${jadwal.tanggalMulai} - ${jadwal.tanggalSelesai}';
-      }
-      final days = [
-        'Senin',
-        'Selasa',
-        'Rabu',
-        'Kamis',
-        'Jumat',
-        'Sabtu',
-        'Minggu',
-      ];
-      final months = [
-        'Januari',
-        'Februari',
-        'Maret',
-        'April',
-        'Mei',
-        'Juni',
-        'Juli',
-        'Agustus',
-        'September',
-        'Oktober',
-        'November',
-        'Desember',
-      ];
+String formatAsesiDateRange(JadwalItem jadwal, [JadwalAsesorDetailData? detailData]) {
+  try {
+    String startStr = jadwal.tanggalMulai.isNotEmpty
+        ? jadwal.tanggalMulai
+        : (detailData?.tanggalAsesmen?.isNotEmpty == true
+            ? detailData!.tanggalAsesmen!
+            : (detailData?.tanggal?.isNotEmpty == true ? detailData!.tanggal! : ''));
+    String endStr = jadwal.tanggalSelesai.isNotEmpty
+        ? jadwal.tanggalSelesai
+        : (detailData?.tanggalAkhir?.isNotEmpty == true
+            ? detailData!.tanggalAkhir!
+            : startStr);
+
+    if (startStr.isEmpty) return '-';
+    if (endStr.isEmpty) endStr = startStr;
+
+    final start = DateTime.tryParse(startStr);
+    final end = DateTime.tryParse(endStr);
+
+    final days = [
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
+    ];
+    final months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+
+    if (start != null && (end == null || start.isAtSameMomentAs(end))) {
+      final startDay = days[start.weekday - 1];
+      final monthName = months[start.month - 1];
+      return '$startDay, ${start.day} $monthName ${start.year}';
+    }
+
+    if (start != null && end != null) {
       final startDay = days[start.weekday - 1];
       final monthName = months[start.month - 1];
 
@@ -128,10 +148,13 @@ String formatAsesiDateRange(JadwalItem jadwal) {
         final endMonthName = months[end.month - 1];
         return '$startDay, ${start.day} $monthName ${start.year} - $endDay, ${end.day} $endMonthName ${end.year}';
       }
-    } catch (e) {
-      return '${jadwal.tanggalMulai} - ${jadwal.tanggalSelesai}';
     }
+
+    return startStr.isNotEmpty ? startStr : '-';
+  } catch (e) {
+    return '-';
   }
+}
 
 class JadwalDetailAsesorView extends StatelessWidget {
   final JadwalItem jadwal;
@@ -274,7 +297,7 @@ class JadwalDetailAsesorView extends StatelessWidget {
                 AsesorDetailRow(
                   icon: Icons.calendar_today_outlined,
                   label: 'Tanggal Asesmen',
-                  value: formatAsesiDateRange(jadwal),
+                  value: formatAsesiDateRange(jadwal, detailData),
                 ),
                 AsesorDetailRow(
                   icon: Icons.access_time_rounded,
