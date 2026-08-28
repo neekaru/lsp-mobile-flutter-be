@@ -369,7 +369,6 @@ class _PenugasanDetailScreenState extends State<PenugasanDetailScreen> {
                                 foregroundColor: const Color(0xFF3B82F6),
                               ),
                               onPressed: () async {
-                                final messenger = ScaffoldMessenger.of(context);
                                 try {
                                   final fileUrl = await ApiService.getSuratTugas(widget.jadwal.id);
                                   final targetUrl = (fileUrl != null && fileUrl.isNotEmpty)

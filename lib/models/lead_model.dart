@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class LeadModel {
   final String id;
   final int idAsesor;

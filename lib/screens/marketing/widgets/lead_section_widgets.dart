@@ -8,7 +8,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../../models/lead_model.dart';
-import 'lead_helpers.dart';
 
 // ── 1. KPI SUMMARY HEADER ──────────────────────────────────────────────────
 class LeadKpiSummaryHeader extends StatelessWidget {

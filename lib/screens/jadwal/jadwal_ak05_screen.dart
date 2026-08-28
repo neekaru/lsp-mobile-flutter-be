@@ -98,6 +98,18 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
 
   Future<void> _saveAK05() async {
     if (_detailData == null) return;
+    if (!_detailData!.isUnlocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_detailData!.lockReason.isNotEmpty
+              ? _detailData!.lockReason
+              : 'Selesaikan formulir FR-AK.01 terlebih dahulu.'),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     setState(() {
       _isSaving = true;
     });
@@ -221,6 +233,52 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Lock Banner (if AK.01 not yet completed) ─────────────────────────
+          if (!data.isUnlocked) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFCA5A5)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.lock_outline_rounded, color: Color(0xFFDC2626), size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Formulir FR-AK.05 Terkunci',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF991B1B),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          data.lockReason.isNotEmpty
+                              ? data.lockReason
+                              : 'Selesaikan dan setujui formulir FR-AK.01 terlebih dahulu sebelum mengisi formulir Laporan Asesmen.',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFFB91C1C),
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           // ── Card 1: Informasi Asesmen & Link Folder ──────────────────────────
           FormSectionCard(
             child: Column(
@@ -682,6 +740,32 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
                 ),
                 const SizedBox(height: 12),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                // Info note
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF2563EB)),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Status rekomendasi peserta merupakan rekapitulasi hasil asesmen yang telah dinilai pada FR-AK.02 (Rekaman Asesmen).',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF1D4ED8),
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 12),
 
                 // Summary chips
@@ -763,7 +847,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton.icon(
-              onPressed: _isSaving ? null : _saveAK05,
+              onPressed: (_isSaving || !data.isUnlocked) ? null : _saveAK05,
               icon: _isSaving
                   ? const SizedBox(
                       width: 20,
@@ -773,13 +857,17 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Icon(LucideIcons.save, size: 18),
+                  : Icon(!data.isUnlocked ? Icons.lock_outline : LucideIcons.save, size: 18),
               label: Text(
-                _isSaving ? 'Menyimpan Laporan...' : 'Simpan Laporan Asesmen (AK.05)',
+                _isSaving
+                    ? 'Menyimpan Laporan...'
+                    : !data.isUnlocked
+                        ? 'Formulir Terkunci (Selesaikan AK.01)'
+                        : 'Simpan Laporan Asesmen (AK.05)',
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
+                backgroundColor: !data.isUnlocked ? const Color(0xFF94A3B8) : const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -850,64 +938,58 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
                   ],
                 ),
               ),
-              // Dropdown Penilaian Ringkas
+              // Read-only Assessment Status Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(6),
+                  color: isK
+                      ? const Color(0xFFDCFCE7)
+                      : isBK
+                          ? const Color(0xFFFEE2E2)
+                          : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isK
-                        ? const Color(0xFF16A34A)
+                        ? const Color(0xFF86EFAC)
                         : isBK
-                            ? const Color(0xFFDC2626)
+                            ? const Color(0xFFFCA5A5)
                             : const Color(0xFFCBD5E1),
                   ),
                 ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: (p.rekomendasiAsesor == '1' || p.rekomendasiAsesor == '2')
-                        ? p.rekomendasiAsesor
-                        : '0',
-                    isDense: true,
-                    items: const [
-                      DropdownMenuItem(
-                        value: '0',
-                        child: Text(
-                          'Belum Rekomendasi',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                        ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isK
+                          ? Icons.check_circle_rounded
+                          : isBK
+                              ? Icons.cancel_rounded
+                              : Icons.schedule_rounded,
+                      size: 14,
+                      color: isK
+                          ? const Color(0xFF16A34A)
+                          : isBK
+                              ? const Color(0xFFDC2626)
+                              : const Color(0xFF64748B),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      isK
+                          ? 'Kompeten (K)'
+                          : isBK
+                              ? 'Belum Kompeten (BK)'
+                              : 'Belum Dinilai',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: isK
+                            ? const Color(0xFF16A34A)
+                            : isBK
+                                ? const Color(0xFFDC2626)
+                                : const Color(0xFF64748B),
                       ),
-                      DropdownMenuItem(
-                        value: '1',
-                        child: Text(
-                          'Kompeten (K)',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: '2',
-                        child: Text(
-                          'Belum Kompeten (BK)',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFDC2626)),
-                        ),
-                      ),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          p.rekomendasiAsesor = val;
-                          if (val == '1') {
-                            p.rekomendasiLabel = 'Kompeten';
-                          } else if (val == '2') {
-                            p.rekomendasiLabel = 'Belum Kompeten';
-                          } else {
-                            p.rekomendasiLabel = 'Belum Rekomendasi';
-                          }
-                        });
-                      }
-                    },
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],

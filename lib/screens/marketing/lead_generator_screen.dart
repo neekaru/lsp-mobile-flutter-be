@@ -8,6 +8,7 @@ import '../../services/marketing/lead_storage_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import 'widgets/lead_bottom_sheets.dart';
 import 'widgets/lead_card.dart';
+import 'widgets/lead_helpers.dart';
 import 'widgets/lead_section_widgets.dart';
 
 class LeadGeneratorScreen extends StatefulWidget {

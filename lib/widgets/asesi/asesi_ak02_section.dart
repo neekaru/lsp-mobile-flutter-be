@@ -56,16 +56,22 @@ class _AK02SectionState extends State<AK02Section> {
   }
 
   String _initialPesan() {
-    return widget.detailData?.ak02.pesan.isNotEmpty == true
-        ? widget.detailData!.ak02.pesan
-        : (widget.detailData?.pesanAsesor.isNotEmpty == true
-            ? widget.detailData!.pesanAsesor
-            : (widget.detailData?.ak02.komentarObservasi ?? ''));
+    final d = widget.detailData;
+    if (d == null) return '';
+    if (d.ak02.pesan.isNotEmpty) {
+      return d.ak02.pesan;
+    }
+    if (d.pesanAsesor.isNotEmpty) {
+      return d.pesanAsesor;
+    }
+    return d.ak02.komentarObservasi;
   }
 
   void _syncFromDetailData() {
-    final currentCode = widget.detailData?.ak02.rekomendasiAsesor?.trim() ?? '';
-    final generalRekom = widget.detailData?.rekomendasiAsesor?.trim().toLowerCase() ?? '';
+    final d = widget.detailData;
+    if (d == null) return;
+    final currentCode = d.ak02.rekomendasiAsesor.trim();
+    final generalRekom = d.rekomendasiAsesor.trim().toLowerCase();
     if (currentCode == '2' || generalRekom == 'belum kompeten' || generalRekom == 'bk') {
       _selectedRekom = '2';
     } else if (currentCode == '1' || generalRekom == 'kompeten' || generalRekom == 'k') {

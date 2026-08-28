@@ -114,6 +114,18 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
 
   Future<void> _saveAK06() async {
     if (_detailData == null) return;
+    if (!_detailData!.isUnlocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_detailData!.lockReason.isNotEmpty
+              ? _detailData!.lockReason
+              : 'Selesaikan formulir FR-AK.01 terlebih dahulu.'),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     setState(() {
       _isSaving = true;
     });
@@ -235,6 +247,52 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Lock Banner (if AK.01 not yet completed) ─────────────────────────
+          if (!data.isUnlocked) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFCA5A5)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.lock_outline_rounded, color: Color(0xFFDC2626), size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Formulir FR-AK.06 Terkunci',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF991B1B),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          data.lockReason.isNotEmpty
+                              ? data.lockReason
+                              : 'Selesaikan FR-AK.01 dan FR-AK.05 terlebih dahulu sebelum meninjau proses asesmen.',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFFB91C1C),
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           // Header Summary Card
           FormSectionCard(
             child: Column(
@@ -317,13 +375,13 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           ),
           const SizedBox(height: 16),
 
-          // ── Card 2: Aspek yang Dikaji Ulang & Prinsip Asesmen ─────────────────
+          // ── Card 2: Pemenuhan terhadap Prinsip-Prinsip Asesmen ────────────────
           FormSectionCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '2. Aspek yang Dikaji Ulang & Prinsip Asesmen',
+                  '2. Pemenuhan terhadap Prinsip-Prinsip Asesmen',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -332,7 +390,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Centang prinsip asesmen yang terpenuhi pada setiap prosedur:',
+                  'Valid, Reliable, Flexible, Fair pada tiap prosedur asesmen:',
                   style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                 ),
                 const SizedBox(height: 12),
@@ -342,14 +400,13 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
                 ..._prinsipItems.asMap().entries.map((entry) {
                   final index = entry.key;
                   final item = entry.value;
-                  final isFlexibleBlocked = item.prosedur.toLowerCase().contains('keputusan') ||
-                      item.prosedur.toLowerCase().contains('umpan balik');
+                  final isFlexibleBlocked = index == 3 || index == 4;
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFAFAFA),
+                      color: const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
@@ -361,10 +418,10 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
+                            color: Color(0xFF1E293B),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
                           runSpacing: 6,
@@ -472,7 +529,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton.icon(
-              onPressed: _isSaving ? null : _saveAK06,
+              onPressed: (_isSaving || !data.isUnlocked) ? null : _saveAK06,
               icon: _isSaving
                   ? const SizedBox(
                       width: 20,
@@ -482,13 +539,17 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Icon(LucideIcons.save, size: 18),
+                  : Icon(!data.isUnlocked ? Icons.lock_outline : LucideIcons.save, size: 18),
               label: Text(
-                _isSaving ? 'Menyimpan Tinjauan...' : 'Simpan Tinjauan Asesmen (AK.06)',
+                _isSaving
+                    ? 'Menyimpan Tinjauan...'
+                    : !data.isUnlocked
+                        ? 'Formulir Terkunci (Selesaikan AK.01)'
+                        : 'Simpan Tinjauan Asesmen (AK.06)',
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
+                backgroundColor: !data.isUnlocked ? const Color(0xFF94A3B8) : const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),

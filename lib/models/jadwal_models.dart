@@ -648,6 +648,11 @@ class JadwalAsesorDetailData {
   final int? jumlahPeserta;
   final String? jenisUji;
   final bool? isAjj;
+  final bool isAK01Valid;
+  final bool isAK05Unlocked;
+  final bool isAK06Unlocked;
+  final String lockReasonAK05;
+  final String lockReasonAK06;
 
   const JadwalAsesorDetailData({
     required this.id,
@@ -667,6 +672,11 @@ class JadwalAsesorDetailData {
     this.jumlahPeserta,
     this.jenisUji,
     this.isAjj,
+    this.isAK01Valid = false,
+    this.isAK05Unlocked = false,
+    this.isAK06Unlocked = false,
+    this.lockReasonAK05 = 'Selesaikan dan setujui formulir FR-AK.01 terlebih dahulu sebelum mengisi Laporan Asesmen (FR-AK.05).',
+    this.lockReasonAK06 = 'Selesaikan FR-AK.01 dan FR-AK.05 terlebih dahulu sebelum meninjau proses asesmen (FR-AK.06).',
   });
 
   bool get isAJJ => isSjj;
@@ -708,6 +718,11 @@ class JadwalAsesorDetailData {
       jumlahPeserta: json['jumlah_peserta'],
       jenisUji: json['jenis_uji']?.toString(),
       isAjj: isAjj,
+      isAK01Valid: json['is_ak01_valid'] == true,
+      isAK05Unlocked: json['is_ak05_unlocked'] == true,
+      isAK06Unlocked: json['is_ak06_unlocked'] == true,
+      lockReasonAK05: json['lock_reason_ak05']?.toString() ?? 'Selesaikan dan setujui formulir FR-AK.01 terlebih dahulu sebelum mengisi Laporan Asesmen (FR-AK.05).',
+      lockReasonAK06: json['lock_reason_ak06']?.toString() ?? 'Selesaikan FR-AK.01 dan FR-AK.05 terlebih dahulu sebelum meninjau proses asesmen (FR-AK.06).',
       asesor:
           (json['asesor'] as List<dynamic>?)
               ?.map(

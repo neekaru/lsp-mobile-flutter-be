@@ -344,12 +344,16 @@ class AsesorDetailRow extends StatelessWidget {
 class ActionButtonCard extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String? subtitle;
+  final bool isLocked;
   final VoidCallback onTap;
 
   const ActionButtonCard({
     super.key,
     required this.icon,
     required this.title,
+    this.subtitle,
+    this.isLocked = false,
     required this.onTap,
   });
 
@@ -358,15 +362,18 @@ class ActionButtonCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isLocked ? const Color(0xFFF8FAFC) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
+        border: isLocked ? Border.all(color: const Color(0xFFE2E8F0)) : null,
+        boxShadow: isLocked
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x0A000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -381,26 +388,69 @@ class ActionButtonCard extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE5F1FC),
+                    color: isLocked ? const Color(0xFFF1F5F9) : const Color(0xFFE5F1FC),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, color: const Color(0xFF2C6C9C), size: 20),
+                  child: Icon(
+                    isLocked ? Icons.lock_outline_rounded : icon,
+                    color: isLocked ? const Color(0xFF94A3B8) : const Color(0xFF2C6C9C),
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: isLocked ? const Color(0xFF64748B) : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          if (isLocked) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEE2E2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'Terkunci',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFDC2626),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (subtitle != null && subtitle!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isLocked ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFF2C6C9C),
-                  size: 24,
+                Icon(
+                  isLocked ? Icons.lock_outline : Icons.chevron_right_rounded,
+                  color: isLocked ? const Color(0xFF94A3B8) : const Color(0xFF2C6C9C),
+                  size: 20,
                 ),
               ],
             ),

@@ -132,6 +132,9 @@ class JadwalAK05DetailData {
   final String peliharaKompetensi;
   final String catatan;
   final String statusLaporan;
+  final bool isUnlocked;
+  final String lockReason;
+  final bool isAK01Valid;
 
   JadwalAK05DetailData({
     required this.jadwalId,
@@ -158,6 +161,9 @@ class JadwalAK05DetailData {
     required this.peliharaKompetensi,
     required this.catatan,
     required this.statusLaporan,
+    this.isUnlocked = true,
+    this.lockReason = '',
+    this.isAK01Valid = true,
   });
 
   factory JadwalAK05DetailData.fromJson(Map<String, dynamic> json) {
@@ -202,6 +208,9 @@ class JadwalAK05DetailData {
       peliharaKompetensi: json['pelihara_kompetensi'] as String? ?? '',
       catatan: json['catatan'] as String? ?? '',
       statusLaporan: json['status_laporan'] as String? ?? 'Draft',
+      isUnlocked: json['is_unlocked'] != false,
+      lockReason: json['lock_reason'] as String? ?? '',
+      isAK01Valid: json['is_ak01_valid'] != false,
     );
   }
 }
@@ -255,6 +264,9 @@ class JadwalAK06DetailData {
   final String rekomendasi;
   final String catatan;
   final String statusTinjauan;
+  final bool isUnlocked;
+  final String lockReason;
+  final bool isAK01Valid;
 
   JadwalAK06DetailData({
     required this.jadwalId,
@@ -269,6 +281,9 @@ class JadwalAK06DetailData {
     required this.rekomendasi,
     required this.catatan,
     required this.statusTinjauan,
+    this.isUnlocked = true,
+    this.lockReason = '',
+    this.isAK01Valid = true,
   });
 
   factory JadwalAK06DetailData.fromJson(Map<String, dynamic> json) {
@@ -357,6 +372,9 @@ class JadwalAK06DetailData {
       rekomendasi: json['rekomendasi'] as String? ?? '',
       catatan: json['catatan'] as String? ?? '',
       statusTinjauan: json['status_tinjauan'] as String? ?? 'Selesai',
+      isUnlocked: json['is_unlocked'] != false,
+      lockReason: json['lock_reason'] as String? ?? '',
+      isAK01Valid: json['is_ak01_valid'] != false,
     );
   }
 }

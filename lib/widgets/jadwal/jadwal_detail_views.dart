@@ -354,36 +354,70 @@ class JadwalDetailAsesorView extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Card 4: FR-AK.05 Laporan Asesmen
-          ActionButtonCard(
-            icon: Icons.assignment_turned_in_rounded,
-            title: 'FR-AK.05 Laporan Asesmen',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => JadwalAK05Screen(
-                    jadwalId: jadwal.id,
-                    jadwalTitle: jadwal.skema,
-                  ),
-                ),
+          Builder(
+            builder: (context) {
+              final isAK05Locked = detailData != null && !detailData!.isAK05Unlocked;
+              return ActionButtonCard(
+                icon: Icons.assignment_turned_in_rounded,
+                title: 'FR-AK.05 Laporan Asesmen',
+                subtitle: isAK05Locked ? 'Terkunci: Selesaikan FR-AK.01 terlebih dahulu' : null,
+                isLocked: isAK05Locked,
+                onTap: () {
+                  if (isAK05Locked) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(detailData?.lockReasonAK05 ?? 'Selesaikan dan setujui formulir FR-AK.01 terlebih dahulu.'),
+                        backgroundColor: const Color(0xFFDC2626),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    return;
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => JadwalAK05Screen(
+                        jadwalId: jadwal.id,
+                        jadwalTitle: jadwal.skema,
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),
           const SizedBox(height: 12),
 
           // Card 5: FR-AK.06 Meninjau Proses Asesmen
-          ActionButtonCard(
-            icon: Icons.rate_review_rounded,
-            title: 'FR-AK.06 Meninjau Proses Asesmen',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => JadwalAK06Screen(
-                    jadwalId: jadwal.id,
-                    jadwalTitle: jadwal.skema,
-                  ),
-                ),
+          Builder(
+            builder: (context) {
+              final isAK06Locked = detailData != null && !detailData!.isAK06Unlocked;
+              return ActionButtonCard(
+                icon: Icons.rate_review_rounded,
+                title: 'FR-AK.06 Meninjau Proses Asesmen',
+                subtitle: isAK06Locked ? 'Terkunci: Selesaikan FR-AK.01 & AK.05 terlebih dahulu' : null,
+                isLocked: isAK06Locked,
+                onTap: () {
+                  if (isAK06Locked) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(detailData?.lockReasonAK06 ?? 'Selesaikan FR-AK.01 dan FR-AK.05 terlebih dahulu.'),
+                        backgroundColor: const Color(0xFFDC2626),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                    return;
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => JadwalAK06Screen(
+                        jadwalId: jadwal.id,
+                        jadwalTitle: jadwal.skema,
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),
