@@ -93,6 +93,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
   }
 
   Future<void> _handleMyLocation() async {
+    PlacesService.clearSearchCache();
     setState(() {
       _selectedPlace = null;
     });
