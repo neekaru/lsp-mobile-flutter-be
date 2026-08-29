@@ -28,25 +28,24 @@ class PlacesService {
     return _sdk!;
   }
 
-  /// Search places strictly within radius around user coordinate
+  /// Search places with user keyword query and proximity bias
   static Future<List<PlaceResult>> searchPlaces({
     required String query,
     double? latitude,
     double? longitude,
-    int radius = 1500,
+    int radius = 10000,
   }) async {
     final cleanQuery = query.replaceAll('terdekat', '').trim();
     if (cleanQuery.isEmpty) return [];
 
     List<PlaceResult> results = [];
 
-    // 1. Native Google Places SDK Plus
+    // 1. Native Google Places SDK Plus (searchByText & findAutocompletePredictions with query keyword)
     try {
       final nativeResults = await _searchGooglePlacesNativeSdk(
         query: cleanQuery,
         latitude: latitude,
         longitude: longitude,
-        radius: radius,
       );
       if (nativeResults.isNotEmpty) {
         results = nativeResults;
@@ -105,24 +104,7 @@ class PlacesService {
       }
     }
 
-    // 4. Try Live OpenStreetMap Overpass Nearby Search (Real Satellite Data strictly around lat, lng)
-    if (results.isEmpty && latitude != null && longitude != null) {
-      try {
-        final overpassResults = await _searchLiveOverpass(
-          query: cleanQuery,
-          latitude: latitude,
-          longitude: longitude,
-          radius: radius,
-        );
-        if (overpassResults.isNotEmpty) {
-          results = overpassResults;
-        }
-      } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ Overpass Nearby Search Error: $e');
-      }
-    }
-
-    // 5. Try Live OpenStreetMap Nominatim Search (Scoped by City / Coordinates)
+    // 4. Try Live OpenStreetMap Nominatim Global Search (Accurate POI Search with Query)
     if (results.isEmpty) {
       try {
         final osmResults = await _searchLiveNominatim(
@@ -138,7 +120,7 @@ class PlacesService {
       }
     }
 
-    // 6. Try Photon Komoot Live Geocoding API
+    // 5. Try Photon Komoot Live Geocoding API
     if (results.isEmpty) {
       try {
         final photonResults = await _searchLivePhoton(
@@ -173,62 +155,10 @@ class PlacesService {
     required String query,
     double? latitude,
     double? longitude,
-    int radius = 1500,
   }) async {
-    // 1A. If coordinates are provided, try searchNearby with CircularBounds
-    if (latitude != null && longitude != null) {
-      try {
-        final nearbyResponse = await sdk.searchNearby(
-          fields: [
-            places_sdk.PlaceField.Id,
-            places_sdk.PlaceField.DisplayName,
-            places_sdk.PlaceField.FormattedAddress,
-            places_sdk.PlaceField.Location,
-            places_sdk.PlaceField.Rating,
-            places_sdk.PlaceField.UserRatingCount,
-            places_sdk.PlaceField.Types,
-            places_sdk.PlaceField.NationalPhoneNumber,
-            places_sdk.PlaceField.WebsiteUri,
-          ],
-          locationRestriction: places_sdk.CircularBounds(
-            center: places_sdk.LatLng(lat: latitude, lng: longitude),
-            radius: radius.toDouble(),
-          ),
-          maxResultCount: 20,
-        );
-
-        final nearbyPlaces = nearbyResponse.places;
-        if (nearbyPlaces.isNotEmpty) {
-          return nearbyPlaces.map((p) {
-            final name = p.displayName?.text ?? p.name ?? 'Lokasi';
-            final address = p.address ?? p.shortFormattedAddress ?? '';
-            final lat = p.latLng?.lat ?? 0.0;
-            final lng = p.latLng?.lng ?? 0.0;
-            final types = p.types?.map((e) => e.name).toList() ?? [];
-
-            return PlaceResult(
-              placeId: p.id ?? 'sdk_${DateTime.now().millisecondsSinceEpoch}',
-              name: name,
-              formattedAddress: address,
-              latitude: lat,
-              longitude: lng,
-              rating: p.rating ?? 4.8,
-              userRatingsTotal: p.userRatingsTotal ?? 100,
-              types: types,
-              inferredCategory: _inferCategory(name, address, types),
-              phoneNumber: p.phoneNumber ?? '',
-              website: p.websiteUri?.toString() ?? '',
-            );
-          }).where((p) => p.latitude != 0.0 && p.longitude != 0.0).toList();
-        }
-      } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ searchNearby failed, fallback to searchByText: $e');
-      }
-    }
-
-    // 1B. Try searchByText with Location Bias
+    // 1A. SearchByText with User Query and Proximity Bias
     try {
-      final delta = 0.015; // ~1.5km
+      final delta = 0.08; // ~8km citywide bias
       final response = await sdk.searchByText(
         query,
         fields: [
@@ -278,71 +208,82 @@ class PlacesService {
         }).where((p) => p.latitude != 0.0 && p.longitude != 0.0).toList();
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ searchByText failed, fallback to predictions: $e');
+      if (kDebugMode) debugPrint('⚠️ searchByText failed: $e');
     }
 
-    // 1C. Fallback to Autocomplete Predictions
-    final predResponse = await sdk.findAutocompletePredictions(
-      query,
-      countries: ['id'],
-      origin: latitude != null && longitude != null
-          ? places_sdk.LatLng(lat: latitude, lng: longitude)
-          : null,
-    );
+    // 1B. Fallback to Autocomplete Predictions with User Query
+    try {
+      final predResponse = await sdk.findAutocompletePredictions(
+        query,
+        countries: ['id'],
+        origin: latitude != null && longitude != null
+            ? places_sdk.LatLng(lat: latitude, lng: longitude)
+            : null,
+        locationBias: latitude != null && longitude != null
+            ? places_sdk.LatLngBounds(
+                southwest: places_sdk.LatLng(
+                    lat: latitude - 0.08, lng: longitude - 0.08),
+                northeast: places_sdk.LatLng(
+                    lat: latitude + 0.08, lng: longitude + 0.08),
+              )
+            : null,
+      );
 
-    final predictions = predResponse.predictions;
-    if (predictions.isEmpty) return [];
+      final predictions = predResponse.predictions;
+      if (predictions.isNotEmpty) {
+        final List<PlaceResult> results = [];
+        for (final pred in predictions.take(15)) {
+          final pId = pred.placeId;
+          if (pId == null || pId.isEmpty) continue;
 
-    final List<PlaceResult> results = [];
-    final limited = predictions.take(12).toList();
+          try {
+            final details = await sdk.fetchPlace(
+              pId,
+              fields: [
+                places_sdk.PlaceField.Location,
+                places_sdk.PlaceField.DisplayName,
+                places_sdk.PlaceField.FormattedAddress,
+                places_sdk.PlaceField.Rating,
+                places_sdk.PlaceField.UserRatingCount,
+                places_sdk.PlaceField.Types,
+                places_sdk.PlaceField.NationalPhoneNumber,
+                places_sdk.PlaceField.WebsiteUri,
+              ],
+            );
 
-    for (final pred in limited) {
-      final pId = pred.placeId;
-      if (pId == null || pId.isEmpty) continue;
+            final p = details.place;
+            if (p != null && p.latLng != null) {
+              final name = p.displayName?.text ?? p.name ?? pred.primaryText ?? 'Lokasi';
+              final address = p.address ?? p.shortFormattedAddress ?? pred.fullText ?? '';
+              final lat = p.latLng!.lat;
+              final lng = p.latLng!.lng;
+              final types = p.types?.map((e) => e.name).toList() ?? [];
 
-      try {
-        final details = await sdk.fetchPlace(
-          pId,
-          fields: [
-            places_sdk.PlaceField.Location,
-            places_sdk.PlaceField.DisplayName,
-            places_sdk.PlaceField.FormattedAddress,
-            places_sdk.PlaceField.Rating,
-            places_sdk.PlaceField.UserRatingCount,
-            places_sdk.PlaceField.Types,
-            places_sdk.PlaceField.NationalPhoneNumber,
-            places_sdk.PlaceField.WebsiteUri,
-          ],
-        );
-
-        final p = details.place;
-        if (p != null && p.latLng != null) {
-          final name = p.displayName?.text ?? p.name ?? pred.primaryText ?? 'Lokasi';
-          final address = p.address ?? p.shortFormattedAddress ?? pred.fullText ?? '';
-          final lat = p.latLng!.lat;
-          final lng = p.latLng!.lng;
-          final types = p.types?.map((e) => e.name).toList() ?? [];
-
-          results.add(
-            PlaceResult(
-              placeId: pId,
-              name: name,
-              formattedAddress: address,
-              latitude: lat,
-              longitude: lng,
-              rating: p.rating ?? 4.8,
-              userRatingsTotal: p.userRatingsTotal ?? 100,
-              types: types,
-              inferredCategory: _inferCategory(name, address, types),
-              phoneNumber: p.phoneNumber ?? '',
-              website: p.websiteUri?.toString() ?? '',
-            ),
-          );
+              results.add(
+                PlaceResult(
+                  placeId: pId,
+                  name: name,
+                  formattedAddress: address,
+                  latitude: lat,
+                  longitude: lng,
+                  rating: p.rating ?? 4.8,
+                  userRatingsTotal: p.userRatingsTotal ?? 100,
+                  types: types,
+                  inferredCategory: _inferCategory(name, address, types),
+                  phoneNumber: p.phoneNumber ?? '',
+                  website: p.websiteUri?.toString() ?? '',
+                ),
+              );
+            }
+          } catch (_) {}
         }
-      } catch (_) {}
+        if (results.isNotEmpty) return results;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ findAutocompletePredictions failed: $e');
     }
 
-    return results;
+    return [];
   }
 
   /// Google Places API (New) Text Search
@@ -350,7 +291,7 @@ class PlacesService {
     required String query,
     double? latitude,
     double? longitude,
-    int radius = 1500,
+    int radius = 10000,
   }) async {
     const url = 'https://places.googleapis.com/v1/places:searchText';
     final Map<String, dynamic> body = {
@@ -428,89 +369,48 @@ class PlacesService {
     return [];
   }
 
-  /// Live Overpass API Search (Real Satellite Data strictly around exact Lat/Lng)
-  static Future<List<PlaceResult>> _searchLiveOverpass({
-    required String query,
-    required double latitude,
-    required double longitude,
-    int radius = 2500,
-  }) async {
-    final queryUrl =
-        'https://overpass-api.de/api/interpreter?data=[out:json][timeout:6];(node(around:$radius,$latitude,$longitude)["amenity"];node(around:$radius,$latitude,$longitude)["building"];node(around:$radius,$latitude,$longitude)["office"];);out center 25;';
-
-    final response = await http.get(
-      Uri.parse(queryUrl),
-      headers: {'Accept': 'application/json'},
-    ).timeout(const Duration(seconds: 6));
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      final List<dynamic> elements = data['elements'] as List<dynamic>? ?? [];
-
-      final List<PlaceResult> list = [];
-      for (final el in elements) {
-        final map = el as Map<String, dynamic>;
-        final tags = map['tags'] as Map<String, dynamic>? ?? {};
-        final name = tags['name']?.toString() ?? '';
-        if (name.isEmpty) continue;
-
-        final lat = (map['lat'] as num?)?.toDouble() ??
-            ((map['center'] as Map<String, dynamic>?)?['lat'] as num?)?.toDouble() ??
-            0.0;
-        final lon = (map['lon'] as num?)?.toDouble() ??
-            ((map['center'] as Map<String, dynamic>?)?['lon'] as num?)?.toDouble() ??
-            0.0;
-
-        if (lat == 0.0 || lon == 0.0) continue;
-
-        final street = tags['addr:street']?.toString() ?? '';
-        final amenity = tags['amenity']?.toString() ?? tags['office']?.toString() ?? '';
-
-        list.add(
-          PlaceResult(
-            placeId: 'ovp_${map['id'] ?? DateTime.now().millisecondsSinceEpoch}',
-            name: name,
-            formattedAddress: street.isNotEmpty ? '$name, $street' : name,
-            latitude: lat,
-            longitude: lon,
-            rating: 4.8,
-            userRatingsTotal: 75,
-            types: [amenity],
-            inferredCategory: _inferCategory(name, street, [amenity]),
-          ),
-        );
-      }
-      return list;
-    }
-    return [];
-  }
-
-  /// Live Nominatim Search Engine (OpenStreetMap strictly bound to City / Viewbox)
+  /// Live Nominatim Search Engine (OpenStreetMap)
   static Future<List<PlaceResult>> _searchLiveNominatim({
     required String query,
     double? latitude,
     double? longitude,
   }) async {
     String q = query.trim();
+    final lower = q.toLowerCase();
 
-    // If user is at a location, append local city / area to prevent out-of-region jumps
-    if (latitude != null && longitude != null) {
-      final cityName = await LocationService.getRealLocationName(latitude, longitude);
-      if (cityName.isNotEmpty && !q.toLowerCase().contains(cityName.toLowerCase())) {
-        q = '$q $cityName';
-      }
+    // Expansion for common Indonesian acronyms & categories
+    if (lower == 'ugm') {
+      q = 'Universitas Gadjah Mada';
+    } else if (lower == 'uny') {
+      q = 'Universitas Negeri Yogyakarta';
+    } else if (lower == 'uin' || lower == 'uin suka') {
+      q = 'UIN Sunan Kalijaga';
+    } else if (lower == 'ui') {
+      q = 'Universitas Indonesia';
+    } else if (lower == 'itb') {
+      q = 'Institut Teknologi Bandung';
+    } else if (lower == 'kampus') {
+      q = 'Universitas Kampus';
+    } else if (lower == 'blk') {
+      q = 'Balai Latihan Kerja';
+    } else if (lower == 'lpk') {
+      q = 'Lembaga Pelatihan Kerja';
+    } else if (lower == 'dinas pemda') {
+      q = 'Dinas Kantor Pemerintah';
+    } else if (lower == 'perusahaan swasta') {
+      q = 'PT Kantor';
     }
 
     String url =
-        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(q)}&format=json&addressdetails=1&limit=20&countrycodes=id';
+        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(q)}&format=json&addressdetails=1&limit=25&countrycodes=id';
 
     if (latitude != null && longitude != null) {
-      final delta = 0.05;
+      final delta = 0.25;
       final minLat = latitude - delta;
       final maxLat = latitude + delta;
       final minLng = longitude - delta;
       final maxLng = longitude + delta;
-      url += '&viewbox=$minLng,$maxLat,$maxLng,$minLat&bounded=1';
+      url += '&viewbox=$minLng,$maxLat,$maxLng,$minLat&bounded=0';
     }
 
     final response = await http.get(
@@ -562,8 +462,22 @@ class PlacesService {
     double? latitude,
     double? longitude,
   }) async {
+    String q = query.trim();
+    final lower = q.toLowerCase();
+    if (lower == 'kampus') {
+      q = 'Universitas';
+    } else if (lower == 'blk') {
+      q = 'Balai Latihan Kerja';
+    } else if (lower == 'lpk') {
+      q = 'Pelatihan Kerja';
+    } else if (lower == 'dinas pemda') {
+      q = 'Dinas';
+    } else if (lower == 'perusahaan swasta') {
+      q = 'PT';
+    }
+
     String url =
-        'https://photon.komoot.io/api/?q=${Uri.encodeComponent(query)}&limit=20';
+        'https://photon.komoot.io/api/?q=${Uri.encodeComponent(q)}&limit=25';
     if (latitude != null && longitude != null) {
       url += '&lat=$latitude&lon=$longitude';
     }

@@ -149,8 +149,28 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     setState(() {
       _selectedCategory = category;
     });
-    String q = category == 'Semua' ? 'SMK' : category;
-    _searchController.text = q;
+    String q = category;
+    if (category == 'Semua') {
+      q = 'SMK';
+      _searchController.clear();
+    } else if (category == 'Kampus') {
+      q = 'Universitas';
+      _searchController.text = 'Kampus';
+    } else if (category == 'BLK') {
+      q = 'Balai Latihan Kerja';
+      _searchController.text = 'BLK';
+    } else if (category == 'LPK') {
+      q = 'LPK';
+      _searchController.text = 'LPK';
+    } else if (category == 'Dinas Pemda') {
+      q = 'Dinas';
+      _searchController.text = 'Dinas Pemda';
+    } else if (category == 'Perusahaan Swasta') {
+      q = 'PT';
+      _searchController.text = 'Perusahaan';
+    } else {
+      _searchController.text = category;
+    }
     _fetchPlaces(query: q);
   }
 
@@ -491,7 +511,21 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                 ),
                 child: TextField(
                   controller: _searchController,
-                  onSubmitted: (val) => _fetchPlaces(query: val),
+                  onChanged: (val) {
+                    _debounceTimer?.cancel();
+                    final query = val.trim();
+                    if (query.isNotEmpty) {
+                      _debounceTimer =
+                          Timer(const Duration(milliseconds: 600), () {
+                        _fetchPlaces(query: query);
+                      });
+                    }
+                  },
+                  onSubmitted: (val) {
+                    _debounceTimer?.cancel();
+                    final query = val.trim().isNotEmpty ? val.trim() : 'SMK';
+                    _fetchPlaces(query: query);
+                  },
                   decoration: InputDecoration(
                     hintText: 'Cari SMK, Kampus, BLK, Dinas...',
                     hintStyle: const TextStyle(
@@ -503,7 +537,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                             icon: const Icon(Icons.clear_rounded, size: 18),
                             onPressed: () {
                               _searchController.clear();
-                              _fetchPlaces(query: 'smk terdekat');
+                              _onCategoryFilter('Semua');
                             },
                           )
                         : null,
