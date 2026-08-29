@@ -28,12 +28,12 @@ class PlacesService {
     return _sdk!;
   }
 
-  /// Search places with user keyword query and proximity bias
+  /// Search places with 12km radius and strict institutional priority (SMK/Kampus/BLK/LPK/Dinas)
   static Future<List<PlaceResult>> searchPlaces({
     required String query,
     double? latitude,
     double? longitude,
-    int radius = 10000,
+    int radius = 12000,
   }) async {
     final cleanQuery = query.replaceAll('terdekat', '').trim();
     if (cleanQuery.isEmpty) return [];
@@ -54,7 +54,7 @@ class PlacesService {
       if (kDebugMode) debugPrint('⚠️ Google Places SDK Plus Error: $e');
     }
 
-    // 2. Try Google Places API (New Text Search v1 with circle radius)
+    // 2. Try Google Places API (New Text Search v1 with circle radius 12km)
     if (results.isEmpty) {
       try {
         final googleNewResults = await _searchGooglePlacesNew(
@@ -136,16 +136,26 @@ class PlacesService {
       }
     }
 
-    // Sort results strictly by distance to user coordinate ascending
-    if (latitude != null && longitude != null && results.isNotEmpty) {
-      results.sort((a, b) {
+    // Filter out irrelevant places (swalayan, toko kelontong, resto, warung, laundry, etc.)
+    results = results.where((p) => !_isIrrelevantPlace(p, cleanQuery)).toList();
+
+    // Sort strictly: Priority Category (SMK -> Kampus -> BLK -> LPK -> Dinas -> PT), then by Distance Ascending
+    results.sort((a, b) {
+      final prioA = _getCategoryPriority(a);
+      final prioB = _getCategoryPriority(b);
+      if (prioA != prioB) {
+        return prioA.compareTo(prioB);
+      }
+
+      if (latitude != null && longitude != null) {
         final distA = LocationService.distanceInMeters(
             latitude, longitude, a.latitude, a.longitude);
         final distB = LocationService.distanceInMeters(
             latitude, longitude, b.latitude, b.longitude);
         return distA.compareTo(distB);
-      });
-    }
+      }
+      return 0;
+    });
 
     return results;
   }
@@ -156,9 +166,9 @@ class PlacesService {
     double? latitude,
     double? longitude,
   }) async {
-    // 1A. SearchByText with User Query and Proximity Bias
+    // 1A. SearchByText with User Query and 12km Proximity Bias
     try {
-      final delta = 0.08; // ~8km citywide bias
+      final delta = 0.12; // ~12-14km radius
       final response = await sdk.searchByText(
         query,
         fields: [
@@ -213,6 +223,7 @@ class PlacesService {
 
     // 1B. Fallback to Autocomplete Predictions with User Query
     try {
+      final delta = 0.12;
       final predResponse = await sdk.findAutocompletePredictions(
         query,
         countries: ['id'],
@@ -222,9 +233,9 @@ class PlacesService {
         locationBias: latitude != null && longitude != null
             ? places_sdk.LatLngBounds(
                 southwest: places_sdk.LatLng(
-                    lat: latitude - 0.08, lng: longitude - 0.08),
+                    lat: latitude - delta, lng: longitude - delta),
                 northeast: places_sdk.LatLng(
-                    lat: latitude + 0.08, lng: longitude + 0.08),
+                    lat: latitude + delta, lng: longitude + delta),
               )
             : null,
       );
@@ -291,7 +302,7 @@ class PlacesService {
     required String query,
     double? latitude,
     double? longitude,
-    int radius = 10000,
+    int radius = 12000,
   }) async {
     const url = 'https://places.googleapis.com/v1/places:searchText';
     final Map<String, dynamic> body = {
@@ -402,10 +413,10 @@ class PlacesService {
     }
 
     String url =
-        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(q)}&format=json&addressdetails=1&limit=25&countrycodes=id';
+        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(q)}&format=json&addressdetails=1&limit=30&countrycodes=id';
 
     if (latitude != null && longitude != null) {
-      final delta = 0.25;
+      final delta = 0.15; // ~15km
       final minLat = latitude - delta;
       final maxLat = latitude + delta;
       final minLng = longitude - delta;
@@ -477,7 +488,7 @@ class PlacesService {
     }
 
     String url =
-        'https://photon.komoot.io/api/?q=${Uri.encodeComponent(q)}&limit=25';
+        'https://photon.komoot.io/api/?q=${Uri.encodeComponent(q)}&limit=30';
     if (latitude != null && longitude != null) {
       url += '&lat=$latitude&lon=$longitude';
     }
@@ -535,6 +546,150 @@ class PlacesService {
       }).where((p) => p.latitude != 0.0 && p.longitude != 0.0).toList();
     }
     return [];
+  }
+
+  /// Check if place is random consumer retail (swalayan, warung, laundry, etc.) that pollutes LSP leads
+  static bool _isIrrelevantPlace(PlaceResult p, String rawQuery) {
+    final lowerQ = rawQuery.toLowerCase();
+    // If user explicitly searched for it, keep it
+    if (lowerQ.contains('swalayan') ||
+        lowerQ.contains('toko') ||
+        lowerQ.contains('mart') ||
+        lowerQ.contains('supermarket') ||
+        lowerQ.contains('resto') ||
+        lowerQ.contains('cafe')) {
+      return false;
+    }
+
+    final lowerName = p.name.toLowerCase();
+    final allTypes = p.types.map((t) => t.toLowerCase()).join(' ');
+
+    const blacklist = [
+      'swalayan',
+      'minimarket',
+      'supermarket',
+      'indomaret',
+      'alfamart',
+      'alfamidi',
+      'toko kelontong',
+      'warung',
+      'laundry',
+      'barbershop',
+      'salon kecantikan',
+      'counter hp',
+      'counter pulsa',
+      'fotocopy',
+      'bengkel motor',
+      'cuci motor',
+      'cuci mobil',
+      'bakso',
+      'mie ayam',
+      'cafe',
+      'restoran',
+      'restaurant',
+      'grocery',
+      'convenience_store',
+      'clothing_store',
+      'beauty_salon',
+      'hair_care',
+      'musholla',
+      'masjid',
+      'gereja',
+      'pura',
+      'vihara',
+      'hotel',
+      'penginapan',
+      'homestay',
+    ];
+
+    for (final b in blacklist) {
+      if (lowerName.contains(b)) return true;
+    }
+
+    if (allTypes.contains('convenience_store') ||
+        allTypes.contains('grocery_or_supermarket') ||
+        allTypes.contains('supermarket') ||
+        allTypes.contains('restaurant') ||
+        allTypes.contains('cafe') ||
+        allTypes.contains('clothing_store') ||
+        allTypes.contains('barber_shop') ||
+        allTypes.contains('beauty_salon')) {
+      if (!lowerName.contains('smk') &&
+          !lowerName.contains('sekolah') &&
+          !lowerName.contains('kampus') &&
+          !lowerName.contains('universitas') &&
+          !lowerName.contains('institut') &&
+          !lowerName.contains('politeknik') &&
+          !lowerName.contains('blk') &&
+          !lowerName.contains('lpk') &&
+          !lowerName.contains('dinas') &&
+          !lowerName.contains('pt ') &&
+          !lowerName.contains('cv ')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Assign strict priority ranking for LSP target institutions
+  static int _getCategoryPriority(PlaceResult p) {
+    final cat = p.inferredCategory.toLowerCase();
+    final name = p.name.toLowerCase();
+
+    // 1. SMK & Sekolah
+    if (name.contains('smk') ||
+        name.contains('kejuruan') ||
+        name.contains('vokasi') ||
+        cat == 'smk') {
+      return 1;
+    }
+
+    // 2. Universitas & Kampus
+    if (name.contains('universitas') ||
+        name.contains('kampus') ||
+        name.contains('institut') ||
+        name.contains('politeknik') ||
+        name.contains('akademi') ||
+        cat == 'kampus') {
+      return 2;
+    }
+
+    // 3. Balai Latihan Kerja (BLK)
+    if (name.contains('blk') ||
+        name.contains('balai latihan') ||
+        cat == 'blk') {
+      return 3;
+    }
+
+    // 4. Lembaga Pelatihan Kerja (LPK)
+    if (name.contains('lpk') ||
+        name.contains('kursus') ||
+        name.contains('pelatihan') ||
+        cat == 'lpk') {
+      return 4;
+    }
+
+    // 5. Dinas Pemerintah
+    if (name.contains('dinas') ||
+        name.contains('badan') ||
+        name.contains('kementerian') ||
+        name.contains('kantor pemerintah') ||
+        cat == 'dinas pemda') {
+      return 5;
+    }
+
+    // 6. Perusahaan Swasta (PT, CV)
+    if (name.contains('pt ') ||
+        name.contains('pt.') ||
+        name.contains('cv ') ||
+        name.contains('persero') ||
+        name.contains('industri') ||
+        cat == 'perusahaan swasta') {
+      return 6;
+    }
+
+    return 7;
   }
 
   static String _inferCategory(
