@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_google_places_sdk/flutter_google_places_sdk.dart'
+    as places_sdk;
 import 'package:http/http.dart' as http;
 import '../../models/lead_model.dart';
 
@@ -14,6 +17,16 @@ class PlacesService {
     return _defaultApiKey;
   }
 
+  static places_sdk.FlutterGooglePlacesSdk? _sdk;
+
+  static places_sdk.FlutterGooglePlacesSdk get sdk {
+    _sdk ??= places_sdk.FlutterGooglePlacesSdk(
+      apiKey,
+      locale: const Locale('id', 'ID'),
+    );
+    return _sdk!;
+  }
+
   /// Search places 100% purely from live map services
   static Future<List<PlaceResult>> searchPlaces({
     required String query,
@@ -24,7 +37,21 @@ class PlacesService {
     final cleanQuery = query.replaceAll('terdekat', '').trim();
     if (cleanQuery.isEmpty) return [];
 
-    // 1. Try Google Places API (New Text Search v1)
+    // 1. Native Google Places SDK (Android Play Services Native with SHA-1 auth)
+    try {
+      final nativeResults = await _searchGooglePlacesNativeSdk(
+        query: cleanQuery,
+        latitude: latitude,
+        longitude: longitude,
+      );
+      if (nativeResults.isNotEmpty) {
+        return nativeResults;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ Native Places SDK Error: $e');
+    }
+
+    // 2. Try Google Places API (New Text Search v1)
     try {
       final googleNewResults = await _searchGooglePlacesNew(
         query: cleanQuery,
@@ -38,7 +65,7 @@ class PlacesService {
       if (kDebugMode) debugPrint('⚠️ Google Places v1 Error: $e');
     }
 
-    // 2. Try Google Places API (Legacy Text Search)
+    // 3. Try Google Places API (Legacy Text Search)
     try {
       String url =
           'https://maps.googleapis.com/maps/api/place/textsearch/json?query=${Uri.encodeComponent(cleanQuery)}&key=$apiKey';
@@ -69,7 +96,7 @@ class PlacesService {
       if (kDebugMode) debugPrint('⚠️ Google Places Legacy Error: $e');
     }
 
-    // 3. Try Live OpenStreetMap Nominatim Global Search
+    // 4. Try Live OpenStreetMap Nominatim Global Search
     try {
       final osmResults = await _searchLiveNominatim(
         query: cleanQuery,
@@ -83,7 +110,7 @@ class PlacesService {
       if (kDebugMode) debugPrint('⚠️ Nominatim Search Error: $e');
     }
 
-    // 4. Try Photon Komoot Live Geocoding API
+    // 5. Try Photon Komoot Live Geocoding API
     try {
       final photonResults = await _searchLivePhoton(
         query: cleanQuery,
@@ -98,6 +125,74 @@ class PlacesService {
     }
 
     return [];
+  }
+
+  /// 1. Native Google Places SDK Android/iOS
+  static Future<List<PlaceResult>> _searchGooglePlacesNativeSdk({
+    required String query,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final response = await sdk.findAutocompletePredictions(
+      query,
+      countries: ['id'],
+      origin: latitude != null && longitude != null
+          ? places_sdk.LatLng(lat: latitude, lng: longitude)
+          : null,
+    );
+
+    final predictions = response.predictions;
+    if (predictions.isEmpty) return [];
+
+    final List<PlaceResult> results = [];
+    final limited = predictions.take(12).toList();
+
+    for (final pred in limited) {
+      try {
+        final details = await sdk.fetchPlace(
+          pred.placeId,
+          fields: [
+            places_sdk.PlaceField.Location,
+            places_sdk.PlaceField.Name,
+            places_sdk.PlaceField.Address,
+            places_sdk.PlaceField.Rating,
+            places_sdk.PlaceField.UserRatingsTotal,
+            places_sdk.PlaceField.Types,
+            places_sdk.PlaceField.PhoneNumber,
+            places_sdk.PlaceField.WebsiteUri,
+          ],
+        );
+
+        final p = details.place;
+        if (p != null && p.latLng != null) {
+          final name = p.name ?? pred.primaryText;
+          final address = p.address ?? pred.fullText;
+          final lat = p.latLng!.lat;
+          final lng = p.latLng!.lng;
+          final types = p.types?.map((e) => e.name).toList() ?? [];
+
+          results.add(
+            PlaceResult(
+              placeId: pred.placeId,
+              name: name,
+              formattedAddress: address,
+              latitude: lat,
+              longitude: lng,
+              rating: p.rating ?? 4.8,
+              userRatingsTotal: p.userRatingsTotal ?? 100,
+              types: types,
+              inferredCategory: _inferCategory(name, address, types),
+              phoneNumber: p.phoneNumber ?? '',
+              website: p.websiteUri?.toString() ?? '',
+            ),
+          );
+        }
+      } catch (e) {
+        // Continue to next prediction
+      }
+    }
+
+    return results;
   }
 
   /// Google Places API (New) Text Search
@@ -255,7 +350,8 @@ class PlacesService {
             rating: 4.8,
             userRatingsTotal: 120,
             types: [type, category],
-            inferredCategory: _inferCategory(name, displayName, [type, category]),
+            inferredCategory:
+                _inferCategory(name, displayName, [type, category]),
           );
         }).where((p) => p.latitude != 0.0 && p.longitude != 0.0).toList();
       }
@@ -287,7 +383,8 @@ class PlacesService {
       return features.map((f) {
         final feat = f as Map<String, dynamic>;
         final geometry = feat['geometry'] as Map<String, dynamic>?;
-        final coordinates = geometry?['coordinates'] as List<dynamic>? ?? [];
+        final coordinates =
+            geometry?['coordinates'] as List<dynamic>? ?? [];
         final double lon = coordinates.isNotEmpty
             ? (coordinates[0] as num).toDouble()
             : 0.0;
@@ -310,7 +407,8 @@ class PlacesService {
         final fullAddress = addressParts.join(', ');
 
         return PlaceResult(
-          placeId: 'photon_${props['osm_id'] ?? DateTime.now().millisecondsSinceEpoch}',
+          placeId:
+              'photon_${props['osm_id'] ?? DateTime.now().millisecondsSinceEpoch}',
           name: name,
           formattedAddress: fullAddress,
           latitude: lat,
