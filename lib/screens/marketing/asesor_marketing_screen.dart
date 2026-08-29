@@ -1503,12 +1503,6 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                                   const Icon(Icons.my_location_rounded,
                                       size: 14, color: Color(0xFF2563EB)),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    _userLocation?.locationName ?? 'Lokasi Saya',
-                                    style: const TextStyle(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2563EB),
                                     ),
                                   ),
                                 ],
