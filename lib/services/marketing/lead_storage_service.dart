@@ -2,6 +2,24 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../models/lead_model.dart';
 
+class LeadSummaryStats {
+  final int total;
+  final int countLead;
+  final int countProspek;
+  final int countInterest;
+  final int countSales;
+  final int totalEstimasiSiswa;
+
+  const LeadSummaryStats({
+    this.total = 0,
+    this.countLead = 0,
+    this.countProspek = 0,
+    this.countInterest = 0,
+    this.countSales = 0,
+    this.totalEstimasiSiswa = 0,
+  });
+}
+
 class LeadStorageService {
   static const _storage = FlutterSecureStorage();
   static const String _keyPrefix = 'lsp_asesor_leads_';
@@ -12,7 +30,9 @@ class LeadStorageService {
       final jsonStr = await _storage.read(key: key);
       if (jsonStr != null && jsonStr.isNotEmpty) {
         final List<dynamic> list = jsonDecode(jsonStr);
-        return list.map((e) => LeadModel.fromJson(e as Map<String, dynamic>)).toList();
+        return list
+            .map((e) => LeadModel.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {}
 
@@ -30,7 +50,7 @@ class LeadStorageService {
 
   static Future<void> saveLead(LeadModel lead) async {
     final list = await getLeads(lead.idAsesor);
-    final idx = list.indexWhere((e) => e.id == lead.id);
+    final idx = list.indexWhere((e) => e.id == lead.id || (e.placeId.isNotEmpty && e.placeId == lead.placeId));
     if (idx >= 0) {
       list[idx] = lead.copyWith(updatedAt: DateTime.now());
     } else {
@@ -39,7 +59,8 @@ class LeadStorageService {
     await saveAllLeads(lead.idAsesor, list);
   }
 
-  static Future<void> updateLeadStatus(int idAsesor, String leadId, String newStatus) async {
+  static Future<void> updateLeadStatus(
+      int idAsesor, String leadId, String newStatus) async {
     final list = await getLeads(idAsesor);
     final idx = list.indexWhere((e) => e.id == leadId);
     if (idx >= 0) {
@@ -51,16 +72,62 @@ class LeadStorageService {
     }
   }
 
+  static Future<void> updateLeadData(LeadModel updatedLead) async {
+    final list = await getLeads(updatedLead.idAsesor);
+    final idx = list.indexWhere((e) => e.id == updatedLead.id);
+    if (idx >= 0) {
+      list[idx] = updatedLead.copyWith(updatedAt: DateTime.now());
+      await saveAllLeads(updatedLead.idAsesor, list);
+    }
+  }
+
   static Future<void> deleteLead(int idAsesor, String leadId) async {
     final list = await getLeads(idAsesor);
     list.removeWhere((e) => e.id == leadId);
     await saveAllLeads(idAsesor, list);
   }
 
+  static Future<LeadSummaryStats> getSummaryStats(int idAsesor) async {
+    final list = await getLeads(idAsesor);
+    int cLead = 0;
+    int cProspek = 0;
+    int cInterest = 0;
+    int cSales = 0;
+    int totalSiswa = 0;
+
+    for (final item in list) {
+      totalSiswa += item.estimasiSiswa;
+      switch (item.leadStatus.toLowerCase()) {
+        case 'lead':
+          cLead++;
+          break;
+        case 'prospek':
+          cProspek++;
+          break;
+        case 'interest':
+          cInterest++;
+          break;
+        case 'sales':
+        case 'deal':
+          cSales++;
+          break;
+      }
+    }
+
+    return LeadSummaryStats(
+      total: list.length,
+      countLead: cLead,
+      countProspek: cProspek,
+      countInterest: cInterest,
+      countSales: cSales,
+      totalEstimasiSiswa: totalSiswa,
+    );
+  }
+
   /// AI Potensi Generator Engine
   /// Menghasilkan analisis potensi jurusan, estimasi siswa per tahun, dan target skema uji LSP
   static Future<LeadModel> generateAiPotensi(LeadModel lead) async {
-    await Future.delayed(const Duration(milliseconds: 900));
+    await Future.delayed(const Duration(milliseconds: 600));
 
     int estimasi = lead.estimasiSiswa;
     List<String> jurusan = List.from(lead.jurusanList);
@@ -70,46 +137,76 @@ class LeadStorageService {
       case 'SMK':
         if (estimasi == 0) estimasi = 320;
         if (jurusan.isEmpty) {
-          jurusan = ['Teknik Komputer & Jaringan', 'Rekayasa Perangkat Lunak', 'Multimedia / DKV'];
+          jurusan = [
+            'Teknik Komputer & Jaringan (TKJ)',
+            'Rekayasa Perangkat Lunak (RPL)',
+            'Desain Komunikasi Visual (DKV)'
+          ];
         }
-        analisis = 'Potensi ±$estimasi siswa kelas XII per tahun. Sangat prospektif untuk skema Junior Network Administrator, Web Developer Pratama, dan Desain Grafis.';
+        analisis =
+            'Potensi ±$estimasi siswa kelas XII per tahun. Skema prioritas: Junior Network Administrator, Junior Web Developer, & Operator Komputer.';
         break;
       case 'Kampus':
         if (estimasi == 0) estimasi = 450;
         if (jurusan.isEmpty) {
-          jurusan = ['Teknik Informatika', 'Sistem Informasi', 'Manajemen Informatika'];
+          jurusan = [
+            'Teknik Informatika (S1)',
+            'Sistem Informasi (S1)',
+            'Manajemen Informatika (D3)'
+          ];
         }
-        analisis = 'Potensi ±$estimasi lulusan/mahasiswa tingkat akhir. Target utama: Sertifikasi SKPI (Surat Keterangan Pendamping Ijazah) skema Programmer & Network Admin.';
+        analisis =
+            'Potensi ±$estimasi lulusan/mahasiswa tingkat akhir. Target utama: Sertifikasi SKPI skema Software Engineer, Database Admin, & Cyber Security.';
         break;
       case 'LPK':
       case 'LKP':
         if (estimasi == 0) estimasi = 160;
         if (jurusan.isEmpty) {
-          jurusan = ['Digital Marketing', 'Desain Grafis Komputer', 'Office Application'];
+          jurusan = [
+            'Digital Marketing Specialist',
+            'Desain Grafis Komputer',
+            'Office Automation'
+          ];
         }
-        analisis = 'Potensi ±$estimasi peserta pelatihan/batch per tahun. Minat tinggi pada skema Digital Marketing Specialist & Pengelola Administrasi Perkantoran.';
+        analisis =
+            'Potensi ±$estimasi peserta kursus/pelatihan per tahun. Minat tinggi pada sertifikasi keahlian digital terapan.';
         break;
       case 'BLK':
         if (estimasi == 0) estimasi = 240;
         if (jurusan.isEmpty) {
-          jurusan = ['TIK / Komputer', 'Teknik Telekomunikasi', 'Teknik Elektronika'];
+          jurusan = [
+            'Kejuruan TIK',
+            'Teknik Telekomunikasi',
+            'Teknik Elektronika Industri'
+          ];
         }
-        analisis = 'Potensi ±$estimasi peserta pelatihan vokasi bersumber dana APBN/APBD. Peluang TUK Mandiri & Uji Kompetensi Massal.';
+        analisis =
+            'Potensi ±$estimasi peserta vokasi APBN/APBD per tahun. Peluang TUK Mandiri & Uji Kompetensi Massal bersubsidi.';
         break;
       case 'Dinas Pemda':
         if (estimasi == 0) estimasi = 85;
         if (jurusan.isEmpty) {
-          jurusan = ['Aparatur Bidang TIK', 'Pengelola Data & Informasi', 'Pranata Komputer'];
+          jurusan = [
+            'Aparatur Bidang TIK',
+            'Pengelola Data SPBE',
+            'Pranata Komputer'
+          ];
         }
-        analisis = 'Potensi ±$estimasi ASN & staf dinas terkait. Kebutuhan sertifikasi peningkatan kompetensi ASN & pengelola sistem pemerintahan berbasis elektronik (SPBE).';
+        analisis =
+            'Potensi ±$estimasi ASN & staf dinas. Kebutuhan sertifikasi kompetensi ASN & pengelola sistem pemerintahan berbasis elektronik.';
         break;
       case 'Perusahaan Swasta':
       default:
         if (estimasi == 0) estimasi = 60;
         if (jurusan.isEmpty) {
-          jurusan = ['IT Support & Network', 'Content Creator & Marketing'];
+          jurusan = [
+            'IT Support & Network',
+            'Software Developer',
+            'Digital Marketing'
+          ];
         }
-        analisis = 'Potensi ±$estimasi karyawan/teknisi industri. Kebutuhan uji kompetensi in-house & sertifikasi standar BNSP.';
+        analisis =
+            'Potensi ±$estimasi karyawan/teknisi industri. Kebutuhan uji kompetensi in-house & sertifikasi standar BNSP.';
         break;
     }
 
@@ -128,130 +225,113 @@ class LeadStorageService {
       LeadModel(
         id: 'lead-1',
         idAsesor: idAsesor,
-        namaInstitusi: 'SMK Negeri 1 Surabaya',
+        namaInstitusi: 'SMK Negeri 1 Kalasan',
         leadKategori: 'SMK',
-        leadLocation: 'Jl. SMEA No.4, Wonokromo, Surabaya',
-        kabupaten: 'Kota Surabaya',
-        provinsi: 'Jawa Timur',
-        latitude: -7.3012,
-        longitude: 112.7383,
-        leadDescription: 'Sekolah Menengah Kejuruan Pusat Keunggulan dengan konsentrasi bidang TIK dan Bisnis Manajemen.',
-        leadPotensi: 'Potensi ±350 siswa per tahun. Jurusan TKJ & RPL. Target skema Junior Network Admin & Web Dev.',
+        leadLocation:
+            'Jl. Raya Solo - Yogyakarta KM 14, Glondong, Tirtomartani, Kalasan',
+        kabupaten: 'Kabupaten Sleman',
+        provinsi: 'DI Yogyakarta',
+        latitude: -7.7719,
+        longitude: 110.4691,
+        leadDescription:
+            'SMK Pusat Keunggulan dengan jurusan TKJ, RPL, dan Multimedia.',
+        leadPotensi:
+            'Potensi ±350 siswa/tahun. Skema prioritas: Junior Web Developer & Junior Network Admin.',
         estimasiSiswa: 350,
-        jurusanList: ['Teknik Komputer & Jaringan', 'Rekayasa Perangkat Lunak', 'DKV'],
+        jurusanList: [
+          'Teknik Komputer & Jaringan',
+          'Rekayasa Perangkat Lunak',
+          'DKV'
+        ],
         leadStatus: 'prospek',
-        telepon: '031-8292038',
-        email: 'info@smkn1-sby.sch.id',
-        picName: 'Drs. Budi Santoso (Kaprodi TKJ)',
+        telepon: '0274-496180',
+        email: 'info@smkn1kalasan.sch.id',
+        picName: 'Drs. Budi Santoso (Wakasek Kurikulum)',
+        rating: 4.8,
+        userRatingsTotal: 142,
         isAiGenerated: true,
         updatedAt: now,
       ),
       LeadModel(
         id: 'lead-2',
         idAsesor: idAsesor,
-        namaInstitusi: 'Politeknik Negeri Malang',
+        namaInstitusi: 'Universitas Ahmad Dahlan',
         leadKategori: 'Kampus',
-        leadLocation: 'Jl. Soekarno Hatta No.9, Jatimulyo, Lowokwaru, Malang',
-        kabupaten: 'Kota Malang',
-        provinsi: 'Jawa Timur',
-        latitude: -7.9467,
-        longitude: 112.6156,
-        leadDescription: 'Perguruan Tinggi Vokasi terkemuka dengan program Diploma & Sarjana Terapan Teknologi Informasi.',
-        leadPotensi: 'Potensi ±280 mahasiswa tingkat akhir per tahun. Minat skema Web Developer & Database Administrator.',
-        estimasiSiswa: 280,
-        jurusanList: ['D4 Teknik Informatika', 'D3 Manajemen Informatika', 'D4 Sistem Informasi Bisnis'],
+        leadLocation:
+            'Jl. Ringroad Selatan, Tamanan, Banguntapan, Bantul, DIY',
+        kabupaten: 'Kabupaten Bantul',
+        provinsi: 'DI Yogyakarta',
+        latitude: -7.8333,
+        longitude: 110.3831,
+        leadDescription:
+            'Perguruan Tinggi dengan Fakultas Teknologi Industri & Ilmu Komputer terkemuka.',
+        leadPotensi:
+            'Potensi ±480 mahasiswa/tahun untuk sertifikasi pendamping ijazah (SKPI).',
+        estimasiSiswa: 480,
+        jurusanList: [
+          'Informatika (S1)',
+          'Sistem Informasi (S1)',
+          'Teknologi Informasi (S1)'
+        ],
         leadStatus: 'interest',
-        telepon: '0341-404424',
-        email: 'ti@polinema.ac.id',
+        telepon: '0274-563515',
+        email: 'fti@uad.ac.id',
         picName: 'Ir. Hendra Gunawan, M.T.',
+        rating: 4.8,
+        userRatingsTotal: 620,
         isAiGenerated: true,
         updatedAt: now,
       ),
       LeadModel(
         id: 'lead-3',
         idAsesor: idAsesor,
-        namaInstitusi: 'BLK (Balai Latihan Kerja) Surabaya',
+        namaInstitusi: 'BLK Kotawaringin Timur (Sampit)',
         leadKategori: 'BLK',
-        leadLocation: 'Jl. Dukuh Menanggal III No.29, Gayungan, Surabaya',
-        kabupaten: 'Kota Surabaya',
-        provinsi: 'Jawa Timur',
-        latitude: -7.3385,
-        longitude: 112.7231,
-        leadDescription: 'UPTD Pelatihan Kerja Dinas Tenaga Kerja & Transmigrasi Provinsi Jawa Timur.',
-        leadPotensi: 'Potensi ±220 peserta pelatihan per tahun bersertifikasi BNSP. Kerjasama aktif uji kompetensi 2026.',
+        leadLocation: 'Jl. Jenderal Sudirman KM. 6, Baamang, Sampit',
+        kabupaten: 'Kotawaringin Timur',
+        provinsi: 'Kalimantan Tengah',
+        latitude: -2.5200,
+        longitude: 112.9100,
+        leadDescription:
+            'Balai Latihan Kerja UPTD Pelatihan Kerja Dinas Tenaga Kerja Kotim.',
+        leadPotensi:
+            'Potensi ±220 peserta pelatihan per tahun bersertifikasi BNSP.',
         estimasiSiswa: 220,
         jurusanList: ['Pelatihan TIK', 'Desain Grafis', 'Teknik Komputer'],
         leadStatus: 'sales',
-        telepon: '031-8280254',
-        email: 'uptblk.surabaya@gmail.com',
+        telepon: '0531-23110',
+        email: 'blk.kotim@gmail.com',
         picName: 'Ibu Ratna Dewi (Sie Pelatihan)',
+        rating: 4.5,
+        userRatingsTotal: 40,
         isAiGenerated: true,
         updatedAt: now,
       ),
       LeadModel(
         id: 'lead-4',
         idAsesor: idAsesor,
-        namaInstitusi: 'LPK Mitra Buana Digital Edu',
-        leadKategori: 'LPK',
-        leadLocation: 'Jl. Raya Mojoagung No. 12, Jombang',
-        kabupaten: 'Kabupaten Jombang',
-        provinsi: 'Jawa Timur',
-        latitude: -7.5645,
-        longitude: 112.3482,
-        leadDescription: 'Lembaga Pelatihan Kerja swasta fokus pada vokasi digital marketing dan pemrograman.',
-        leadPotensi: 'Potensi ±140 peserta kursus per tahun. Skema Digital Marketing & Junior Web Developer.',
-        estimasiSiswa: 140,
-        jurusanList: ['Digital Marketing', 'Pemrograman Web', 'Desain Komunikasi Visual'],
+        namaInstitusi: 'SMK Negeri 1 Sampit',
+        leadKategori: 'SMK',
+        leadLocation: 'Jl. Walter Condrat No. 20, Baamang, Sampit',
+        kabupaten: 'Kotawaringin Timur',
+        provinsi: 'Kalimantan Tengah',
+        latitude: -2.5312,
+        longitude: 112.9510,
+        leadDescription:
+            'Sekolah Menengah Kejuruan Negeri favorit dengan program keahlian IT & Bisnis.',
+        leadPotensi:
+            'Potensi ±280 siswa kelas XII bidang komputer dan bisnis digital.',
+        estimasiSiswa: 280,
+        jurusanList: ['Teknik Komputer Jaringan', 'Bisnis Digital', 'Akuntansi'],
         leadStatus: 'lead',
-        telepon: '0853-2948-9247',
-        email: 'mitrabuana.edu@gmail.com',
-        picName: 'Roy Buana (Direktur)',
-        isAiGenerated: true,
-        updatedAt: now,
-      ),
-      LeadModel(
-        id: 'lead-5',
-        idAsesor: idAsesor,
-        namaInstitusi: 'Dinas Komunikasi & Informatika',
-        leadKategori: 'Dinas Pemda',
-        leadLocation: 'Jl. Ahmad Yani No. 50, Surabaya',
-        kabupaten: 'Kota Surabaya',
-        provinsi: 'Jawa Timur',
-        latitude: -7.3190,
-        longitude: 112.7335,
-        leadDescription: 'Instansi Pemerintah Daerah Pengelola Sistem Informasi, Jaringan Komunikasi, dan Keamanan Siber.',
-        leadPotensi: 'Potensi ±75 staf ASN & Non-ASN untuk peningkatan sertifikasi kompetensi SPBE & Cyber Security.',
-        estimasiSiswa: 75,
-        jurusanList: ['Pranata Komputer', 'Pengelola Jaringan', 'Keamanan Informasi'],
-        leadStatus: 'prospek',
-        telepon: '031-8291777',
-        email: 'diskominfo@jatimprov.go.id',
-        picName: 'Pak Wahyu (Kabid TIK)',
-        isAiGenerated: true,
-        updatedAt: now,
-      ),
-      LeadModel(
-        id: 'lead-6',
-        idAsesor: idAsesor,
-        namaInstitusi: 'PT. Solusi Digital Mandiri',
-        leadKategori: 'Perusahaan Swasta',
-        leadLocation: 'Kawasan Industri Rungkut Megah Raya, Surabaya',
-        kabupaten: 'Kota Surabaya',
-        provinsi: 'Jawa Timur',
-        latitude: -7.3255,
-        longitude: 112.7680,
-        leadDescription: 'Software house & IT infrastructure vendor dengan puluhan software engineer dan network engineer.',
-        leadPotensi: 'Potensi ±50 engineer untuk sertifikasi kompetensi profesi dan standar sertifikasi tender proyek.',
-        estimasiSiswa: 50,
-        jurusanList: ['Software Engineering', 'Cloud Infrastructure', 'Network Security'],
-        leadStatus: 'interest',
-        telepon: '031-8782991',
-        email: 'hrd@solusidigital.co.id',
-        picName: 'Agus Pratama (HR Lead)',
+        telepon: '0531-21345',
+        email: 'smkn1sampit@gmail.com',
+        picName: 'Pak Wahyudi (Kaprodi TKJ)',
+        rating: 4.7,
+        userRatingsTotal: 95,
         isAiGenerated: true,
         updatedAt: now,
       ),
     ];
   }
 }
-
