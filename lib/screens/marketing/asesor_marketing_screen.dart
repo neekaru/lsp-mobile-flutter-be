@@ -1489,6 +1489,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                             onTap: _handleMyLocation,
                             borderRadius: BorderRadius.circular(10),
                             child: Container(
+                              constraints: const BoxConstraints(maxWidth: 150),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
@@ -1503,6 +1504,17 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                                   const Icon(Icons.my_location_rounded,
                                       size: 14, color: Color(0xFF2563EB)),
                                   const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      _userLocation?.locationName ??
+                                          'Lokasi Saya',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF2563EB),
+                                      ),
                                     ),
                                   ),
                                 ],
