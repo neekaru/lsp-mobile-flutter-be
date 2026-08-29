@@ -173,7 +173,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     }
   }
 
-  void _showRetailBlacklistModal() {
+  void _showSearchFilterModal() {
     final TextEditingController newKeywordController = TextEditingController();
 
     showModalBottomSheet(
@@ -186,340 +186,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
             final mediaQuery = MediaQuery.of(context);
             return Container(
               constraints: BoxConstraints(
-                maxHeight: mediaQuery.size.height * 0.85,
-              ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              padding: EdgeInsets.fromLTRB(
-                  20, 16, 20, mediaQuery.viewInsets.bottom + 20),
-              child: SafeArea(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Handle Bar
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 4,
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFCBD5E1),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-
-                      // Header Title + Reset
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.cleaning_services_rounded,
-                                  color: Color(0xFF10B981), size: 20),
-                              SizedBox(width: 8),
-                              Text(
-                                'Pengecualian Tempat (Blacklist)',
-                                style: TextStyle(
-                                  fontSize: 15.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                            ],
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              setModalState(() {
-                                _filterRetailNoise = true;
-                                _blacklistKeywords
-                                  ..clear()
-                                  ..addAll(PlacesService.defaultBlacklist);
-                              });
-                              setState(() {});
-                            },
-                            child: const Text('Reset Default',
-                                style: TextStyle(fontSize: 12)),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 16),
-
-                      // Master Toggle
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: _filterRetailNoise
-                              ? const Color(0xFFF0FDF4)
-                              : const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: _filterRetailNoise
-                                ? const Color(0xFFBBF7D0)
-                                : const Color(0xFFE2E8F0),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              _filterRetailNoise
-                                  ? Icons.filter_alt_rounded
-                                  : Icons.filter_alt_off_rounded,
-                              color: _filterRetailNoise
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFF94A3B8),
-                              size: 22,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Aktifkan Filter Pengecualian',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    _filterRetailNoise
-                                        ? 'Tempat dengan kata kunci di bawah otomatis disembunyikan dari peta.'
-                                        : 'Filter nonaktif: Semua jenis tempat publik diizinkan muncul.',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Switch(
-                              value: _filterRetailNoise,
-                              activeThumbColor: const Color(0xFF10B981),
-                              onChanged: (val) {
-                                setModalState(() => _filterRetailNoise = val);
-                                setState(() => _filterRetailNoise = val);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Add Custom Blacklist Keyword Input
-                      const Text(
-                        'Tambah Kata Kunci Pengecualian Baru:',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color: const Color(0xFFE2E8F0)),
-                              ),
-                              child: TextField(
-                                controller: newKeywordController,
-                                decoration: const InputDecoration(
-                                  hintText:
-                                      'Cth: apotek, optik, bengkel, pegadaian...',
-                                  hintStyle: TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF94A3B8)),
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 10),
-                                  border: InputBorder.none,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              final text =
-                                  newKeywordController.text.trim().toLowerCase();
-                              if (text.isNotEmpty) {
-                                setModalState(() {
-                                  _blacklistKeywords.add(text);
-                                  newKeywordController.clear();
-                                });
-                                setState(() {});
-                              }
-                            },
-                            icon: const Icon(Icons.add_rounded, size: 16),
-                            label: const Text('Tambah',
-                                style: TextStyle(fontSize: 12)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF10B981),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 10),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      // List of Active Blacklist Keyword Chips
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Daftar Kata Kunci Aktif (Klik X untuk Hapus):',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          Text(
-                            '${_blacklistKeywords.length} kata kunci',
-                            style: const TextStyle(
-                              fontSize: 11.5,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: _blacklistKeywords.map((k) {
-                          return Chip(
-                            label: Text(k,
-                                style: const TextStyle(
-                                    fontSize: 11.5,
-                                    color: Color(0xFF1E293B))),
-                            deleteIcon: const Icon(Icons.close_rounded,
-                                size: 14, color: Color(0xFFEF4444)),
-                            onDeleted: () {
-                              setModalState(() {
-                                _blacklistKeywords.remove(k);
-                              });
-                              setState(() {});
-                            },
-                            backgroundColor: const Color(0xFFF1F5F9),
-                            side: const BorderSide(
-                                color: Color(0xFFCBD5E1)),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 4, vertical: 0),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Quick Preset Suggestions
-                      const Text(
-                        '+ Saran Pengecualian Populer:',
-                        style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF64748B)),
-                      ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          'apotek',
-                          'optik',
-                          'pegadaian',
-                          'klinik',
-                          'bimbel',
-                          'gym',
-                          'barbershop',
-                          'cuci motor',
-                        ]
-                            .where((s) => !_blacklistKeywords.contains(s))
-                            .map((sug) {
-                          return ActionChip(
-                            avatar: const Icon(Icons.add,
-                                size: 13, color: Color(0xFF10B981)),
-                            label: Text(sug,
-                                style: const TextStyle(
-                                    fontSize: 11, color: Color(0xFF334155))),
-                            backgroundColor: const Color(0xFFF1F5F9),
-                            onPressed: () {
-                              setModalState(() {
-                                _blacklistKeywords.add(sug);
-                              });
-                              setState(() {});
-                            },
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Action Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            _fetchPlaces();
-                          },
-                          icon: const Icon(Icons.check_rounded, size: 18),
-                          label: Text(
-                            _filterRetailNoise
-                                ? 'Terapkan (Bersihkan Peta)'
-                                : 'Terapkan (Tampilkan Semua)',
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _filterRetailNoise
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFF2563EB),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showSearchFilterModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final mediaQuery = MediaQuery.of(context);
-            return Container(
-              constraints: BoxConstraints(
-                maxHeight: mediaQuery.size.height * 0.85,
+                maxHeight: mediaQuery.size.height * 0.88,
               ),
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -557,7 +224,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                                   color: Color(0xFF2563EB), size: 20),
                               SizedBox(width: 8),
                               Text(
-                                'Pengaturan Filter Prospek',
+                                'Pengaturan Filter & Blacklist',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -571,6 +238,9 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                               setModalState(() {
                                 _filterRetailNoise = true;
                                 _searchRadiusKm = 12;
+                                _blacklistKeywords
+                                  ..clear()
+                                  ..addAll(PlacesService.defaultBlacklist);
                                 _customAllowedCategories
                                   ..clear()
                                   ..addAll([
@@ -591,74 +261,163 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                       ),
                       const Divider(height: 20),
 
-                      // 1. Blacklist Retail / Non-Prospect Toggle
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: _filterRetailNoise
-                              ? const Color(0xFFEFF6FF)
-                              : const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: _filterRetailNoise
-                                ? const Color(0xFFBFDBFE)
-                                : const Color(0xFFE2E8F0),
+                      // 1. Pengecualian Tempat (Blacklist Kata Kunci)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            '1. Pengecualian Tempat (Blacklist)',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.filter_alt_rounded,
-                              color: _filterRetailNoise
-                                  ? const Color(0xFF2563EB)
-                                  : const Color(0xFF94A3B8),
-                              size: 22,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Saring Tempat Non-Prospek',
-                                    style: TextStyle(
-                                      fontSize: 13.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    _filterRetailNoise
-                                        ? 'Aktif: Toko, warung, kafe, laundry otomatis dibersihkan.'
-                                        : 'Nonaktif: Semua jenis tempat publik diizinkan muncul.',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Switch(
-                              value: _filterRetailNoise,
-                              activeThumbColor: const Color(0xFF2563EB),
-                              onChanged: (val) {
-                                setModalState(() => _filterRetailNoise = val);
-                                setState(() => _filterRetailNoise = val);
-                              },
-                            ),
-                          ],
+                          Switch(
+                            value: _filterRetailNoise,
+                            activeThumbColor: const Color(0xFF10B981),
+                            onChanged: (val) {
+                              setModalState(() => _filterRetailNoise = val);
+                              setState(() => _filterRetailNoise = val);
+                            },
+                          ),
+                        ],
+                      ),
+                      Text(
+                        _filterRetailNoise
+                            ? 'Aktif: Tempat dengan kata kunci di bawah otomatis disembunyikan.'
+                            : 'Nonaktif: Semua jenis tempat publik diizinkan muncul.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: _filterRetailNoise
+                              ? const Color(0xFF059669)
+                              : const Color(0xFF64748B),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
+
+                      // Add Keyword TextField
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: const Color(0xFFE2E8F0)),
+                              ),
+                              child: TextField(
+                                controller: newKeywordController,
+                                decoration: const InputDecoration(
+                                  hintText:
+                                      'Tambah kata kunci (cth: apotek, bengkel)...',
+                                  hintStyle: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF94A3B8)),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 10),
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              final text =
+                                  newKeywordController.text.trim().toLowerCase();
+                              if (text.isNotEmpty) {
+                                setModalState(() {
+                                  _blacklistKeywords.add(text);
+                                  newKeywordController.clear();
+                                });
+                                setState(() {});
+                              }
+                            },
+                            icon: const Icon(Icons.add_rounded, size: 16),
+                            label: const Text('Tambah',
+                                style: TextStyle(fontSize: 12)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF10B981),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Active Blacklist Chips
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: _blacklistKeywords.map((k) {
+                          return Chip(
+                            label: Text(k,
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF1E293B))),
+                            deleteIcon: const Icon(Icons.close_rounded,
+                                size: 14, color: Color(0xFFEF4444)),
+                            onDeleted: () {
+                              setModalState(() {
+                                _blacklistKeywords.remove(k);
+                              });
+                              setState(() {});
+                            },
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            side: const BorderSide(
+                                color: Color(0xFFCBD5E1)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 0),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Popular suggestions chips
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          'apotek',
+                          'optik',
+                          'pegadaian',
+                          'klinik',
+                          'bimbel',
+                          'gym',
+                        ]
+                            .where((s) => !_blacklistKeywords.contains(s))
+                            .map((sug) {
+                          return ActionChip(
+                            avatar: const Icon(Icons.add,
+                                size: 12, color: Color(0xFF10B981)),
+                            label: Text(sug,
+                                style: const TextStyle(
+                                    fontSize: 10.5,
+                                    color: Color(0xFF334155))),
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            onPressed: () {
+                              setModalState(() {
+                                _blacklistKeywords.add(sug);
+                              });
+                              setState(() {});
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const Divider(height: 24),
 
                       // 2. Radius Jangkauan Pencarian (Custom Slider & Quick Chips)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'Radius Jangkauan Pencarian',
+                            '2. Radius Jangkauan Pencarian',
                             style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -725,11 +484,11 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                           );
                         }).toList(),
                       ),
-                      const SizedBox(height: 16),
+                      const Divider(height: 24),
 
                       // 3. Kategori Institusi Sasaran & Saran Tambahan
                       const Text(
-                        'Kategori Institusi Sasaran (Dapat Ditambah)',
+                        '3. Kategori Sasaran (Dapat Disesuaikan)',
                         style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -806,7 +565,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                           );
                         }).toList(),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
 
                       // Submit Button
                       SizedBox(
@@ -823,7 +582,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: const EdgeInsets.symmetric(vertical: 13),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14)),
                           ),
@@ -1033,65 +792,135 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                     tooltip: 'Tambah Mitra Manual',
                   )
                 : PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert_rounded,
-                        color: Color(0xFF1E293B)),
-                    tooltip: 'Menu Opsi & Filter Ritel',
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 8,
+                    shadowColor: Colors.black26,
+                    icon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: const Icon(
+                        Icons.more_vert_rounded,
+                        color: Color(0xFF1E293B),
+                        size: 20,
+                      ),
+                    ),
+                    tooltip: 'Menu Opsi & Filter',
                     onSelected: (value) {
-                      if (value == 'retail_filter') {
-                        _showRetailBlacklistModal();
-                      } else if (value == 'advanced_filter') {
+                      if (value == 'advanced_filter') {
                         _showSearchFilterModal();
                       } else if (value == 'refresh_gps') {
                         _handleMyLocation();
+                      } else if (value == 'clear_cache') {
+                        PlacesService.clearSearchCache();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Cache pencarian tempat berhasil dibersihkan'),
+                            duration: Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
                       }
                     },
                     itemBuilder: (ctx) => [
                       PopupMenuItem(
-                        value: 'retail_filter',
-                        child: Row(
-                          children: [
-                            Icon(
-                              _filterRetailNoise
-                                  ? Icons.cleaning_services_rounded
-                                  : Icons.store_rounded,
-                              color: _filterRetailNoise
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFF64748B),
-                              size: 18,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                _filterRetailNoise
-                                    ? 'Filter Ritel (Aktif)'
-                                    : 'Filter Ritel (Nonaktif)',
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem(
                         value: 'advanced_filter',
                         child: Row(
                           children: [
-                            Icon(Icons.tune_rounded,
-                                color: Color(0xFF2563EB), size: 18),
-                            SizedBox(width: 10),
-                            Text('Pengaturan Filter Lengkap',
-                                style: TextStyle(fontSize: 13)),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.tune_rounded,
+                                  color: Color(0xFF2563EB), size: 18),
+                            ),
+                            const SizedBox(width: 12),
+                            const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Filter & Blacklist',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B))),
+                                Text('Radius, kategori & pengecualian',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF64748B))),
+                              ],
+                            ),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      const PopupMenuDivider(height: 1),
+                      PopupMenuItem(
                         value: 'refresh_gps',
                         child: Row(
                           children: [
-                            Icon(Icons.my_location_rounded,
-                                color: Color(0xFF2563EB), size: 18),
-                            SizedBox(width: 10),
-                            Text('Sinkronkan Lokasi GPS Live',
-                                style: TextStyle(fontSize: 13)),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF0FDF4),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.my_location_rounded,
+                                  color: Color(0xFF10B981), size: 18),
+                            ),
+                            const SizedBox(width: 12),
+                            const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Sinkronkan Lokasi GPS',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B))),
+                                Text('Ambil posisi live perangkat',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF64748B))),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuDivider(height: 1),
+                      PopupMenuItem(
+                        value: 'clear_cache',
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFFBEB),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.cached_rounded,
+                                  color: Color(0xFFD97706), size: 18),
+                            ),
+                            const SizedBox(width: 12),
+                            const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Bersihkan Cache',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B))),
+                                Text('Muat ulang data server segar',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF64748B))),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -1337,54 +1166,13 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                 ),
               ),
 
-              // Category Filter Horizontal Scroll + Quick Retail Filter Toggle
+              // Category Filter Horizontal Scroll
               SizedBox(
                 height: 36,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
-                    // Quick Direct Toggle for Filter Sampah Ritel (_isIrrelevantPlace)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ActionChip(
-                        avatar: Icon(
-                          _filterRetailNoise
-                              ? Icons.cleaning_services_rounded
-                              : Icons.store_rounded,
-                          size: 14,
-                          color: _filterRetailNoise
-                              ? Colors.white
-                              : const Color(0xFF64748B),
-                        ),
-                        label: Text(
-                          _filterRetailNoise
-                              ? 'Saring Ritel: ON'
-                              : 'Saring Ritel: OFF',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: _filterRetailNoise
-                                ? Colors.white
-                                : const Color(0xFF64748B),
-                          ),
-                        ),
-                        backgroundColor: _filterRetailNoise
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFFF1F5F9),
-                        side: BorderSide(
-                          color: _filterRetailNoise
-                              ? const Color(0xFF059669)
-                              : const Color(0xFFCBD5E1),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _filterRetailNoise = !_filterRetailNoise;
-                          });
-                          _fetchPlaces();
-                        },
-                      ),
-                    ),
                     _buildCategoryChip('Semua', Icons.explore_rounded),
                     _buildCategoryChip('SMK', Icons.school_rounded),
                     _buildCategoryChip('Kampus', Icons.account_balance_rounded),
