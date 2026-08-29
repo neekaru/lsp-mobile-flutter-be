@@ -188,25 +188,28 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        final screenHeight = MediaQuery.of(ctx).size.height;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-            return Container(
-              constraints: BoxConstraints(
-                maxHeight: screenHeight * 0.88,
-              ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              padding: EdgeInsets.fromLTRB(20, 16, 20, bottomInset + 20),
-              child: SafeArea(
-                child: SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            return DraggableScrollableSheet(
+              initialChildSize: 0.75,
+              minChildSize: 0.4,
+              maxChildSize: 0.92,
+              expand: false,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24)),
+                  ),
+                  child: ListView(
+                    controller: scrollController,
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      16,
+                      20,
+                      MediaQuery.of(context).viewInsets.bottom + 24,
+                    ),
                     children: [
                       // Handle Bar
                       Center(
@@ -330,8 +333,9 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                           const SizedBox(width: 8),
                           ElevatedButton.icon(
                             onPressed: () {
-                              final text =
-                                  newKeywordController.text.trim().toLowerCase();
+                              final text = newKeywordController.text
+                                  .trim()
+                                  .toLowerCase();
                               if (text.isNotEmpty) {
                                 setModalState(() {
                                   tempBlacklist.add(text);
@@ -414,7 +418,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                       ),
                       const Divider(height: 24),
 
-                      // 2. Radius Jangkauan Pencarian (Custom Slider & Quick Chips)
+                      // 2. Radius Jangkauan Pencarian
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -459,7 +463,8 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
-                        children: [3, 5, 8, 12, 15, 25, 50, 75, 100].map((r) {
+                        children:
+                            [3, 5, 8, 12, 15, 25, 50, 75, 100].map((r) {
                           final isSelected = tempRadiusKm == r;
                           return ChoiceChip(
                             label: Text('$r km',
@@ -484,7 +489,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                       ),
                       const Divider(height: 24),
 
-                      // 3. Kategori Institusi Sasaran & Saran Tambahan
+                      // 3. Kategori Institusi Sasaran
                       const Text(
                         '3. Kategori Sasaran (Dapat Disesuaikan)',
                         style: TextStyle(
@@ -581,14 +586,17 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                             Navigator.pop(ctx);
                             _fetchPlaces();
                           },
-                          icon:
-                              const Icon(Icons.check_circle_rounded, size: 18),
-                          label: const Text('Terapkan Filter & Telusuri Ulang',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          icon: const Icon(Icons.check_circle_rounded,
+                              size: 18),
+                          label: const Text(
+                              'Terapkan Filter & Telusuri Ulang',
+                              style:
+                                  TextStyle(fontWeight: FontWeight.bold)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2563EB),
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 13),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14)),
                           ),
@@ -596,8 +604,8 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                       ),
                     ],
                   ),
-                ),
-              ),
+                );
+              },
             );
           },
         );
