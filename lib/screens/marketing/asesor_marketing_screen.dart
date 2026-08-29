@@ -27,7 +27,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
 
   // Search state
   final TextEditingController _searchController =
-      TextEditingController(text: 'smk');
+      TextEditingController(text: 'SMK');
   String _selectedCategory = 'Semua';
   bool _isLoadingPlaces = false;
   List<PlaceResult> _places = [];
@@ -62,7 +62,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
 
   Future<void> _loadInitialData() async {
     await _loadSavedLeads();
-    _fetchPlaces(query: 'smk terdekat');
+    _fetchPlaces(query: 'SMK');
   }
 
   Future<void> _loadSavedLeads() async {
@@ -109,7 +109,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     setState(() {
       _selectedCategory = category;
     });
-    String q = category == 'Semua' ? 'smk terdekat' : '$category terdekat';
+    String q = category == 'Semua' ? 'SMK' : category;
     _searchController.text = q;
     _fetchPlaces(query: q);
   }

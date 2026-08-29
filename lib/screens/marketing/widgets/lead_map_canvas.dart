@@ -25,7 +25,7 @@ class LeadMapCanvas extends StatefulWidget {
 class _LeadMapCanvasState extends State<LeadMapCanvas> {
   GoogleMapController? _mapController;
 
-  // Default Center (Yogyakarta / Bantul or Sampit based on results)
+  // Default Center (Yogyakarta / Sampit based on results)
   static const LatLng _defaultCenter = LatLng(-7.8012, 110.4283);
 
   Set<Marker> _buildMarkers() {
@@ -35,37 +35,13 @@ class _LeadMapCanvasState extends State<LeadMapCanvas> {
       final isSelected =
           widget.selectedPlace?.placeId == place.placeId;
 
-      double hue = BitmapDescriptor.hueRed;
-      switch (place.inferredCategory) {
-        case 'SMK':
-          hue = BitmapDescriptor.hueRed;
-          break;
-        case 'Kampus':
-          hue = BitmapDescriptor.hueViolet;
-          break;
-        case 'BLK':
-          hue = BitmapDescriptor.hueGreen;
-          break;
-        case 'LPK':
-        case 'LKP':
-          hue = BitmapDescriptor.hueOrange;
-          break;
-        case 'Dinas Pemda':
-          hue = BitmapDescriptor.hueAzure;
-          break;
-        case 'Perusahaan Swasta':
-        default:
-          hue = BitmapDescriptor.hueRose;
-          break;
-      }
-
       markers.add(
         Marker(
           markerId: MarkerId(place.placeId),
           position: LatLng(place.latitude, place.longitude),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            isSelected ? BitmapDescriptor.hueBlue : hue,
-          ),
+          // Always RED pin for standard Google Maps markers
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          zIndexInt: isSelected ? 2 : 1,
           infoWindow: InfoWindow(
             title: place.name,
             snippet:
@@ -92,7 +68,7 @@ class _LeadMapCanvasState extends State<LeadMapCanvas> {
         ),
       );
     } else if (_mapController != null && widget.places.isNotEmpty) {
-      // Zoom out to fit first place
+      // Zoom to first place
       final first = widget.places.first;
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
@@ -143,7 +119,7 @@ class _LeadMapCanvasState extends State<LeadMapCanvas> {
           onCameraMove: (_) {},
         ),
 
-        // Floating "Telusuri area ini" Button (Sesuai Screenshot Google Maps)
+        // Floating "Telusuri area ini" Button
         Positioned(
           top: 14,
           left: 0,
@@ -183,7 +159,7 @@ class _LeadMapCanvasState extends State<LeadMapCanvas> {
           ),
         ),
 
-        // Floating My Location Target Button (Bottom Right above bottom sheet)
+        // Floating My Location Target Button
         Positioned(
           right: 16,
           bottom: 16,

@@ -258,14 +258,20 @@ class PlacesService {
       ),
     ];
 
-    if (lowerQ.isEmpty || lowerQ == 'semua' || lowerQ == 'terdekat') {
+    String cleanQ = lowerQ.replaceAll('terdekat', '').trim();
+    if (cleanQ.isEmpty || cleanQ == 'semua') {
       return allPlaces;
     }
 
     return allPlaces.where((p) {
-      return p.name.toLowerCase().contains(lowerQ) ||
-          p.formattedAddress.toLowerCase().contains(lowerQ) ||
-          p.inferredCategory.toLowerCase().contains(lowerQ);
+      final name = p.name.toLowerCase();
+      final address = p.formattedAddress.toLowerCase();
+      final category = p.inferredCategory.toLowerCase();
+
+      return name.contains(cleanQ) ||
+          address.contains(cleanQ) ||
+          category.contains(cleanQ) ||
+          cleanQ.contains(category);
     }).toList();
   }
 }
