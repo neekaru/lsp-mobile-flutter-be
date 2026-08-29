@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:geocode_cache/geocode_cache.dart';
 
 import 'app.dart';
 import 'firebase_options.dart';
@@ -17,6 +18,22 @@ import 'services/session_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize geocode_cache to save Geocoding API calls with Haversine distance caching
+  try {
+    GeocodingService.instance.configure(
+      options: const GeocodeCacheOptions(
+        cacheRadiusMeters: 20.0,
+        maxAge: Duration(days: 7),
+        maxCacheSize: 500,
+        userAgent: 'LSPDigitalMobile/1.2 (asesor@lsp-digital.id)',
+      ),
+    );
+    await GeocodingService.instance.init();
+    if (kDebugMode) debugPrint('✅ GeocodingService cache initialized');
+  } catch (e) {
+    debugPrint('⚠️ GeocodingService init warning: $e');
+  }
 
   // Initialize date formatting locale data
   try {
