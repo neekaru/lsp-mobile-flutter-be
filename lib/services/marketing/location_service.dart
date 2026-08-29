@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
@@ -16,6 +17,15 @@ class UserGeoLocation {
 }
 
 class LocationService {
+  static const String _defaultApiKey =
+      'AIzaSyA9i8FJTM8skspMB5DueA4rcv5RVSlXpsM';
+
+  static String get apiKey {
+    final key = dotenv.env['GOOGLE_MAPS_API_KEY'];
+    if (key != null && key.isNotEmpty) return key;
+    return _defaultApiKey;
+  }
+
   // Default fallback center: Jakarta (DKI Jakarta)
   static const double defaultLat = -6.2088;
   static const double defaultLng = 106.8456;
@@ -36,10 +46,6 @@ class LocationService {
         permission = await Geolocator.requestPermission();
       }
 
-      if (permission == LocationPermission.deniedForever) {
-        if (kDebugMode) debugPrint('⚠️ Location permission permanently denied.');
-      }
-
       Position? position;
 
       // 1. Try instant cached last known position first (1ms fast fix)
@@ -57,7 +63,7 @@ class LocationService {
             ),
           );
         } catch (_) {
-          // 3. Try fallback coarse / cell tower / Wi-Fi fix
+          // 3. Fallback to medium accuracy / Wi-Fi / cell tower
           try {
             position = await Geolocator.getCurrentPosition(
               locationSettings: const LocationSettings(
@@ -83,10 +89,10 @@ class LocationService {
       lng = defaultLng;
     }
 
-    // Dynamic reverse geocoding to get real city/kabupaten name
+    // Official Google Maps Reverse Geocoding
     final realName = await getRealLocationName(lat, lng);
     if (kDebugMode) {
-      debugPrint('📍 GPS coordinate resolved: $lat, $lng ($realName)');
+      debugPrint('📍 Google GPS resolved: $lat, $lng ($realName)');
     }
 
     return UserGeoLocation(
@@ -96,37 +102,71 @@ class LocationService {
     );
   }
 
-  /// Pure dynamic reverse geocoding to resolve exact city / kabupaten
+  /// Official Google Maps Reverse Geocoding to resolve exact City / Kabupaten
   static Future<String> getRealLocationName(double lat, double lng) async {
     try {
       final url =
-          'https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lng&format=json&addressdetails=1';
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'User-Agent': 'LSPDigitalMobile/1.2 (asesor@lsp-digital.id)',
-          'Accept': 'application/json',
-        },
-      ).timeout(const Duration(seconds: 4));
+          'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&language=id&key=$apiKey';
+      final response = await http.get(Uri.parse(url)).timeout(
+            const Duration(seconds: 5),
+          );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        final address = data['address'] as Map<String, dynamic>?;
-        if (address != null) {
-          final name = address['city']?.toString() ??
-              address['town']?.toString() ??
-              address['county']?.toString() ??
-              address['municipality']?.toString() ??
-              address['city_district']?.toString() ??
-              address['village']?.toString() ??
-              address['state']?.toString();
-          if (name != null && name.isNotEmpty) {
-            return name;
+        final status = data['status']?.toString();
+
+        if (status == 'OK') {
+          final results = data['results'] as List<dynamic>? ?? [];
+          for (final res in results) {
+            final components =
+                res['address_components'] as List<dynamic>? ?? [];
+
+            String? locality;
+            String? subAdmin;
+            String? admin;
+
+            for (final comp in components) {
+              final types = (comp['types'] as List<dynamic>?)
+                      ?.map((e) => e.toString())
+                      .toList() ??
+                  [];
+              if (types.contains('locality') ||
+                  types.contains('administrative_area_level_3')) {
+                locality = comp['long_name']?.toString();
+              }
+              if (types.contains('administrative_area_level_2')) {
+                subAdmin = comp['long_name']?.toString();
+              }
+              if (types.contains('administrative_area_level_1')) {
+                admin = comp['long_name']?.toString();
+              }
+            }
+
+            if (locality != null && locality.isNotEmpty) {
+              return locality;
+            }
+            if (subAdmin != null && subAdmin.isNotEmpty) {
+              return subAdmin;
+            }
+            if (admin != null && admin.isNotEmpty) {
+              return admin;
+            }
+          }
+
+          // Fallback to short formatted address
+          if (results.isNotEmpty) {
+            final firstAddr =
+                results.first['formatted_address']?.toString() ?? '';
+            final parts = firstAddr.split(',');
+            if (parts.length > 1) {
+              return parts[parts.length - 3].trim();
+            }
           }
         }
       }
     } catch (_) {}
-    return 'Lokasi Saya (${lat.toStringAsFixed(3)}, ${lng.toStringAsFixed(3)})';
+
+    return 'Lokasi Saya (${lat.toStringAsFixed(2)}, ${lng.toStringAsFixed(2)})';
   }
 
   /// Calculate distance in meters between two coordinates

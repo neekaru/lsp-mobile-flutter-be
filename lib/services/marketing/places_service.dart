@@ -28,7 +28,7 @@ class PlacesService {
     return _sdk!;
   }
 
-  /// Search places with pure keyword query, natural proximity sorting, and custom filtering
+  /// Search places purely using Google Places Engines with natural proximity sorting
   static Future<List<PlaceResult>> searchPlaces({
     required String query,
     double? latitude,
@@ -104,39 +104,6 @@ class PlacesService {
         }
       } catch (e) {
         if (kDebugMode) debugPrint('⚠️ Google Places Legacy Error: $e');
-      }
-    }
-
-    // 4. Try Live OpenStreetMap Nominatim Global Search
-    if (results.isEmpty) {
-      try {
-        final osmResults = await _searchLiveNominatim(
-          query: cleanQuery,
-          latitude: latitude,
-          longitude: longitude,
-          radius: radius,
-        );
-        if (osmResults.isNotEmpty) {
-          results = osmResults;
-        }
-      } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ Nominatim Search Error: $e');
-      }
-    }
-
-    // 5. Try Photon Komoot Live Geocoding API
-    if (results.isEmpty) {
-      try {
-        final photonResults = await _searchLivePhoton(
-          query: cleanQuery,
-          latitude: latitude,
-          longitude: longitude,
-        );
-        if (photonResults.isNotEmpty) {
-          results = photonResults;
-        }
-      } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ Photon Search Error: $e');
       }
     }
 
@@ -384,165 +351,6 @@ class PlacesService {
           phoneNumber: phone,
           website: website,
           photoReference: photoRef,
-        );
-      }).where((p) => p.latitude != 0.0 && p.longitude != 0.0).toList();
-    }
-    return [];
-  }
-
-  /// Live Nominatim Search Engine (OpenStreetMap)
-  static Future<List<PlaceResult>> _searchLiveNominatim({
-    required String query,
-    double? latitude,
-    double? longitude,
-    int radius = 12000,
-  }) async {
-    String q = query.trim();
-    final lower = q.toLowerCase();
-
-    // Expansion for common Indonesian acronyms
-    if (lower == 'ugm') {
-      q = 'Universitas Gadjah Mada';
-    } else if (lower == 'uny') {
-      q = 'Universitas Negeri Yogyakarta';
-    } else if (lower == 'uin' || lower == 'uin suka') {
-      q = 'UIN Sunan Kalijaga';
-    } else if (lower == 'ui') {
-      q = 'Universitas Indonesia';
-    } else if (lower == 'itb') {
-      q = 'Institut Teknologi Bandung';
-    } else if (lower == 'undip') {
-      q = 'Universitas Diponegoro';
-    } else if (lower == 'uad') {
-      q = 'Universitas Ahmad Dahlan';
-    } else if (lower == 'umy') {
-      q = 'Universitas Muhammadiyah Yogyakarta';
-    }
-
-    String url =
-        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(q)}&format=json&addressdetails=1&limit=30&countrycodes=id';
-
-    if (latitude != null && longitude != null) {
-      final delta = (radius / 100000.0).clamp(0.03, 0.5);
-      final minLat = latitude - delta;
-      final maxLat = latitude + delta;
-      final minLng = longitude - delta;
-      final maxLng = longitude + delta;
-      url += '&viewbox=$minLng,$maxLat,$maxLng,$minLat&bounded=0';
-    }
-
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'User-Agent': 'LSPDigitalMobile/1.2 (asesor@lsp-digital.id)',
-        'Accept': 'application/json',
-      },
-    ).timeout(const Duration(seconds: 8));
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      if (data.isNotEmpty) {
-        return data.map((item) {
-          final map = item as Map<String, dynamic>;
-          final displayName = map['display_name']?.toString() ?? '';
-          final rawName = map['name']?.toString() ?? '';
-          final name = rawName.isNotEmpty
-              ? rawName
-              : displayName.split(',').first.trim();
-
-          final lat = double.tryParse(map['lat']?.toString() ?? '') ?? 0.0;
-          final lon = double.tryParse(map['lon']?.toString() ?? '') ?? 0.0;
-          final type = map['type']?.toString() ?? '';
-          final category = map['category']?.toString() ?? '';
-
-          return PlaceResult(
-            placeId:
-                'osm_${map['place_id'] ?? map['osm_id'] ?? DateTime.now().millisecondsSinceEpoch}',
-            name: name,
-            formattedAddress: displayName,
-            latitude: lat,
-            longitude: lon,
-            rating: 4.8,
-            userRatingsTotal: 120,
-            types: [type, category],
-            inferredCategory:
-                inferCategory(name, displayName, [type, category]),
-          );
-        }).where((p) => p.latitude != 0.0 && p.longitude != 0.0).toList();
-      }
-    }
-    return [];
-  }
-
-  /// Live Photon Komoot Geocoding Search Engine
-  static Future<List<PlaceResult>> _searchLivePhoton({
-    required String query,
-    double? latitude,
-    double? longitude,
-  }) async {
-    String q = query.trim();
-    final lower = q.toLowerCase();
-    if (lower == 'ugm') {
-      q = 'Universitas Gadjah Mada';
-    } else if (lower == 'uny') {
-      q = 'Universitas Negeri Yogyakarta';
-    }
-
-    String url =
-        'https://photon.komoot.io/api/?q=${Uri.encodeComponent(q)}&limit=30';
-    if (latitude != null && longitude != null) {
-      url += '&lat=$latitude&lon=$longitude';
-    }
-
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {'Accept': 'application/json'},
-    ).timeout(const Duration(seconds: 8));
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      final List<dynamic> features = data['features'] as List<dynamic>? ?? [];
-
-      return features.map((f) {
-        final feat = f as Map<String, dynamic>;
-        final geometry = feat['geometry'] as Map<String, dynamic>?;
-        final coordinates =
-            geometry?['coordinates'] as List<dynamic>? ?? [];
-        final double lon = coordinates.isNotEmpty
-            ? (coordinates[0] as num).toDouble()
-            : 0.0;
-        final double lat = coordinates.length > 1
-            ? (coordinates[1] as num).toDouble()
-            : 0.0;
-
-        final props = feat['properties'] as Map<String, dynamic>? ?? {};
-        final name = props['name']?.toString() ?? 'Lokasi';
-        final street = props['street']?.toString() ?? '';
-        final city = props['city']?.toString() ??
-            props['county']?.toString() ??
-            props['state']?.toString() ??
-            '';
-        final country = props['country']?.toString() ?? 'Indonesia';
-
-        final addressParts = [name, street, city, country]
-            .where((s) => s.isNotEmpty)
-            .toList();
-        final fullAddress = addressParts.join(', ');
-
-        return PlaceResult(
-          placeId:
-              'photon_${props['osm_id'] ?? DateTime.now().millisecondsSinceEpoch}',
-          name: name,
-          formattedAddress: fullAddress,
-          latitude: lat,
-          longitude: lon,
-          rating: 4.7,
-          userRatingsTotal: 80,
-          types: [props['osm_value']?.toString() ?? ''],
-          inferredCategory: inferCategory(name, fullAddress, [
-            props['osm_key']?.toString() ?? '',
-            props['osm_value']?.toString() ?? ''
-          ]),
         );
       }).where((p) => p.latitude != 0.0 && p.longitude != 0.0).toList();
     }
