@@ -535,28 +535,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
           ),
         ),
 
-        // 3. Floating "Lokasi Saya" button right above the bottom sheet popup
-        Positioned(
-          right: 16,
-          bottom: MediaQuery.of(context).size.height * 0.38 + 12,
-          child: FloatingActionButton.extended(
-            heroTag: 'my_location_fab',
-            onPressed: _handleMyLocation,
-            backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF2563EB),
-            elevation: 4,
-            icon: const Icon(Icons.my_location_rounded, size: 18),
-            label: Text(
-              _userLocation?.locationName ?? 'Lokasi Saya',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-
-        // 4. Draggable Bottom Sheet (Sesuai Referensi Google Maps)
+        // 3. Draggable Bottom Sheet (Sesuai Referensi Google Maps)
         DraggableScrollableSheet(
           initialChildSize: 0.38,
           minChildSize: 0.12,
@@ -591,7 +570,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                     ),
                   ),
 
-                  // Header info + Legend + GPS Button
+                  // Header info + Legend + Dynamic GPS Lokasi Saya Button
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 18, vertical: 4),
@@ -634,20 +613,42 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                         ),
                         if (_isLoadingPlaces)
                           const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF2563EB),
+                            ),
                           )
                         else
-                          IconButton.filledTonal(
-                            onPressed: _handleMyLocation,
-                            tooltip: 'Perbarui Lokasi GPS',
-                            icon: const Icon(Icons.my_location_rounded,
-                                size: 18),
-                            style: IconButton.styleFrom(
-                              backgroundColor: const Color(0xFFEFF6FF),
-                              foregroundColor: const Color(0xFF2563EB),
-                              padding: const EdgeInsets.all(8),
+                          InkWell(
+                            onTap: _handleMyLocation,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                    color: const Color(0xFFBFDBFE), width: 1),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.my_location_rounded,
+                                      size: 14, color: Color(0xFF2563EB)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _userLocation?.locationName ?? 'Lokasi Saya',
+                                    style: const TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2563EB),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                       ],
