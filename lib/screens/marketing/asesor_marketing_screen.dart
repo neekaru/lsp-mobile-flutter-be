@@ -91,14 +91,20 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
   }
 
   Future<void> _handleMyLocation() async {
+    setState(() {
+      _selectedPlace = null;
+    });
     final loc = await LocationService.getCurrentLocation();
     if (mounted) {
       setState(() {
         _userLocation = loc;
       });
     }
+    final q = _searchController.text.trim().isNotEmpty
+        ? _searchController.text.trim()
+        : 'SMK';
     await _fetchPlaces(
-      query: _searchController.text.trim(),
+      query: q,
       latitude: loc.latitude,
       longitude: loc.longitude,
     );

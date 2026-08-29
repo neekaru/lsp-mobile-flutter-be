@@ -72,8 +72,10 @@ class _LeadMapCanvasState extends State<LeadMapCanvas> {
     return markers;
   }
 
-  void _animateToSelectedPlace() {
-    if (_mapController != null && widget.selectedPlace != null) {
+  void _animateCamera() {
+    if (_mapController == null) return;
+
+    if (widget.selectedPlace != null) {
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
           LatLng(
@@ -83,7 +85,17 @@ class _LeadMapCanvasState extends State<LeadMapCanvas> {
           15.0,
         ),
       );
-    } else if (_mapController != null && widget.places.isNotEmpty) {
+    } else if (widget.userLocation != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(
+            widget.userLocation!.latitude,
+            widget.userLocation!.longitude,
+          ),
+          14.0,
+        ),
+      );
+    } else if (widget.places.isNotEmpty) {
       final first = widget.places.first;
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
@@ -98,9 +110,11 @@ class _LeadMapCanvasState extends State<LeadMapCanvas> {
   void didUpdateWidget(covariant LeadMapCanvas oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedPlace?.placeId != widget.selectedPlace?.placeId ||
+        oldWidget.userLocation?.latitude != widget.userLocation?.latitude ||
+        oldWidget.userLocation?.longitude != widget.userLocation?.longitude ||
         oldWidget.savedPlaceIds.length != widget.savedPlaceIds.length ||
         oldWidget.places.length != widget.places.length) {
-      _animateToSelectedPlace();
+      _animateCamera();
     }
   }
 
@@ -126,7 +140,7 @@ class _LeadMapCanvasState extends State<LeadMapCanvas> {
       ),
       onMapCreated: (controller) {
         _mapController = controller;
-        _animateToSelectedPlace();
+        _animateCamera();
       },
       markers: _buildMarkers(),
       myLocationEnabled: true,

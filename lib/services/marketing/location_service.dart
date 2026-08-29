@@ -36,20 +36,37 @@ class LocationService {
         permission = await Geolocator.requestPermission();
       }
 
-      // 1. Try active live GPS first
+      if (permission == LocationPermission.deniedForever) {
+        if (kDebugMode) debugPrint('⚠️ Location permission permanently denied.');
+      }
+
       Position? position;
+
+      // 1. Try instant cached last known position first (1ms fast fix)
       try {
-        position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
-            timeLimit: Duration(seconds: 10),
-          ),
-        );
-      } catch (_) {
-        // Fallback to last known position
+        position = await Geolocator.getLastKnownPosition();
+      } catch (_) {}
+
+      // 2. Try active live GPS satellite/network position
+      if (position == null) {
         try {
-          position = await Geolocator.getLastKnownPosition();
-        } catch (_) {}
+          position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.best,
+              timeLimit: Duration(seconds: 12),
+            ),
+          );
+        } catch (_) {
+          // 3. Try fallback coarse / cell tower / Wi-Fi fix
+          try {
+            position = await Geolocator.getCurrentPosition(
+              locationSettings: const LocationSettings(
+                accuracy: LocationAccuracy.medium,
+                timeLimit: Duration(seconds: 8),
+              ),
+            );
+          } catch (_) {}
+        }
       }
 
       if (position != null) {
@@ -66,8 +83,11 @@ class LocationService {
       lng = defaultLng;
     }
 
-    // Pure dynamic reverse geocoding to get real city/kabupaten name
+    // Dynamic reverse geocoding to get real city/kabupaten name
     final realName = await getRealLocationName(lat, lng);
+    if (kDebugMode) {
+      debugPrint('📍 GPS coordinate resolved: $lat, $lng ($realName)');
+    }
 
     return UserGeoLocation(
       latitude: lat,
