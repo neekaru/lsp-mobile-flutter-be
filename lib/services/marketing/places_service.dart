@@ -85,7 +85,7 @@ class PlacesService {
     'homestay',
   ];
 
-  /// Search places with Smart Proximity Caching (saves Google Places API calls & 0ms instant reload)
+  /// Search places with Smart Proximity Caching & Multi-target parallel lookup
   static Future<List<PlaceResult>> searchPlaces({
     required String query,
     double? latitude,
@@ -123,72 +123,36 @@ class PlacesService {
         debugPrint('🔍 [PlacesService] Cache MISS — fetching Google Places for "$cleanQuery"');
       }
 
-      // 1. Native Google Places SDK Plus (searchByText & findAutocompletePredictions)
-      try {
-        final nativeResults = await _searchGooglePlacesNativeSdk(
+      // If query is 'Semua' or compound, fetch major categories in parallel and merge
+      if (cleanQuery == 'Semua' ||
+          cleanQuery == 'SMK Kampus BLK LPK Dinas' ||
+          cleanQuery == 'SMK Kampus BLK') {
+        final futures = ['SMK', 'Kampus', 'BLK', 'Dinas'].map(
+          (cat) => _fetchSingleQuery(
+            query: cat,
+            latitude: latitude,
+            longitude: longitude,
+            radius: radius,
+          ),
+        );
+        final listResults = await Future.wait(futures);
+        final Map<String, PlaceResult> map = {};
+        for (final list in listResults) {
+          for (final p in list) {
+            map[p.placeId] = p;
+          }
+        }
+        results = map.values.toList();
+      } else {
+        results = await _fetchSingleQuery(
           query: cleanQuery,
           latitude: latitude,
           longitude: longitude,
           radius: radius,
         );
-        if (nativeResults.isNotEmpty) {
-          results = nativeResults;
-        }
-      } catch (e) {
-        if (kDebugMode) debugPrint('⚠️ Google Places SDK Plus Error: $e');
       }
 
-      // 2. Try Google Places API (New Text Search v1)
-      if (results.isEmpty) {
-        try {
-          final googleNewResults = await _searchGooglePlacesNew(
-            query: cleanQuery,
-            latitude: latitude,
-            longitude: longitude,
-            radius: radius,
-          );
-          if (googleNewResults.isNotEmpty) {
-            results = googleNewResults;
-          }
-        } catch (e) {
-          if (kDebugMode) debugPrint('⚠️ Google Places v1 Error: $e');
-        }
-      }
-
-      // 3. Try Google Places API (Legacy Text Search)
-      if (results.isEmpty) {
-        try {
-          String url =
-              'https://maps.googleapis.com/maps/api/place/textsearch/json?query=${Uri.encodeComponent(cleanQuery)}&key=$apiKey';
-
-          if (latitude != null && longitude != null) {
-            url += '&location=$latitude,$longitude&radius=$radius';
-          }
-
-          final response = await http.get(Uri.parse(url)).timeout(
-                const Duration(seconds: 8),
-              );
-
-          if (response.statusCode == 200) {
-            final Map<String, dynamic> data = jsonDecode(response.body);
-            final status = data['status']?.toString();
-
-            if (status == 'OK') {
-              final list = data['results'] as List<dynamic>? ?? [];
-              if (list.isNotEmpty) {
-                results = list
-                    .map((e) =>
-                        PlaceResult.fromGoogleJson(e as Map<String, dynamic>))
-                    .toList();
-              }
-            }
-          }
-        } catch (e) {
-          if (kDebugMode) debugPrint('⚠️ Google Places Legacy Error: $e');
-        }
-      }
-
-      // Save fetched results to cache
+      // Save raw fetched results to cache
       if (results.isNotEmpty) {
         _searchCache[cacheKey] = _PlaceSearchCacheEntry(
           places: List<PlaceResult>.from(results),
@@ -223,6 +187,83 @@ class PlacesService {
             latitude, longitude, b.latitude, b.longitude);
         return distA.compareTo(distB);
       });
+    }
+
+    return results;
+  }
+
+  /// Internal single query search with Native SDK -> v1 New -> Legacy cascade
+  static Future<List<PlaceResult>> _fetchSingleQuery({
+    required String query,
+    double? latitude,
+    double? longitude,
+    int radius = 12000,
+  }) async {
+    List<PlaceResult> results = [];
+
+    // 1. Native Google Places SDK Plus
+    try {
+      final nativeResults = await _searchGooglePlacesNativeSdk(
+        query: query,
+        latitude: latitude,
+        longitude: longitude,
+        radius: radius,
+      );
+      if (nativeResults.isNotEmpty) {
+        results = nativeResults;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ Google Places SDK Plus Error: $e');
+    }
+
+    // 2. Google Places API (New Text Search v1)
+    if (results.isEmpty) {
+      try {
+        final googleNewResults = await _searchGooglePlacesNew(
+          query: query,
+          latitude: latitude,
+          longitude: longitude,
+          radius: radius,
+        );
+        if (googleNewResults.isNotEmpty) {
+          results = googleNewResults;
+        }
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ Google Places v1 Error: $e');
+      }
+    }
+
+    // 3. Google Places API (Legacy Text Search)
+    if (results.isEmpty) {
+      try {
+        String url =
+            'https://maps.googleapis.com/maps/api/place/textsearch/json?query=${Uri.encodeComponent(query)}&key=$apiKey';
+
+        if (latitude != null && longitude != null) {
+          url += '&location=$latitude,$longitude&radius=$radius';
+        }
+
+        final response = await http.get(Uri.parse(url)).timeout(
+              const Duration(seconds: 8),
+            );
+
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> data = jsonDecode(response.body);
+          final status = data['status']?.toString();
+
+          if (status == 'OK') {
+            final list = data['results'] as List<dynamic>? ?? [];
+            if (list.isNotEmpty) {
+              results = list
+                  .map((e) =>
+                      PlaceResult.fromGoogleJson(e as Map<String, dynamic>))
+                  .toList();
+            }
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ Google Places Legacy Error: $e');
+      }
     }
 
     return results;
