@@ -535,7 +535,28 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
           ),
         ),
 
-        // 3. Draggable Bottom Sheet (Sesuai Referensi Google Maps)
+        // 3. Floating "Lokasi Saya" button right above the bottom sheet popup
+        Positioned(
+          right: 16,
+          bottom: MediaQuery.of(context).size.height * 0.38 + 12,
+          child: FloatingActionButton.extended(
+            heroTag: 'my_location_fab',
+            onPressed: _handleMyLocation,
+            backgroundColor: Colors.white,
+            foregroundColor: const Color(0xFF2563EB),
+            elevation: 4,
+            icon: const Icon(Icons.my_location_rounded, size: 18),
+            label: Text(
+              _userLocation?.locationName ?? 'Lokasi Saya',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+
+        // 4. Draggable Bottom Sheet (Sesuai Referensi Google Maps)
         DraggableScrollableSheet(
           initialChildSize: 0.38,
           minChildSize: 0.12,
@@ -570,31 +591,69 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                     ),
                   ),
 
-                  // Header info
+                  // Header info + Legend + GPS Button
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 18, vertical: 4),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Hasil Pencarian (${_places.length} Lokasi)',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Hasil Pencarian (${_places.length} Tempat)',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Row(
+                                children: [
+                                  Icon(Icons.location_on,
+                                      size: 13, color: Colors.red),
+                                  SizedBox(width: 2),
+                                  Text('Baru',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF64748B))),
+                                  SizedBox(width: 8),
+                                  Icon(Icons.location_on,
+                                      size: 13, color: Colors.green),
+                                  SizedBox(width: 2),
+                                  Text('Tersimpan di DB',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF64748B))),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                         if (_isLoadingPlaces)
                           const SizedBox(
-                            width: 14,
-                            height: 14,
+                            width: 16,
+                            height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        else
+                          IconButton.filledTonal(
+                            onPressed: _handleMyLocation,
+                            tooltip: 'Perbarui Lokasi GPS',
+                            icon: const Icon(Icons.my_location_rounded,
+                                size: 18),
+                            style: IconButton.styleFrom(
+                              backgroundColor: const Color(0xFFEFF6FF),
+                              foregroundColor: const Color(0xFF2563EB),
+                              padding: const EdgeInsets.all(8),
+                            ),
                           ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
 
                   // Cards List
                   if (_places.isEmpty && !_isLoadingPlaces)
