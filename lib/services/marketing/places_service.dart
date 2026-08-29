@@ -28,12 +28,14 @@ class PlacesService {
     return _sdk!;
   }
 
-  /// Search places with 12km radius and strict institutional priority (SMK/Kampus/BLK/LPK/Dinas)
+  /// Search places with customizable radius, retail noise filtering, and category preferences
   static Future<List<PlaceResult>> searchPlaces({
     required String query,
     double? latitude,
     double? longitude,
     int radius = 12000,
+    bool filterRetail = true,
+    List<String>? allowedCategories,
   }) async {
     final cleanQuery = query.replaceAll('terdekat', '').trim();
     if (cleanQuery.isEmpty) return [];
@@ -46,6 +48,7 @@ class PlacesService {
         query: cleanQuery,
         latitude: latitude,
         longitude: longitude,
+        radius: radius,
       );
       if (nativeResults.isNotEmpty) {
         results = nativeResults;
@@ -54,7 +57,7 @@ class PlacesService {
       if (kDebugMode) debugPrint('⚠️ Google Places SDK Plus Error: $e');
     }
 
-    // 2. Try Google Places API (New Text Search v1 with circle radius 12km)
+    // 2. Try Google Places API (New Text Search v1 with circle radius)
     if (results.isEmpty) {
       try {
         final googleNewResults = await _searchGooglePlacesNew(
@@ -111,6 +114,7 @@ class PlacesService {
           query: cleanQuery,
           latitude: latitude,
           longitude: longitude,
+          radius: radius,
         );
         if (osmResults.isNotEmpty) {
           results = osmResults;
@@ -136,8 +140,20 @@ class PlacesService {
       }
     }
 
-    // Filter out irrelevant places (swalayan, toko kelontong, resto, warung, laundry, etc.)
-    results = results.where((p) => !_isIrrelevantPlace(p, cleanQuery)).toList();
+    // Filter out irrelevant places if retail filter is enabled
+    if (filterRetail) {
+      results =
+          results.where((p) => !_isIrrelevantPlace(p, cleanQuery)).toList();
+    }
+
+    // Filter by allowed categories if specified
+    if (allowedCategories != null &&
+        allowedCategories.isNotEmpty &&
+        !allowedCategories.contains('Semua')) {
+      results = results.where((p) {
+        return allowedCategories.contains(p.inferredCategory);
+      }).toList();
+    }
 
     // Sort strictly: Priority Category (SMK -> Kampus -> BLK -> LPK -> Dinas -> PT), then by Distance Ascending
     results.sort((a, b) {
@@ -165,10 +181,11 @@ class PlacesService {
     required String query,
     double? latitude,
     double? longitude,
+    int radius = 12000,
   }) async {
-    // 1A. SearchByText with User Query and 12km Proximity Bias
+    // 1A. SearchByText with User Query and Proximity Bias
     try {
-      final delta = 0.12; // ~12-14km radius
+      final delta = (radius / 100000.0).clamp(0.03, 0.5);
       final response = await sdk.searchByText(
         query,
         fields: [
@@ -223,7 +240,7 @@ class PlacesService {
 
     // 1B. Fallback to Autocomplete Predictions with User Query
     try {
-      final delta = 0.12;
+      final delta = (radius / 100000.0).clamp(0.03, 0.5);
       final predResponse = await sdk.findAutocompletePredictions(
         query,
         countries: ['id'],
@@ -385,6 +402,7 @@ class PlacesService {
     required String query,
     double? latitude,
     double? longitude,
+    int radius = 12000,
   }) async {
     String q = query.trim();
     final lower = q.toLowerCase();
@@ -416,7 +434,7 @@ class PlacesService {
         'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(q)}&format=json&addressdetails=1&limit=30&countrycodes=id';
 
     if (latitude != null && longitude != null) {
-      final delta = 0.15; // ~15km
+      final delta = (radius / 100000.0).clamp(0.03, 0.5);
       final minLat = latitude - delta;
       final maxLat = latitude + delta;
       final minLng = longitude - delta;

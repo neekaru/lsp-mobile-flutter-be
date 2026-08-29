@@ -46,6 +46,18 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
   final Set<String> _savedNames = {};
   Timer? _debounceTimer;
 
+  // Filter settings
+  bool _filterRetailNoise = true;
+  int _searchRadiusKm = 12;
+  final Set<String> _customAllowedCategories = {
+    'SMK',
+    'Kampus',
+    'BLK',
+    'LPK',
+    'Dinas Pemda',
+    'Perusahaan Swasta',
+  };
+
   int get _idAsesor =>
       int.tryParse(AuthRepository.currentUserInstance?.id ?? '') ?? 0;
 
@@ -119,7 +131,8 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     }
   }
 
-  Future<void> _fetchPlaces({String? query, double? latitude, double? longitude}) async {
+  Future<void> _fetchPlaces(
+      {String? query, double? latitude, double? longitude}) async {
     final q = query ?? _searchController.text.trim();
     if (q.isEmpty) return;
 
@@ -134,6 +147,11 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
       query: q,
       latitude: lat,
       longitude: lng,
+      radius: _searchRadiusKm * 1000,
+      filterRetail: _filterRetailNoise,
+      allowedCategories: _customAllowedCategories.isEmpty
+          ? null
+          : _customAllowedCategories.toList(),
     );
 
     if (mounted) {
@@ -143,6 +161,276 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
         _isLoadingPlaces = false;
       });
     }
+  }
+
+  void _showSearchFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle Bar
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFCBD5E1),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+
+                  // Title + Reset
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.tune_rounded,
+                              color: Color(0xFF2563EB), size: 20),
+                          SizedBox(width: 8),
+                          Text(
+                            'Pengaturan Filter Prospek',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setModalState(() {
+                            _filterRetailNoise = true;
+                            _searchRadiusKm = 12;
+                            _customAllowedCategories
+                              ..clear()
+                              ..addAll([
+                                'SMK',
+                                'Kampus',
+                                'BLK',
+                                'LPK',
+                                'Dinas Pemda',
+                                'Perusahaan Swasta',
+                              ]);
+                          });
+                          setState(() {});
+                        },
+                        child: const Text('Reset Default',
+                            style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 20),
+
+                  // 1. Blacklist Retail / Swalayan Toggle
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _filterRetailNoise
+                          ? const Color(0xFFEFF6FF)
+                          : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: _filterRetailNoise
+                            ? const Color(0xFFBFDBFE)
+                            : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.filter_alt_rounded,
+                          color: _filterRetailNoise
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF94A3B8),
+                          size: 22,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Saring Sampah Ritel & Swalayan',
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _filterRetailNoise
+                                    ? 'Aktif: Swalayan, minimarket, warung, kafe, laundry otomatis dibersihkan.'
+                                    : 'Nonaktif: Semua jenis tempat publik diizinkan muncul.',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: _filterRetailNoise,
+                          activeThumbColor: const Color(0xFF2563EB),
+                          onChanged: (val) {
+                            setModalState(() => _filterRetailNoise = val);
+                            setState(() => _filterRetailNoise = val);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 2. Radius Jangkauan Pencarian
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Radius Jangkauan Pencarian',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B)),
+                      ),
+                      Text(
+                        '$_searchRadiusKm km',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2563EB),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [3, 5, 8, 12, 15, 25, 50].map((r) {
+                      final isSelected = _searchRadiusKm == r;
+                      return ChoiceChip(
+                        label: Text('$r km',
+                            style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal)),
+                        selected: isSelected,
+                        selectedColor: const Color(0xFF2563EB),
+                        labelStyle: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : const Color(0xFF334155)),
+                        onSelected: (selected) {
+                          if (selected) {
+                            setModalState(() => _searchRadiusKm = r);
+                            setState(() => _searchRadiusKm = r);
+                          }
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 3. Kategori Institusi Sasaran
+                  const Text(
+                    'Kategori Institusi Sasaran',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B)),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      'SMK',
+                      'Kampus',
+                      'BLK',
+                      'LPK',
+                      'Dinas Pemda',
+                      'Perusahaan Swasta',
+                    ].map((cat) {
+                      final isChecked =
+                          _customAllowedCategories.contains(cat);
+                      return FilterChip(
+                        label: Text(cat,
+                            style: TextStyle(
+                                fontSize: 11.5,
+                                color: isChecked
+                                    ? const Color(0xFF2563EB)
+                                    : const Color(0xFF475569))),
+                        selected: isChecked,
+                        selectedColor: const Color(0xFFEFF6FF),
+                        checkmarkColor: const Color(0xFF2563EB),
+                        side: BorderSide(
+                            color: isChecked
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFFE2E8F0)),
+                        onSelected: (selected) {
+                          setModalState(() {
+                            if (selected) {
+                              _customAllowedCategories.add(cat);
+                            } else {
+                              if (_customAllowedCategories.length > 1) {
+                                _customAllowedCategories.remove(cat);
+                              }
+                            }
+                          });
+                          setState(() {});
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Submit Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _fetchPlaces();
+                      },
+                      icon: const Icon(Icons.check_circle_rounded, size: 18),
+                      label: const Text('Terapkan Filter & Telusuri Ulang',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _onCategoryFilter(String category) {
@@ -495,56 +783,86 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
           right: 0,
           child: Column(
             children: [
-              // Search Input Bar
+              // Search Input Bar + Filter Settings Button
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x1F000000),
-                      blurRadius: 10,
-                      offset: Offset(0, 3),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x1F000000),
+                              blurRadius: 10,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (val) {
+                            _debounceTimer?.cancel();
+                            final query = val.trim();
+                            if (query.isNotEmpty) {
+                              _debounceTimer =
+                                  Timer(const Duration(milliseconds: 600), () {
+                                _fetchPlaces(query: query);
+                              });
+                            }
+                          },
+                          onSubmitted: (val) {
+                            _debounceTimer?.cancel();
+                            final query =
+                                val.trim().isNotEmpty ? val.trim() : 'SMK';
+                            _fetchPlaces(query: query);
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Cari SMK, Kampus, BLK, Dinas...',
+                            hintStyle: const TextStyle(
+                                fontSize: 13, color: Color(0xFF94A3B8)),
+                            prefixIcon: const Icon(Icons.search_rounded,
+                                color: Color(0xFF2563EB)),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear_rounded,
+                                        size: 18),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _onCategoryFilter('Semua');
+                                    },
+                                  )
+                                : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Material(
+                      color: _filterRetailNoise
+                          ? const Color(0xFF2563EB)
+                          : Colors.white,
+                      shape: const CircleBorder(),
+                      elevation: 3,
+                      shadowColor: const Color(0x1F000000),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.tune_rounded,
+                          color: _filterRetailNoise
+                              ? Colors.white
+                              : const Color(0xFF2563EB),
+                          size: 20,
+                        ),
+                        onPressed: _showSearchFilterModal,
+                        tooltip: 'Pengaturan Filter & Blacklist',
+                      ),
                     ),
                   ],
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (val) {
-                    _debounceTimer?.cancel();
-                    final query = val.trim();
-                    if (query.isNotEmpty) {
-                      _debounceTimer =
-                          Timer(const Duration(milliseconds: 600), () {
-                        _fetchPlaces(query: query);
-                      });
-                    }
-                  },
-                  onSubmitted: (val) {
-                    _debounceTimer?.cancel();
-                    final query = val.trim().isNotEmpty ? val.trim() : 'SMK';
-                    _fetchPlaces(query: query);
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Cari SMK, Kampus, BLK, Dinas...',
-                    hintStyle: const TextStyle(
-                        fontSize: 13, color: Color(0xFF94A3B8)),
-                    prefixIcon: const Icon(Icons.search_rounded,
-                        color: Color(0xFF2563EB)),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear_rounded, size: 18),
-                            onPressed: () {
-                              _searchController.clear();
-                              _onCategoryFilter('Semua');
-                            },
-                          )
-                        : null,
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                  ),
                 ),
               ),
 
