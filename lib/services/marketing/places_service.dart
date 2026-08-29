@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_google_places_sdk/flutter_google_places_sdk.dart'
+import 'package:google_places_sdk_plus/google_places_sdk_plus.dart'
     as places_sdk;
 import 'package:http/http.dart' as http;
 import '../../models/lead_model.dart';
@@ -37,7 +37,7 @@ class PlacesService {
     final cleanQuery = query.replaceAll('terdekat', '').trim();
     if (cleanQuery.isEmpty) return [];
 
-    // 1. Native Google Places SDK (Android Play Services Native with SHA-1 auth)
+    // 1. Native Google Places SDK Plus (New Google Places Android Native SDK with SHA-1 auth)
     try {
       final nativeResults = await _searchGooglePlacesNativeSdk(
         query: cleanQuery,
@@ -48,7 +48,7 @@ class PlacesService {
         return nativeResults;
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Native Places SDK Error: $e');
+      if (kDebugMode) debugPrint('⚠️ Google Places SDK Plus Error: $e');
     }
 
     // 2. Try Google Places API (New Text Search v1)
@@ -127,7 +127,7 @@ class PlacesService {
     return [];
   }
 
-  /// 1. Native Google Places SDK Android/iOS
+  /// 1. Native Google Places SDK Plus Android/iOS
   static Future<List<PlaceResult>> _searchGooglePlacesNativeSdk({
     required String query,
     double? latitude,
@@ -148,32 +148,35 @@ class PlacesService {
     final limited = predictions.take(12).toList();
 
     for (final pred in limited) {
+      final pId = pred.placeId;
+      if (pId == null || pId.isEmpty) continue;
+
       try {
         final details = await sdk.fetchPlace(
-          pred.placeId,
+          pId,
           fields: [
             places_sdk.PlaceField.Location,
-            places_sdk.PlaceField.Name,
-            places_sdk.PlaceField.Address,
+            places_sdk.PlaceField.DisplayName,
+            places_sdk.PlaceField.FormattedAddress,
             places_sdk.PlaceField.Rating,
-            places_sdk.PlaceField.UserRatingsTotal,
+            places_sdk.PlaceField.UserRatingCount,
             places_sdk.PlaceField.Types,
-            places_sdk.PlaceField.PhoneNumber,
+            places_sdk.PlaceField.NationalPhoneNumber,
             places_sdk.PlaceField.WebsiteUri,
           ],
         );
 
         final p = details.place;
         if (p != null && p.latLng != null) {
-          final name = p.name ?? pred.primaryText;
-          final address = p.address ?? pred.fullText;
+          final name = p.displayName?.text ?? p.name ?? pred.primaryText ?? 'Lokasi';
+          final address = p.address ?? p.shortFormattedAddress ?? pred.fullText ?? '';
           final lat = p.latLng!.lat;
           final lng = p.latLng!.lng;
           final types = p.types?.map((e) => e.name).toList() ?? [];
 
           results.add(
             PlaceResult(
-              placeId: pred.placeId,
+              placeId: pId,
               name: name,
               formattedAddress: address,
               latitude: lat,
