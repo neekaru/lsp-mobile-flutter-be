@@ -209,6 +209,10 @@ class ApiRoutes {
   static String asesorTiketDetail(int id) => '/api/asesor/tiket/$id';
   static String asesorTiketReply(int id) => '/api/asesor/tiket/$id/reply';
   static const String asesorAiChat = '/api/asesor/ai/chat';
+  static const String asesorLeads = '/api/asesor/leads';
+  static const String asesorLeadsStats = '/api/asesor/leads/stats';
+  static String asesorLeadDetail(String id) => '/api/asesor/leads/$id';
+  static String asesorLeadStatus(String id) => '/api/asesor/leads/$id/status';
 
   // ============================================================================
   // Admin Tiket Routes
