@@ -57,6 +57,8 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     'Dinas Pemda',
     'Perusahaan Swasta',
   };
+  final Set<String> _blacklistKeywords =
+      Set.from(PlacesService.defaultBlacklist);
 
   int get _idAsesor =>
       int.tryParse(AuthRepository.currentUserInstance?.id ?? '') ?? 0;
@@ -155,6 +157,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
       longitude: lng,
       radius: _searchRadiusKm * 1000,
       filterRetail: _filterRetailNoise,
+      customBlacklist: _blacklistKeywords.toList(),
       allowedCategories: _customAllowedCategories.isEmpty
           ? null
           : _customAllowedCategories.toList(),
@@ -170,6 +173,8 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
   }
 
   void _showRetailBlacklistModal() {
+    final TextEditingController newKeywordController = TextEditingController();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -177,191 +182,328 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final mediaQuery = MediaQuery.of(context);
             return Container(
+              constraints: BoxConstraints(
+                maxHeight: mediaQuery.size.height * 0.85,
+              ),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Handle Bar
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFCBD5E1),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-
-                  // Header Title
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: EdgeInsets.fromLTRB(
+                  20, 16, 20, mediaQuery.viewInsets.bottom + 20),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      // Handle Bar
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFCBD5E1),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+
+                      // Header Title + Reset
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(Icons.cleaning_services_rounded,
-                              color: Color(0xFF10B981), size: 22),
-                          SizedBox(width: 8),
-                          Text(
-                            'Saring Sampah Ritel & Toko',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F172A),
+                          const Row(
+                            children: [
+                              Icon(Icons.cleaning_services_rounded,
+                                  color: Color(0xFF10B981), size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Pengecualian Tempat (Blacklist)',
+                                style: TextStyle(
+                                  fontSize: 15.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                            ],
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              setModalState(() {
+                                _filterRetailNoise = true;
+                                _blacklistKeywords
+                                  ..clear()
+                                  ..addAll(PlacesService.defaultBlacklist);
+                              });
+                              setState(() {});
+                            },
+                            child: const Text('Reset Default',
+                                style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 16),
+
+                      // Master Toggle
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _filterRetailNoise
+                              ? const Color(0xFFF0FDF4)
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: _filterRetailNoise
+                                ? const Color(0xFFBBF7D0)
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _filterRetailNoise
+                                  ? Icons.filter_alt_rounded
+                                  : Icons.filter_alt_off_rounded,
+                              color: _filterRetailNoise
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF94A3B8),
+                              size: 22,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Aktifkan Filter Pengecualian',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _filterRetailNoise
+                                        ? 'Tempat dengan kata kunci di bawah otomatis disembunyikan dari peta.'
+                                        : 'Filter nonaktif: Semua jenis tempat publik diizinkan muncul.',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _filterRetailNoise,
+                              activeThumbColor: const Color(0xFF10B981),
+                              onChanged: (val) {
+                                setModalState(() => _filterRetailNoise = val);
+                                setState(() => _filterRetailNoise = val);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Add Custom Blacklist Keyword Input
+                      const Text(
+                        'Tambah Kata Kunci Pengecualian Baru:',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: const Color(0xFFE2E8F0)),
+                              ),
+                              child: TextField(
+                                controller: newKeywordController,
+                                decoration: const InputDecoration(
+                                  hintText:
+                                      'Cth: apotek, optik, bengkel, pegadaian...',
+                                  hintStyle: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF94A3B8)),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 10),
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              final text =
+                                  newKeywordController.text.trim().toLowerCase();
+                              if (text.isNotEmpty) {
+                                setModalState(() {
+                                  _blacklistKeywords.add(text);
+                                  newKeywordController.clear();
+                                });
+                                setState(() {});
+                              }
+                            },
+                            icon: const Icon(Icons.add_rounded, size: 16),
+                            label: const Text('Tambah',
+                                style: TextStyle(fontSize: 12)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF10B981),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ],
                       ),
-                      Switch(
-                        value: _filterRetailNoise,
-                        activeThumbColor: const Color(0xFF10B981),
-                        onChanged: (val) {
-                          setModalState(() => _filterRetailNoise = val);
-                          setState(() => _filterRetailNoise = val);
-                        },
+                      const SizedBox(height: 14),
+
+                      // List of Active Blacklist Keyword Chips
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Daftar Kata Kunci Aktif (Klik X untuk Hapus):',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          Text(
+                            '${_blacklistKeywords.length} kata kunci',
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: _blacklistKeywords.map((k) {
+                          return Chip(
+                            label: Text(k,
+                                style: const TextStyle(
+                                    fontSize: 11.5,
+                                    color: Color(0xFF1E293B))),
+                            deleteIcon: const Icon(Icons.close_rounded,
+                                size: 14, color: Color(0xFFEF4444)),
+                            onDeleted: () {
+                              setModalState(() {
+                                _blacklistKeywords.remove(k);
+                              });
+                              setState(() {});
+                            },
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            side: const BorderSide(
+                                color: Color(0xFFCBD5E1)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 0),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Quick Preset Suggestions
+                      const Text(
+                        '+ Saran Pengecualian Populer:',
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B)),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          'apotek',
+                          'optik',
+                          'pegadaian',
+                          'klinik',
+                          'bimbel',
+                          'gym',
+                          'barbershop',
+                          'cuci motor',
+                        ]
+                            .where((s) => !_blacklistKeywords.contains(s))
+                            .map((sug) {
+                          return ActionChip(
+                            avatar: const Icon(Icons.add,
+                                size: 13, color: Color(0xFF10B981)),
+                            label: Text(sug,
+                                style: const TextStyle(
+                                    fontSize: 11, color: Color(0xFF334155))),
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            onPressed: () {
+                              setModalState(() {
+                                _blacklistKeywords.add(sug);
+                              });
+                              setState(() {});
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Action Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _fetchPlaces();
+                          },
+                          icon: const Icon(Icons.check_rounded, size: 18),
+                          label: Text(
+                            _filterRetailNoise
+                                ? 'Terapkan (Bersihkan Peta)'
+                                : 'Terapkan (Tampilkan Semua)',
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _filterRetailNoise
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFF2563EB),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _filterRetailNoise
-                        ? 'Status: AKTIF (Tempat ritel konsumsi publik otomatis disaring dan tidak ditampilkan di peta prospek).'
-                        : 'Status: NONAKTIF (Semua tempat publik termasuk warung & ritel diizinkan tampil).',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _filterRetailNoise
-                          ? const Color(0xFF059669)
-                          : const Color(0xFF64748B),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Divider(height: 24),
-
-                  const Text(
-                    'Daftar Kategori yang Dibersihkan:',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Itemized List
-                  _buildRetailCategoryItem(
-                    icon: Icons.shopping_cart_rounded,
-                    title: 'Swalayan & Minimarket',
-                    description:
-                        'Indomaret, Alfamart, Alfamidi, Supermarket, Toko Kelontong',
-                  ),
-                  _buildRetailCategoryItem(
-                    icon: Icons.restaurant_rounded,
-                    title: 'Warung Makan & Kafe',
-                    description:
-                        'Warung makan, Bakso, Mie Ayam, Cafe, Restoran, Rumah Makan',
-                  ),
-                  _buildRetailCategoryItem(
-                    icon: Icons.local_laundry_service_rounded,
-                    title: 'Jasa & Komersial Harian',
-                    description:
-                        'Laundry, Salon, Barbershop, Bengkel, Cuci Kendaraan, Konter HP',
-                  ),
-                  _buildRetailCategoryItem(
-                    icon: Icons.hotel_rounded,
-                    title: 'Penginapan & Fasilitas Umum',
-                    description:
-                        'Hotel, Homestay, Penginapan, Tempat Ibadah umum',
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Action Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _fetchPlaces();
-                      },
-                      icon: const Icon(Icons.check_rounded, size: 18),
-                      label: Text(
-                        _filterRetailNoise
-                            ? 'Terapkan (Bersihkan Peta)'
-                            : 'Terapkan (Tampilkan Semua)',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _filterRetailNoise
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             );
           },
         );
       },
-    );
-  }
-
-  Widget _buildRetailCategoryItem({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 16, color: const Color(0xFF475569)),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (_filterRetailNoise)
-            const Icon(Icons.block_rounded, size: 16, color: Color(0xFFEF4444)),
-        ],
-      ),
     );
   }
 
@@ -373,306 +515,322 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final mediaQuery = MediaQuery.of(context);
             return Container(
+              constraints: BoxConstraints(
+                maxHeight: mediaQuery.size.height * 0.85,
+              ),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Handle Bar
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFCBD5E1),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-
-                  // Title + Reset
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: EdgeInsets.fromLTRB(
+                  20, 16, 20, mediaQuery.viewInsets.bottom + 20),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.tune_rounded,
-                              color: Color(0xFF2563EB), size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'Pengaturan Filter Prospek',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F172A),
-                            ),
+                      // Handle Bar
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFCBD5E1),
+                            borderRadius: BorderRadius.circular(2),
                           ),
-                        ],
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          setModalState(() {
-                            _filterRetailNoise = true;
-                            _searchRadiusKm = 12;
-                            _customAllowedCategories
-                              ..clear()
-                              ..addAll([
-                                'SMK',
-                                'Kampus',
-                                'BLK',
-                                'LPK',
-                                'Dinas Pemda',
-                                'Perusahaan Swasta',
-                              ]);
-                          });
-                          setState(() {});
-                        },
-                        child: const Text('Reset Default',
-                            style: TextStyle(fontSize: 12)),
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 20),
-
-                  // 1. Blacklist Retail / Swalayan Toggle
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: _filterRetailNoise
-                          ? const Color(0xFFEFF6FF)
-                          : const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: _filterRetailNoise
-                            ? const Color(0xFFBFDBFE)
-                            : const Color(0xFFE2E8F0),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.filter_alt_rounded,
-                          color: _filterRetailNoise
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFF94A3B8),
-                          size: 22,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+
+                      // Title + Reset
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Row(
                             children: [
-                              const Text(
-                                'Saring Sampah Ritel & Swalayan',
-                                style: TextStyle(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
+                              Icon(Icons.tune_rounded,
+                                  color: Color(0xFF2563EB), size: 20),
+                              SizedBox(width: 8),
                               Text(
-                                _filterRetailNoise
-                                    ? 'Aktif: Swalayan, minimarket, warung, kafe, laundry otomatis dibersihkan.'
-                                    : 'Nonaktif: Semua jenis tempat publik diizinkan muncul.',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF64748B),
+                                'Pengaturan Filter Prospek',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        Switch(
-                          value: _filterRetailNoise,
-                          activeThumbColor: const Color(0xFF2563EB),
-                          onChanged: (val) {
-                            setModalState(() => _filterRetailNoise = val);
-                            setState(() => _filterRetailNoise = val);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: () {
+                              setModalState(() {
+                                _filterRetailNoise = true;
+                                _searchRadiusKm = 12;
+                                _customAllowedCategories
+                                  ..clear()
+                                  ..addAll([
+                                    'SMK',
+                                    'Kampus',
+                                    'BLK',
+                                    'LPK',
+                                    'Dinas Pemda',
+                                    'Perusahaan Swasta',
+                                  ]);
+                              });
+                              setState(() {});
+                            },
+                            child: const Text('Reset Default',
+                                style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 20),
 
-                  // 2. Radius Jangkauan Pencarian (Custom Slider & Quick Chips)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                      // 1. Blacklist Retail / Non-Prospect Toggle
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: _filterRetailNoise
+                              ? const Color(0xFFEFF6FF)
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: _filterRetailNoise
+                                ? const Color(0xFFBFDBFE)
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.filter_alt_rounded,
+                              color: _filterRetailNoise
+                                  ? const Color(0xFF2563EB)
+                                  : const Color(0xFF94A3B8),
+                              size: 22,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Saring Tempat Non-Prospek',
+                                    style: TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _filterRetailNoise
+                                        ? 'Aktif: Toko, warung, kafe, laundry otomatis dibersihkan.'
+                                        : 'Nonaktif: Semua jenis tempat publik diizinkan muncul.',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _filterRetailNoise,
+                              activeThumbColor: const Color(0xFF2563EB),
+                              onChanged: (val) {
+                                setModalState(() => _filterRetailNoise = val);
+                                setState(() => _filterRetailNoise = val);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 2. Radius Jangkauan Pencarian (Custom Slider & Quick Chips)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Radius Jangkauan Pencarian',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B)),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: const Color(0xFFBFDBFE)),
+                            ),
+                            child: Text(
+                              '$_searchRadiusKm km',
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Slider(
+                        value: _searchRadiusKm.toDouble().clamp(1.0, 100.0),
+                        min: 1.0,
+                        max: 100.0,
+                        divisions: 99,
+                        activeColor: const Color(0xFF2563EB),
+                        inactiveColor: const Color(0xFFE2E8F0),
+                        label: '$_searchRadiusKm km',
+                        onChanged: (val) {
+                          setModalState(
+                              () => _searchRadiusKm = val.round());
+                          setState(() => _searchRadiusKm = val.round());
+                        },
+                      ),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [3, 5, 8, 12, 15, 25, 50, 75, 100].map((r) {
+                          final isSelected = _searchRadiusKm == r;
+                          return ChoiceChip(
+                            label: Text('$r km',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal)),
+                            selected: isSelected,
+                            selectedColor: const Color(0xFF2563EB),
+                            labelStyle: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : const Color(0xFF334155)),
+                            onSelected: (selected) {
+                              if (selected) {
+                                setModalState(() => _searchRadiusKm = r);
+                                setState(() => _searchRadiusKm = r);
+                              }
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 3. Kategori Institusi Sasaran & Saran Tambahan
                       const Text(
-                        'Radius Jangkauan Pencarian',
+                        'Kategori Institusi Sasaran (Dapat Ditambah)',
                         style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF1E293B)),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFBFDBFE)),
-                        ),
-                        child: Text(
-                          '$_searchRadiusKm km',
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2563EB),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: _customAllowedCategories.map((cat) {
+                          return FilterChip(
+                            label: Text(cat,
+                                style: const TextStyle(
+                                    fontSize: 11.5,
+                                    color: Color(0xFF2563EB),
+                                    fontWeight: FontWeight.bold)),
+                            selected: true,
+                            selectedColor: const Color(0xFFEFF6FF),
+                            checkmarkColor: const Color(0xFF2563EB),
+                            side: const BorderSide(
+                                color: Color(0xFF2563EB)),
+                            onSelected: (_) {
+                              setModalState(() {
+                                if (_customAllowedCategories.length > 1) {
+                                  _customAllowedCategories.remove(cat);
+                                }
+                              });
+                              setState(() {});
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Saran Kategori Tambahan
+                      const Text(
+                        '+ Saran Kategori Tambahan:',
+                        style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B)),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          'SMA',
+                          'Politeknik',
+                          'BUMN',
+                          'Rumah Sakit',
+                          'Hotel',
+                          'Yayasan',
+                          'Pondok Pesantren',
+                          'Balai Diklat',
+                        ]
+                            .where((s) =>
+                                !_customAllowedCategories.contains(s))
+                            .map((sug) {
+                          return ActionChip(
+                            avatar: const Icon(Icons.add,
+                                size: 13, color: Color(0xFF2563EB)),
+                            label: Text(sug,
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF334155))),
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            onPressed: () {
+                              setModalState(() {
+                                _customAllowedCategories.add(sug);
+                              });
+                              setState(() {});
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Submit Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _fetchPlaces();
+                          },
+                          icon:
+                              const Icon(Icons.check_circle_rounded, size: 18),
+                          label: const Text('Terapkan Filter & Telusuri Ulang',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF2563EB),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  Slider(
-                    value: _searchRadiusKm.toDouble().clamp(1.0, 100.0),
-                    min: 1.0,
-                    max: 100.0,
-                    divisions: 99,
-                    activeColor: const Color(0xFF2563EB),
-                    inactiveColor: const Color(0xFFE2E8F0),
-                    label: '$_searchRadiusKm km',
-                    onChanged: (val) {
-                      setModalState(() => _searchRadiusKm = val.round());
-                      setState(() => _searchRadiusKm = val.round());
-                    },
-                  ),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [3, 5, 8, 12, 15, 25, 50, 75, 100].map((r) {
-                      final isSelected = _searchRadiusKm == r;
-                      return ChoiceChip(
-                        label: Text('$r km',
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal)),
-                        selected: isSelected,
-                        selectedColor: const Color(0xFF2563EB),
-                        labelStyle: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : const Color(0xFF334155)),
-                        onSelected: (selected) {
-                          if (selected) {
-                            setModalState(() => _searchRadiusKm = r);
-                            setState(() => _searchRadiusKm = r);
-                          }
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 3. Kategori Institusi Sasaran & Saran Tambahan
-                  const Text(
-                    'Kategori Institusi Sasaran (Dapat Ditambah)',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B)),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: _customAllowedCategories.map((cat) {
-                      return FilterChip(
-                        label: Text(cat,
-                            style: const TextStyle(
-                                fontSize: 11.5,
-                                color: Color(0xFF2563EB),
-                                fontWeight: FontWeight.bold)),
-                        selected: true,
-                        selectedColor: const Color(0xFFEFF6FF),
-                        checkmarkColor: const Color(0xFF2563EB),
-                        side: const BorderSide(color: Color(0xFF2563EB)),
-                        onSelected: (_) {
-                          setModalState(() {
-                            if (_customAllowedCategories.length > 1) {
-                              _customAllowedCategories.remove(cat);
-                            }
-                          });
-                          setState(() {});
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Saran Kategori Tambahan
-                  const Text(
-                    '+ Saran Kategori Tambahan:',
-                    style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF64748B)),
-                  ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      'SMA',
-                      'Politeknik',
-                      'BUMN',
-                      'Rumah Sakit',
-                      'Hotel',
-                      'Yayasan',
-                      'Pondok Pesantren',
-                      'Balai Diklat',
-                    ]
-                        .where((s) => !_customAllowedCategories.contains(s))
-                        .map((sug) {
-                      return ActionChip(
-                        avatar: const Icon(Icons.add,
-                            size: 13, color: Color(0xFF2563EB)),
-                        label: Text(sug,
-                            style: const TextStyle(
-                                fontSize: 11, color: Color(0xFF334155))),
-                        backgroundColor: const Color(0xFFF1F5F9),
-                        onPressed: () {
-                          setModalState(() {
-                            _customAllowedCategories.add(sug);
-                          });
-                          setState(() {});
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Submit Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _fetchPlaces();
-                      },
-                      icon: const Icon(Icons.check_circle_rounded, size: 18),
-                      label: const Text('Terapkan Filter & Telusuri Ulang',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14)),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             );
           },

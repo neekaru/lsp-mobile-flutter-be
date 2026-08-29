@@ -397,22 +397,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.1"
+  geocode_cache:
+    dependency: "direct main"
+    description:
+      name: geocode_cache
+      sha256: e1907f9e2def6ee949247b94a35458abb76b5c56f6a7baa7b51f24f9c9707f5c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   geocoding:
     dependency: "direct main"
     description:
       name: geocoding
-      sha256: d580c801cba9386b4fac5047c4c785a4e19554f46be42f4f5e5b7deacd088a66
+      sha256: "606be036287842d779d7ec4e2f6c9435fc29bbbd3c6da6589710f981d8852895"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "4.0.0"
   geocoding_android:
     dependency: transitive
     description:
       name: geocoding_android
-      sha256: "1b13eca79b11c497c434678fed109c2be020b158cec7512c848c102bc7232603"
+      sha256: ba810da90d6633cbb82bbab630e5b4a3b7d23503263c00ae7f1ef0316dcae5b9
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.1"
+    version: "4.0.1"
   geocoding_ios:
     dependency: transitive
     description:
@@ -661,6 +669,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.8"
+  hive_ce:
+    dependency: transitive
+    description:
+      name: hive_ce
+      sha256: "8e9980e68643afb1e765d3af32b47996552a64e190d03faf622cea07c1294418"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.19.3"
+  hive_ce_flutter:
+    dependency: transitive
+    description:
+      name: hive_ce_flutter
+      sha256: "2677e95a333ff15af43ccd06af7eb7abbf1a4f154ea071997f3de4346cae913a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.4"
   hooks:
     dependency: transitive
     description:
@@ -709,6 +733,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.20.3"
+  isolate_channel:
+    dependency: transitive
+    description:
+      name: isolate_channel
+      sha256: a9d3d620695bc984244dafae00b95e4319d6974b2d77f4b9e1eb4f2efe099094
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.1"
   januscaler_flutter_ringtone_player:
     dependency: "direct main"
     description:

@@ -28,13 +28,47 @@ class PlacesService {
     return _sdk!;
   }
 
-  /// Search places purely using Google Places Engines with natural proximity sorting
+  /// Default blacklist keywords for irrelevant consumer retail places
+  static const List<String> defaultBlacklist = [
+    'swalayan',
+    'minimarket',
+    'supermarket',
+    'indomaret',
+    'alfamart',
+    'alfamidi',
+    'toko kelontong',
+    'warung',
+    'laundry',
+    'barbershop',
+    'salon',
+    'counter hp',
+    'counter pulsa',
+    'fotocopy',
+    'bengkel',
+    'cuci motor',
+    'cuci mobil',
+    'bakso',
+    'mie ayam',
+    'cafe',
+    'restoran',
+    'restaurant',
+    'grocery',
+    'musholla',
+    'masjid',
+    'gereja',
+    'hotel',
+    'penginapan',
+    'homestay',
+  ];
+
+  /// Search places purely using Google Places Engines with natural proximity sorting & custom blacklist
   static Future<List<PlaceResult>> searchPlaces({
     required String query,
     double? latitude,
     double? longitude,
     int radius = 12000,
     bool filterRetail = true,
+    List<String>? customBlacklist,
     List<String>? allowedCategories,
   }) async {
     final cleanQuery = query.replaceAll('terdekat', '').trim();
@@ -107,10 +141,12 @@ class PlacesService {
       }
     }
 
-    // Filter out retail noise if enabled
+    // Filter out retail / non-prospect noise if enabled
     if (filterRetail) {
-      results =
-          results.where((p) => !_isIrrelevantPlace(p, cleanQuery)).toList();
+      results = results
+          .where((p) =>
+              !isIrrelevantPlace(p, cleanQuery, blacklist: customBlacklist))
+          .toList();
     }
 
     // Filter by allowed categories if specified
@@ -357,61 +393,23 @@ class PlacesService {
     return [];
   }
 
-  /// Check if place is random consumer retail (swalayan, warung, laundry, etc.)
-  static bool _isIrrelevantPlace(PlaceResult p, String rawQuery) {
+  /// Check if place matches user-configurable blacklist keywords
+  static bool isIrrelevantPlace(
+    PlaceResult p,
+    String rawQuery, {
+    List<String>? blacklist,
+  }) {
     final lowerQ = rawQuery.toLowerCase();
-    if (lowerQ.contains('swalayan') ||
-        lowerQ.contains('toko') ||
-        lowerQ.contains('mart') ||
-        lowerQ.contains('supermarket') ||
-        lowerQ.contains('resto') ||
-        lowerQ.contains('cafe')) {
-      return false;
-    }
-
     final lowerName = p.name.toLowerCase();
     final allTypes = p.types.map((t) => t.toLowerCase()).join(' ');
 
-    const blacklist = [
-      'swalayan',
-      'minimarket',
-      'supermarket',
-      'indomaret',
-      'alfamart',
-      'alfamidi',
-      'toko kelontong',
-      'warung',
-      'laundry',
-      'barbershop',
-      'salon kecantikan',
-      'counter hp',
-      'counter pulsa',
-      'fotocopy',
-      'bengkel motor',
-      'cuci motor',
-      'cuci mobil',
-      'bakso',
-      'mie ayam',
-      'cafe',
-      'restoran',
-      'restaurant',
-      'grocery',
-      'convenience_store',
-      'clothing_store',
-      'beauty_salon',
-      'hair_care',
-      'musholla',
-      'masjid',
-      'gereja',
-      'pura',
-      'vihara',
-      'hotel',
-      'penginapan',
-      'homestay',
-    ];
+    final activeBlacklist = blacklist ?? defaultBlacklist;
 
-    for (final b in blacklist) {
-      if (lowerName.contains(b)) return true;
+    for (final b in activeBlacklist) {
+      final cleanB = b.trim().toLowerCase();
+      if (cleanB.isEmpty) continue;
+      if (lowerQ.contains(cleanB)) continue; // user specifically searched for this keyword
+      if (lowerName.contains(cleanB)) return true;
     }
 
     if (allTypes.contains('convenience_store') ||

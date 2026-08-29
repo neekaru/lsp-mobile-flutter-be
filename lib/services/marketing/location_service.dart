@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geocode_cache/geocode_cache.dart';
 import 'package:geocoding/geocoding.dart' as native_geo;
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -30,6 +31,25 @@ class LocationService {
   // Default fallback center: Jakarta (DKI Jakarta)
   static const double defaultLat = -6.2088;
   static const double defaultLng = 106.8456;
+
+  static bool _cacheInitialized = false;
+
+  static Future<void> _ensureCacheInit() async {
+    if (!_cacheInitialized) {
+      try {
+        GeocodingService.instance.configure(
+          options: const GeocodeCacheOptions(
+            cacheRadiusMeters: 50.0,
+            maxAge: Duration(days: 7),
+          ),
+        );
+      } catch (_) {}
+      try {
+        await GeocodingService.instance.init();
+        _cacheInitialized = true;
+      } catch (_) {}
+    }
+  }
 
   /// Request GPS permission and get current device position with native GPS & Jakarta fallback
   static Future<UserGeoLocation> getCurrentLocation() async {
@@ -94,10 +114,10 @@ class LocationService {
       lng = defaultLng;
     }
 
-    // Resolve real city name via Native Android/iOS Geocoder or Google Maps API
+    // Resolve real city name via GeocodingService (geocode_cache) + Native Android/iOS Geocoder or Google Maps API
     final realName = await getRealLocationName(lat, lng);
     if (kDebugMode) {
-      debugPrint('📍 Native Location resolved: $lat, $lng ($realName)');
+      debugPrint('📍 Geocoded Location resolved: $lat, $lng ($realName)');
     }
 
     return UserGeoLocation(
@@ -107,9 +127,35 @@ class LocationService {
     );
   }
 
-  /// Resolve exact City / Kabupaten using Native OS Geocoder (Android Geocoder / iOS CLGeocoder) + Google Maps fallback
+  /// Resolve exact City / Kabupaten using geocode_cache + Native OS Geocoder + Google Maps fallback
   static Future<String> getRealLocationName(double lat, double lng) async {
-    // 1. Native OS Geocoder (android.location.Geocoder / CLGeocoder)
+    // 1. geocode_cache (GeocodingService) with 50m radius caching to save API calls
+    try {
+      await _ensureCacheInit();
+      final place = await GeocodingService.instance
+          .getPlacemarkFromCoordinates(lat, lng);
+      if (place != null) {
+        final locality = place.locality;
+        final subAdmin = place.subAdministrativeArea;
+        final admin = place.administrativeArea;
+
+        if (locality != null && locality.isNotEmpty) {
+          return subAdmin != null && subAdmin.isNotEmpty
+              ? '$locality, $subAdmin'
+              : locality;
+        }
+        if (subAdmin != null && subAdmin.isNotEmpty) {
+          return subAdmin;
+        }
+        if (admin != null && admin.isNotEmpty) {
+          return admin;
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ GeocodingService cache fallback: $e');
+    }
+
+    // 2. Direct native_geo fallback
     try {
       final placemarks = await native_geo.placemarkFromCoordinates(lat, lng);
       if (placemarks.isNotEmpty) {
@@ -130,11 +176,9 @@ class LocationService {
           return admin;
         }
       }
-    } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Native geocoder fallback to Google API: $e');
-    }
+    } catch (_) {}
 
-    // 2. Official Google Maps Geocoding API Fallback
+    // 3. Official Google Maps Geocoding API Fallback
     try {
       final url =
           'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&language=id&key=$apiKey';
