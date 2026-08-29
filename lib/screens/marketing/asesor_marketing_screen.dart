@@ -84,7 +84,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
       });
     }
     _fetchPlaces(
-      query: 'SMK Sekolah Universitas Kampus',
+      query: 'SMK Kampus BLK LPK Dinas',
       latitude: loc.latitude,
       longitude: loc.longitude,
     );
@@ -439,22 +439,22 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     });
     String q = category;
     if (category == 'Semua') {
-      q = 'SMK Sekolah Universitas Kampus';
+      q = 'SMK Kampus BLK LPK Dinas';
       _searchController.clear();
     } else if (category == 'Kampus') {
-      q = 'Universitas Kampus Politeknik';
+      q = 'Kampus';
       _searchController.text = 'Kampus';
     } else if (category == 'BLK') {
-      q = 'Balai Latihan Kerja BLK';
+      q = 'BLK';
       _searchController.text = 'BLK';
     } else if (category == 'LPK') {
-      q = 'LPK Pelatihan Kerja';
+      q = 'LPK';
       _searchController.text = 'LPK';
     } else if (category == 'Dinas Pemda') {
-      q = 'Dinas Kantor Pemerintah';
-      _searchController.text = 'Dinas Pemda';
+      q = 'Dinas';
+      _searchController.text = 'Dinas';
     } else if (category == 'Perusahaan Swasta') {
-      q = 'PT Industri';
+      q = 'Perusahaan';
       _searchController.text = 'Perusahaan';
     } else {
       _searchController.text = category;

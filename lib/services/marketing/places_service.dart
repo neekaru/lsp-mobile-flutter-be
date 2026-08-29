@@ -28,7 +28,7 @@ class PlacesService {
     return _sdk!;
   }
 
-  /// Search places with customizable radius, retail noise filtering, and category preferences
+  /// Search places with pure keyword query, natural proximity sorting, and custom filtering
   static Future<List<PlaceResult>> searchPlaces({
     required String query,
     double? latitude,
@@ -42,7 +42,7 @@ class PlacesService {
 
     List<PlaceResult> results = [];
 
-    // 1. Native Google Places SDK Plus (searchByText & findAutocompletePredictions with query keyword)
+    // 1. Native Google Places SDK Plus (searchByText & findAutocompletePredictions)
     try {
       final nativeResults = await _searchGooglePlacesNativeSdk(
         query: cleanQuery,
@@ -57,7 +57,7 @@ class PlacesService {
       if (kDebugMode) debugPrint('⚠️ Google Places SDK Plus Error: $e');
     }
 
-    // 2. Try Google Places API (New Text Search v1 with circle radius)
+    // 2. Try Google Places API (New Text Search v1)
     if (results.isEmpty) {
       try {
         final googleNewResults = await _searchGooglePlacesNew(
@@ -107,7 +107,7 @@ class PlacesService {
       }
     }
 
-    // 4. Try Live OpenStreetMap Nominatim Global Search (Accurate POI Search with Query)
+    // 4. Try Live OpenStreetMap Nominatim Global Search
     if (results.isEmpty) {
       try {
         final osmResults = await _searchLiveNominatim(
@@ -140,7 +140,7 @@ class PlacesService {
       }
     }
 
-    // Filter out irrelevant places if retail filter is enabled
+    // Filter out retail noise if enabled
     if (filterRetail) {
       results =
           results.where((p) => !_isIrrelevantPlace(p, cleanQuery)).toList();
@@ -155,23 +155,16 @@ class PlacesService {
       }).toList();
     }
 
-    // Sort strictly: Priority Category (SMK -> Kampus -> BLK -> LPK -> Dinas -> PT), then by Distance Ascending
-    results.sort((a, b) {
-      final prioA = _getCategoryPriority(a);
-      final prioB = _getCategoryPriority(b);
-      if (prioA != prioB) {
-        return prioA.compareTo(prioB);
-      }
-
-      if (latitude != null && longitude != null) {
+    // Pure natural sorting by distance ascending (closest places first)
+    if (latitude != null && longitude != null && results.isNotEmpty) {
+      results.sort((a, b) {
         final distA = LocationService.distanceInMeters(
             latitude, longitude, a.latitude, a.longitude);
         final distB = LocationService.distanceInMeters(
             latitude, longitude, b.latitude, b.longitude);
         return distA.compareTo(distB);
-      }
-      return 0;
-    });
+      });
+    }
 
     return results;
   }
@@ -183,7 +176,7 @@ class PlacesService {
     double? longitude,
     int radius = 12000,
   }) async {
-    // 1A. SearchByText with User Query and Proximity Bias
+    // 1A. SearchByText with pure user keyword
     try {
       final delta = (radius / 100000.0).clamp(0.03, 0.5);
       final response = await sdk.searchByText(
@@ -228,7 +221,7 @@ class PlacesService {
             rating: p.rating ?? 4.8,
             userRatingsTotal: p.userRatingsTotal ?? 100,
             types: types,
-            inferredCategory: _inferCategory(name, address, types),
+            inferredCategory: inferCategory(name, address, types),
             phoneNumber: p.phoneNumber ?? '',
             website: p.websiteUri?.toString() ?? '',
           );
@@ -238,7 +231,7 @@ class PlacesService {
       if (kDebugMode) debugPrint('⚠️ searchByText failed: $e');
     }
 
-    // 1B. Fallback to Autocomplete Predictions with User Query
+    // 1B. Fallback to Autocomplete Predictions
     try {
       final delta = (radius / 100000.0).clamp(0.03, 0.5);
       final predResponse = await sdk.findAutocompletePredictions(
@@ -297,7 +290,7 @@ class PlacesService {
                   rating: p.rating ?? 4.8,
                   userRatingsTotal: p.userRatingsTotal ?? 100,
                   types: types,
-                  inferredCategory: _inferCategory(name, address, types),
+                  inferredCategory: inferCategory(name, address, types),
                   phoneNumber: p.phoneNumber ?? '',
                   website: p.websiteUri?.toString() ?? '',
                 ),
@@ -387,7 +380,7 @@ class PlacesService {
           rating: rating,
           userRatingsTotal: count,
           types: types,
-          inferredCategory: _inferCategory(name, address, types),
+          inferredCategory: inferCategory(name, address, types),
           phoneNumber: phone,
           website: website,
           photoReference: photoRef,
@@ -407,7 +400,7 @@ class PlacesService {
     String q = query.trim();
     final lower = q.toLowerCase();
 
-    // Expansion for common Indonesian acronyms & categories
+    // Expansion for common Indonesian acronyms
     if (lower == 'ugm') {
       q = 'Universitas Gadjah Mada';
     } else if (lower == 'uny') {
@@ -418,16 +411,12 @@ class PlacesService {
       q = 'Universitas Indonesia';
     } else if (lower == 'itb') {
       q = 'Institut Teknologi Bandung';
-    } else if (lower == 'kampus') {
-      q = 'Universitas Kampus';
-    } else if (lower == 'blk') {
-      q = 'Balai Latihan Kerja';
-    } else if (lower == 'lpk') {
-      q = 'Lembaga Pelatihan Kerja';
-    } else if (lower == 'dinas pemda') {
-      q = 'Dinas Kantor Pemerintah';
-    } else if (lower == 'perusahaan swasta') {
-      q = 'PT Kantor';
+    } else if (lower == 'undip') {
+      q = 'Universitas Diponegoro';
+    } else if (lower == 'uad') {
+      q = 'Universitas Ahmad Dahlan';
+    } else if (lower == 'umy') {
+      q = 'Universitas Muhammadiyah Yogyakarta';
     }
 
     String url =
@@ -477,7 +466,7 @@ class PlacesService {
             userRatingsTotal: 120,
             types: [type, category],
             inferredCategory:
-                _inferCategory(name, displayName, [type, category]),
+                inferCategory(name, displayName, [type, category]),
           );
         }).where((p) => p.latitude != 0.0 && p.longitude != 0.0).toList();
       }
@@ -493,16 +482,10 @@ class PlacesService {
   }) async {
     String q = query.trim();
     final lower = q.toLowerCase();
-    if (lower == 'kampus') {
-      q = 'Universitas';
-    } else if (lower == 'blk') {
-      q = 'Balai Latihan Kerja';
-    } else if (lower == 'lpk') {
-      q = 'Pelatihan Kerja';
-    } else if (lower == 'dinas pemda') {
-      q = 'Dinas';
-    } else if (lower == 'perusahaan swasta') {
-      q = 'PT';
+    if (lower == 'ugm') {
+      q = 'Universitas Gadjah Mada';
+    } else if (lower == 'uny') {
+      q = 'Universitas Negeri Yogyakarta';
     }
 
     String url =
@@ -556,7 +539,7 @@ class PlacesService {
           rating: 4.7,
           userRatingsTotal: 80,
           types: [props['osm_value']?.toString() ?? ''],
-          inferredCategory: _inferCategory(name, fullAddress, [
+          inferredCategory: inferCategory(name, fullAddress, [
             props['osm_key']?.toString() ?? '',
             props['osm_value']?.toString() ?? ''
           ]),
@@ -566,10 +549,9 @@ class PlacesService {
     return [];
   }
 
-  /// Check if place is random consumer retail (swalayan, warung, laundry, etc.) that pollutes LSP leads
+  /// Check if place is random consumer retail (swalayan, warung, laundry, etc.)
   static bool _isIrrelevantPlace(PlaceResult p, String rawQuery) {
     final lowerQ = rawQuery.toLowerCase();
-    // If user explicitly searched for it, keep it
     if (lowerQ.contains('swalayan') ||
         lowerQ.contains('toko') ||
         lowerQ.contains('mart') ||
@@ -650,97 +632,48 @@ class PlacesService {
     return false;
   }
 
-  /// Assign strict priority ranking for LSP target institutions
-  static int _getCategoryPriority(PlaceResult p) {
-    final cat = p.inferredCategory.toLowerCase();
-    final name = p.name.toLowerCase();
-
-    // 1. SMK & Sekolah
-    if (name.contains('smk') ||
-        name.contains('kejuruan') ||
-        name.contains('vokasi') ||
-        cat == 'smk') {
-      return 1;
-    }
-
-    // 2. Universitas & Kampus
-    if (name.contains('universitas') ||
-        name.contains('kampus') ||
-        name.contains('institut') ||
-        name.contains('politeknik') ||
-        name.contains('akademi') ||
-        cat == 'kampus') {
-      return 2;
-    }
-
-    // 3. Balai Latihan Kerja (BLK)
-    if (name.contains('blk') ||
-        name.contains('balai latihan') ||
-        cat == 'blk') {
-      return 3;
-    }
-
-    // 4. Lembaga Pelatihan Kerja (LPK)
-    if (name.contains('lpk') ||
-        name.contains('kursus') ||
-        name.contains('pelatihan') ||
-        cat == 'lpk') {
-      return 4;
-    }
-
-    // 5. Dinas Pemerintah
-    if (name.contains('dinas') ||
-        name.contains('badan') ||
-        name.contains('kementerian') ||
-        name.contains('kantor pemerintah') ||
-        cat == 'dinas pemda') {
-      return 5;
-    }
-
-    // 6. Perusahaan Swasta (PT, CV)
-    if (name.contains('pt ') ||
-        name.contains('pt.') ||
-        name.contains('cv ') ||
-        name.contains('persero') ||
-        name.contains('industri') ||
-        cat == 'perusahaan swasta') {
-      return 6;
-    }
-
-    return 7;
-  }
-
-  static String _inferCategory(
+  /// Dynamic Category Inferrer (Exposed for Advanced Search & Tagging)
+  static String inferCategory(
       String name, String address, List<String> types) {
     final full = '$name $address ${types.join(" ")}'.toLowerCase();
-    if (full.contains('universitas') ||
-        full.contains('institut') ||
-        full.contains('politeknik') ||
-        full.contains('kampus') ||
-        full.contains('college') ||
-        full.contains('ugm') ||
-        full.contains('uny') ||
-        full.contains('uin') ||
-        full.contains('gadjah mada') ||
-        full.contains('akademi') ||
-        full.contains('university')) {
-      return 'Kampus';
-    } else if (full.contains('smk') ||
+
+    // 1. SMK & Sekolah Menengah Kejuruan
+    if (full.contains('smk') ||
         full.contains('kejuruan') ||
         full.contains('vokasi') ||
         full.contains('sekolah') ||
         full.contains('school')) {
       return 'SMK';
-    } else if (full.contains('blk') ||
+    }
+
+    // 2. Kampus, Universitas, Institut, Politeknik, Akademi
+    if (full.contains('universitas') ||
+        full.contains('kampus') ||
+        full.contains('institut') ||
+        full.contains('politeknik') ||
+        full.contains('college') ||
+        full.contains('akademi') ||
+        full.contains('university')) {
+      return 'Kampus';
+    }
+
+    // 3. Balai Latihan Kerja (BLK)
+    if (full.contains('blk') ||
         full.contains('balai latihan') ||
         full.contains('pelatihan kerja')) {
       return 'BLK';
-    } else if (full.contains('lpk') ||
+    }
+
+    // 4. Lembaga Pelatihan Kerja (LPK)
+    if (full.contains('lpk') ||
         full.contains('lkp') ||
         full.contains('kursus') ||
         full.contains('training center')) {
       return 'LPK';
-    } else if (full.contains('dinas') ||
+    }
+
+    // 5. Dinas Pemerintah
+    if (full.contains('dinas') ||
         full.contains('kementerian') ||
         full.contains('badan') ||
         full.contains('kantor') ||
@@ -748,6 +681,8 @@ class PlacesService {
         full.contains('government')) {
       return 'Dinas Pemda';
     }
+
+    // 6. Default Perusahaan Swasta (PT/CV)
     return 'Perusahaan Swasta';
   }
 
