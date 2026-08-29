@@ -16,7 +16,11 @@ class UserGeoLocation {
 }
 
 class LocationService {
-  /// Request GPS permission and get current device position with accurate reverse geocoding
+  // Default fallback center: Jakarta (DKI Jakarta)
+  static const double defaultLat = -6.2088;
+  static const double defaultLng = 106.8456;
+
+  /// Request GPS permission and get current device position with live GPS & Jakarta fallback
   static Future<UserGeoLocation> getCurrentLocation() async {
     double lat = 0.0;
     double lng = 0.0;
@@ -32,7 +36,7 @@ class LocationService {
         permission = await Geolocator.requestPermission();
       }
 
-      // 1. Try active high accuracy GPS first
+      // 1. Try active live GPS first
       Position? position;
       try {
         position = await Geolocator.getCurrentPosition(
@@ -56,13 +60,13 @@ class LocationService {
       if (kDebugMode) debugPrint('⚠️ Error reading GPS: $e');
     }
 
-    // If still 0, fallback to standard Sampit coordinates
+    // If GPS is unavailable/denied, fallback to Jakarta
     if (lat == 0.0 && lng == 0.0) {
-      lat = -2.5360;
-      lng = 112.9540;
+      lat = defaultLat;
+      lng = defaultLng;
     }
 
-    // Pure dynamic reverse geocoding to get real city/kabupaten name (No hardcoded boundaries)
+    // Pure dynamic reverse geocoding to get real city/kabupaten name
     final realName = await getRealLocationName(lat, lng);
 
     return UserGeoLocation(

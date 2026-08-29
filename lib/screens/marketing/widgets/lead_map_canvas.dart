@@ -34,8 +34,8 @@ class LeadMapCanvas extends StatefulWidget {
 class _LeadMapCanvasState extends State<LeadMapCanvas> {
   GoogleMapController? _mapController;
 
-  // Default Center (Yogyakarta fallback)
-  static const LatLng _defaultCenter = LatLng(-7.7956, 110.3695);
+  // Default Center (Jakarta fallback)
+  static const LatLng _defaultCenter = LatLng(-6.2088, 106.8456);
 
   Set<Marker> _buildMarkers() {
     final Set<Marker> markers = {};

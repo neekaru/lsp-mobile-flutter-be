@@ -300,7 +300,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // 2. Radius Jangkauan Pencarian
+                  // 2. Radius Jangkauan Pencarian (Custom Slider & Quick Chips)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -311,26 +311,47 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF1E293B)),
                       ),
-                      Text(
-                        '$_searchRadiusKm km',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2563EB),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                        ),
+                        child: Text(
+                          '$_searchRadiusKm km',
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2563EB),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  Slider(
+                    value: _searchRadiusKm.toDouble().clamp(1.0, 100.0),
+                    min: 1.0,
+                    max: 100.0,
+                    divisions: 99,
+                    activeColor: const Color(0xFF2563EB),
+                    inactiveColor: const Color(0xFFE2E8F0),
+                    label: '$_searchRadiusKm km',
+                    onChanged: (val) {
+                      setModalState(() => _searchRadiusKm = val.round());
+                      setState(() => _searchRadiusKm = val.round());
+                    },
+                  ),
                   Wrap(
-                    spacing: 8,
+                    spacing: 6,
                     runSpacing: 6,
-                    children: [3, 5, 8, 12, 15, 25, 50].map((r) {
+                    children: [3, 5, 8, 12, 15, 25, 50, 75, 100].map((r) {
                       final isSelected = _searchRadiusKm == r;
                       return ChoiceChip(
                         label: Text('$r km',
                             style: TextStyle(
-                                fontSize: 11.5,
+                                fontSize: 11,
                                 fontWeight: isSelected
                                     ? FontWeight.bold
                                     : FontWeight.normal)),
@@ -351,9 +372,9 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // 3. Kategori Institusi Sasaran
+                  // 3. Kategori Institusi Sasaran & Saran Tambahan
                   const Text(
-                    'Kategori Institusi Sasaran',
+                    'Kategori Institusi Sasaran (Dapat Ditambah)',
                     style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -361,41 +382,66 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                   ),
                   const SizedBox(height: 8),
                   Wrap(
-                    spacing: 8,
+                    spacing: 6,
                     runSpacing: 6,
-                    children: [
-                      'SMK',
-                      'Kampus',
-                      'BLK',
-                      'LPK',
-                      'Dinas Pemda',
-                      'Perusahaan Swasta',
-                    ].map((cat) {
-                      final isChecked =
-                          _customAllowedCategories.contains(cat);
+                    children: _customAllowedCategories.map((cat) {
                       return FilterChip(
                         label: Text(cat,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 11.5,
-                                color: isChecked
-                                    ? const Color(0xFF2563EB)
-                                    : const Color(0xFF475569))),
-                        selected: isChecked,
+                                color: Color(0xFF2563EB),
+                                fontWeight: FontWeight.bold)),
+                        selected: true,
                         selectedColor: const Color(0xFFEFF6FF),
                         checkmarkColor: const Color(0xFF2563EB),
-                        side: BorderSide(
-                            color: isChecked
-                                ? const Color(0xFF2563EB)
-                                : const Color(0xFFE2E8F0)),
-                        onSelected: (selected) {
+                        side: const BorderSide(color: Color(0xFF2563EB)),
+                        onSelected: (_) {
                           setModalState(() {
-                            if (selected) {
-                              _customAllowedCategories.add(cat);
-                            } else {
-                              if (_customAllowedCategories.length > 1) {
-                                _customAllowedCategories.remove(cat);
-                              }
+                            if (_customAllowedCategories.length > 1) {
+                              _customAllowedCategories.remove(cat);
                             }
+                          });
+                          setState(() {});
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Saran Kategori Tambahan
+                  const Text(
+                    '+ Saran Kategori Tambahan:',
+                    style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF64748B)),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      'SMA',
+                      'Politeknik',
+                      'BUMN',
+                      'Rumah Sakit',
+                      'Hotel',
+                      'Yayasan',
+                      'Pondok Pesantren',
+                      'Balai Diklat',
+                    ]
+                        .where((s) => !_customAllowedCategories.contains(s))
+                        .map((sug) {
+                      return ActionChip(
+                        avatar: const Icon(Icons.add,
+                            size: 13, color: Color(0xFF2563EB)),
+                        label: Text(sug,
+                            style: const TextStyle(
+                                fontSize: 11, color: Color(0xFF334155))),
+                        backgroundColor: const Color(0xFFF1F5F9),
+                        onPressed: () {
+                          setModalState(() {
+                            _customAllowedCategories.add(sug);
                           });
                           setState(() {});
                         },
