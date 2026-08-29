@@ -259,11 +259,33 @@ class PlacesService {
     ];
 
     String cleanQ = lowerQ.replaceAll('terdekat', '').trim();
-    if (cleanQ.isEmpty || cleanQ == 'semua') {
-      return allPlaces;
+
+    // Proximity filter: if coordinate is given and query doesn't specify a distant city
+    List<PlaceResult> candidatePlaces = allPlaces;
+    if (lat != null &&
+        lng != null &&
+        !cleanQ.contains('sampit') &&
+        !cleanQ.contains('jogja') &&
+        !cleanQ.contains('sleman') &&
+        !cleanQ.contains('bantul')) {
+      // Yogyakarta & surrounding area
+      if (lat < -6.0 && lng < 112.0) {
+        candidatePlaces = allPlaces
+            .where((p) => p.latitude < -6.0 && p.longitude < 112.0)
+            .toList();
+      } else if (lat > -4.0 && lng > 111.0) {
+        // Sampit / Kalimantan Tengah
+        candidatePlaces = allPlaces
+            .where((p) => p.latitude > -4.0 && p.longitude > 111.0)
+            .toList();
+      }
     }
 
-    return allPlaces.where((p) {
+    if (cleanQ.isEmpty || cleanQ == 'semua') {
+      return candidatePlaces;
+    }
+
+    return candidatePlaces.where((p) {
       final name = p.name.toLowerCase();
       final address = p.formattedAddress.toLowerCase();
       final category = p.inferredCategory.toLowerCase();

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../models/lead_model.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../services/marketing/lead_storage_service.dart';
+import '../../services/marketing/location_service.dart';
 import '../../services/marketing/places_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import 'lead_detail_screen.dart';
@@ -32,6 +33,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
   bool _isLoadingPlaces = false;
   List<PlaceResult> _places = [];
   PlaceResult? _selectedPlace;
+  UserGeoLocation? _userLocation;
 
   // CRM Leads state
   bool _isLoadingLeads = false;
@@ -62,7 +64,31 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
 
   Future<void> _loadInitialData() async {
     await _loadSavedLeads();
-    _fetchPlaces(query: 'SMK');
+    final loc = await LocationService.getCurrentLocation();
+    if (mounted) {
+      setState(() {
+        _userLocation = loc;
+      });
+    }
+    _fetchPlaces(
+      query: 'SMK',
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+    );
+  }
+
+  Future<void> _handleMyLocation() async {
+    final loc = await LocationService.getCurrentLocation();
+    if (mounted) {
+      setState(() {
+        _userLocation = loc;
+      });
+    }
+    await _fetchPlaces(
+      query: _searchController.text.trim(),
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+    );
   }
 
   Future<void> _loadSavedLeads() async {
@@ -86,7 +112,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     }
   }
 
-  Future<void> _fetchPlaces({String? query}) async {
+  Future<void> _fetchPlaces({String? query, double? latitude, double? longitude}) async {
     final q = query ?? _searchController.text.trim();
     if (q.isEmpty) return;
 
@@ -94,7 +120,14 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
       _isLoadingPlaces = true;
     });
 
-    final results = await PlacesService.searchPlaces(query: q);
+    final lat = latitude ?? _userLocation?.latitude;
+    final lng = longitude ?? _userLocation?.longitude;
+
+    final results = await PlacesService.searchPlaces(
+      query: q,
+      latitude: lat,
+      longitude: lng,
+    );
 
     if (mounted) {
       setState(() {
@@ -414,6 +447,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
           child: LeadMapCanvas(
             places: _places,
             selectedPlace: _selectedPlace,
+            userLocation: _userLocation,
             isLoading: _isLoadingPlaces,
             onSelectPlace: (place) {
               setState(() {
@@ -421,6 +455,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
               });
             },
             onSearchArea: () => _fetchPlaces(),
+            onMyLocationPressed: _handleMyLocation,
           ),
         ),
 
@@ -568,9 +603,17 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                   else
                     ..._places.map((place) {
                       final isSaved = _savedPlaceIds.contains(place.placeId);
+                      final isSelected =
+                          _selectedPlace?.placeId == place.placeId;
                       return PlaceSearchCard(
                         place: place,
                         isSaved: isSaved,
+                        isSelected: isSelected,
+                        onTap: () {
+                          setState(() {
+                            _selectedPlace = place;
+                          });
+                        },
                         onSaveLead: () => _handleSavePlaceToLead(place),
                         onDirectPitch: () {
                           final dummyLead = place.toLeadModel(_idAsesor);
