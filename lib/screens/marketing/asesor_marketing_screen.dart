@@ -785,146 +785,157 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
             title: 'Marketing & Lead Generator',
             onBack: widget.onBackToHome,
             rightWidget: _selectedMode == 1
-                ? IconButton(
-                    icon: const Icon(Icons.add_circle_outline_rounded,
-                        color: Color(0xFF2563EB)),
-                    onPressed: _showAddCustomLeadDialog,
-                    tooltip: 'Tambah Mitra Manual',
-                  )
-                : PopupMenuButton<String>(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 8,
-                    shadowColor: Colors.black26,
-                    icon: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                ? GestureDetector(
+                    onTap: _showAddCustomLeadDialog,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: Colors.black,
+                        shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Icons.more_vert_rounded,
-                        color: Color(0xFF1E293B),
+                        Icons.add_rounded,
+                        color: Colors.white,
                         size: 20,
                       ),
                     ),
-                    tooltip: 'Menu Opsi & Filter',
-                    onSelected: (value) {
-                      if (value == 'advanced_filter') {
-                        _showSearchFilterModal();
-                      } else if (value == 'refresh_gps') {
-                        _handleMyLocation();
-                      } else if (value == 'clear_cache') {
-                        PlacesService.clearSearchCache();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                                'Cache pencarian tempat berhasil dibersihkan'),
-                            duration: Duration(seconds: 2),
-                            behavior: SnackBarBehavior.floating,
+                  )
+                : Container(
+                    width: 32,
+                    height: 32,
+                    decoration: const BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                    ),
+                    child: PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      tooltip: 'Menu Opsi & Filter',
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 8,
+                      shadowColor: Colors.black26,
+                      icon: const Icon(
+                        Icons.more_vert_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      onSelected: (value) {
+                        if (value == 'advanced_filter') {
+                          _showSearchFilterModal();
+                        } else if (value == 'refresh_gps') {
+                          _handleMyLocation();
+                        } else if (value == 'clear_cache') {
+                          PlacesService.clearSearchCache();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Cache pencarian tempat berhasil dibersihkan'),
+                              duration: Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      },
+                      itemBuilder: (ctx) => [
+                        PopupMenuItem(
+                          value: 'advanced_filter',
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.tune_rounded,
+                                    color: Color(0xFF2563EB), size: 18),
+                              ),
+                              const SizedBox(width: 12),
+                              const Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Filter & Blacklist',
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1E293B))),
+                                  Text('Radius, kategori & pengecualian',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF64748B))),
+                                ],
+                              ),
+                            ],
                           ),
-                        );
-                      }
-                    },
-                    itemBuilder: (ctx) => [
-                      PopupMenuItem(
-                        value: 'advanced_filter',
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.tune_rounded,
-                                  color: Color(0xFF2563EB), size: 18),
-                            ),
-                            const SizedBox(width: 12),
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Filter & Blacklist',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E293B))),
-                                Text('Radius, kategori & pengecualian',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        color: Color(0xFF64748B))),
-                              ],
-                            ),
-                          ],
                         ),
-                      ),
-                      const PopupMenuDivider(height: 1),
-                      PopupMenuItem(
-                        value: 'refresh_gps',
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF0FDF4),
-                                borderRadius: BorderRadius.circular(8),
+                        const PopupMenuDivider(height: 1),
+                        PopupMenuItem(
+                          value: 'refresh_gps',
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF0FDF4),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.my_location_rounded,
+                                    color: Color(0xFF10B981), size: 18),
                               ),
-                              child: const Icon(Icons.my_location_rounded,
-                                  color: Color(0xFF10B981), size: 18),
-                            ),
-                            const SizedBox(width: 12),
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Sinkronkan Lokasi GPS',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E293B))),
-                                Text('Ambil posisi live perangkat',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        color: Color(0xFF64748B))),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuDivider(height: 1),
-                      PopupMenuItem(
-                        value: 'clear_cache',
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFFBEB),
-                                borderRadius: BorderRadius.circular(8),
+                              const SizedBox(width: 12),
+                              const Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Sinkronkan Lokasi GPS',
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1E293B))),
+                                  Text('Ambil posisi live perangkat',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF64748B))),
+                                ],
                               ),
-                              child: const Icon(Icons.cached_rounded,
-                                  color: Color(0xFFD97706), size: 18),
-                            ),
-                            const SizedBox(width: 12),
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Bersihkan Cache',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E293B))),
-                                Text('Muat ulang data server segar',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        color: Color(0xFF64748B))),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        const PopupMenuDivider(height: 1),
+                        PopupMenuItem(
+                          value: 'clear_cache',
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFFBEB),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.cached_rounded,
+                                    color: Color(0xFFD97706), size: 18),
+                              ),
+                              const SizedBox(width: 12),
+                              const Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Bersihkan Cache',
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1E293B))),
+                                  Text('Muat ulang data server segar',
+                                      style: TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF64748B))),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
           ),
 
