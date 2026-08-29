@@ -188,22 +188,22 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
+        final screenHeight = MediaQuery.of(ctx).size.height;
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final mediaQuery = MediaQuery.of(context);
+            final bottomInset = MediaQuery.of(context).viewInsets.bottom;
             return Container(
               constraints: BoxConstraints(
-                maxHeight: mediaQuery.size.height * 0.88,
+                maxHeight: screenHeight * 0.88,
               ),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
-              padding: EdgeInsets.fromLTRB(
-                  20, 16, 20, mediaQuery.viewInsets.bottom + 20),
+              padding: EdgeInsets.fromLTRB(20, 16, 20, bottomInset + 20),
               child: SafeArea(
                 child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -452,7 +452,6 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                         divisions: 99,
                         activeColor: const Color(0xFF2563EB),
                         inactiveColor: const Color(0xFFE2E8F0),
-                        label: '$tempRadiusKm km',
                         onChanged: (val) {
                           setModalState(() => tempRadiusKm = val.round());
                         },

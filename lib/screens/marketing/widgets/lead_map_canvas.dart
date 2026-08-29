@@ -148,7 +148,6 @@ class _LeadMapCanvasState extends State<LeadMapCanvas> {
       zoomControlsEnabled: false,
       mapToolbarEnabled: false,
       compassEnabled: true,
-      onCameraMove: (_) {},
     );
   }
 }
