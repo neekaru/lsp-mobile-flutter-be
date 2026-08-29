@@ -27,6 +27,7 @@ dependencies:
   material_ui: ^1.1.0
   google_maps_flutter: ^2.18.0
   geolocator: ^14.0.3
+  geocoding: ^3.0.0
   google_places_sdk_plus: ^1.1.0
 dev_dependencies:
   flutter_test:

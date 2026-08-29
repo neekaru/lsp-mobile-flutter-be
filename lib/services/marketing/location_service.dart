@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geocoding/geocoding.dart' as native_geo;
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
@@ -30,7 +31,7 @@ class LocationService {
   static const double defaultLat = -6.2088;
   static const double defaultLng = 106.8456;
 
-  /// Request GPS permission and get current device position with live GPS & Jakarta fallback
+  /// Request GPS permission and get current device position with native GPS & Jakarta fallback
   static Future<UserGeoLocation> getCurrentLocation() async {
     double lat = 0.0;
     double lng = 0.0;
@@ -46,6 +47,10 @@ class LocationService {
         permission = await Geolocator.requestPermission();
       }
 
+      if (permission == LocationPermission.deniedForever) {
+        if (kDebugMode) debugPrint('⚠️ Location permission permanently denied.');
+      }
+
       Position? position;
 
       // 1. Try instant cached last known position first (1ms fast fix)
@@ -59,7 +64,7 @@ class LocationService {
           position = await Geolocator.getCurrentPosition(
             locationSettings: const LocationSettings(
               accuracy: LocationAccuracy.best,
-              timeLimit: Duration(seconds: 12),
+              timeLimit: Duration(seconds: 10),
             ),
           );
         } catch (_) {
@@ -68,7 +73,7 @@ class LocationService {
             position = await Geolocator.getCurrentPosition(
               locationSettings: const LocationSettings(
                 accuracy: LocationAccuracy.medium,
-                timeLimit: Duration(seconds: 8),
+                timeLimit: Duration(seconds: 6),
               ),
             );
           } catch (_) {}
@@ -89,10 +94,10 @@ class LocationService {
       lng = defaultLng;
     }
 
-    // Official Google Maps Reverse Geocoding
+    // Resolve real city name via Native Android/iOS Geocoder or Google Maps API
     final realName = await getRealLocationName(lat, lng);
     if (kDebugMode) {
-      debugPrint('📍 Google GPS resolved: $lat, $lng ($realName)');
+      debugPrint('📍 Native Location resolved: $lat, $lng ($realName)');
     }
 
     return UserGeoLocation(
@@ -102,8 +107,34 @@ class LocationService {
     );
   }
 
-  /// Official Google Maps Reverse Geocoding to resolve exact City / Kabupaten
+  /// Resolve exact City / Kabupaten using Native OS Geocoder (Android Geocoder / iOS CLGeocoder) + Google Maps fallback
   static Future<String> getRealLocationName(double lat, double lng) async {
+    // 1. Native OS Geocoder (android.location.Geocoder / CLGeocoder)
+    try {
+      final placemarks = await native_geo.placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final locality = place.locality;
+        final subAdmin = place.subAdministrativeArea;
+        final admin = place.administrativeArea;
+
+        if (locality != null && locality.isNotEmpty) {
+          return subAdmin != null && subAdmin.isNotEmpty
+              ? '$locality, $subAdmin'
+              : locality;
+        }
+        if (subAdmin != null && subAdmin.isNotEmpty) {
+          return subAdmin;
+        }
+        if (admin != null && admin.isNotEmpty) {
+          return admin;
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ Native geocoder fallback to Google API: $e');
+    }
+
+    // 2. Official Google Maps Geocoding API Fallback
     try {
       final url =
           'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&language=id&key=$apiKey';
@@ -153,7 +184,6 @@ class LocationService {
             }
           }
 
-          // Fallback to short formatted address
           if (results.isNotEmpty) {
             final firstAddr =
                 results.first['formatted_address']?.toString() ?? '';

@@ -169,6 +169,202 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     }
   }
 
+  void _showRetailBlacklistModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle Bar
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFCBD5E1),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+
+                  // Header Title
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.cleaning_services_rounded,
+                              color: Color(0xFF10B981), size: 22),
+                          SizedBox(width: 8),
+                          Text(
+                            'Saring Sampah Ritel & Toko',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Switch(
+                        value: _filterRetailNoise,
+                        activeThumbColor: const Color(0xFF10B981),
+                        onChanged: (val) {
+                          setModalState(() => _filterRetailNoise = val);
+                          setState(() => _filterRetailNoise = val);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _filterRetailNoise
+                        ? 'Status: AKTIF (Tempat ritel konsumsi publik otomatis disaring dan tidak ditampilkan di peta prospek).'
+                        : 'Status: NONAKTIF (Semua tempat publik termasuk warung & ritel diizinkan tampil).',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _filterRetailNoise
+                          ? const Color(0xFF059669)
+                          : const Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Divider(height: 24),
+
+                  const Text(
+                    'Daftar Kategori yang Dibersihkan:',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Itemized List
+                  _buildRetailCategoryItem(
+                    icon: Icons.shopping_cart_rounded,
+                    title: 'Swalayan & Minimarket',
+                    description:
+                        'Indomaret, Alfamart, Alfamidi, Supermarket, Toko Kelontong',
+                  ),
+                  _buildRetailCategoryItem(
+                    icon: Icons.restaurant_rounded,
+                    title: 'Warung Makan & Kafe',
+                    description:
+                        'Warung makan, Bakso, Mie Ayam, Cafe, Restoran, Rumah Makan',
+                  ),
+                  _buildRetailCategoryItem(
+                    icon: Icons.local_laundry_service_rounded,
+                    title: 'Jasa & Komersial Harian',
+                    description:
+                        'Laundry, Salon, Barbershop, Bengkel, Cuci Kendaraan, Konter HP',
+                  ),
+                  _buildRetailCategoryItem(
+                    icon: Icons.hotel_rounded,
+                    title: 'Penginapan & Fasilitas Umum',
+                    description:
+                        'Hotel, Homestay, Penginapan, Tempat Ibadah umum',
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Action Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _fetchPlaces();
+                      },
+                      icon: const Icon(Icons.check_rounded, size: 18),
+                      label: Text(
+                        _filterRetailNoise
+                            ? 'Terapkan (Bersihkan Peta)'
+                            : 'Terapkan (Tampilkan Semua)',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _filterRetailNoise
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildRetailCategoryItem({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: const Color(0xFF475569)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_filterRetailNoise)
+            const Icon(Icons.block_rounded, size: 16, color: Color(0xFFEF4444)),
+        ],
+      ),
+    );
+  }
+
   void _showSearchFilterModal() {
     showModalBottomSheet(
       context: context,
@@ -677,7 +873,71 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                     onPressed: _showAddCustomLeadDialog,
                     tooltip: 'Tambah Mitra Manual',
                   )
-                : const SizedBox(width: 32),
+                : PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert_rounded,
+                        color: Color(0xFF1E293B)),
+                    tooltip: 'Menu Opsi & Filter Ritel',
+                    onSelected: (value) {
+                      if (value == 'retail_filter') {
+                        _showRetailBlacklistModal();
+                      } else if (value == 'advanced_filter') {
+                        _showSearchFilterModal();
+                      } else if (value == 'refresh_gps') {
+                        _handleMyLocation();
+                      }
+                    },
+                    itemBuilder: (ctx) => [
+                      PopupMenuItem(
+                        value: 'retail_filter',
+                        child: Row(
+                          children: [
+                            Icon(
+                              _filterRetailNoise
+                                  ? Icons.cleaning_services_rounded
+                                  : Icons.store_rounded,
+                              color: _filterRetailNoise
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF64748B),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _filterRetailNoise
+                                    ? 'Filter Ritel (Aktif)'
+                                    : 'Filter Ritel (Nonaktif)',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'advanced_filter',
+                        child: Row(
+                          children: [
+                            Icon(Icons.tune_rounded,
+                                color: Color(0xFF2563EB), size: 18),
+                            SizedBox(width: 10),
+                            Text('Pengaturan Filter Lengkap',
+                                style: TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'refresh_gps',
+                        child: Row(
+                          children: [
+                            Icon(Icons.my_location_rounded,
+                                color: Color(0xFF2563EB), size: 18),
+                            SizedBox(width: 10),
+                            Text('Sinkronkan Lokasi GPS Live',
+                                style: TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
           ),
 
           // Mode Switcher Tabs (Lead Generator vs Pipeline CRM)
@@ -918,13 +1178,54 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                 ),
               ),
 
-              // Category Filter Horizontal Scroll
+              // Category Filter Horizontal Scroll + Quick Retail Filter Toggle
               SizedBox(
                 height: 36,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
+                    // Quick Direct Toggle for Filter Sampah Ritel (_isIrrelevantPlace)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ActionChip(
+                        avatar: Icon(
+                          _filterRetailNoise
+                              ? Icons.cleaning_services_rounded
+                              : Icons.store_rounded,
+                          size: 14,
+                          color: _filterRetailNoise
+                              ? Colors.white
+                              : const Color(0xFF64748B),
+                        ),
+                        label: Text(
+                          _filterRetailNoise
+                              ? 'Saring Ritel: ON'
+                              : 'Saring Ritel: OFF',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: _filterRetailNoise
+                                ? Colors.white
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                        backgroundColor: _filterRetailNoise
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFFF1F5F9),
+                        side: BorderSide(
+                          color: _filterRetailNoise
+                              ? const Color(0xFF059669)
+                              : const Color(0xFFCBD5E1),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _filterRetailNoise = !_filterRetailNoise;
+                          });
+                          _fetchPlaces();
+                        },
+                      ),
+                    ),
                     _buildCategoryChip('Semua', Icons.explore_rounded),
                     _buildCategoryChip('SMK', Icons.school_rounded),
                     _buildCategoryChip('Kampus', Icons.account_balance_rounded),
