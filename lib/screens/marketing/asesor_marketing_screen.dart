@@ -43,6 +43,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
   final TextEditingController _crmSearchController = TextEditingController();
 
   final Set<String> _savedPlaceIds = {};
+  final Set<String> _savedNames = {};
   Timer? _debounceTimer;
 
   int get _idAsesor =>
@@ -97,8 +98,12 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     final stats = await LeadStorageService.getSummaryStats(_idAsesor);
 
     final Set<String> ids = {};
+    final Set<String> names = {};
     for (final l in leads) {
       if (l.placeId.isNotEmpty) ids.add(l.placeId);
+      if (l.namaInstitusi.isNotEmpty) {
+        names.add(l.namaInstitusi.toLowerCase().trim());
+      }
     }
 
     if (mounted) {
@@ -107,6 +112,8 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
         _stats = stats;
         _savedPlaceIds.clear();
         _savedPlaceIds.addAll(ids);
+        _savedNames.clear();
+        _savedNames.addAll(names);
         _isLoadingLeads = false;
       });
     }
@@ -448,6 +455,8 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
             places: _places,
             selectedPlace: _selectedPlace,
             userLocation: _userLocation,
+            savedPlaceIds: _savedPlaceIds,
+            savedNames: _savedNames,
             isLoading: _isLoadingPlaces,
             onSelectPlace: (place) {
               setState(() {
@@ -602,7 +611,8 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                     )
                   else
                     ..._places.map((place) {
-                      final isSaved = _savedPlaceIds.contains(place.placeId);
+                      final isSaved = _savedPlaceIds.contains(place.placeId) ||
+                          _savedNames.contains(place.name.toLowerCase().trim());
                       final isSelected =
                           _selectedPlace?.placeId == place.placeId;
                       return PlaceSearchCard(
@@ -614,7 +624,11 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                             _selectedPlace = place;
                           });
                         },
-                        onSaveLead: () => _handleSavePlaceToLead(place),
+                        onSaveLead: isSaved
+                            ? () {
+                                setState(() => _selectedMode = 1);
+                              }
+                            : () => _handleSavePlaceToLead(place),
                         onDirectPitch: () {
                           final dummyLead = place.toLeadModel(_idAsesor);
                           Navigator.push(
