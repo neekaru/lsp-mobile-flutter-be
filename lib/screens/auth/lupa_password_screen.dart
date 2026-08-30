@@ -197,11 +197,11 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                 // Success State Card
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF0FDF4),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF86EFAC)),
+                    border: Border.all(color: const Color(0xFF86EFAC), width: 1.2),
                   ),
                   child: Column(
                     children: [
@@ -212,28 +212,62 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Instruksi Telah Dikirim!',
+                        'Password Berhasil Direset!',
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF15803D),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _successMessage ??
-                            'Petunjuk reset password telah dikirimkan ke email terdaftar untuk identitas "${_identityController.text.trim()}". Silakan periksa kotak masuk atau folder spam email Anda.',
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Password akun Anda telah berhasil direset ke password default sistem LSP:',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: 12.5,
                           color: Color(0xFF166534),
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFF86EFAC)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.key_rounded, color: Color(0xFF16A34A), size: 18),
+                            SizedBox(width: 8),
+                            Text(
+                              '123456',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 3,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Silakan masuk menggunakan identitas Anda dan password di atas. Anda dapat memperbarui kata sandi di menu profil setelah login.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: Color(0xFF15803D),
                           height: 1.4,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
                   height: 44,
