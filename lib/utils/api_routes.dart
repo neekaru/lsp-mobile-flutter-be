@@ -5,15 +5,6 @@
 
 class ApiRoutes {
   // ============================================================================
-  // Auth Routes
-  // ============================================================================
-  static const String authLogin = '/api/auth/login';
-  static const String authGoogle = '/api/auth/google';
-  static const String authForgotPassword = '/api/auth/forgot-password';
-  static const String authRefresh = '/api/auth/refresh';
-  static const String authEnsureAsesi = '/api/auth/ensure-asesi';
-
-  // ============================================================================
   // Dashboard Routes (Enhanced)
   // ============================================================================
 
@@ -157,6 +148,7 @@ class ApiRoutes {
 
   static const String authLogin = '/api/auth/login';
   static const String authGoogle = '/api/auth/google';
+  static const String authForgotPassword = '/api/auth/forgot-password';
   static const String authCurrent = '/api/auth/current';
   static const String authRefresh = '/api/auth/refresh';
   static const String authLogout = '/api/auth/logout';
