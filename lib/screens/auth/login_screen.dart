@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:material_ui/material_ui.dart';
 import '../../widgets/auth/google_icon.dart';
 import 'package:dio/dio.dart';
+import 'lupa_password_screen.dart';
 import '../../core/navigation/main_navigator.dart';
 import '../../services/api_service.dart';
 import '../../services/auth/token_storage.dart';
@@ -247,11 +248,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Image.asset(
-                    'assets/login.png',
-                    width: 140,
-                    height: 140,
+                    'assets/logo.png',
+                    width: 100,
+                    height: 100,
                     fit: BoxFit.contain,
                   ),
                 ],
@@ -420,7 +421,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const LupaPasswordScreen(),
+                            ),
+                          );
+                        },
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
                           minimumSize: const Size(50, 20),
