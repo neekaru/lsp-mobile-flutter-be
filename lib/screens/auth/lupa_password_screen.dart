@@ -1,5 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../services/api_service.dart';
+import '../../services/auth/auth_repository.dart';
+import '../../services/auth/token_storage.dart';
 
 class LupaPasswordScreen extends StatefulWidget {
   const LupaPasswordScreen({super.key});
@@ -13,6 +17,7 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   bool _isSuccess = false;
+  String? _successMessage;
 
   @override
   void dispose() {
@@ -34,15 +39,57 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
       _errorMessage = null;
     });
 
-    // Simulate reset request / API verification
-    await Future.delayed(const Duration(milliseconds: 1200));
+    try {
+      final authRepo = AuthRepository(
+        dio: ApiService.dio,
+        tokenStorage: TokenStorage.instance,
+      );
 
-    if (!mounted) return;
+      final result = await authRepo.forgotPassword(identity: identity);
+      final data = result['data'] as Map<String, dynamic>?;
+      final serverMsg = data?['message']?.toString() ?? result['message']?.toString();
+      final emailObfuscated = data?['email_obfuscated']?.toString();
 
-    setState(() {
-      _isLoading = false;
-      _isSuccess = true;
-    });
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _isSuccess = true;
+        if (serverMsg != null && serverMsg.isNotEmpty) {
+          _successMessage = serverMsg;
+        } else if (emailObfuscated != null && emailObfuscated.isNotEmpty) {
+          _successMessage = 'Petunjuk pemulihan password telah dikirim ke email terdaftar ($emailObfuscated). Silakan periksa kotak masuk atau spam email Anda.';
+        }
+      });
+    } catch (e) {
+      debugPrint('Real forgot password API failed: $e');
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        if (e is DioException) {
+          final serverMessage = e.response?.data is Map
+              ? (e.response?.data['message']?.toString() ??
+                  e.response?.data['errors']?.toString())
+              : null;
+
+          if (serverMessage != null && serverMessage.isNotEmpty) {
+            _errorMessage = serverMessage;
+          } else if (e.response?.statusCode == 404) {
+            _errorMessage =
+                'Akun dengan identitas "$identity" tidak ditemukan di sistem LSP.';
+          } else if (e.response?.statusCode == 403) {
+            _errorMessage =
+                'Akun Anda saat ini tidak aktif. Silakan hubungi admin LSP.';
+          } else {
+            _errorMessage = 'Gagal memproses permintaan reset. Periksa koneksi atau coba lagi nanti.';
+          }
+        } else {
+          _errorMessage = 'Terjadi kesalahan sistem. Coba lagi nanti.';
+        }
+      });
+    }
   }
 
   Future<void> _openWhatsAppAdmin() async {
@@ -174,7 +221,8 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Petunjuk reset password telah dikirimkan ke email terdaftar untuk identitas "${_identityController.text.trim()}". Silakan periksa kotak masuk atau folder spam email Anda.',
+                        _successMessage ??
+                            'Petunjuk reset password telah dikirimkan ke email terdaftar untuk identitas "${_identityController.text.trim()}". Silakan periksa kotak masuk atau folder spam email Anda.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 12,
@@ -376,3 +424,4 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
     );
   }
 }
+

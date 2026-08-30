@@ -91,6 +91,20 @@ class AuthRepository {
     return result;
   }
 
+  /// Request password recovery instruction for Asesor / Asesi (POST /api/auth/forgot-password)
+  Future<Map<String, dynamic>> forgotPassword({
+    required String identity,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      ApiRoutes.authForgotPassword,
+      data: {
+        'identity': identity.trim(),
+      },
+    );
+
+    return response.data ?? {};
+  }
+
   /// Auto-create asesi (default password 123456) if missing, then save session.
   /// [account] = NIM or NIK (max 18 chars).
   Future<LoginResult> ensureAsesi({
