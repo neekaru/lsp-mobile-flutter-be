@@ -17,7 +17,7 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   bool _isSuccess = false;
-  String? _successMessage;
+  Map<String, dynamic>? _verifiedData;
 
   @override
   void dispose() {
@@ -25,11 +25,11 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
     super.dispose();
   }
 
-  Future<void> _handleReset() async {
+  Future<void> _handleResetAndOpenWhatsApp() async {
     final identity = _identityController.text.trim();
     if (identity.isEmpty) {
       setState(() {
-        _errorMessage = 'Masukkan Email, No. Registrasi Asesor (MET), atau NIK';
+        _errorMessage = 'Masukkan Email, No. Registrasi Asesor (MET), NIK, atau Username';
       });
       return;
     }
@@ -46,23 +46,20 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
       );
 
       final result = await authRepo.forgotPassword(identity: identity);
-      final data = result['data'] as Map<String, dynamic>?;
-      final serverMsg = data?['message']?.toString() ?? result['message']?.toString();
-      final emailObfuscated = data?['email_obfuscated']?.toString();
+      final data = result['data'] as Map<String, dynamic>? ?? {};
 
       if (!mounted) return;
 
       setState(() {
         _isLoading = false;
         _isSuccess = true;
-        if (serverMsg != null && serverMsg.isNotEmpty) {
-          _successMessage = serverMsg;
-        } else if (emailObfuscated != null && emailObfuscated.isNotEmpty) {
-          _successMessage = 'Petunjuk pemulihan password telah dikirim ke email terdaftar ($emailObfuscated). Silakan periksa kotak masuk atau spam email Anda.';
-        }
+        _verifiedData = data;
       });
+
+      // Launch WhatsApp with prefilled template
+      await _openWhatsAppWithData(data, identity);
     } catch (e) {
-      debugPrint('Real forgot password API failed: $e');
+      debugPrint('Forgot password verification failed: $e');
 
       if (!mounted) return;
 
@@ -83,7 +80,7 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
             _errorMessage =
                 'Akun Anda saat ini tidak aktif. Silakan hubungi admin LSP.';
           } else {
-            _errorMessage = 'Gagal memproses permintaan reset. Periksa koneksi atau coba lagi nanti.';
+            _errorMessage = 'Gagal memverifikasi akun. Periksa koneksi internet Anda.';
           }
         } else {
           _errorMessage = 'Terjadi kesalahan sistem. Coba lagi nanti.';
@@ -92,14 +89,24 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
     }
   }
 
-  Future<void> _openWhatsAppAdmin() async {
-    final identity = _identityController.text.trim();
-    final message = identity.isNotEmpty
-        ? 'Halo Admin LSP Teknologi Digital, saya Asesor ($identity) ingin meminta bantuan reset password akun saya.'
-        : 'Halo Admin LSP Teknologi Digital, saya Asesor ingin meminta bantuan pemulihan/reset password akun saya.';
+  Future<void> _openWhatsAppWithData(Map<String, dynamic>? data, String identity) async {
+    final name = data?['name']?.toString() ?? '';
+    final account = data?['account']?.toString() ?? identity;
+    final role = data?['role']?.toString() ?? 'Pengguna';
+    final adminWA = data?['whatsapp_admin']?.toString() ?? '6285329489247';
+
+    final roleCapital = role.isNotEmpty ? role[0].toUpperCase() + role.substring(1) : 'Pengguna';
+
+    final StringBuffer sb = StringBuffer();
+    sb.writeln('Halo Admin Helpdesk LSP Teknologi Digital,');
+    sb.writeln('Saya ingin meminta bantuan verifikasi & reset password akun LSP saya:');
+    if (name.isNotEmpty) sb.writeln('• Nama: $name');
+    sb.writeln('• Identitas / Akun: $account');
+    sb.writeln('• Role: $roleCapital');
+    sb.writeln('\nMohon bantuannya untuk verifikasi akun. Terima kasih.');
 
     final uri = Uri.parse(
-      'https://wa.me/6285329489247?text=${Uri.encodeComponent(message)}',
+      'https://wa.me/$adminWA?text=${Uri.encodeComponent(sb.toString())}',
     );
 
     try {
@@ -108,8 +115,8 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tidak dapat membuka WhatsApp. Silakan hubungi nomor 0853-2948-9247.'),
+            SnackBar(
+              content: Text('Tidak dapat membuka WhatsApp. Hubungi nomor +$adminWA.'),
               backgroundColor: Colors.redAccent,
             ),
           );
@@ -155,19 +162,19 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+                        color: const Color(0xFFF0FDF4),
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFBFDBFE), width: 1.5),
+                        border: Border.all(color: const Color(0xFF86EFAC), width: 1.5),
                       ),
                       child: const Icon(
-                        Icons.lock_reset_rounded,
-                        color: Color(0xFF2563EB),
-                        size: 38,
+                        Icons.chat_bubble_outline_rounded,
+                        color: Color(0xFF16A34A),
+                        size: 36,
                       ),
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Pemulihan Akun Asesor',
+                      'Bantuan Reset Akun LSP',
                       style: TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.bold,
@@ -178,7 +185,7 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       child: Text(
-                        'Masukkan Email terdaftar, No. Registrasi Asesor (MET), atau NIK untuk menerima instruksi pemulihan kata sandi akun LSP Anda.',
+                        'Masukkan Email terdaftar, No. Registrasi Asesor (MET), NIK, atau Username akun Anda untuk verifikasi dan pengajuan reset password langsung ke Admin LSP.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12.5,
@@ -212,56 +219,42 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Password Berhasil Direset!',
+                        'Akun Terverifikasi!',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF15803D),
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Password akun Anda telah berhasil direset ke password default sistem LSP:',
+                      const SizedBox(height: 8),
+                      Text(
+                        'Data akun untuk identitas "${_identityController.text.trim()}" telah ditemukan. Permintaan bantuan telah diteruskan ke WhatsApp Admin Helpdesk LSP.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12.5,
                           color: Color(0xFF166534),
                           height: 1.4,
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFF86EFAC)),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.key_rounded, color: Color(0xFF16A34A), size: 18),
-                            SizedBox(width: 8),
-                            Text(
-                              '123456',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 3,
-                                color: Color(0xFF0F172A),
-                              ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 42,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _openWhatsAppWithData(_verifiedData, _identityController.text.trim()),
+                          icon: const Icon(Icons.chat_rounded, size: 18, color: Colors.white),
+                          label: const Text(
+                            'Buka WhatsApp Admin Lagi',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF16A34A),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Silakan masuk menggunakan identitas Anda dan password di atas. Anda dapat memperbarui kata sandi di menu profil setelah login.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: Color(0xFF15803D),
-                          height: 1.4,
+                          ),
                         ),
                       ),
                     ],
@@ -271,19 +264,17 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                 SizedBox(
                   width: double.infinity,
                   height: 44,
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFCBD5E1)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     child: const Text(
                       'Kembali ke Halaman Masuk',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
                     ),
                   ),
                 ),
@@ -319,7 +310,7 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
 
                 // Input Field
                 const Text(
-                  'Email / No. Registrasi Asesor / NIK',
+                  'Email / No. Registrasi Asesor / NIK / Username',
                   style: TextStyle(
                     color: Color(0xFF1E293B),
                     fontSize: 13,
@@ -346,7 +337,7 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+                      borderSide: const BorderSide(color: Color(0xFF16A34A), width: 1.5),
                     ),
                   ),
                   style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13),
@@ -354,21 +345,16 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
 
                 const SizedBox(height: 20),
 
-                // Reset Button
+                // Submit WhatsApp Button
                 SizedBox(
                   width: double.infinity,
-                  height: 44,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleReset,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3B82F6),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: _isLoading
+                  height: 46,
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading ? null : _handleResetAndOpenWhatsApp,
+                    icon: _isLoading
+                        ? const SizedBox.shrink()
+                        : const Icon(Icons.chat_rounded, size: 18, color: Colors.white),
+                    label: _isLoading
                         ? const SizedBox(
                             width: 20,
                             height: 20,
@@ -378,9 +364,17 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                             ),
                           )
                         : const Text(
-                            'Kirim Permintaan Reset',
+                            'Hubungi Admin via WhatsApp',
                             style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold),
                           ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF16A34A),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -398,15 +392,15 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-                child: Column(
+                child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.support_agent_rounded, color: Color(0xFF0284C7), size: 22),
+                        Icon(Icons.shield_outlined, color: Color(0xFF0284C7), size: 22),
                         SizedBox(width: 8),
                         Text(
-                          'Bantuan Langsung Admin LSP',
+                          'Prosedur Keamanan Akun LSP',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -415,37 +409,13 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Jika email tidak dapat diakses atau membutuhkan verifikasi manual akun Asesor, Anda dapat menghubungi Admin Helpdesk LSP Teknologi Digital secara langsung.',
+                    SizedBox(height: 8),
+                    Text(
+                      'Untuk melindungi data sertifikasi dan keamanan akun Anda, reset password dilakukan melalui verifikasi resmi Helpdesk Admin LSP. Password akan dipulihkan ke sandi standar setelah konfirmasi identitas.',
                       style: TextStyle(
                         fontSize: 11.5,
                         color: Color(0xFF64748B),
                         height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 40,
-                      child: OutlinedButton.icon(
-                        onPressed: _openWhatsAppAdmin,
-                        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16, color: Color(0xFF16A34A)),
-                        label: const Text(
-                          'Hubungi Admin via WhatsApp',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF15803D),
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: const Color(0xFFF0FDF4),
-                          side: const BorderSide(color: Color(0xFF86EFAC)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
                       ),
                     ),
                   ],
@@ -458,4 +428,3 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
     );
   }
 }
-
