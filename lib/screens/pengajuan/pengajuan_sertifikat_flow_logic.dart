@@ -348,6 +348,7 @@ mixin PengajuanSertifikatFlowLogic
           return;
         }
         final already = await isAlreadyRegisteredOnSkema(skemaId);
+        if (!mounted) return;
         if (already) {
           await showAlreadyRegisteredWarning();
           return;

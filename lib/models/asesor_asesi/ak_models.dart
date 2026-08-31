@@ -106,7 +106,11 @@ class AK02Data {
   final String hasilPraktik;
   final String hasilLisan;
   final String hasilEsai;
+  final String hasilPG;
+  final String hasilProyekSingkat;
+  final String hasilProyek;
   final String hasilPortofolio;
+  final String hasilWawancara;
   final String komentarObservasi;
   final String rekomendasiAsesor;
   final String rekomendasi;
@@ -114,6 +118,8 @@ class AK02Data {
   final String pesan;
   final String catatan;
   final String saranTindakLanjut;
+  final String peliharaKompetensi;
+  final List<String> unitBKList;
 
   AK02Data({
     required this.status,
@@ -121,7 +127,11 @@ class AK02Data {
     required this.hasilPraktik,
     required this.hasilLisan,
     required this.hasilEsai,
-    this.hasilPortofolio = 'Kompeten',
+    this.hasilPG = '-',
+    this.hasilProyekSingkat = '-',
+    this.hasilProyek = '-',
+    this.hasilPortofolio = '-',
+    this.hasilWawancara = '-',
     required this.komentarObservasi,
     this.rekomendasiAsesor = '0',
     this.rekomendasi = 'Belum Rekomendasi',
@@ -129,6 +139,8 @@ class AK02Data {
     this.pesan = '',
     this.catatan = '',
     this.saranTindakLanjut = '',
+    this.peliharaKompetensi = 'Pelihara dan Kembangkan Kompetensimu',
+    this.unitBKList = const [],
   });
 
   factory AK02Data.fromJson(Map<String, dynamic> json) {
@@ -143,16 +155,20 @@ class AK02Data {
         json['saran_tindak_lanjut'] as String? ??
         '';
 
-    final obs = json['hasil_observasi'] as String? ?? 'Kompeten';
-    final porto = json['hasil_portofolio'] as String? ?? obs;
+    final obs = json['hasil_observasi'] as String? ?? '-';
+    final porto = json['hasil_portofolio'] as String? ?? '-';
 
     return AK02Data(
-      status: json['status'] as String? ?? 'Selesai',
+      status: json['status'] as String? ?? 'Belum Dinilai',
       hasilObservasi: obs,
-      hasilPraktik: json['hasil_praktik'] as String? ?? 'Kompeten',
-      hasilLisan: json['hasil_lisan'] as String? ?? 'Kompeten',
-      hasilEsai: json['hasil_esai'] as String? ?? 'Kompeten',
+      hasilPraktik: json['hasil_praktik'] as String? ?? '-',
+      hasilLisan: json['hasil_lisan'] as String? ?? '-',
+      hasilEsai: json['hasil_esai'] as String? ?? '-',
+      hasilPG: json['hasil_pg'] as String? ?? '-',
+      hasilProyekSingkat: json['hasil_proyek_singkat'] as String? ?? '-',
+      hasilProyek: json['hasil_proyek'] as String? ?? '-',
       hasilPortofolio: porto,
+      hasilWawancara: json['hasil_wawancara'] as String? ?? '-',
       komentarObservasi: json['komentar_observasi'] as String? ?? '',
       rekomendasiAsesor: rawCode,
       rekomendasi: rawRekom,
@@ -160,6 +176,10 @@ class AK02Data {
       pesan: pesanText,
       catatan: json['catatan'] as String? ?? pesanText,
       saranTindakLanjut: json['saran_tindak_lanjut'] as String? ?? pesanText,
+      peliharaKompetensi: json['pelihara_kompetensi'] as String? ?? 'Pelihara dan Kembangkan Kompetensimu',
+      unitBKList: (json['unit_bk_list'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
     );
   }
 }

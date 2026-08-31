@@ -623,6 +623,7 @@ class AsesorService {
     String? hasilObservasi,
     String? pencapaian,
     String? unitBk,
+    List<String>? unitBkList,
     String? saranTindakLanjut,
     String? peliharaKompetensi,
   }) async {
@@ -641,6 +642,9 @@ class AsesorService {
       }
       if (pencapaian != null) payload['pencapaian'] = pencapaian;
       if (unitBk != null) payload['unit_bk'] = unitBk;
+      if (unitBkList != null && unitBkList.isNotEmpty) {
+        payload['unit_bk_list'] = unitBkList;
+      }
       if (saranTindakLanjut != null && saranTindakLanjut.isNotEmpty) {
         payload['saran_tindak_lanjut'] = saranTindakLanjut;
       }

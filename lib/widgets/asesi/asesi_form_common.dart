@@ -74,13 +74,28 @@ class AsesiDetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Color valColor = const Color(0xFF1E293B);
+    FontWeight valWeight = FontWeight.w600;
+
+    final vLower = value.trim().toLowerCase();
+    if (vLower == 'kompeten' || vLower == 'k') {
+      valColor = const Color(0xFF16A34A);
+      valWeight = FontWeight.bold;
+    } else if (vLower == 'belum kompeten' || vLower == 'bk') {
+      valColor = const Color(0xFFDC2626);
+      valWeight = FontWeight.bold;
+    } else if (value.trim() == '-' || value.trim().isEmpty) {
+      valColor = const Color(0xFF94A3B8);
+      valWeight = FontWeight.w500;
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 135,
+          Expanded(
+            flex: 3,
             child: Text(
               label,
               style: const TextStyle(
@@ -92,12 +107,14 @@ class AsesiDetailRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
+            flex: 2,
             child: Text(
-              value,
-              style: const TextStyle(
+              value.trim().isEmpty ? '-' : value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1E293B),
+                fontWeight: valWeight,
+                color: valColor,
               ),
             ),
           ),

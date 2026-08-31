@@ -28,6 +28,7 @@ class AK02Section extends StatefulWidget {
 class _AK02SectionState extends State<AK02Section> {
   String _selectedRekom = ''; // '': Belum dipilih (non-active), '1': Kompeten, '2': Belum Kompeten
   late TextEditingController _pesanController;
+  final Set<String> _selectedUnitBK = {};
   bool _isSubmitting = false;
 
   @override
@@ -57,14 +58,17 @@ class _AK02SectionState extends State<AK02Section> {
 
   String _initialPesan() {
     final d = widget.detailData;
-    if (d == null) return '';
+    if (d == null) return 'Pelihara dan Kembangkan Kompetensimu';
     if (d.ak02.pesan.isNotEmpty) {
       return d.ak02.pesan;
     }
     if (d.pesanAsesor.isNotEmpty) {
       return d.pesanAsesor;
     }
-    return d.ak02.komentarObservasi;
+    if (d.ak02.saranTindakLanjut.isNotEmpty) {
+      return d.ak02.saranTindakLanjut;
+    }
+    return d.ak02.komentarObservasi.isNotEmpty ? d.ak02.komentarObservasi : 'Pelihara dan Kembangkan Kompetensimu';
   }
 
   void _syncFromDetailData() {
@@ -78,6 +82,11 @@ class _AK02SectionState extends State<AK02Section> {
       _selectedRekom = '1';
     } else {
       _selectedRekom = ''; // Belum rekomendasi / netral
+    }
+
+    _selectedUnitBK.clear();
+    if (d.ak02.unitBKList.isNotEmpty) {
+      _selectedUnitBK.addAll(d.ak02.unitBKList);
     }
   }
 
@@ -116,6 +125,8 @@ class _AK02SectionState extends State<AK02Section> {
         catatan: _pesanController.text.trim(),
         komentarObservasi: _pesanController.text.trim(),
         saranTindakLanjut: _pesanController.text.trim(),
+        peliharaKompetensi: _selectedRekom == '1' ? _pesanController.text.trim() : null,
+        unitBkList: _selectedRekom == '2' ? _selectedUnitBK.toList() : [],
       );
 
       if (mounted) {
@@ -158,8 +169,34 @@ class _AK02SectionState extends State<AK02Section> {
   @override
   Widget build(BuildContext context) {
     final ak02 = widget.detailData?.ak02;
-    final isPorto = (widget.detailData?.apl02.kandidat == '3') ||
-        (widget.detailData?.skemaSertifikat.toLowerCase().contains('portofolio') ?? false);
+    final apl02 = widget.detailData?.apl02;
+    final kandidat = apl02?.kandidat ?? '1';
+    final selectedMapaId = apl02?.idMapa;
+    
+    MapaOption? selectedMapa;
+    if (apl02?.mapaOptions.isNotEmpty == true) {
+      if (selectedMapaId != null && selectedMapaId > 0) {
+        selectedMapa = apl02!.mapaOptions.firstWhere(
+          (m) => m.id == selectedMapaId,
+          orElse: () => apl02.mapaOptions.first,
+        );
+      } else {
+        selectedMapa = apl02!.mapaOptions.first;
+      }
+    }
+
+    final isExp = kandidat == '3' || kandidat == '4';
+    final isTerstruktur = !isExp && selectedMapa != null && (
+        selectedMapa.isTerstruktur ||
+        selectedMapa.namaMapa.toLowerCase().contains('terstruktur') ||
+        selectedMapa.namaMapa.toLowerCase().contains('dit')
+    );
+    final isPorto = isExp || (selectedMapa != null && (
+        selectedMapa.isPortofolio ||
+        selectedMapa.namaMapa.toLowerCase().contains('portofolio') ||
+        selectedMapa.namaMapa.toLowerCase().contains('porotofolio') ||
+        selectedMapa.namaMapa.toLowerCase().contains('portfolio')
+    )) || (widget.detailData?.skemaSertifikat.toLowerCase().contains('portofolio') ?? false);
 
     return FormSectionCard(
       child: Column(
@@ -167,55 +204,104 @@ class _AK02SectionState extends State<AK02Section> {
         children: [
           FormSectionHeader(
             title: 'FR-AK.02 Rekaman Asesmen',
-            status: ak02?.status ?? 'Selesai',
+            status: ak02?.status ?? 'Belum Dinilai',
+            statusColor: ak02?.status == 'Selesai' ? const Color(0xFF059669) : const Color(0xFF64748B),
           ),
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
 
-          // Ringkasan Hasil Asesmen (Sesuai Instrumen yang digunakan)
+          // Ringkasan Hasil Asesmen (Sesuai Persis dengan Kondisi MAPA yang Dipilih di APL-02)
           if (isPorto) ...[
-            AsesiDetailRow('Hasil Verifikasi Portofolio (FR.IA.11)', ak02?.hasilPortofolio ?? 'Kompeten'),
-            AsesiDetailRow('Hasil Pertanyaan Wawancara / Lisan (FR.IA.03/09)', ak02?.hasilLisan ?? 'Kompeten'),
+            AsesiDetailRow('Hasil Verifikasi Portofolio (FR.IA.08/11)', ak02?.hasilPortofolio ?? '-'),
+            AsesiDetailRow('Hasil Pertanyaan Wawancara (FR.IA.09/03)', (ak02?.hasilWawancara != '-' && ak02?.hasilWawancara.isNotEmpty == true) ? ak02!.hasilWawancara : (ak02?.hasilLisan ?? '-')),
+          ] else if (isTerstruktur) ...[
+            AsesiDetailRow('Hasil Penilaian Proyek Singkat (FR.IA.04A)', ak02?.hasilProyekSingkat ?? '-'),
+            AsesiDetailRow('Hasil Penilaian Proyek Terstruktur (FR.IA.04B)', ak02?.hasilProyek ?? '-'),
+            AsesiDetailRow('Hasil Pertanyaan Tertulis (FR.IA.05)', (ak02?.hasilPG != '-' && ak02?.hasilPG.isNotEmpty == true) ? ak02!.hasilPG : (ak02?.hasilEsai ?? '-')),
           ] else ...[
-            AsesiDetailRow('Hasil Observasi Langsung (FR.IA.01)', ak02?.hasilObservasi ?? 'Kompeten'),
-            AsesiDetailRow('Hasil Uji Praktik / Demonstrasi (FR.IA.02)', ak02?.hasilPraktik ?? 'Kompeten'),
-            AsesiDetailRow('Hasil Pertanyaan Lisan (FR.IA.03)', ak02?.hasilLisan ?? 'Kompeten'),
-            AsesiDetailRow('Hasil Pertanyaan Tertulis / Esai (FR.IA.05/06)', ak02?.hasilEsai ?? 'Kompeten'),
+            // Kondisi 1: Observasi Langsung (Peserta Pelatihan)
+            AsesiDetailRow('Hasil Observasi Langsung (FR.IA.01)', ak02?.hasilObservasi ?? '-'),
+            AsesiDetailRow('Hasil Uji Praktik / Demonstrasi (FR.IA.02)', ak02?.hasilPraktik ?? '-'),
+            AsesiDetailRow('Hasil Pertanyaan Mendukung Observasi (FR.IA.03)', ak02?.hasilLisan ?? '-'),
+            AsesiDetailRow('Hasil Pertanyaan Tertulis / Esai (FR.IA.05/06)', (ak02?.hasilPG != '-' && ak02?.hasilPG.isNotEmpty == true) ? ak02!.hasilPG : (ak02?.hasilEsai ?? '-')),
           ],
 
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                Navigator.push(
+          const SizedBox(height: 12),
+
+          // Tombol Buka Lembar Instrumen Asesmen
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (isPorto) ...[
+                _buildIAQuickButton(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => InstrumenAsesmenScreen(
-                      asesiId: widget.detailData?.id ?? 0,
-                      namaAsesi: widget.detailData?.namaLengkap ?? 'Peserta Asesmen',
-                      skema: widget.detailData?.skemaSertifikat ?? 'Skema Sertifikasi',
-                      tuk: widget.detailData?.tukNama ?? 'TUK',
-                      jadwal: widget.detailData?.jadwalNama ?? 'Jadwal Asesmen',
-                      initialForm: 'IA01',
-                    ),
-                  ),
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                backgroundColor: const Color(0xFFEFF6FF),
-                foregroundColor: const Color(0xFF2563EB),
-                side: const BorderSide(color: Color(0xFF93C5FD)),
-                padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-              ),
-              icon: const Icon(LucideIcons.clipboard_list, size: 15),
-              label: const Text(
-                'Lihat / Isi Ceklis Observasi (FR.IA.01)',
-                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
-              ),
-            ),
+                  label: 'IA.03 Tanya Lisan (Wawancara)',
+                  formId: 'IA03',
+                  color: const Color(0xFFD97706),
+                  icon: LucideIcons.message_circle,
+                ),
+                _buildIAQuickButton(
+                  context,
+                  label: 'IA.11 Verifikasi Portofolio',
+                  formId: 'IA11',
+                  color: const Color(0xFF7C3AED),
+                  icon: LucideIcons.file_check,
+                ),
+              ] else if (isTerstruktur) ...[
+                _buildIAQuickButton(
+                  context,
+                  label: 'IA.04A Proyek Singkat (DIT)',
+                  formId: 'IA04A',
+                  color: const Color(0xFF0D9488),
+                  icon: LucideIcons.file_text,
+                ),
+                _buildIAQuickButton(
+                  context,
+                  label: 'IA.04B Penilaian Proyek',
+                  formId: 'IA04B',
+                  color: const Color(0xFF2563EB),
+                  icon: LucideIcons.briefcase,
+                ),
+                _buildIAQuickButton(
+                  context,
+                  label: 'IA.05 Tanya Tertulis',
+                  formId: 'IA05',
+                  color: const Color(0xFFEA580C),
+                  icon: LucideIcons.pen_tool,
+                ),
+              ] else ...[
+                _buildIAQuickButton(
+                  context,
+                  label: 'IA.01 Ceklis Observasi',
+                  formId: 'IA01',
+                  color: const Color(0xFF2563EB),
+                  icon: LucideIcons.clipboard_list,
+                ),
+                _buildIAQuickButton(
+                  context,
+                  label: 'IA.02 Tugas Praktik',
+                  formId: 'IA02',
+                  color: const Color(0xFF0284C7),
+                  icon: LucideIcons.hammer,
+                ),
+                _buildIAQuickButton(
+                  context,
+                  label: 'IA.03 Pertanyaan Mendukung Observasi',
+                  formId: 'IA03',
+                  color: const Color(0xFFD97706),
+                  icon: LucideIcons.message_circle,
+                ),
+                _buildIAQuickButton(
+                  context,
+                  label: 'IA.05 Tanya Tertulis',
+                  formId: 'IA05',
+                  color: const Color(0xFFEA580C),
+                  icon: LucideIcons.pen_tool,
+                ),
+              ],
+            ],
           ),
 
           const SizedBox(height: 16),
@@ -286,6 +372,120 @@ class _AK02SectionState extends State<AK02Section> {
               ),
             ],
           ),
+
+          // Pilihan Unit BK jika Belum Kompeten
+          if (_selectedRekom == '2') ...[
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Pilih Unit Kompetensi Belum Kompeten (BK):',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFDC2626),
+                  ),
+                ),
+                Text(
+                  '${_selectedUnitBK.length} dipilih',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (widget.detailData?.apl02.units.isNotEmpty == true)
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: widget.detailData!.apl02.units.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFFEE2E2)),
+                  itemBuilder: (context, index) {
+                    final unit = widget.detailData!.apl02.units[index];
+                    final isChecked = _selectedUnitBK.contains(unit.idUnit) || _selectedUnitBK.contains(unit.kodeUnit);
+
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          if (isChecked) {
+                            _selectedUnitBK.remove(unit.idUnit);
+                            _selectedUnitBK.remove(unit.kodeUnit);
+                          } else {
+                            _selectedUnitBK.add(unit.idUnit.isNotEmpty ? unit.idUnit : unit.kodeUnit);
+                          }
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Checkbox(
+                              value: isChecked,
+                              activeColor: const Color(0xFFDC2626),
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              onChanged: (val) {
+                                setState(() {
+                                  if (val == true) {
+                                    _selectedUnitBK.add(unit.idUnit.isNotEmpty ? unit.idUnit : unit.kodeUnit);
+                                  } else {
+                                    _selectedUnitBK.remove(unit.idUnit);
+                                    _selectedUnitBK.remove(unit.kodeUnit);
+                                  }
+                                });
+                              },
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    unit.kodeUnit,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF991B1B),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    unit.judulUnit,
+                                    style: const TextStyle(
+                                      fontSize: 11.5,
+                                      color: Color(0xFF1E293B),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            else
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 6),
+                child: Text(
+                  'Tidak ada daftar unit kompetensi yang tersedia.',
+                  style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                ),
+              ),
+          ],
 
           const SizedBox(height: 14),
 
@@ -375,6 +575,14 @@ class _AK02SectionState extends State<AK02Section> {
       onTap: () {
         setState(() {
           _selectedRekom = value;
+          if (value == '1') {
+            _pesanController.text = 'Pelihara dan Kembangkan Kompetensimu';
+            _selectedUnitBK.clear();
+          } else if (value == '2') {
+            if (_pesanController.text.isEmpty || _pesanController.text == 'Pelihara dan Kembangkan Kompetensimu') {
+              _pesanController.text = 'Perlu peningkatan kompetensi pada unit terkait';
+            }
+          }
         });
       },
       borderRadius: BorderRadius.circular(8),
@@ -405,6 +613,65 @@ class _AK02SectionState extends State<AK02Section> {
                 color: isSelected ? selectedTextColor : const Color(0xFF475569),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIAQuickButton(
+    BuildContext context, {
+    required String label,
+    required String formId,
+    required Color color,
+    required IconData icon,
+  }) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InstrumenAsesmenScreen(
+              asesiId: widget.detailData?.id ?? 0,
+              namaAsesi: widget.detailData?.namaLengkap ?? 'Peserta Asesmen',
+              skema: widget.detailData?.skemaSertifikat ?? 'Skema Sertifikasi',
+              tuk: widget.detailData?.tukNama ?? 'TUK',
+              jadwal: widget.detailData?.jadwalNama ?? 'Jadwal Asesmen',
+              initialForm: formId,
+            ),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.05),
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(LucideIcons.arrow_up_right, size: 12, color: color.withValues(alpha: 0.7)),
           ],
         ),
       ),
