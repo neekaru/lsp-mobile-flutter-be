@@ -7,6 +7,10 @@ import 'package:januscaler_flutter_ringtone_player/flutter_ringtone_player.dart'
 import '../api_service.dart';
 import '../auth/auth_repository.dart';
 import '../../utils/api_routes.dart';
+import '../../models/jadwal_models.dart';
+import '../../screens/jadwal/jadwal_detail_screen.dart';
+import '../../screens/dashboard/faq_screen.dart';
+import '../../screens/asesi/asesi_ak03_form_screen.dart';
 import '../../core/navigation/main_navigator.dart';
 import '../../widgets/common/top_notification_banner.dart';
 import 'app_notification_storage.dart';
@@ -153,18 +157,39 @@ class NotificationService {
 
     final title = message.notification?.title ?? _getTitleFromData(message.data);
     final body = message.notification?.body ?? _getBodyFromData(message.data);
-    final type = message.data['type'] ?? '';
+    final type = (message.data['type'] ?? '').toString().toLowerCase();
 
     // Choose icon and color based on notification type
     IconData iconData = Icons.notifications_active_rounded;
     Color iconColor = const Color(0xFF4A9EDF);
 
-    if (type == 'status_kompeten') {
-      iconData = Icons.verified_user_rounded;
-      iconColor = const Color(0xFF2E7D32); // Competent Green
+    if (type == 'spt_asesor') {
+      iconData = Icons.assignment_ind_rounded;
+      iconColor = const Color(0xFF0284C7); // Sky Blue
     } else if (type == 'rekomendasi_asesor') {
       iconData = Icons.rate_review_rounded;
-      iconColor = const Color(0xFFFF9800); // Recommendation Orange
+      iconColor = const Color(0xFFFF9800); // Orange
+    } else if (type == 'link_persetujuan_asesmen' || type == 'persetujuan_asesmen') {
+      iconData = Icons.fact_check_rounded;
+      iconColor = const Color(0xFF10B981); // Emerald
+    } else if (type == 'link_umpan_balik' || type == 'umpan_balik') {
+      iconData = Icons.feedback_rounded;
+      iconColor = const Color(0xFF8B5CF6); // Purple
+    } else if (type == 'link_tugas_praktek' || type == 'tugas_praktek') {
+      iconData = Icons.draw_rounded;
+      iconColor = const Color(0xFF06B6D4); // Cyan
+    } else if (type == 'link_kegiatan_terstruktur' || type == 'kegiatan_terstruktur') {
+      iconData = Icons.view_timeline_rounded;
+      iconColor = const Color(0xFFF59E0B); // Amber
+    } else if (type == 'pendaftaran_asesor') {
+      iconData = Icons.person_add_alt_1_rounded;
+      iconColor = const Color(0xFF3B82F6); // Blue
+    } else if (type == 'faq') {
+      iconData = Icons.help_outline_rounded;
+      iconColor = const Color(0xFF64748B); // Slate
+    } else if (type == 'status_kompeten') {
+      iconData = Icons.verified_user_rounded;
+      iconColor = const Color(0xFF2E7D32); // Competent Green
     } else if (type == 'sertifikat_terbit') {
       iconData = Icons.workspace_premium_rounded;
       iconColor = const Color(0xFFE0A96D); // Certificate Gold
@@ -218,7 +243,7 @@ class NotificationService {
       }
     }
 
-    final type = message.data['type'] ?? '';
+    final type = (message.data['type'] ?? '').toString().toLowerCase();
     if (kDebugMode) {
       debugPrint('Handling notification click: type=$type, data=${message.data}');
     }
@@ -244,29 +269,143 @@ class NotificationService {
       return;
     }
 
-    final isAsesi = AuthRepository.currentUserInstance?.role == 'asesi';
-    if (isAsesi) {
+    final role = AuthRepository.currentUserInstance?.role;
+    final isAsesi = role == 'asesi';
+    final isAsesor = role == 'asesor';
+    final jadwalIdStr = (message.data['jadwal_id'] ?? '').toString().trim();
+    final jadwalId = int.tryParse(jadwalIdStr);
+
+    if (isAsesor) {
+      if (type == 'spt_asesor' ||
+          type == 'rekomendasi_asesor' ||
+          type == 'pendaftaran_asesor' ||
+          type.contains('jadwal')) {
+        state.setTab(1); // Asesor: Tab Jadwal
+      } else if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
+        state.setTab(3); // Asesor: Tab Statistik/Sertifikat
+      } else {
+        state.setTab(1);
+      }
+    } else if (isAsesi) {
       if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
-        state.setTab(3); // Switch to Sertifikat tab
-      } else if (type == 'rekomendasi_asesor') {
-        state.setTab(2); // Switch to Jadwal tab
+        state.setTab(3); // Asesi: Tab Sertifikat
+      } else if (type == 'spt_asesor' ||
+          type == 'rekomendasi_asesor' ||
+          type == 'link_persetujuan_asesmen' ||
+          type == 'persetujuan_asesmen' ||
+          type == 'link_umpan_balik' ||
+          type == 'umpan_balik' ||
+          type == 'link_tugas_praktek' ||
+          type == 'tugas_praktek' ||
+          type == 'link_kegiatan_terstruktur' ||
+          type == 'kegiatan_terstruktur') {
+        state.setTab(2); // Asesi: Tab Jadwal
+      } else {
+        state.setTab(2);
       }
     } else {
       if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
-        state.setTab(3); // Switch to Sertifikat tab
-      } else if (type == 'rekomendasi_asesor') {
-        state.setTab(2); // Switch to Jadwal tab
+        state.setTab(3);
+      } else {
+        state.setTab(2);
+      }
+    }
+
+    final navContext = navigatorKey.currentContext;
+
+    // 1. FAQ direct navigation
+    if (type == 'faq' && navContext != null) {
+      Navigator.push(
+        navContext,
+        MaterialPageRoute(
+          builder: (context) => const FaqScreen(),
+        ),
+      );
+      return;
+    }
+
+    // 2. Direct Jadwal / Form Navigation if specific jadwal_id is provided
+    if (jadwalId != null && jadwalId > 0 && navContext != null) {
+      final currentUser = AuthRepository.currentUserInstance;
+      final userRole = currentUser != null
+          ? UserRole(
+              role: currentUser.role,
+              name: currentUser.name,
+              email: currentUser.email ?? '',
+            )
+          : const UserRole(role: 'asesor', name: 'User', email: '');
+
+      final jadwalItem = JadwalItem(
+        id: jadwalId,
+        skema: (message.data['skema'] ?? message.data['nama_jadwal'] ?? 'Jadwal Asesmen').toString(),
+        tuk: (message.data['tuk'] ?? 'TUK Mandiri').toString(),
+        tanggalMulai: (message.data['tanggal'] ?? '').toString(),
+        tanggalSelesai: (message.data['tanggal'] ?? '').toString(),
+        createdWhen: '',
+        status: 'running',
+        statusJadwal: '3',
+        statusLabel: 'Aktif',
+        statusJadwalLabel: 'Aktif',
+        statusRekaman: '',
+        statusBlanko: '',
+        statusPengiriman: '',
+        jumlahAsesi: 0,
+        asesor: [],
+        sisaHari: 0,
+        totalAsesi: 0,
+        jumlahKompeten: 0,
+        jumlahBelumKompeten: 0,
+        needsAcc: false,
+      );
+
+      if (isAsesi && (type == 'link_umpan_balik' || type == 'umpan_balik')) {
+        Navigator.push(
+          navContext,
+          MaterialPageRoute(
+            builder: (context) => AsesiAK03FormScreen(
+              jadwal: jadwalItem,
+            ),
+          ),
+        );
+      } else {
+        Navigator.push(
+          navContext,
+          MaterialPageRoute(
+            builder: (context) => JadwalDetailScreen(
+              jadwal: jadwalItem,
+              userRole: userRole,
+            ),
+          ),
+        );
       }
     }
   }
 
   String _getTitleFromData(Map<String, dynamic> data) {
-    final type = data['type'] ?? '';
+    final type = (data['type'] ?? '').toString().toLowerCase();
     switch (type) {
-      case 'status_kompeten':
-        return 'Status Kelulusan';
+      case 'spt_asesor':
+        return 'SPT Asesor';
       case 'rekomendasi_asesor':
         return 'Rekomendasi Asesor';
+      case 'link_persetujuan_asesmen':
+      case 'persetujuan_asesmen':
+        return 'Persetujuan Asesmen';
+      case 'link_umpan_balik':
+      case 'umpan_balik':
+        return 'Mengisi Umpan Balik';
+      case 'link_tugas_praktek':
+      case 'tugas_praktek':
+        return 'Tugas Praktek';
+      case 'link_kegiatan_terstruktur':
+      case 'kegiatan_terstruktur':
+        return 'Kegiatan Terstruktur';
+      case 'pendaftaran_asesor':
+        return 'Pendaftaran Asesor';
+      case 'faq':
+        return 'Bantuan FAQ';
+      case 'status_kompeten':
+        return 'Status Kelulusan';
       case 'sertifikat_terbit':
         return 'Sertifikat Terbit';
       default:
@@ -275,15 +414,33 @@ class NotificationService {
   }
 
   String _getBodyFromData(Map<String, dynamic> data) {
-    final type = data['type'] ?? '';
+    final type = (data['type'] ?? '').toString().toLowerCase();
     final skema = data['skema'] ?? 'Skema';
     final asesor = data['asesor'] ?? 'Asesor';
     
     switch (type) {
+      case 'spt_asesor':
+        return 'SPT Melaksanakan Asesmen Jadwal ${data['nama_jadwal'] ?? skema}';
+      case 'rekomendasi_asesor':
+        return 'Asesor $asesor telah memberikan rekomendasi asesmen.';
+      case 'link_persetujuan_asesmen':
+      case 'persetujuan_asesmen':
+        return 'Silakan lakukan persetujuan asesmen untuk skema $skema.';
+      case 'link_umpan_balik':
+      case 'umpan_balik':
+        return 'Lakukan umpan balik terhadap proses sertifikasi $skema.';
+      case 'link_tugas_praktek':
+      case 'tugas_praktek':
+        return 'Silakan kerjakan tugas praktek untuk skema $skema.';
+      case 'link_kegiatan_terstruktur':
+      case 'kegiatan_terstruktur':
+        return 'Silakan lengkapi kegiatan terstruktur untuk skema $skema.';
+      case 'pendaftaran_asesor':
+        return 'Pendaftaran penugasan asesor telah diperbarui.';
+      case 'faq':
+        return 'Informasi bantuan dan pertanyaan umum terbaru.';
       case 'status_kompeten':
         return 'Selamat! Anda dinyatakan kompeten pada skema $skema.';
-      case 'rekomendasi_asesor':
-        return 'Asesor $asesor telah memberikan rekomendasi.';
       case 'sertifikat_terbit':
         return 'Sertifikat untuk skema $skema telah diterbitkan.';
       default:
