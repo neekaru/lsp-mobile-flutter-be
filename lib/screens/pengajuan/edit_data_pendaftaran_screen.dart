@@ -106,11 +106,23 @@ class _EditDataPendaftaranScreenState extends State<EditDataPendaftaranScreen> {
   }
 
   Future<void> _handleSave() async {
+    final nik = _nikController.text.trim();
+    if (nik.isNotEmpty && (nik.length != 16 || !RegExp(r'^[0-9]{16}$').hasMatch(nik))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('NIK harus terdiri dari 16 digit angka.'),
+          backgroundColor: Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
 
     final body = <String, dynamic>{
       'nama_lengkap': _nameController.text.trim(),
-      'nik': _nikController.text.trim(),
+      'nik': nik,
       'telp': _phoneController.text.trim(),
       'email': _emailController.text.trim(),
       'alamat': _addressController.text.trim(),

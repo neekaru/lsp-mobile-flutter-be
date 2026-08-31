@@ -222,12 +222,24 @@ class Step4BiodataPesertaState extends State<Step4BiodataPeserta> {
       return;
     }
 
+    final nik = _nikController.text.trim();
+    if (nik.isNotEmpty && (nik.length != 16 || !RegExp(r'^[0-9]{16}$').hasMatch(nik))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('NIK harus terdiri dari 16 digit angka.'),
+          backgroundColor: Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     // Build update payload
     final Map<String, dynamic> updateData = {};
 
     // Data Peserta
     if (_skemaSertifikasi.isNotEmpty) updateData['skema_sertifikasi'] = _skemaSertifikasi;
-    if (_nikController.text.isNotEmpty) updateData['nik'] = _nikController.text;
+    if (nik.isNotEmpty) updateData['nik'] = nik;
     if (_namaLengkapController.text.isNotEmpty) updateData['nama_lengkap'] = _namaLengkapController.text;
     if (_jenisKelamin.isNotEmpty) {
       updateData['jenis_kelamin'] = _jenisKelamin == 'Laki-laki' ? '1' : '2';

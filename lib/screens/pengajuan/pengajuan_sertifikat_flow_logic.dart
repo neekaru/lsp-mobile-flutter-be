@@ -326,12 +326,66 @@ mixin PengajuanSertifikatFlowLogic
     if (currentStep < 5) {
       if (currentStep == 0) {
         final skemaId = selectedSkemaId;
-        if (skemaId != null && skemaId > 0) {
-          final already = await isAlreadyRegisteredOnSkema(skemaId);
-          if (already) {
-            await showAlreadyRegisteredWarning();
-            return;
-          }
+        final jadwalId = selectedJadwalId;
+        if (skemaId == null || skemaId <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Pilih skema sertifikasi terlebih dahulu.'),
+              backgroundColor: Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        if (jadwalId == null || jadwalId <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Pilih jadwal uji kompetensi terlebih dahulu.'),
+              backgroundColor: Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        final already = await isAlreadyRegisteredOnSkema(skemaId);
+        if (already) {
+          await showAlreadyRegisteredWarning();
+          return;
+        }
+      }
+      // Step 1 = Profil Peserta (NIK 16 digit & Nama Lengkap wajib)
+      if (currentStep == 1) {
+        final nik = nikController.text.trim();
+        if (nik.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('NIK wajib diisi.'),
+              backgroundColor: Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        if (nik.length != 16 || !RegExp(r'^[0-9]{16}$').hasMatch(nik)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('NIK harus terdiri dari 16 digit angka.'),
+              backgroundColor: Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        final nama = namaLengkapController.text.trim();
+        if (nama.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Nama lengkap wajib diisi.'),
+              backgroundColor: Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
         }
       }
       // Step 3 = Dokumen Persyaratan (Dasar + Administratif) harus lengkap
