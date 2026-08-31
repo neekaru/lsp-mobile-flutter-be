@@ -375,7 +375,52 @@ class _APL02SectionState extends State<APL02Section> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
+
+          // ── Bukti Portofolio / Bukti Kompetensi yang Relevan ──
+          const Text(
+            'BUKTI PORTOFOLIO / KOMPETENSI RELEVAN',
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (apl02 != null && apl02.buktiPortofolio.isNotEmpty)
+            ...apl02.buktiPortofolio.asMap().entries.map(
+                  (entry) => DocItem(
+                    index: entry.key + 1,
+                    name: entry.value.nama,
+                    jenis: 'Portofolio',
+                    ada: entry.value.ada,
+                    url: entry.value.url,
+                  ),
+                )
+          else
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF64748B)),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Tidak ada dokumen portofolio tambahan yang diunggah.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
 
           // ── Unit List ──
           const Text(

@@ -272,6 +272,7 @@ class APL02Data {
   final int totalK;
   final int totalBK;
   final List<APL02UnitItem> units;
+  final List<BuktiDokumenItem> buktiPortofolio;
   final String praAsesmen;
   final String rekomendasi;
   final String catatanRekomendasi;
@@ -291,6 +292,7 @@ class APL02Data {
     required this.totalK,
     required this.totalBK,
     required this.units,
+    this.buktiPortofolio = const [],
     this.praAsesmen = '0',
     this.rekomendasi = 'Belum Diverifikasi',
     this.catatanRekomendasi = 'Di rekomendasi menjadi peserta uji kompetensi',
@@ -320,6 +322,9 @@ class APL02Data {
       totalBK: int.tryParse(json['total_bk']?.toString() ?? '') ?? 0,
       units: (json['units'] as List<dynamic>? ?? [])
           .map((e) => APL02UnitItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      buktiPortofolio: (json['bukti_portofolio'] as List<dynamic>? ?? [])
+          .map((e) => BuktiDokumenItem.fromJson(e as Map<String, dynamic>))
           .toList(),
       praAsesmen: json['pra_asesmen']?.toString() ?? '0',
       rekomendasi: json['rekomendasi'] as String? ?? 'Belum Diverifikasi',
