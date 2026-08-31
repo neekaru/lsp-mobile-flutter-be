@@ -6,10 +6,6 @@ import '../../utils/date_format_helper.dart';
 import '../../services/common/app_notification_storage.dart';
 import '../../services/common/notification_service.dart';
 import '../../services/auth/auth_repository.dart';
-import '../../core/navigation/main_navigator.dart';
-import '../../screens/jadwal/jadwal_detail_screen.dart';
-import '../../screens/dashboard/faq_screen.dart';
-import '../../screens/asesi/asesi_ak03_form_screen.dart';
 import 'notification_card.dart';
 
 class NotificationPanel extends StatefulWidget {
@@ -420,123 +416,11 @@ class _NotificationPanelState extends State<NotificationPanel> {
                                   },
                                   onActionPressed: () {
                                     Navigator.pop(context); // Close bottom sheet
-                                    final type = notif.type.toLowerCase();
-                                    final state = mainNavigatorKey.currentState;
-                                    if (state == null || !state.mounted) return;
-                                    final role = AuthRepository.currentUserInstance?.role;
-                                    final isAsesi = role == 'asesi';
-                                    final isAsesor = role == 'asesor';
-                                    final jadwalIdStr = (notif.data['jadwal_id'] ?? '').toString().trim();
-                                    final jadwalId = int.tryParse(jadwalIdStr);
-
-                                    if (isAsesor) {
-                                      if (type == 'spt_asesor' ||
-                                          type == 'rekomendasi_asesor' ||
-                                          type == 'pendaftaran_asesor' ||
-                                          type.contains('jadwal')) {
-                                        state.setTab(1); // Asesor: Tab Jadwal
-                                      } else if (type == 'status_kompeten' ||
-                                          type == 'sertifikat_terbit') {
-                                        state.setTab(3); // Asesor: Tab Statistik/Sertifikat
-                                      } else {
-                                        state.setTab(1);
-                                      }
-                                    } else if (isAsesi) {
-                                      if (type == 'status_kompeten' ||
-                                          type == 'sertifikat_terbit') {
-                                        state.setTab(3); // Asesi: Tab Sertifikat
-                                      } else if (type == 'spt_asesor' ||
-                                          type == 'rekomendasi_asesor' ||
-                                          type == 'link_persetujuan_asesmen' ||
-                                          type == 'persetujuan_asesmen' ||
-                                          type == 'link_umpan_balik' ||
-                                          type == 'umpan_balik' ||
-                                          type == 'link_tugas_praktek' ||
-                                          type == 'tugas_praktek' ||
-                                          type == 'link_kegiatan_terstruktur' ||
-                                          type == 'kegiatan_terstruktur') {
-                                        state.setTab(2); // Asesi: Tab Jadwal
-                                      } else {
-                                        state.setTab(2);
-                                      }
-                                    } else {
-                                      // Admin
-                                      if (type == 'status_kompeten' ||
-                                          type == 'sertifikat_terbit') {
-                                        state.setTab(3);
-                                      } else {
-                                        state.setTab(2);
-                                      }
-                                    }
-
-                                    final navContext = navigatorKey.currentContext ?? context;
-
-                                    // 1. FAQ direct navigation
-                                    if (type == 'faq') {
-                                      Navigator.push(
-                                        navContext,
-                                        MaterialPageRoute(
-                                          builder: (context) => const FaqScreen(),
-                                        ),
-                                      );
-                                      return;
-                                    }
-
-                                    // 2. Direct Jadwal / Form Navigation if specific jadwal_id is provided
-                                    if (jadwalId != null && jadwalId > 0) {
-                                      final currentUser = AuthRepository.currentUserInstance;
-                                      final userRole = currentUser != null
-                                          ? UserRole(
-                                              role: currentUser.role,
-                                              name: currentUser.name,
-                                              email: currentUser.email ?? '',
-                                            )
-                                          : const UserRole(role: 'asesor', name: 'User', email: '');
-
-                                      final jadwalItem = JadwalItem(
-                                        id: jadwalId,
-                                        skema: (notif.data['skema'] ?? notif.data['nama_jadwal'] ?? 'Jadwal Asesmen').toString(),
-                                        tuk: (notif.data['tuk'] ?? 'TUK Mandiri').toString(),
-                                        tanggalMulai: (notif.data['tanggal'] ?? '').toString(),
-                                        tanggalSelesai: (notif.data['tanggal'] ?? '').toString(),
-                                        createdWhen: '',
-                                        status: 'running',
-                                        statusJadwal: '3',
-                                        statusLabel: 'Aktif',
-                                        statusJadwalLabel: 'Aktif',
-                                        statusRekaman: '',
-                                        statusBlanko: '',
-                                        statusPengiriman: '',
-                                        jumlahAsesi: 0,
-                                        asesor: [],
-                                        sisaHari: 0,
-                                        totalAsesi: 0,
-                                        jumlahKompeten: 0,
-                                        jumlahBelumKompeten: 0,
-                                        needsAcc: false,
-                                      );
-
-                                      if (isAsesi && (type == 'link_umpan_balik' || type == 'umpan_balik')) {
-                                        Navigator.push(
-                                          navContext,
-                                          MaterialPageRoute(
-                                            builder: (context) => AsesiAK03FormScreen(
-                                              jadwal: jadwalItem,
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        Navigator.push(
-                                          navContext,
-                                          MaterialPageRoute(
-                                            builder: (context) => JadwalDetailScreen(
-                                              jadwal: jadwalItem,
-                                              userRole: userRole,
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    }
+                                    NotificationService.navigateFromNotificationData(
+                                      context,
+                                      type: notif.type,
+                                      data: notif.data,
+                                    );
                                   },
                                   onDelete: () async {
                                     await AppNotificationStorage.instance

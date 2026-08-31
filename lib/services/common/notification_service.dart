@@ -259,8 +259,20 @@ class NotificationService {
       message.data,
     );
 
-    // Defensive: only call setTab if MainNavigator is alive and mounted.
-    // Prevents "setState() called after dispose()" when FCM fires after logout.
+    navigateFromNotificationData(
+      null,
+      type: type,
+      data: message.data,
+    );
+  }
+
+  /// Centralized notification routing for both push notifications and in-app clicks
+  static void navigateFromNotificationData(
+    BuildContext? context, {
+    required String type,
+    required Map<String, dynamic> data,
+  }) {
+    final cleanType = type.toLowerCase().trim();
     final state = mainNavigatorKey.currentState;
     if (state == null || !state.mounted) {
       if (kDebugMode) {
@@ -272,49 +284,49 @@ class NotificationService {
     final role = AuthRepository.currentUserInstance?.role;
     final isAsesi = role == 'asesi';
     final isAsesor = role == 'asesor';
-    final jadwalIdStr = (message.data['jadwal_id'] ?? '').toString().trim();
+    final jadwalIdStr = (data['jadwal_id'] ?? '').toString().trim();
     final jadwalId = int.tryParse(jadwalIdStr);
 
     if (isAsesor) {
-      if (type == 'spt_asesor' ||
-          type == 'rekomendasi_asesor' ||
-          type == 'pendaftaran_asesor' ||
-          type.contains('jadwal')) {
+      if (cleanType == 'spt_asesor' ||
+          cleanType == 'rekomendasi_asesor' ||
+          cleanType == 'pendaftaran_asesor' ||
+          cleanType.contains('jadwal')) {
         state.setTab(1); // Asesor: Tab Jadwal
-      } else if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
+      } else if (cleanType == 'status_kompeten' || cleanType == 'sertifikat_terbit') {
         state.setTab(3); // Asesor: Tab Statistik/Sertifikat
       } else {
         state.setTab(1);
       }
     } else if (isAsesi) {
-      if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
+      if (cleanType == 'status_kompeten' || cleanType == 'sertifikat_terbit') {
         state.setTab(3); // Asesi: Tab Sertifikat
-      } else if (type == 'spt_asesor' ||
-          type == 'rekomendasi_asesor' ||
-          type == 'link_persetujuan_asesmen' ||
-          type == 'persetujuan_asesmen' ||
-          type == 'link_umpan_balik' ||
-          type == 'umpan_balik' ||
-          type == 'link_tugas_praktek' ||
-          type == 'tugas_praktek' ||
-          type == 'link_kegiatan_terstruktur' ||
-          type == 'kegiatan_terstruktur') {
+      } else if (cleanType == 'spt_asesor' ||
+          cleanType == 'rekomendasi_asesor' ||
+          cleanType == 'link_persetujuan_asesmen' ||
+          cleanType == 'persetujuan_asesmen' ||
+          cleanType == 'link_umpan_balik' ||
+          cleanType == 'umpan_balik' ||
+          cleanType == 'link_tugas_praktek' ||
+          cleanType == 'tugas_praktek' ||
+          cleanType == 'link_kegiatan_terstruktur' ||
+          cleanType == 'kegiatan_terstruktur') {
         state.setTab(2); // Asesi: Tab Jadwal
       } else {
         state.setTab(2);
       }
     } else {
-      if (type == 'status_kompeten' || type == 'sertifikat_terbit') {
+      if (cleanType == 'status_kompeten' || cleanType == 'sertifikat_terbit') {
         state.setTab(3);
       } else {
         state.setTab(2);
       }
     }
 
-    final navContext = navigatorKey.currentContext;
+    final navContext = context ?? navigatorKey.currentContext;
 
     // 1. FAQ direct navigation
-    if (type == 'faq' && navContext != null) {
+    if (cleanType == 'faq' && navContext != null) {
       Navigator.push(
         navContext,
         MaterialPageRoute(
@@ -337,10 +349,10 @@ class NotificationService {
 
       final jadwalItem = JadwalItem(
         id: jadwalId,
-        skema: (message.data['skema'] ?? message.data['nama_jadwal'] ?? 'Jadwal Asesmen').toString(),
-        tuk: (message.data['tuk'] ?? 'TUK Mandiri').toString(),
-        tanggalMulai: (message.data['tanggal'] ?? '').toString(),
-        tanggalSelesai: (message.data['tanggal'] ?? '').toString(),
+        skema: (data['skema'] ?? data['nama_jadwal'] ?? 'Jadwal Asesmen').toString(),
+        tuk: (data['tuk'] ?? 'TUK Mandiri').toString(),
+        tanggalMulai: (data['tanggal'] ?? '').toString(),
+        tanggalSelesai: (data['tanggal'] ?? '').toString(),
         createdWhen: '',
         status: 'running',
         statusJadwal: '3',
@@ -358,7 +370,7 @@ class NotificationService {
         needsAcc: false,
       );
 
-      if (isAsesi && (type == 'link_umpan_balik' || type == 'umpan_balik')) {
+      if (isAsesi && (cleanType == 'link_umpan_balik' || cleanType == 'umpan_balik')) {
         Navigator.push(
           navContext,
           MaterialPageRoute(
