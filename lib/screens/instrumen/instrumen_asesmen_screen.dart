@@ -75,7 +75,7 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
     {
       'id': 'IA03',
       'code': 'FR.IA.03',
-      'title': 'FR.IA.03 Pertanyaan Lisan',
+      'title': 'FR.IA.03 Pertanyaan Mendukung Observasi',
       'desc': 'Pertanyaan Untuk Mendukung Observasi',
       'status': 'Aktif',
     },

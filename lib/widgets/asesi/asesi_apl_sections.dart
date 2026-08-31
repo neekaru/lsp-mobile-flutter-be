@@ -197,7 +197,7 @@ class _APL02SectionState extends State<APL02Section> {
           ? apl02!.catatanRekomendasi
           : 'Di rekomendasi menjadi peserta uji kompetensi',
     );
-    _isAgreed = apl02?.isApproved ?? true;
+    _isAgreed = apl02?.isApproved ?? false;
     _selectedKandidat = (apl02?.kandidat.isNotEmpty ?? false)
         ? apl02!.kandidat
         : '1';
@@ -554,44 +554,46 @@ class _APL02SectionState extends State<APL02Section> {
           ),
           const SizedBox(height: 14),
 
-          // QR Code Digital Validation Preview
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x06000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  if (qrUrl.isNotEmpty)
-                    QrImageView(
-                      data: qrUrl,
-                      version: QrVersions.auto,
-                      size: 110.0,
-                      backgroundColor: Colors.white,
-                      errorCorrectionLevel: QrErrorCorrectLevel.M,
-                    )
-                  else
-                    const Icon(LucideIcons.qr_code, size: 84, color: Color(0xFF0F172A)),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Tanda Tangan Elektronik Asesor Tervalidasi',
-                    style: TextStyle(fontSize: 10.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
-                  ),
-                ],
+          // QR Code Digital Validation Preview (Only displayed when _isAgreed is checked)
+          if (_isAgreed) ...[
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x06000000),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    if (qrUrl.isNotEmpty)
+                      QrImageView(
+                        data: qrUrl,
+                        version: QrVersions.auto,
+                        size: 110.0,
+                        backgroundColor: Colors.white,
+                        errorCorrectionLevel: QrErrorCorrectLevel.M,
+                      )
+                    else
+                      const Icon(LucideIcons.qr_code, size: 84, color: Color(0xFF0F172A)),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Tanda Tangan Elektronik Asesor Tervalidasi',
+                      style: TextStyle(fontSize: 10.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
+            const SizedBox(height: 10),
+          ],
 
           // Checkbox Persetujuan
           InkWell(
@@ -914,7 +916,7 @@ class _APL02SectionState extends State<APL02Section> {
                           _buildIAQuickButton(
                             context,
                             code: 'FR.IA.03',
-                            label: isPorto ? 'IA.03 Tanya Lisan (Wawancara)' : 'IA.03 Tanya Lisan',
+                            label: isPorto ? 'IA.03 Pertanyaan Wawancara' : 'IA.03 Pertanyaan Mendukung Observasi',
                             formId: 'IA03',
                             color: const Color(0xFFD97706),
                           ),
@@ -956,9 +958,11 @@ class _APL02SectionState extends State<APL02Section> {
             width: double.infinity,
             height: 42,
             child: ElevatedButton.icon(
-              onPressed: _isSubmitting ? null : _submitAPL02,
+              onPressed: (_isSubmitting || !_isAgreed) ? null : _submitAPL02,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1E293B),
+                disabledBackgroundColor: const Color(0xFFCBD5E1),
+                disabledForegroundColor: Colors.white70,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(

@@ -3,6 +3,7 @@
 // ============================================================================
 
 import 'package:material_ui/material_ui.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../models/asesor_asesi_models.dart';
 import '../../services/asesor/asesor_service.dart';
@@ -27,7 +28,7 @@ class _AK01SectionState extends State<AK01Section> {
   bool _isSubmitting = false;
   String _asesorOption = '1'; // '1': Setuju, '0': Tidak Setuju
   String _asesiOption = '1';  // '1': Setuju, '2': Tidak Setuju
-  bool _isSigned = true;
+  bool _isSigned = false;
   late List<Map<String, dynamic>> _buktiList;
 
   @override
@@ -481,6 +482,43 @@ class _AK01SectionState extends State<AK01Section> {
           const SizedBox(height: 16),
 
           // 6. CHECKBOX TANDA TANGAN & TOMBOL SIMPAN
+          if (_isSigned || isApproved) ...[
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x06000000),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    QrImageView(
+                      data: 'https://sertifikasi.lspdigital.id/qrcode/e_dokumen/0/${widget.detailData?.jadwalId ?? 0}/${widget.detailData?.id ?? 0}/validasi_ak01',
+                      version: QrVersions.auto,
+                      size: 110.0,
+                      backgroundColor: Colors.white,
+                      errorCorrectionLevel: QrErrorCorrectLevel.M,
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Tanda Tangan Elektronik Asesor & Asesi Tervalidasi',
+                      style: TextStyle(fontSize: 10.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+
           if (isApproved)
             Container(
               width: double.infinity,

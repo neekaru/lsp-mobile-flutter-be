@@ -85,7 +85,7 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
                         Icon(LucideIcons.message_circle, size: 18, color: Color(0xFF2563EB)),
                         SizedBox(width: 8),
                         Text(
-                          'FR.IA.03 Pertanyaan Lisan',
+                          'FR.IA.03 Pertanyaan Mendukung Observasi',
                           style: TextStyle(
                             fontSize: 13.5,
                             fontWeight: FontWeight.bold,
