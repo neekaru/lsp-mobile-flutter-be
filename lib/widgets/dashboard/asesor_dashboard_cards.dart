@@ -10,6 +10,7 @@ import '../../screens/jadwal/jadwal_detail_screen.dart';
 import '../../models/dashboard_models.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/auth/auth_repository.dart';
+import '../../utils/date_format_helper.dart';
 
 /// Header section (judul + "Lihat semua").
 class AsesorSectionHeader extends StatelessWidget {
@@ -90,6 +91,12 @@ class AsesorJadwalHariIniCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (statusLabel, statusColor, statusBgColor) = _statusStyle();
+    final displayName = item.namaJadwal.isNotEmpty ? item.namaJadwal : item.skema;
+    final formattedDate = DateFormatHelper.formatToIndonesian(item.tanggal);
+    final hasTime = item.waktu.isNotEmpty && item.waktu != '0';
+    final kuotaText = item.kuota > 0
+        ? '${item.totalAsesi > 0 ? '${item.totalAsesi} / ' : ''}${item.kuota} Peserta'
+        : (item.totalAsesi > 0 ? '${item.totalAsesi} Peserta' : '-');
 
     return InkWell(
       onTap: () {
@@ -109,12 +116,12 @@ class AsesorJadwalHariIniCard extends StatelessWidget {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: const Color(0xFFE2E8F0),
             width: 1.0,
@@ -127,156 +134,211 @@ class AsesorJadwalHariIniCard extends StatelessWidget {
             ),
           ],
         ),
-        padding: const EdgeInsets.all(12),
-        child: Row(
+        padding: const EdgeInsets.all(14),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                color: item.isAJJ
-                    ? const Color(0xFFEFF6FF)
-                    : const Color(0xFFE2F0FD),
-                borderRadius: BorderRadius.circular(12),
-                border: item.isAJJ
-                    ? Border.all(color: const Color(0xFFBFDBFE), width: 1.2)
-                    : null,
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Column(
+            // Top Row: Icon + Title (Nama Jadwal) + Status Badge
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: item.isAJJ
+                        ? const Color(0xFFEFF6FF)
+                        : const Color(0xFFE2F0FD),
+                    borderRadius: BorderRadius.circular(10),
+                    border: item.isAJJ
+                        ? Border.all(color: const Color(0xFFBFDBFE), width: 1.2)
+                        : null,
+                  ),
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         Icons.calendar_month_rounded,
                         color: const Color(0xFF3F8CFF),
-                        size: item.isAJJ ? 28 : 40,
+                        size: item.isAJJ ? 20 : 24,
                       ),
                       if (item.isAJJ) ...[
-                        const SizedBox(height: 3),
+                        const SizedBox(height: 2),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 1.5,
+                            horizontal: 4,
+                            vertical: 1,
                           ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF2563EB),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(3),
                           ),
                           child: const Text(
                             'AJJ',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 10,
+                              fontSize: 9,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: 0.8,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
                       ],
                     ],
                   ),
-                  if (!item.isAJJ)
-                    Positioned(
-                      bottom: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.edit_rounded,
-                          color: Color(0xFF3F8CFF),
-                          size: 14,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          item.isAJJ
-                              ? 'Asesmen Jarak Jauh (AJJ)'
-                              : 'Asesmen Mandiri',
-                          style: const TextStyle(
-                            color: Color(0xFF0F172A),
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      Text(
+                        displayName,
+                        style: const TextStyle(
+                          color: Color(0xFF0F172A),
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.bold,
+                          height: 1.25,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusBgColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          statusLabel,
-                          style: TextStyle(
-                            color: statusColor,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      const SizedBox(height: 3),
+                      Text(
+                        item.isAJJ
+                            ? 'Asesmen Jarak Jauh (AJJ)'
+                            : 'Asesmen Mandiri / Luring',
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Skema : ${item.skema}',
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 3.5,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    (item.waktu.isNotEmpty && item.waktu != '0')
-                        ? item.waktu
-                        : 'Waktu Pelaksanaan',
-                    style: const TextStyle(
-                      color: Color(0xFF0F172A),
-                      fontSize: 13,
+                  decoration: BoxDecoration(
+                    color: statusBgColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item.tuk,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+            const SizedBox(height: 10),
+
+            // Metadata: TUK, Tanggal Asesmen, Kuota
+            // 1. TUK
+            Row(
+              children: [
+                const Icon(
+                  Icons.location_on_outlined,
+                  size: 15,
+                  color: Color(0xFF64748B),
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'TUK : ',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    item.tuk.isNotEmpty ? item.tuk : '-',
                     style: const TextStyle(
-                      color: Color(0xFF64748B),
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF1E293B),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            // 2. Tanggal Asesmen & Waktu
+            Row(
+              children: [
+                const Icon(
+                  Icons.access_time_rounded,
+                  size: 15,
+                  color: Color(0xFF64748B),
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'Tanggal : ',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    hasTime ? '$formattedDate (${item.waktu})' : formattedDate,
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            // 3. Kuota
+            Row(
+              children: [
+                const Icon(
+                  Icons.people_outline_rounded,
+                  size: 15,
+                  color: Color(0xFF64748B),
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'Kuota : ',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    kuotaText,
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

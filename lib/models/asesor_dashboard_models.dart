@@ -79,6 +79,7 @@ class AsesorDashboardAlertBanner {
 
 class AsesorDashboardJadwal {
   final int idJadwal;
+  final String namaJadwal;
   final String skema;
   final String tanggal;
   final String waktu;
@@ -86,9 +87,12 @@ class AsesorDashboardJadwal {
   final String status;
   final String? jenisUji;
   final bool? isAjj;
+  final int kuota;
+  final int totalAsesi;
 
   const AsesorDashboardJadwal({
     required this.idJadwal,
+    this.namaJadwal = '',
     required this.skema,
     required this.tanggal,
     required this.waktu,
@@ -96,6 +100,8 @@ class AsesorDashboardJadwal {
     required this.status,
     this.jenisUji,
     this.isAjj,
+    this.kuota = 0,
+    this.totalAsesi = 0,
   });
 
   bool get isAJJ => isSjj;
@@ -104,7 +110,7 @@ class AsesorDashboardJadwal {
     if (jenisUji?.trim() == '1' || jenisUji?.trim().toUpperCase() == 'AJJ' || jenisUji?.trim().toLowerCase() == 'online') {
       return true;
     }
-    final s = skema.toUpperCase();
+    final s = '$namaJadwal $skema'.toUpperCase();
     final t = tuk.toUpperCase();
     return s.contains('AJJ') ||
         s.contains('JARAK JAUH') ||
@@ -117,9 +123,16 @@ class AsesorDashboardJadwal {
   factory AsesorDashboardJadwal.fromJson(Map<String, dynamic> json) {
     final rawIsAjj = json['is_ajj'];
     final isAjj = rawIsAjj == true || rawIsAjj == 1 || rawIsAjj == '1' || rawIsAjj == 'true';
+    final kuotaVal = json['kuota'] is int
+        ? json['kuota'] as int
+        : int.tryParse(json['kuota']?.toString() ?? '0') ?? 0;
+    final totalAsesiVal = json['total_asesi'] is int
+        ? json['total_asesi'] as int
+        : int.tryParse(json['total_asesi']?.toString() ?? '0') ?? 0;
 
     return AsesorDashboardJadwal(
       idJadwal: json['id_jadwal'] ?? 0,
+      namaJadwal: json['nama_jadwal'] ?? json['jadwal'] ?? json['jadual'] ?? '',
       skema: json['skema'] ?? '',
       tanggal: json['tanggal'] ?? '',
       waktu: json['waktu'] ?? '',
@@ -127,19 +140,23 @@ class AsesorDashboardJadwal {
       status: json['status']?.toString() ?? '0',
       jenisUji: json['jenis_uji']?.toString(),
       isAjj: isAjj,
+      kuota: kuotaVal,
+      totalAsesi: totalAsesiVal,
     );
   }
 
   JadwalItem toJadwalItem() {
     return JadwalItem(
       id: idJadwal,
-      skema: skema,
+      skema: skema.isNotEmpty ? skema : (namaJadwal.isNotEmpty ? namaJadwal : 'Jadwal Asesmen'),
       tuk: tuk,
       tanggalMulai: tanggal,
       tanggalSelesai: tanggal,
       status: JadwalItem.mapStatusCode(status),
       statusJadwal: status,
-      jumlahAsesi: 0,
+      jumlahAsesi: totalAsesi > 0 ? totalAsesi : kuota,
+      totalAsesi: totalAsesi,
+      kuota: kuota,
       asesor: const [],
       sisaHari: 0,
       jenisUji: jenisUji,
