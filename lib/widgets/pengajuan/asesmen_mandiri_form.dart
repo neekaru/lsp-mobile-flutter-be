@@ -6,6 +6,8 @@ class AsesmenMandiriForm extends StatefulWidget {
   final String selectedSkema;
   /// Each unit: `kode`, `judul`, `kuk_count` (label), `elemen` (list)
   final List<Map<String, dynamic>> unitKompetensi;
+  final Map<String, bool?> kukAssessments;
+  final VoidCallback? onCheckAllK;
   final bool isLoading;
   /// true when skema not chosen yet (no skema id).
   final bool skemaBelumDipilih;
@@ -19,7 +21,9 @@ class AsesmenMandiriForm extends StatefulWidget {
     super.key,
     required this.selectedSkema,
     required this.unitKompetensi,
+    required this.kukAssessments,
     required this.onUnitTap,
+    this.onCheckAllK,
     this.isLoading = false,
     this.skemaBelumDipilih = false,
     this.loadFailed = false,
@@ -130,6 +134,31 @@ class _AsesmenMandiriFormState extends State<AsesmenMandiriForm> {
     );
   }
 
+  bool _isUnitComplete(Map<String, dynamic> unit) {
+    final groups = unit['elemen'];
+    if (groups is! List || groups.isEmpty) return false;
+    for (final group in groups) {
+      if (group is! Map) continue;
+      final items = group['items'];
+      if (items is List && items.isNotEmpty) {
+        for (final item in items) {
+          if (item is Map) {
+            final key = item['key']?.toString() ?? '';
+            if (key.isNotEmpty && widget.kukAssessments[key] != true) {
+              return false;
+            }
+          }
+        }
+      } else {
+        final idElemen = group['id_elemen']?.toString() ?? '';
+        if (idElemen.isNotEmpty && widget.kukAssessments['e:$idElemen'] != true) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final units = widget.unitKompetensi;
@@ -152,6 +181,64 @@ class _AsesmenMandiriFormState extends State<AsesmenMandiriForm> {
           kukCount: kukCount,
         ),
         const SizedBox(height: 24),
+        if (widget.onCheckAllK != null && units.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF86EFAC)),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.playlist_add_check_rounded,
+                  color: Color(0xFF16A34A),
+                  size: 24,
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Asesmen Mandiri (APL.02)',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF15803D),
+                        ),
+                      ),
+                      Text(
+                        'Semua unit harus dinilai Kompeten (K)',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF166534)),
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: widget.onCheckAllK,
+                  icon: const Icon(Icons.done_all_rounded, size: 16, color: Colors.white),
+                  label: const Text(
+                    'Pilih Semua K',
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         if (widget.isLoading)
           const Padding(
             padding: EdgeInsets.all(24),
@@ -166,14 +253,18 @@ class _AsesmenMandiriFormState extends State<AsesmenMandiriForm> {
             final judul = unit['judul'] as String? ?? '';
             final kukLabel = unit['kuk_count'] as String? ??
                 '${(unit['elemen'] as List?)?.length ?? 0} item';
+            final isComplete = _isUnitComplete(unit);
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isComplete ? const Color(0xFFF0FDF4) : Colors.white,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(
+                  color: isComplete ? const Color(0xFF86EFAC) : const Color(0xFFE2E8F0),
+                  width: isComplete ? 1.2 : 1.0,
+                ),
               ),
               child: InkWell(
                 onTap: () => widget.onUnitTap(index),
@@ -186,10 +277,10 @@ class _AsesmenMandiriFormState extends State<AsesmenMandiriForm> {
                     children: [
                       Text(
                         '${index + 1}.',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                          color: isComplete ? const Color(0xFF15803D) : const Color(0xFF1E293B),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -199,39 +290,68 @@ class _AsesmenMandiriFormState extends State<AsesmenMandiriForm> {
                           children: [
                             Text(
                               kode,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF64748B),
+                                color: isComplete ? const Color(0xFF16A34A) : const Color(0xFF64748B),
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               judul,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
+                                color: isComplete ? const Color(0xFF14532D) : const Color(0xFF1E293B),
                                 height: 1.3,
                               ),
                             ),
                             const SizedBox(height: 6),
-                            Text(
-                              kukLabel,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF94A3B8),
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  kukLabel,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isComplete ? const Color(0xFF16A34A) : const Color(0xFF94A3B8),
+                                  ),
+                                ),
+                                if (isComplete) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFDCFCE7),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 12),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Kompeten (K)',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF15803D),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Align(
+                      Align(
                         alignment: Alignment.center,
                         child: Icon(
-                          Icons.keyboard_arrow_right_rounded,
-                          color: Color(0xFF378CE7),
+                          isComplete ? Icons.check_circle_rounded : Icons.keyboard_arrow_right_rounded,
+                          color: isComplete ? const Color(0xFF16A34A) : const Color(0xFF378CE7),
                           size: 22,
                         ),
                       ),

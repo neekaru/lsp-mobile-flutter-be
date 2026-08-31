@@ -244,6 +244,36 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
     );
   }
 
+  bool _isUnitComplete(Map<String, dynamic> unit) {
+    final items = _allItemsOf(unit);
+    if (items.isEmpty) return false;
+    return items.every((item) {
+      final key = item['key']?.toString() ?? '';
+      return widget.kukAssessments[key] == true;
+    });
+  }
+
+  void _checkAllKompeten() {
+    for (final unit in widget.unitKompetensi) {
+      final items = _allItemsOf(unit);
+      for (final item in items) {
+        final key = item['key']?.toString() ?? '';
+        if (key.isNotEmpty) {
+          widget.onAssessmentChanged(key, true);
+        }
+      }
+    }
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Semua unit telah dinilai Kompeten (K).'),
+        backgroundColor: Color(0xFF16A34A),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   Widget _buildUnitList() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,6 +298,64 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
           ),
         ),
         const SizedBox(height: 16),
+        if (widget.unitKompetensi.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF86EFAC)),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.playlist_add_check_rounded,
+                  color: Color(0xFF16A34A),
+                  size: 24,
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Asesmen Mandiri (APL.02)',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF15803D),
+                        ),
+                      ),
+                      Text(
+                        'Semua unit harus dinilai Kompeten (K)',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF166534)),
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _checkAllKompeten,
+                  icon: const Icon(Icons.done_all_rounded, size: 16, color: Colors.white),
+                  label: const Text(
+                    'Pilih Semua K',
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         if (widget.unitKompetensi.isEmpty)
           const Padding(
             padding: EdgeInsets.all(16),
@@ -287,14 +375,18 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
               final judul = unit['judul'] as String? ?? '';
               final kukLabel = unit['kuk_count'] as String? ??
                   '${_allItemsOf(unit).length} item';
+              final isComplete = _isUnitComplete(unit);
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isComplete ? const Color(0xFFF0FDF4) : Colors.white,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(
+                    color: isComplete ? const Color(0xFF86EFAC) : const Color(0xFFE2E8F0),
+                    width: isComplete ? 1.2 : 1.0,
+                  ),
                 ),
                 child: InkWell(
                   onTap: () {
@@ -315,10 +407,10 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                       children: [
                         Text(
                           '${index + 1}.',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
+                            color: isComplete ? const Color(0xFF15803D) : const Color(0xFF1E293B),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -328,35 +420,67 @@ class _AsesmenMandiriUjiScreenState extends State<AsesmenMandiriUjiScreen> {
                             children: [
                               Text(
                                 kode,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF64748B),
+                                  color: isComplete ? const Color(0xFF16A34A) : const Color(0xFF64748B),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 judul,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
+                                  color: isComplete ? const Color(0xFF14532D) : const Color(0xFF1E293B),
                                   height: 1.3,
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              Text(
-                                kukLabel,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF94A3B8),
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    kukLabel,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isComplete ? const Color(0xFF16A34A) : const Color(0xFF94A3B8),
+                                    ),
+                                  ),
+                                  if (isComplete) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFDCFCE7),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 12),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Kompeten (K)',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF15803D),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.keyboard_arrow_right_rounded,
-                            color: Color(0xFF378CE7), size: 22),
+                        Icon(
+                          isComplete ? Icons.check_circle_rounded : Icons.keyboard_arrow_right_rounded,
+                          color: isComplete ? const Color(0xFF16A34A) : const Color(0xFF378CE7),
+                          size: 22,
+                        ),
                       ],
                     ),
                   ),

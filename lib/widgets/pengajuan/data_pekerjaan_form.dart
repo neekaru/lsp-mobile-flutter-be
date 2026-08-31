@@ -31,6 +31,16 @@ class DataPekerjaanForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedPekerjaan = listPekerjaan
+        .where((p) => p.id == selectedPekerjaanId)
+        .firstOrNull;
+    final pekerjaanName = (selectedPekerjaan?.displayName ?? '').toLowerCase();
+    final bool isNotWorking = pekerjaanName.contains('belum') ||
+        pekerjaanName.contains('tidak') ||
+        pekerjaanName.contains('pelajar') ||
+        pekerjaanName.contains('mahasiswa');
+    final bool isCompanyRequired = selectedPekerjaanId != null && !isNotWorking;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -94,32 +104,46 @@ class DataPekerjaanForm extends StatelessWidget {
           onChanged: onPekerjaanChanged,
         ),
         const SizedBox(height: 20),
-        const CustomFieldLabel(label: 'Nama Perusahaan'),
+        CustomFieldLabel(
+          label: 'Nama Perusahaan',
+          isRequired: isCompanyRequired,
+        ),
         CustomTextInput(
           controller: namaPerusahaanController,
-          hint:
-              'Organisasi/ Tempat bekerja/ Institusi Terkait/ Freelance/-(bila tidak ada)',
+          hint: isCompanyRequired
+              ? 'Organisasi/ Tempat bekerja/ Institusi Terkait/ Freelance'
+              : 'Kosongkan jika belum/tidak bekerja',
           inputFormatters: [LengthLimitingTextInputFormatter(50)],
         ),
         const SizedBox(height: 20),
-        const CustomFieldLabel(label: 'Jabatan'),
+        CustomFieldLabel(
+          label: 'Jabatan',
+          isRequired: isCompanyRequired,
+        ),
         CustomTextInput(
           controller: jabatanController,
-          hint: 'Jabatan diperusahaan',
+          hint: isCompanyRequired
+              ? 'Jabatan diperusahaan'
+              : 'Kosongkan jika belum/tidak bekerja',
           inputFormatters: [LengthLimitingTextInputFormatter(25)],
         ),
         const SizedBox(height: 20),
-        const CustomFieldLabel(label: 'Alamat Lembaga / Perusahaan'),
+        CustomFieldLabel(
+          label: 'Alamat Lembaga / Perusahaan',
+          isRequired: isCompanyRequired,
+        ),
         CustomTextInput(
           controller: alamatPerusahaanController,
-          hint: 'Alamat lengkap instansi/perusahaan',
+          hint: isCompanyRequired
+              ? 'Alamat lengkap instansi/perusahaan'
+              : 'Kosongkan jika belum/tidak bekerja',
           maxLines: 2,
           inputFormatters: [LengthLimitingTextInputFormatter(255)],
         ),
         const SizedBox(height: 10),
         CustomTextInput(
           controller: kodeposPerusahaanController,
-          hint: 'Masukan kode pos perusahaan',
+          hint: 'Masukan kode pos perusahaan (opsional)',
           keyboardType: TextInputType.number,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
@@ -127,19 +151,28 @@ class DataPekerjaanForm extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        const CustomFieldLabel(label: 'No. Telp/Email Perusahaan'),
+        CustomFieldLabel(
+          label: 'No. Telp Perusahaan',
+          isRequired: isCompanyRequired,
+        ),
         CustomTextInput(
           controller: telpPerusahaanController,
-          hint: 'Masukan no telpon perusahaan',
+          hint: isCompanyRequired
+              ? 'Masukan no telpon perusahaan'
+              : 'Kosongkan jika belum/tidak bekerja',
           keyboardType: TextInputType.phone,
           inputFormatters: [LengthLimitingTextInputFormatter(15)],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 20),
+        const CustomFieldLabel(
+          label: 'Email Perusahaan',
+          isRequired: false,
+        ),
         CustomTextInput(
           controller: emailPerusahaanController,
-          hint: 'Masukan email perusahaan',
+          hint: 'Masukan email perusahaan (opsional)',
           keyboardType: TextInputType.emailAddress,
-          inputFormatters: [LengthLimitingTextInputFormatter(19)],
+          inputFormatters: [LengthLimitingTextInputFormatter(50)],
         ),
       ],
     );

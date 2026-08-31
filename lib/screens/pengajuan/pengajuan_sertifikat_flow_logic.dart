@@ -388,6 +388,50 @@ mixin PengajuanSertifikatFlowLogic
           return;
         }
       }
+      // Step 2 = Data Pekerjaan
+      if (currentStep == 2) {
+        if (selectedPekerjaanId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Pilih jenis pekerjaan terlebih dahulu.'),
+              backgroundColor: Color(0xFFEF4444),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        final selectedPekerjaan = listPekerjaan
+            .where((p) => p.id == selectedPekerjaanId)
+            .firstOrNull;
+        final pekerjaanName =
+            (selectedPekerjaan?.displayName ?? '').toLowerCase();
+        final bool isNotWorking = pekerjaanName.contains('belum') ||
+            pekerjaanName.contains('tidak') ||
+            pekerjaanName.contains('pelajar') ||
+            pekerjaanName.contains('mahasiswa');
+        if (!isNotWorking) {
+          if (namaPerusahaanController.text.trim().isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Nama perusahaan wajib diisi.'),
+                backgroundColor: Color(0xFFEF4444),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
+          if (jabatanController.text.trim().isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Jabatan diperusahaan wajib diisi.'),
+                backgroundColor: Color(0xFFEF4444),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
+        }
+      }
       // Step 3 = Dokumen Persyaratan (Dasar + Administratif) harus lengkap
       if (currentStep == 3) {
         final ok = await ensurePersyaratanLengkap(
@@ -411,6 +455,21 @@ mixin PengajuanSertifikatFlowLogic
         await ensureKompetensiLoaded();
       }
     } else {
+      // Guard: Semua KUK pada Asesmen Mandiri harus dinilai Kompeten (K)
+      if (!isAllKompeten()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Semua unit dan KUK pada Asesmen Mandiri harus dinilai Kompeten (K) untuk dapat menyelesaikan pendaftaran.',
+            ),
+            backgroundColor: Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
       setState(() {
         isSubmitting = true;
       });

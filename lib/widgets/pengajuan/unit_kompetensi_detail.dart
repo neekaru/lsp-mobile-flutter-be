@@ -144,6 +144,18 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
     );
   }
 
+  void _setUnitAllK() {
+    for (final group in widget.elemenGroups) {
+      final items = _itemsOf(group);
+      for (final item in items) {
+        final key = item['key']?.toString() ?? '';
+        if (key.isEmpty) continue;
+        widget.onAssessmentChanged(key, true);
+      }
+    }
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final groups = widget.elemenGroups;
@@ -173,8 +185,33 @@ class _UnitKompetensiDetailState extends State<UnitKompetensiDetail> {
                       color: Color(0xFF64748B),
                     ),
                   ),
-                  const Icon(Icons.keyboard_arrow_down,
-                      color: Color(0xFF378CE7)),
+                  InkWell(
+                    onTap: _setUnitAllK,
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFF86EFAC)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.done_all_rounded, size: 14, color: Color(0xFF16A34A)),
+                          SizedBox(width: 4),
+                          Text(
+                            'Pilih Semua K',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF16A34A),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 6),

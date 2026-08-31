@@ -400,6 +400,8 @@ class PengajuanSertifikatScreenState extends State<PengajuanSertifikatScreen>
         return AsesmenMandiriForm(
           selectedSkema: selectedSkema ?? '',
           unitKompetensi: asesmenUnits,
+          kukAssessments: kukAssessments,
+          onCheckAllK: checkAllKompeten,
           isLoading: isLoadingKompetensi,
           skemaBelumDipilih: selectedSkemaId == null || selectedSkemaId! <= 0,
           loadFailed: kompetensiLoadFailed,

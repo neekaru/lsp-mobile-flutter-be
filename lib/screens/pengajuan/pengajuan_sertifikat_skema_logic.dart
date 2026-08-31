@@ -463,6 +463,70 @@ mixin PengajuanSertifikatSkemaLogic on State<PengajuanSertifikatScreen> {
     kukEvidence.clear();
   }
 
+  void checkAllKompeten() {
+    setState(() {
+      for (final unit in asesmenUnits) {
+        final groups = unit['elemen'];
+        if (groups is! List) continue;
+        for (final group in groups) {
+          if (group is! Map) continue;
+          final items = group['items'];
+          if (items is List && items.isNotEmpty) {
+            for (final item in items) {
+              if (item is Map) {
+                final key = item['key']?.toString() ?? '';
+                if (key.isNotEmpty) {
+                  kukAssessments[key] = true;
+                }
+              }
+            }
+          } else {
+            final idElemen = group['id_elemen']?.toString() ?? '';
+            if (idElemen.isNotEmpty) {
+              kukAssessments['e:$idElemen'] = true;
+            }
+          }
+        }
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Semua unit telah dinilai Kompeten (K).'),
+        backgroundColor: Color(0xFF16A34A),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  bool isAllKompeten() {
+    if (asesmenUnits.isEmpty) return false;
+    for (final unit in asesmenUnits) {
+      final groups = unit['elemen'];
+      if (groups is! List || groups.isEmpty) return false;
+      for (final group in groups) {
+        if (group is! Map) continue;
+        final items = group['items'];
+        if (items is List && items.isNotEmpty) {
+          for (final item in items) {
+            if (item is Map) {
+              final key = item['key']?.toString() ?? '';
+              if (key.isNotEmpty && kukAssessments[key] != true) {
+                return false;
+              }
+            }
+          }
+        } else {
+          final idElemen = group['id_elemen']?.toString() ?? '';
+          if (idElemen.isNotEmpty && kukAssessments['e:$idElemen'] != true) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
   void onPersyaratanUpload(
     String key,
     String label,
