@@ -58,6 +58,8 @@ class ApiRoutes {
       '/api/dashboard/muk-distribusi/$skemaId/perangkat';
   static const String dashboardSptAsesor2026 =
       '/api/dashboard/spt-asesor-2026';
+  static String dashboardSptAsesorJadwal(int asesorId) =>
+      '/api/dashboard/spt-asesor/$asesorId/jadwal';
   static const String asesi2026 = '/api/dashboard/asesi-2026';
 
   // ============================================================================

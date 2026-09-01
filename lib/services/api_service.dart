@@ -179,6 +179,22 @@ class ApiService {
       );
   static Future<SptAsesorData?> getSptAsesor2026({int tahun = 2026}) =>
       DashboardService.getSptAsesor2026(tahun: tahun);
+  static Future<AsesorJadwalHistoryData?> getAsesorJadwalHistory(
+    int asesorId, {
+    int? tahun,
+    int? bulan,
+    String? search,
+    int limit = 50,
+    int offset = 0,
+  }) =>
+      DashboardService.getAsesorJadwalHistory(
+        asesorId,
+        tahun: tahun,
+        bulan: bulan,
+        search: search,
+        limit: limit,
+        offset: offset,
+      );
   static Future<Asesi2026Data?> getAsesi2026({int tahun = 2026}) =>
       DashboardService.getAsesi2026(tahun: tahun);
   static Future<AsesorStatistikData?> getAsesorStatistikBulanan({int tahun = 2026}) =>

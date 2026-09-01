@@ -632,5 +632,37 @@ class DashboardService {
       return null;
     }
   }
+
+  /// Fetch Asesor Jadwal / Penugasan History
+  static Future<AsesorJadwalHistoryData?> getAsesorJadwalHistory(
+    int asesorId, {
+    int? tahun,
+    int? bulan,
+    String? search,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{
+        'limit': limit,
+        'offset': offset,
+      };
+      if (tahun != null && tahun > 0) queryParams['tahun'] = tahun;
+      if (bulan != null && bulan > 0) queryParams['bulan'] = bulan;
+      if (search != null && search.isNotEmpty) queryParams['search'] = search;
+
+      final queryString = Uri(queryParameters: queryParams.map((k, v) => MapEntry(k, v.toString()))).query;
+      final url = '${ApiRoutes.dashboardSptAsesorJadwal(asesorId)}${queryString.isNotEmpty ? '?$queryString' : ''}';
+
+      final response = await _dio.get(url);
+      if (response.statusCode == 200 && response.data != null) {
+        return AsesorJadwalHistoryData.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching asesor jadwal history: $e');
+      return null;
+    }
+  }
 }
 

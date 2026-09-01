@@ -503,6 +503,7 @@ class MUKDetailData {
 }
 
 class SptAsesorItem {
+  final int asesorId;
   final String namaAsesor;
   final String tglExpired;
   final String statusMasaBerlaku;
@@ -510,6 +511,7 @@ class SptAsesorItem {
   final Map<String, int> bulanan;
 
   const SptAsesorItem({
+    this.asesorId = 0,
     required this.namaAsesor,
     required this.tglExpired,
     required this.statusMasaBerlaku,
@@ -525,6 +527,7 @@ class SptAsesorItem {
     });
 
     return SptAsesorItem(
+      asesorId: (json['asesor_id'] ?? json['id'] as num?)?.toInt() ?? 0,
       namaAsesor: json['nama_asesor']?.toString() ?? '',
       tglExpired: json['tgl_expired']?.toString() ?? '',
       statusMasaBerlaku: json['status_masa_berlaku']?.toString() ?? 'Tidak Diketahui',
@@ -563,6 +566,7 @@ class SptAsesorData {
 }
 
 class Asesi2026Item {
+  final int asesorId;
   final String namaAsesor;
   final String tglExpired;
   final String statusMasaBerlaku;
@@ -571,6 +575,7 @@ class Asesi2026Item {
   final Map<String, int> bulanan;
 
   const Asesi2026Item({
+    this.asesorId = 0,
     required this.namaAsesor,
     required this.tglExpired,
     required this.statusMasaBerlaku,
@@ -587,6 +592,7 @@ class Asesi2026Item {
     });
 
     return Asesi2026Item(
+      asesorId: (json['asesor_id'] ?? json['id'] as num?)?.toInt() ?? 0,
       namaAsesor: json['nama_asesor']?.toString() ?? '',
       tglExpired: json['tgl_expired']?.toString() ?? '',
       statusMasaBerlaku: json['status_masa_berlaku']?.toString() ?? 'Tidak Diketahui',
@@ -624,6 +630,117 @@ class Asesi2026Data {
       totalAsesi: (meta['total_asesi'] as num?)?.toInt() ?? 0,
       totalJadwal: (meta['total_jadwal'] as num?)?.toInt() ?? 0,
       tahun: (meta['tahun'] as num?)?.toInt() ?? 2026,
+    );
+  }
+}
+
+class AsesorJadwalHistoryItem {
+  final int idJadwal;
+  final int idMapping;
+  final String namaJadwal;
+  final String skema;
+  final String kodeSkema;
+  final String tanggal;
+  final String tanggalAkhir;
+  final String waktu;
+  final String tuk;
+  final String alamatTuk;
+  final String jenisUji;
+  final String statusJadwal;
+  final int totalAsesi;
+  final String noSpt;
+
+  const AsesorJadwalHistoryItem({
+    required this.idJadwal,
+    required this.idMapping,
+    required this.namaJadwal,
+    required this.skema,
+    required this.kodeSkema,
+    required this.tanggal,
+    required this.tanggalAkhir,
+    required this.waktu,
+    required this.tuk,
+    required this.alamatTuk,
+    required this.jenisUji,
+    required this.statusJadwal,
+    required this.totalAsesi,
+    required this.noSpt,
+  });
+
+  factory AsesorJadwalHistoryItem.fromJson(Map<String, dynamic> json) {
+    return AsesorJadwalHistoryItem(
+      idJadwal: (json['id_jadwal'] as num?)?.toInt() ?? 0,
+      idMapping: (json['id_mapping'] as num?)?.toInt() ?? 0,
+      namaJadwal: json['nama_jadwal']?.toString() ?? '',
+      skema: json['skema']?.toString() ?? '',
+      kodeSkema: json['kode_skema']?.toString() ?? '',
+      tanggal: json['tanggal']?.toString() ?? '',
+      tanggalAkhir: json['tanggal_akhir']?.toString() ?? '',
+      waktu: json['waktu']?.toString() ?? '',
+      tuk: json['tuk']?.toString() ?? '',
+      alamatTuk: json['alamat_tuk']?.toString() ?? '',
+      jenisUji: json['jenis_uji']?.toString() ?? 'Offline',
+      statusJadwal: json['status_jadwal']?.toString() ?? 'Aktif',
+      totalAsesi: (json['total_asesi'] as num?)?.toInt() ?? 0,
+      noSpt: json['no_spt']?.toString() ?? '',
+    );
+  }
+}
+
+class AsesorJadwalHistoryInfo {
+  final int id;
+  final String namaAsesor;
+  final String noMet;
+  final String tglExpired;
+  final String statusMasaBerlaku;
+  final int totalPenugasan;
+  final int totalAsesi;
+
+  const AsesorJadwalHistoryInfo({
+    required this.id,
+    required this.namaAsesor,
+    required this.noMet,
+    required this.tglExpired,
+    required this.statusMasaBerlaku,
+    required this.totalPenugasan,
+    required this.totalAsesi,
+  });
+
+  factory AsesorJadwalHistoryInfo.fromJson(Map<String, dynamic> json) {
+    return AsesorJadwalHistoryInfo(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      namaAsesor: json['nama_asesor']?.toString() ?? '',
+      noMet: json['no_met']?.toString() ?? '',
+      tglExpired: json['tgl_expired']?.toString() ?? '',
+      statusMasaBerlaku: json['status_masa_berlaku']?.toString() ?? 'Tidak Diketahui',
+      totalPenugasan: (json['total_penugasan'] as num?)?.toInt() ?? 0,
+      totalAsesi: (json['total_asesi'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+class AsesorJadwalHistoryData {
+  final AsesorJadwalHistoryInfo asesor;
+  final List<AsesorJadwalHistoryItem> jadwal;
+  final int total;
+
+  const AsesorJadwalHistoryData({
+    required this.asesor,
+    required this.jadwal,
+    required this.total,
+  });
+
+  factory AsesorJadwalHistoryData.fromJson(Map<String, dynamic> json) {
+    final rawData = json['data'] is Map<String, dynamic> ? json['data'] : json;
+    final asesorJson = rawData['asesor'] as Map<String, dynamic>? ?? {};
+    final jadwalList = (rawData['jadwal'] as List?)
+            ?.map((e) => AsesorJadwalHistoryItem.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+    return AsesorJadwalHistoryData(
+      asesor: AsesorJadwalHistoryInfo.fromJson(asesorJson),
+      jadwal: jadwalList,
+      total: (rawData['total'] as num?)?.toInt() ?? jadwalList.length,
     );
   }
 }
