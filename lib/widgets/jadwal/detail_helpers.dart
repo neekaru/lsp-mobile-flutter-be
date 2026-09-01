@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../models/jadwal_models.dart';
 
 /// Badge status jadwal dengan label dari backend/screen (bukan dihitung di sini).
 class JadwalStatusBadge extends StatelessWidget {
@@ -232,55 +233,21 @@ class AsesorStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bgColor;
-    Color textColor;
-    String label;
-
-    switch (status) {
-      case 'draft':
-      case 'waiting':
-        bgColor = const Color(0xFFFEF3C7);
-        textColor = const Color(0xFFD97706);
-        label = 'Draft';
-        break;
-      case 'completed':
-        bgColor = const Color(0xFFD1FAE5);
-        textColor = const Color(0xFF059669);
-        label = 'Complete';
-        break;
-      case 'canceled':
-        bgColor = const Color(0xFFFEE2E2);
-        textColor = const Color(0xFFDC2626);
-        label = 'Canceled';
-        break;
-      case 'running':
-        bgColor = const Color(0xFFDBEAFE);
-        textColor = const Color(0xFF2563EB);
-        label = 'Running';
-        break;
-      case 'pelaporan':
-        bgColor = const Color(0xFFF3E8FF);
-        textColor = const Color(0xFF7C3AED);
-        label = 'Pelaporan';
-        break;
-      default:
-        bgColor = const Color(0xFFE2E8F0);
-        textColor = const Color(0xFF475569);
-        label = status;
-    }
+    final (textColor, bgColor) = JadwalItem.statusColorsFor(status);
+    final label = status.isNotEmpty ? '${status[0].toUpperCase()}${status.substring(1)}' : status;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: textColor,
           fontSize: 12,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
+          color: textColor,
         ),
       ),
     );

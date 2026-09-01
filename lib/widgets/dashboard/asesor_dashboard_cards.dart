@@ -70,27 +70,10 @@ class AsesorJadwalHariIniCard extends StatelessWidget {
 
   const AsesorJadwalHariIniCard({super.key, required this.item});
 
-  (String, Color, Color) _statusStyle() {
-    // Canonical: 0=Draft, 1=Completed, 2=Canceled, 3=Running, 4=Pelaporan
-    switch (item.status) {
-      case '0':
-        return ('draft', const Color(0xFFEA580C), const Color(0xFFFFEDD5));
-      case '1':
-        return ('completed', const Color(0xFF10B981), const Color(0xFFECFDF5));
-      case '2':
-        return ('canceled', const Color(0xFFEF4444), const Color(0xFFFEE2E2));
-      case '3':
-        return ('running', const Color(0xFF3F8CFF), const Color(0xFFF0F5FF));
-      case '4':
-        return ('pelaporan', const Color(0xFFD97706), const Color(0xFFFEF3C7));
-      default:
-        return ('waiting', const Color(0xFFEA580C), const Color(0xFFFFEDD5));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final (statusLabel, statusColor, statusBgColor) = _statusStyle();
+    final (statusColor, statusBgColor) = JadwalItem.statusColorsFor(item.status);
+    final statusLabel = item.status;
     final displayName = item.namaJadwal.isNotEmpty ? item.namaJadwal : item.skema;
     final formattedDate = DateFormatHelper.formatToIndonesian(item.tanggal);
     final hasTime = item.waktu.isNotEmpty && item.waktu != '0';

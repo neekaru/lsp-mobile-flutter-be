@@ -1,6 +1,4 @@
-// ============================================================================
-// Jadwal Models
-// ============================================================================
+import 'dart:ui';
 
 List<String> _parseAsesor(dynamic jsonVal) {
   if (jsonVal == null) {
@@ -139,6 +137,32 @@ class JadwalItem {
         return 'Pelaporan';
       default:
         return status;
+    }
+  }
+
+  (Color, Color) get statusColors => statusColorsFor(status.isNotEmpty ? status : statusJadwal);
+
+  /// Canonical color tuple: (textColor, backgroundColor)
+  static (Color, Color) statusColorsFor(String status) {
+    switch (status.toLowerCase().trim()) {
+      case '0':
+      case 'draft':
+      case 'waiting':
+        return (const Color(0xFFEA580C), const Color(0xFFFFEDD5));
+      case '1':
+      case 'completed':
+        return (const Color(0xFF10B981), const Color(0xFFECFDF5));
+      case '2':
+      case 'canceled':
+        return (const Color(0xFFEF4444), const Color(0xFFFEE2E2));
+      case '3':
+      case 'running':
+        return (const Color(0xFF3F8CFF), const Color(0xFFF0F5FF));
+      case '4':
+      case 'pelaporan':
+        return (const Color(0xFFD97706), const Color(0xFFFEF3C7));
+      default:
+        return (const Color(0xFFEA580C), const Color(0xFFFFEDD5));
     }
   }
 
