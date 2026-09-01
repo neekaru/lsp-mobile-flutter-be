@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "113874406807-21ioa5117c4eb8p533rneeaqpkhohke5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "id.lspdigital.mobile",
+            "certificate_hash": "c8728bd1101dc529e4cb434e4a7c1d5fbf17dae1"
+          }
+        },
+        {
           "client_id": "113874406807-3e3a191s2lqlh9qlt7jpn8ka27krrn40.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
