@@ -150,7 +150,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              JadwalStatusBadge(status: widget.jadwal.status, label: statusLabelFor(widget.jadwal, widget.jadwal.status)),
+                              JadwalStatusBadge(status: widget.jadwal.status, label: widget.jadwal.displayStatusLabel),
                             ],
                           ),
                         ),

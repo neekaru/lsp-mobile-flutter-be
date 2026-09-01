@@ -7,6 +7,7 @@ import '../../screens/jadwal/asesi_list_screen.dart';
 import '../../screens/jadwal/jadwal_ak05_screen.dart';
 import '../../screens/jadwal/jadwal_ak06_screen.dart';
 import '../../screens/asesi/asesi_ak03_form_screen.dart';
+import '../../utils/date_format_helper.dart';
 import 'detail_helpers.dart';
 
 // ============================================================================
@@ -16,144 +17,40 @@ import 'detail_helpers.dart';
 // ============================================================================
 
 String formatIndonesianDate(String yyyymmdd) {
-    try {
-      final parts = yyyymmdd.split('-');
-      if (parts.length != 3) return yyyymmdd;
-      final year = parts[0];
-      final monthIndex = int.parse(parts[1]);
-      final day = int.parse(parts[2]).toString();
-
-      final months = [
-        'Januari',
-        'Februari',
-        'Maret',
-        'April',
-        'Mei',
-        'Juni',
-        'Juli',
-        'Agustus',
-        'September',
-        'Oktober',
-        'November',
-        'Desember',
-      ];
-      final monthName = months[monthIndex - 1];
-      return '$day $monthName $year';
-    } catch (e) {
-      return yyyymmdd;
-    }
-  }
+  return DateFormatHelper.formatToIndonesian(yyyymmdd);
+}
 
 String getDurationString(JadwalItem jadwal) {
-    try {
-      final start = DateTime.parse(jadwal.tanggalMulai);
-      final end = DateTime.parse(jadwal.tanggalSelesai);
-      final diff = end.difference(start).inDays + 1;
-      return '$diff Hari';
-    } catch (e) {
-      return '7 Hari'; // Fallback matching the image
-    }
+  try {
+    final start = DateTime.parse(jadwal.tanggalMulai);
+    final end = DateTime.parse(jadwal.tanggalSelesai);
+    final diff = end.difference(start).inDays + 1;
+    return '$diff Hari';
+  } catch (e) {
+    return '7 Hari'; // Fallback matching the image
   }
-
-String statusLabelFor(JadwalItem jadwal, String status) {
-    // Prefer label dari BE bila tersedia
-    if (jadwal.statusLabel.trim().isNotEmpty &&
-        status == jadwal.status) {
-      return jadwal.displayStatusLabel;
-    }
-    switch (status) {
-      case 'draft':
-      case 'waiting':
-        return 'Draft';
-      case 'completed':
-        return 'Completed';
-      case 'canceled':
-        return 'Canceled';
-      case 'running':
-        return 'Running';
-      case 'pelaporan':
-        return 'Pelaporan';
-      default:
-        return status;
-    }
-  }
+}
 
 String getDisplayAsesor(JadwalItem jadwal) {
-    if (jadwal.asesor.isEmpty) {
-      return 'Belum ditentukan';
-    }
-    return jadwal.asesor.first;
+  if (jadwal.asesor.isEmpty) {
+    return 'Belum ditentukan';
   }
+  return jadwal.asesor.first;
+}
 
 String formatAsesiDateRange(JadwalItem jadwal, [JadwalAsesorDetailData? detailData]) {
-  try {
-    String startStr = jadwal.tanggalMulai.isNotEmpty
-        ? jadwal.tanggalMulai
-        : (detailData != null && detailData.tanggal.isNotEmpty
-            ? detailData.tanggal
-            : '');
-    String endStr = jadwal.tanggalSelesai.isNotEmpty
-        ? jadwal.tanggalSelesai
-        : (detailData != null && detailData.tanggalAkhir.isNotEmpty
-            ? detailData.tanggalAkhir
-            : startStr);
+  final startStr = jadwal.tanggalMulai.isNotEmpty
+      ? jadwal.tanggalMulai
+      : (detailData != null && detailData.tanggal.isNotEmpty ? detailData.tanggal : '');
+  final endStr = jadwal.tanggalSelesai.isNotEmpty
+      ? jadwal.tanggalSelesai
+      : (detailData != null && detailData.tanggalAkhir.isNotEmpty ? detailData.tanggalAkhir : startStr);
 
-    if (startStr.isEmpty) return '-';
-    if (endStr.isEmpty) endStr = startStr;
-
-    final start = DateTime.tryParse(startStr);
-    final end = DateTime.tryParse(endStr);
-
-    final days = [
-      'Senin',
-      'Selasa',
-      'Rabu',
-      'Kamis',
-      'Jumat',
-      'Sabtu',
-      'Minggu',
-    ];
-    final months = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
-    ];
-
-    if (start != null && (end == null || start.isAtSameMomentAs(end))) {
-      final startDay = days[start.weekday - 1];
-      final monthName = months[start.month - 1];
-      return '$startDay, ${start.day} $monthName ${start.year}';
-    }
-
-    if (start != null && end != null) {
-      final startDay = days[start.weekday - 1];
-      final monthName = months[start.month - 1];
-
-      if (start.month == end.month && start.year == end.year) {
-        if (start.day == end.day) {
-          return '$startDay, ${start.day} $monthName ${start.year}';
-        }
-        return '$startDay, ${start.day}-${end.day} $monthName ${start.year}';
-      } else {
-        final endDay = days[end.weekday - 1];
-        final endMonthName = months[end.month - 1];
-        return '$startDay, ${start.day} $monthName ${start.year} - $endDay, ${end.day} $endMonthName ${end.year}';
-      }
-    }
-
-    return startStr.isNotEmpty ? startStr : '-';
-  } catch (e) {
-    return '-';
+  if (startStr.isEmpty) return '-';
+  if (endStr.isEmpty || startStr == endStr) {
+    return DateFormatHelper.formatToLong(startStr);
   }
+  return '${DateFormatHelper.formatToLong(startStr)} - ${DateFormatHelper.formatToLong(endStr)}';
 }
 
 class JadwalDetailAsesorView extends StatelessWidget {
