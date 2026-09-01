@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/api_service.dart';
+import '../../services/auth/auth_repository.dart';
 import '../asesi/asesor_detail_asesi_screen.dart';
 
 class AsesiListScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class AsesiListScreen extends StatefulWidget {
 class _AsesiListScreenState extends State<AsesiListScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _filterOnlyMyAsesi = true;
   String _errorMessage = '';
   AsesiListResponse? _response;
   List<AsesiItem> _filteredAsesi = [];
@@ -37,12 +39,12 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
   void initState() {
     super.initState();
     _fetchAsesiData();
-    _searchController.addListener(_onSearchChanged);
+    _searchController.addListener(_applyFilter);
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged);
+    _searchController.removeListener(_applyFilter);
     _searchController.dispose();
     super.dispose();
   }
@@ -57,7 +59,6 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
       final data = await ApiService.getAsesiList(widget.jadwalId);
       setState(() {
         _response = data;
-        _filteredAsesi = data.data;
         _rekomendasiMap.clear();
         for (final asesi in data.data) {
           final code = asesi.rekomendasiAsesor ??
@@ -68,6 +69,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
         }
         _isLoading = false;
       });
+      _applyFilter();
     } catch (e) {
       setState(() {
         _errorMessage = 'Gagal memuat data asesi. Silakan coba lagi.';
@@ -76,21 +78,24 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     }
   }
 
-  void _onSearchChanged() {
-    final query = _searchController.text.toLowerCase().trim();
+  void _applyFilter() {
     if (_response == null) return;
+    final query = _searchController.text.toLowerCase().trim();
+    final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
 
     setState(() {
-      if (query.isEmpty) {
-        _filteredAsesi = _response!.data;
-      } else {
-        _filteredAsesi = _response!.data
-            .where((asesi) =>
-                asesi.namaLengkap.toLowerCase().contains(query) ||
-                (asesi.nik != null && asesi.nik!.contains(query)) ||
-                (asesi.noPeserta != null && asesi.noPeserta!.contains(query)))
-            .toList();
-      }
+      _filteredAsesi = _response!.data.where((asesi) {
+        if (isAsesor && _filterOnlyMyAsesi && !asesi.isMyAsesi) {
+          return false;
+        }
+        if (query.isNotEmpty) {
+          final matches = asesi.namaLengkap.toLowerCase().contains(query) ||
+              (asesi.nik != null && asesi.nik!.contains(query)) ||
+              (asesi.noPeserta != null && asesi.noPeserta!.contains(query));
+          if (!matches) return false;
+        }
+        return true;
+      }).toList();
     });
   }
 
@@ -112,7 +117,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
               ) ??
               AsesiItem(id: asesiId, namaLengkap: '', canEdit: false, isAPL01Valid: false),
         );
-        if (asesi.canEdit && asesi.isAPL01Valid) {
+        if (asesi.isMyAsesi && asesi.canEdit && asesi.isAPL01Valid) {
           pesertaPayload.add({
             'asesi_id': asesiId,
             'rekomendasi': rekom,
@@ -124,7 +129,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Hanya peserta dengan APL-01 lengkap/terverifikasi yang dapat disimpan rekomendasi.'),
+            content: Text('Hanya asesi Anda dengan APL-01 lengkap/terverifikasi yang dapat disimpan rekomendasi.'),
             backgroundColor: Color(0xFFF59E0B),
             behavior: SnackBarBehavior.floating,
           ),
@@ -282,6 +287,9 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                                   _buildSummaryCard(_response!.meta),
 
                                 const SizedBox(height: 16),
+
+                                // Filter Tab (Asesi Saya vs Semua Peserta)
+                                _buildAsesorFilterTabs(),
 
                                 // Search Bar
                                 _buildSearchBar(),
@@ -533,6 +541,107 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     );
   }
 
+  Widget _buildAsesorFilterTabs() {
+    if (_response == null) return const SizedBox.shrink();
+    final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
+    final totalCount = _response!.data.length;
+    final myAsesiCount = _response!.data.where((a) => a.isMyAsesi).length;
+    final otherCount = totalCount - myAsesiCount;
+
+    if (!isAsesor || otherCount == 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  if (!_filterOnlyMyAsesi) {
+                    setState(() {
+                      _filterOnlyMyAsesi = true;
+                    });
+                    _applyFilter();
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _filterOnlyMyAsesi ? Colors.white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: _filterOnlyMyAsesi
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Asesi Saya ($myAsesiCount)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: _filterOnlyMyAsesi ? const Color(0xFF2C6C9C) : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  if (_filterOnlyMyAsesi) {
+                    setState(() {
+                      _filterOnlyMyAsesi = false;
+                    });
+                    _applyFilter();
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: !_filterOnlyMyAsesi ? Colors.white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: !_filterOnlyMyAsesi
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Semua Peserta ($totalCount)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: !_filterOnlyMyAsesi ? const Color(0xFF2C6C9C) : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
@@ -684,9 +793,9 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                         if (item.namaAsesor != null && item.namaAsesor!.isNotEmpty) ...[
                           const Text(' • ', style: TextStyle(color: Colors.grey, fontSize: 11)),
                           Icon(
-                            item.canEdit ? LucideIcons.user_check : LucideIcons.user,
+                            item.isMyAsesi ? LucideIcons.user_check : LucideIcons.lock,
                             size: 11,
-                            color: item.canEdit ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                            color: item.isMyAsesi ? const Color(0xFF2563EB) : const Color(0xFFE11D48),
                           ),
                           const SizedBox(width: 3),
                           Flexible(
@@ -696,7 +805,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: item.canEdit ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                                color: item.isMyAsesi ? const Color(0xFF2563EB) : const Color(0xFFE11D48),
                               ),
                             ),
                           ),
@@ -706,49 +815,92 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                   ],
                 ),
               ),
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AsesorDetailAsesiScreen(
-                        asesiId: item.id,
-                        namaAsesi: item.namaLengkap,
-                        jadwalId: widget.jadwalId,
-                        jadwal: widget.jadwalTitle,
-                        tuk: widget.tuk ?? '',
+              if (!item.isMyAsesi)
+                InkWell(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Akses ditolak: Asesi ini ditugaskan kepada ${item.namaAsesor ?? "asesor lain"}.',
+                        ),
+                        backgroundColor: const Color(0xFFE11D48),
+                        behavior: SnackBarBehavior.floating,
                       ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFCBD5E1)),
                     ),
-                  ).then((_) => _fetchAsesiData());
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F4F8),
-                    borderRadius: BorderRadius.circular(8),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.lock_outline_rounded,
+                          size: 12,
+                          color: Color(0xFF64748B),
+                        ),
+                        SizedBox(width: 3),
+                        Text(
+                          'Terkunci',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Detail',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF4FA8E8),
+                )
+              else
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AsesorDetailAsesiScreen(
+                          asesiId: item.id,
+                          namaAsesi: item.namaLengkap,
+                          jadwalId: widget.jadwalId,
+                          jadwal: widget.jadwalTitle,
+                          tuk: widget.tuk ?? '',
                         ),
                       ),
-                      SizedBox(width: 2),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 14,
-                        color: Color(0xFF4FA8E8),
-                      ),
-                    ],
+                    ).then((_) => _fetchAsesiData());
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F4F8),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Detail',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF4FA8E8),
+                          ),
+                        ),
+                        SizedBox(width: 2),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 14,
+                          color: Color(0xFF4FA8E8),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -789,99 +941,24 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: (item.canEdit && item.isAPL01Valid)
+                child: !item.isMyAsesi
                     ? Container(
                         height: 38,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
-                          color: currentRekom == '1'
-                              ? const Color(0xFFE8F5E9)
-                              : (currentRekom == '2'
-                                  ? const Color(0xFFFFEBEE)
-                                  : const Color(0xFFF5F6F8)),
+                          color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: currentRekom == '1'
-                                ? const Color(0xFFA5D6A7)
-                                : (currentRekom == '2'
-                                    ? const Color(0xFFFFCDD2)
-                                    : const Color(0xFFE0E0E0)),
-                          ),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: currentRekom,
-                            isExpanded: true,
-                            icon: const Icon(Icons.arrow_drop_down_rounded,
-                                color: Colors.black54),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: currentRekom == '1'
-                                  ? const Color(0xFF2E7D32)
-                                  : (currentRekom == '2'
-                                      ? const Color(0xFFC62828)
-                                      : Colors.black87),
-                            ),
-                            onChanged: (newVal) {
-                              if (newVal != null) {
-                                setState(() {
-                                  _rekomendasiMap[item.id] = newVal;
-                                });
-                              }
-                            },
-                            items: const [
-                              DropdownMenuItem(
-                                value: '1',
-                                child: Text('K (Kompeten)'),
-                              ),
-                              DropdownMenuItem(
-                                value: '2',
-                                child: Text('BK (Belum Kompeten)'),
-                              ),
-                              DropdownMenuItem(
-                                value: '0',
-                                child: Text('- (Belum Rekomendasi)'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : Container(
-                        height: 38,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: currentRekom == '1'
-                              ? const Color(0xFFE8F5E9)
-                              : (currentRekom == '2'
-                                  ? const Color(0xFFFFEBEE)
-                                  : const Color(0xFFF1F5F9)),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: currentRekom == '1'
-                                ? const Color(0xFFA5D6A7)
-                                : (currentRekom == '2'
-                                    ? const Color(0xFFFFCDD2)
-                                    : const Color(0xFFE2E8F0)),
-                          ),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Row(
                               children: [
-                                Icon(
-                                  currentRekom == '1'
-                                      ? Icons.check_circle_rounded
-                                      : (currentRekom == '2'
-                                          ? Icons.cancel_rounded
-                                          : Icons.remove_circle_outline_rounded),
-                                  size: 14,
-                                  color: currentRekom == '1'
-                                      ? const Color(0xFF2E7D32)
-                                      : (currentRekom == '2'
-                                          ? const Color(0xFFC62828)
-                                          : const Color(0xFF64748B)),
+                                const Icon(
+                                  Icons.lock_rounded,
+                                  size: 13,
+                                  color: Color(0xFF94A3B8),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
@@ -890,56 +967,185 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                                       : (currentRekom == '2'
                                           ? 'BK (Belum Kompeten)'
                                           : '- (Belum Rekomendasi)'),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: currentRekom == '1'
-                                        ? const Color(0xFF2E7D32)
-                                        : (currentRekom == '2'
-                                            ? const Color(0xFFC62828)
-                                            : const Color(0xFF64748B)),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF64748B),
                                   ),
                                 ),
                               ],
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: !item.isAPL01Valid
-                                    ? const Color(0xFFFEE2E2)
-                                    : const Color(0xFFE2E8F0),
+                                color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.lock_outline_rounded,
-                                    size: 11,
-                                    color: !item.isAPL01Valid
-                                        ? const Color(0xFFDC2626)
-                                        : const Color(0xFF64748B),
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    !item.isAPL01Valid
-                                        ? 'APL-01 Belum'
-                                        : 'Hanya Lihat',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: !item.isAPL01Valid
-                                          ? const Color(0xFFDC2626)
-                                          : const Color(0xFF475569),
-                                    ),
-                                  ),
-                                ],
+                              child: Text(
+                                item.namaAsesor != null && item.namaAsesor!.isNotEmpty
+                                    ? item.namaAsesor!
+                                    : 'Asesor Lain',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF64748B),
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
+                      )
+                    : (item.canEdit && item.isAPL01Valid)
+                        ? Container(
+                            height: 38,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: currentRekom == '1'
+                                  ? const Color(0xFFE8F5E9)
+                                  : (currentRekom == '2'
+                                      ? const Color(0xFFFFEBEE)
+                                      : const Color(0xFFF5F6F8)),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: currentRekom == '1'
+                                    ? const Color(0xFFA5D6A7)
+                                    : (currentRekom == '2'
+                                        ? const Color(0xFFFFCDD2)
+                                        : const Color(0xFFE0E0E0)),
+                              ),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: currentRekom,
+                                isExpanded: true,
+                                icon: const Icon(Icons.arrow_drop_down_rounded,
+                                    color: Colors.black54),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: currentRekom == '1'
+                                      ? const Color(0xFF2E7D32)
+                                      : (currentRekom == '2'
+                                          ? const Color(0xFFC62828)
+                                          : Colors.black87),
+                                ),
+                                onChanged: (newVal) {
+                                  if (newVal != null) {
+                                    setState(() {
+                                      _rekomendasiMap[item.id] = newVal;
+                                    });
+                                  }
+                                },
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: '1',
+                                    child: Text('K (Kompeten)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: '2',
+                                    child: Text('BK (Belum Kompeten)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: '0',
+                                    child: Text('- (Belum Rekomendasi)'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : Container(
+                            height: 38,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: currentRekom == '1'
+                                  ? const Color(0xFFE8F5E9)
+                                  : (currentRekom == '2'
+                                      ? const Color(0xFFFFEBEE)
+                                      : const Color(0xFFF1F5F9)),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: currentRekom == '1'
+                                    ? const Color(0xFFA5D6A7)
+                                    : (currentRekom == '2'
+                                        ? const Color(0xFFFFCDD2)
+                                        : const Color(0xFFE2E8F0)),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      currentRekom == '1'
+                                          ? Icons.check_circle_rounded
+                                          : (currentRekom == '2'
+                                              ? Icons.cancel_rounded
+                                              : Icons.remove_circle_outline_rounded),
+                                      size: 14,
+                                      color: currentRekom == '1'
+                                          ? const Color(0xFF2E7D32)
+                                          : (currentRekom == '2'
+                                              ? const Color(0xFFC62828)
+                                              : const Color(0xFF64748B)),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      currentRekom == '1'
+                                          ? 'K (Kompeten)'
+                                          : (currentRekom == '2'
+                                              ? 'BK (Belum Kompeten)'
+                                              : '- (Belum Rekomendasi)'),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: currentRekom == '1'
+                                            ? const Color(0xFF2E7D32)
+                                            : (currentRekom == '2'
+                                                ? const Color(0xFFC62828)
+                                                : const Color(0xFF64748B)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: !item.isAPL01Valid
+                                        ? const Color(0xFFFEE2E2)
+                                        : const Color(0xFFE2E8F0),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.lock_outline_rounded,
+                                        size: 11,
+                                        color: !item.isAPL01Valid
+                                            ? const Color(0xFFDC2626)
+                                            : const Color(0xFF64748B),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        !item.isAPL01Valid
+                                            ? 'APL-01 Belum'
+                                            : 'Hanya Lihat',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: !item.isAPL01Valid
+                                              ? const Color(0xFFDC2626)
+                                              : const Color(0xFF475569),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
               ),
             ],
           ),
