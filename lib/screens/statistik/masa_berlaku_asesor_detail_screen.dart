@@ -22,10 +22,14 @@ class MasaBerlakuAsesorDetailScreen extends StatefulWidget {
 class _MasaBerlakuAsesorDetailScreenState
     extends State<MasaBerlakuAsesorDetailScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   Timer? _debounceTimer;
 
+  static const int _pageSize = 50;
   List<MasaBerlakuAsesorDetailItem> _asesorList = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
   late int _totalCount;
 
   bool get _isTenggang => widget.statusFilter.toLowerCase() == 'tenggang';
@@ -45,6 +49,7 @@ class _MasaBerlakuAsesorDetailScreenState
     super.initState();
     _totalCount = widget.count;
     _searchController.addListener(_onSearchChanged);
+    _scrollController.addListener(_onScroll);
     _fetchData();
   }
 
@@ -52,8 +57,21 @@ class _MasaBerlakuAsesorDetailScreenState
   void dispose() {
     _debounceTimer?.cancel();
     _searchController.removeListener(_onSearchChanged);
+    _scrollController.removeListener(_onScroll);
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    if (maxScroll - currentScroll <= 250) {
+      if (!_isLoading && !_isLoadingMore && _hasMore) {
+        _loadMore();
+      }
+    }
   }
 
   void _onSearchChanged() {
@@ -64,12 +82,17 @@ class _MasaBerlakuAsesorDetailScreenState
   }
 
   Future<void> _fetchData() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _hasMore = true;
+    });
 
     try {
       final result = await ApiService.getMasaBerlakuAsesorDetail(
         status: widget.statusFilter,
         search: _searchController.text.trim(),
+        limit: _pageSize,
+        offset: 0,
       );
 
       if (!mounted) return;
@@ -77,12 +100,15 @@ class _MasaBerlakuAsesorDetailScreenState
       if (result != null) {
         setState(() {
           _asesorList = result.asesorList;
-          if (result.totalCount > 0) _totalCount = result.totalCount;
+          _totalCount = result.totalCount > 0 ? result.totalCount : result.asesorList.length;
+          _hasMore = _asesorList.length < _totalCount;
           _isLoading = false;
         });
       } else {
         setState(() {
           _asesorList = [];
+          _totalCount = 0;
+          _hasMore = false;
           _isLoading = false;
         });
       }
@@ -90,7 +116,46 @@ class _MasaBerlakuAsesorDetailScreenState
       if (!mounted) return;
       setState(() {
         _asesorList = [];
+        _hasMore = false;
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    setState(() => _isLoadingMore = true);
+
+    try {
+      final nextOffset = _asesorList.length;
+      final result = await ApiService.getMasaBerlakuAsesorDetail(
+        status: widget.statusFilter,
+        search: _searchController.text.trim(),
+        limit: _pageSize,
+        offset: nextOffset,
+      );
+
+      if (!mounted) return;
+
+      if (result != null && result.asesorList.isNotEmpty) {
+        setState(() {
+          _asesorList.addAll(result.asesorList);
+          if (result.totalCount > 0) _totalCount = result.totalCount;
+          _hasMore = _asesorList.length < _totalCount;
+          _isLoadingMore = false;
+        });
+      } else {
+        setState(() {
+          _hasMore = false;
+          _isLoadingMore = false;
+        });
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _hasMore = false;
+        _isLoadingMore = false;
       });
     }
   }
@@ -112,6 +177,7 @@ class _MasaBerlakuAsesorDetailScreenState
             child: RefreshIndicator(
               onRefresh: _fetchData,
               child: CustomScrollView(
+                controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   SliverPadding(
@@ -147,7 +213,7 @@ class _MasaBerlakuAsesorDetailScreenState
                         child: _buildEmptyState(),
                       ),
                     )
-                  else
+                  else ...[
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                       sliver: SliverList.builder(
@@ -157,6 +223,36 @@ class _MasaBerlakuAsesorDetailScreenState
                         },
                       ),
                     ),
+                    if (_isLoadingMore)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2.5),
+                            ),
+                          ),
+                        ),
+                      )
+                    else if (!_hasMore && _asesorList.length >= 10)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: 24, top: 8),
+                          child: Center(
+                            child: Text(
+                              'Semua asesor telah dimuat',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF94A3B8),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ],
               ),
             ),
@@ -287,11 +383,15 @@ class _MasaBerlakuAsesorDetailScreenState
   }
 
   Widget _buildListHeader() {
+    final countLabel = _totalCount > _asesorList.length
+        ? 'Daftar Asesor (${_asesorList.length} dari $_totalCount)'
+        : 'Daftar Asesor ($_totalCount)';
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Daftar Asesor (${_asesorList.length})',
+          countLabel,
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
