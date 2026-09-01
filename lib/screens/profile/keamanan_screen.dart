@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/common/bottom_menu_bar.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../core/navigation/main_navigator.dart';
@@ -494,6 +495,92 @@ class _KeamananScreenState extends State<KeamananScreen> {
                               ),
                             ),
                           ),
+                      ],
+                    ),
+                  ),
+                  // Privacy Policy Card (Google Play Compliance)
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Kebijakan Privasi & Ketentuan',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Pelajari bagaimana kami mengumpulkan, melindungi, dan mengelola data pribadi sertifikasi Anda.',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: Color(0xFF64748B),
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        InkWell(
+                          onTap: () async {
+                            final uri = Uri.parse('https://mobile.lspdigital.id/privacy-policy');
+                            try {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            } catch (_) {}
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFBFDBFE)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.privacy_tip_outlined,
+                                  color: Color(0xFF3B82F6),
+                                  size: 18,
+                                ),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Buka Dokumen Kebijakan Privasi',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1D4ED8),
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.open_in_new_rounded,
+                                  color: Color(0xFF3B82F6),
+                                  size: 15,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
