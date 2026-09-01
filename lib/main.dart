@@ -19,6 +19,9 @@ import 'services/session_manager.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Enable edge-to-edge mode for Android 15 (API 35+) and backward compatibility
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
   // Initialize geocode_cache to save Geocoding API calls with Haversine distance caching
   try {
     GeocodingService.instance.configure(
@@ -85,6 +88,11 @@ void main() async {
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarContrastEnforced: false,
+      systemStatusBarContrastEnforced: false,
     ),
   );
 
