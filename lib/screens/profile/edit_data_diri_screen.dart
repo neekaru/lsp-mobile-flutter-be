@@ -7,11 +7,23 @@ class EditDataDiriScreen extends StatefulWidget {
   final String currentPhone;
   final String currentEmail;
   final String currentAddress;
+  final String currentNPWP;
+  final String currentNoRekening;
+  final String currentBank;
+  final String currentAtasNama;
+  final String currentLinkCV;
+  final String currentHomebase;
   final Function(
     String name,
     String phone,
     String email,
     String address,
+    String npwp,
+    String noRekening,
+    String bank,
+    String atasNama,
+    String linkCv,
+    String homebase,
   ) onSave;
 
   const EditDataDiriScreen({
@@ -20,6 +32,12 @@ class EditDataDiriScreen extends StatefulWidget {
     required this.currentPhone,
     required this.currentEmail,
     required this.currentAddress,
+    this.currentNPWP = '',
+    this.currentNoRekening = '',
+    this.currentBank = '',
+    this.currentAtasNama = '',
+    this.currentLinkCV = '',
+    this.currentHomebase = '',
     required this.onSave,
   });
 
@@ -33,6 +51,12 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
   late TextEditingController _addressController;
+  late TextEditingController _npwpController;
+  late TextEditingController _noRekeningController;
+  late TextEditingController _bankController;
+  late TextEditingController _atasNamaController;
+  late TextEditingController _linkCvController;
+  late TextEditingController _homebaseController;
 
   @override
   void initState() {
@@ -41,6 +65,12 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
     _phoneController = TextEditingController(text: widget.currentPhone);
     _emailController = TextEditingController(text: widget.currentEmail);
     _addressController = TextEditingController(text: widget.currentAddress);
+    _npwpController = TextEditingController(text: widget.currentNPWP);
+    _noRekeningController = TextEditingController(text: widget.currentNoRekening);
+    _bankController = TextEditingController(text: widget.currentBank);
+    _atasNamaController = TextEditingController(text: widget.currentAtasNama);
+    _linkCvController = TextEditingController(text: widget.currentLinkCV);
+    _homebaseController = TextEditingController(text: widget.currentHomebase);
   }
 
   @override
@@ -49,6 +79,12 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
     _phoneController.dispose();
     _emailController.dispose();
     _addressController.dispose();
+    _npwpController.dispose();
+    _noRekeningController.dispose();
+    _bankController.dispose();
+    _atasNamaController.dispose();
+    _linkCvController.dispose();
+    _homebaseController.dispose();
     super.dispose();
   }
 
@@ -60,16 +96,28 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
     try {
       // Perform API call to update profile on backend
       await AsesorService.updateProfile(
-        noTelepon: _phoneController.text,
-        alamat: _addressController.text,
+        noTelepon: _phoneController.text.trim(),
+        alamat: _addressController.text.trim(),
+        npwp: _npwpController.text.trim(),
+        noRekening: _noRekeningController.text.trim(),
+        bank: _bankController.text.trim(),
+        atasNamaRekening: _atasNamaController.text.trim(),
+        linkCv: _linkCvController.text.trim(),
+        homebase: _homebaseController.text.trim(),
       );
     } catch (_) {}
 
     widget.onSave(
-      _nameController.text,
-      _phoneController.text,
-      _emailController.text,
-      _addressController.text,
+      _nameController.text.trim(),
+      _phoneController.text.trim(),
+      _emailController.text.trim(),
+      _addressController.text.trim(),
+      _npwpController.text.trim(),
+      _noRekeningController.text.trim(),
+      _bankController.text.trim(),
+      _atasNamaController.text.trim(),
+      _linkCvController.text.trim(),
+      _homebaseController.text.trim(),
     );
 
     if (mounted) {
@@ -102,7 +150,7 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Data Diri',
+                      'Data Pribadi',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -124,24 +172,108 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
                             label: 'Nama Lengkap',
                             controller: _nameController,
                             hint: 'Masukan nama lengkap',
+                            isRequired: true,
                           ),
                           _buildTextField(
                             label: 'No. Handphone',
                             controller: _phoneController,
                             hint: 'Masukan nomor HP aktif',
                             keyboardType: TextInputType.phone,
+                            isRequired: true,
                           ),
                           _buildTextField(
                             label: 'Email',
                             controller: _emailController,
                             hint: 'Masukan Email aktif',
                             keyboardType: TextInputType.emailAddress,
+                            isRequired: true,
                           ),
                           _buildTextField(
-                            label: 'Alamat',
+                            label: 'Alamat / Domisili',
                             controller: _addressController,
-                            hint: 'Masukan alamat Anda sekarang',
-                            maxLines: 4,
+                            hint: 'Masukan alamat atau domisili Anda',
+                            maxLines: 3,
+                          ),
+                          _buildTextField(
+                            label: 'Homebase / Wilayah',
+                            controller: _homebaseController,
+                            hint: 'Contoh: LSP Teknologi Digital, DKI Jakarta',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    const Text(
+                      'Rekening Bank & Pajak (Honorarium)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F8FA),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _buildTextField(
+                            label: 'No. NPWP',
+                            controller: _npwpController,
+                            hint: 'Masukan nomor NPWP',
+                            keyboardType: TextInputType.number,
+                          ),
+                          _buildTextField(
+                            label: 'Nama Bank',
+                            controller: _bankController,
+                            hint: 'Contoh: BCA, Mandiri, BRI, BNI',
+                          ),
+                          _buildTextField(
+                            label: 'No. Rekening',
+                            controller: _noRekeningController,
+                            hint: 'Masukan nomor rekening bank',
+                            keyboardType: TextInputType.number,
+                          ),
+                          _buildTextField(
+                            label: 'Atas Nama Rekening',
+                            controller: _atasNamaController,
+                            hint: 'Nama pemilik rekening buku tabungan',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    const Text(
+                      'Dokumen & Portofolio',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F8FA),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _buildTextField(
+                            label: 'Link CV / Dokumen Asesor',
+                            controller: _linkCvController,
+                            hint: 'https://drive.google.com/...',
+                            keyboardType: TextInputType.url,
                           ),
                         ],
                       ),
@@ -218,7 +350,17 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
     );
   }
 
-  Widget _buildLabel(String labelText) {
+  Widget _buildLabel(String labelText, {bool isRequired = false}) {
+    if (!isRequired) {
+      return Text(
+        labelText,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+      );
+    }
     return RichText(
       text: TextSpan(
         style: const TextStyle(
@@ -243,6 +385,7 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
     required String hint,
     TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
+    bool isRequired = false,
     Widget? subtitle,
   }) {
     return Padding(
@@ -250,7 +393,7 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildLabel(label),
+          _buildLabel(label, isRequired: isRequired),
           const SizedBox(height: 8),
           TextFormField(
             controller: controller,

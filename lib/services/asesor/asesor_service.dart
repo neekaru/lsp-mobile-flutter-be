@@ -302,6 +302,12 @@ class AsesorService {
     String? alamat,
     String? instansi,
     String? fotoProfilUrl,
+    String? npwp,
+    String? noRekening,
+    String? bank,
+    String? atasNamaRekening,
+    String? linkCv,
+    String? homebase,
   }) async {
     try {
       final Map<String, dynamic> payload = {};
@@ -309,6 +315,12 @@ class AsesorService {
       if (alamat != null) payload['alamat'] = alamat;
       if (instansi != null) payload['instansi'] = instansi;
       if (fotoProfilUrl != null) payload['foto_profil_url'] = fotoProfilUrl;
+      if (npwp != null) payload['npwp'] = npwp;
+      if (noRekening != null) payload['no_rekening'] = noRekening;
+      if (bank != null) payload['bank'] = bank;
+      if (atasNamaRekening != null) payload['atas_nama_rekening'] = atasNamaRekening;
+      if (linkCv != null) payload['link_cv'] = linkCv;
+      if (homebase != null) payload['homebase'] = homebase;
 
       final response = await _dio.put(ApiRoutes.asesorProfile, data: payload);
       if (response.statusCode == 200 && response.data != null) {

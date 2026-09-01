@@ -1,7 +1,8 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/auth/auth_repository.dart';
-import '../../services/asesor/asesor_service.dart';
 import '../../services/api_service.dart';
 import '../../utils/url_helper.dart';
 import '../../widgets/profile/profile_asesor_widgets.dart';
@@ -20,6 +21,15 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
+  late TextEditingController _noRegController;
+  late TextEditingController _npwpController;
+  late TextEditingController _noRekeningController;
+  late TextEditingController _bankController;
+  late TextEditingController _atasNamaController;
+  late TextEditingController _linkCvController;
+  late TextEditingController _homebaseController;
+  late TextEditingController _domisiliController;
+
   String? _fotoProfilUrl;
   bool _isLoading = true;
   bool _isUploadingPhoto = false;
@@ -33,6 +43,14 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
     _emailController = TextEditingController(text: user?.email ?? '');
     _phoneController = TextEditingController(text: '');
     _addressController = TextEditingController(text: '');
+    _noRegController = TextEditingController(text: '');
+    _npwpController = TextEditingController(text: '');
+    _noRekeningController = TextEditingController(text: '');
+    _bankController = TextEditingController(text: '');
+    _atasNamaController = TextEditingController(text: '');
+    _linkCvController = TextEditingController(text: '');
+    _homebaseController = TextEditingController(text: '');
+    _domisiliController = TextEditingController(text: '');
     _fotoProfilUrl = user?.fotoProfilUrl;
     _fetchProfile();
   }
@@ -49,6 +67,14 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
           _emailController.text = profile['email']?.toString() ?? '';
           _phoneController.text = profile['no_telepon']?.toString() ?? profile['telepon']?.toString() ?? profile['phone']?.toString() ?? '';
           _addressController.text = profile['alamat']?.toString() ?? '';
+          _noRegController.text = profile['no_reg']?.toString() ?? profile['id_asesor']?.toString() ?? profile['nik']?.toString() ?? '';
+          _npwpController.text = profile['npwp']?.toString() ?? '';
+          _noRekeningController.text = profile['no_rekening']?.toString() ?? '';
+          _bankController.text = profile['bank']?.toString() ?? '';
+          _atasNamaController.text = profile['atas_nama_rekening']?.toString() ?? profile['atas_nama']?.toString() ?? '';
+          _linkCvController.text = profile['link_cv']?.toString() ?? '';
+          _homebaseController.text = profile['homebase']?.toString() ?? '';
+          _domisiliController.text = profile['domisili']?.toString() ?? profile['alamat']?.toString() ?? '';
           if (profile['foto_profil_url'] != null && profile['foto_profil_url'].toString().isNotEmpty) {
             _fotoProfilUrl = profile['foto_profil_url'].toString();
           }
@@ -115,12 +141,50 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
     );
   }
 
+  void _copyToClipboard(String text, String label) {
+    if (text.trim().isEmpty) return;
+    Clipboard.setData(ClipboardData(text: text.trim()));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$label berhasil disalin ke clipboard!'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _openCvLink(String rawUrl) async {
+    if (rawUrl.trim().isEmpty) return;
+    String url = rawUrl.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://$url';
+    }
+    final uri = Uri.tryParse(url);
+    if (uri != null) {
+      try {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        if (mounted) {
+          _copyToClipboard(rawUrl, 'Link CV');
+        }
+      }
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _noRegController.dispose();
+    _npwpController.dispose();
+    _noRekeningController.dispose();
+    _bankController.dispose();
+    _atasNamaController.dispose();
+    _linkCvController.dispose();
+    _homebaseController.dispose();
+    _domisiliController.dispose();
     super.dispose();
   }
 
@@ -323,30 +387,160 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
           // Form Fields Section
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildField(
-                    label: 'Nama Lengkap',
-                    controller: _nameController,
-                    hint: 'Masukan nama lengkap',
+                  // 1. Section Data Pribadi
+                  _buildSectionHeader(
+                    icon: Icons.person_outline_rounded,
+                    title: 'Data Pribadi & Asesor',
                   ),
-                  _buildField(
-                    label: 'Email',
-                    controller: _emailController,
-                    hint: 'Masukan email',
+                  const SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildField(
+                          label: 'Nama Lengkap',
+                          controller: _nameController,
+                          hint: 'Belum diatur',
+                        ),
+                        if (_noRegController.text.isNotEmpty)
+                          _buildField(
+                            label: 'No. Registrasi / NIK Asesor',
+                            controller: _noRegController,
+                            hint: 'Belum ada No. Reg',
+                            showCopyButton: true,
+                          ),
+                        _buildField(
+                          label: 'Email',
+                          controller: _emailController,
+                          hint: 'Belum diatur',
+                        ),
+                        _buildField(
+                          label: 'No. Handphone',
+                          controller: _phoneController,
+                          hint: 'Belum diatur',
+                        ),
+                        _buildField(
+                          label: 'Domisili / Alamat',
+                          controller: _domisiliController.text.isNotEmpty
+                              ? _domisiliController
+                              : _addressController,
+                          hint: 'Belum diatur',
+                          maxLines: 2,
+                        ),
+                        if (_homebaseController.text.isNotEmpty)
+                          _buildField(
+                            label: 'Homebase',
+                            controller: _homebaseController,
+                            hint: 'Belum diatur',
+                          ),
+                      ],
+                    ),
                   ),
-                  _buildField(
-                    label: 'No.Handphone',
-                    controller: _phoneController,
-                    hint: 'Masukan nomor handphone',
+                  const SizedBox(height: 20),
+
+                  // 2. Section Rekening & Pajak
+                  _buildSectionHeader(
+                    icon: Icons.account_balance_wallet_outlined,
+                    title: 'Rekening Bank & Pajak (Honorarium)',
                   ),
-                  _buildField(
-                    label: 'Alamat',
-                    controller: _addressController,
-                    hint: 'Masukan alamat',
-                    maxLines: 3,
+                  const SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildField(
+                          label: 'No. NPWP',
+                          controller: _npwpController,
+                          hint: 'Belum diisi',
+                          showCopyButton: _npwpController.text.isNotEmpty,
+                        ),
+                        _buildField(
+                          label: 'Nama Bank',
+                          controller: _bankController,
+                          hint: 'Belum diisi (Contoh: BCA, Mandiri, BRI)',
+                        ),
+                        _buildField(
+                          label: 'No. Rekening',
+                          controller: _noRekeningController,
+                          hint: 'Belum diisi',
+                          showCopyButton: _noRekeningController.text.isNotEmpty,
+                        ),
+                        _buildField(
+                          label: 'Atas Nama Rekening',
+                          controller: _atasNamaController,
+                          hint: 'Belum diisi',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 3. Section Dokumen & CV
+                  _buildSectionHeader(
+                    icon: Icons.description_outlined,
+                    title: 'Dokumen & Portofolio',
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _buildField(
+                          label: 'Link CV / Dokumen Asesor',
+                          controller: _linkCvController,
+                          hint: 'Belum diisi (Contoh: Link Google Drive CV)',
+                          showCopyButton: _linkCvController.text.isNotEmpty,
+                          actionWidget: _linkCvController.text.isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: TextButton.icon(
+                                      onPressed: () =>
+                                          _openCvLink(_linkCvController.text),
+                                      icon: const Icon(
+                                        Icons.open_in_new_rounded,
+                                        size: 15,
+                                      ),
+                                      label: const Text(
+                                        'Buka Link Dokumen CV',
+                                        style: TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: const Color(0xFF3B82F6),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 4),
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 32),
                   
@@ -364,12 +558,27 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                               currentPhone: _phoneController.text,
                               currentEmail: _emailController.text,
                               currentAddress: _addressController.text,
-                              onSave: (name, phone, email, address) {
+                              currentNPWP: _npwpController.text,
+                              currentNoRekening: _noRekeningController.text,
+                              currentBank: _bankController.text,
+                              currentAtasNama: _atasNamaController.text,
+                              currentLinkCV: _linkCvController.text,
+                              currentHomebase: _homebaseController.text,
+                              onSave: (name, phone, email, address, npwp,
+                                  noRekening, bank, atasNama, linkCv, homebase) {
                                 setState(() {
                                   _nameController.text = name;
                                   _emailController.text = email;
                                   _phoneController.text = phone;
                                   _addressController.text = address;
+                                  _npwpController.text = npwp;
+                                  _noRekeningController.text = noRekening;
+                                  _bankController.text = bank;
+                                  _atasNamaController.text = atasNama;
+                                  _linkCvController.text = linkCv;
+                                  _homebaseController.text = homebase;
+                                  _domisiliController.text =
+                                      address.isNotEmpty ? address : homebase;
                                 });
                                 final user = AuthRepository.currentUserInstance;
                                 if (user != null) {
@@ -380,6 +589,9 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                                     role: user.role,
                                     roles: user.roles,
                                     email: email,
+                                    fotoProfil: user.fotoProfil,
+                                    fotoProfilUrl:
+                                        _fotoProfilUrl ?? user.fotoProfilUrl,
                                   );
                                 }
                               },
@@ -413,56 +625,113 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
     );
   }
 
+  Widget _buildSectionHeader({
+    required IconData icon,
+    required String title,
+  }) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 18,
+          color: const Color(0xFF3B82F6),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildField({
     required String label,
     required TextEditingController controller,
     required String hint,
     int maxLines = 1,
+    bool showCopyButton = false,
+    Widget? actionWidget,
   }) {
+    final hasValue = controller.text.trim().isNotEmpty;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 14.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF475569),
+                ),
+              ),
+              if (showCopyButton && hasValue)
+                GestureDetector(
+                  onTap: () => _copyToClipboard(controller.text, label),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.copy_rounded,
+                        size: 13,
+                        color: Color(0xFF3B82F6),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'Salin',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           TextFormField(
             controller: controller,
             readOnly: true,
             maxLines: maxLines,
-            style: const TextStyle(
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: 13.5,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF1E293B),
+              color: hasValue ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
             ),
             decoration: InputDecoration(
               isDense: true,
               hintText: hint,
               hintStyle: const TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 color: Color(0xFF94A3B8),
                 fontWeight: FontWeight.normal,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
-              fillColor: const Color(0xFFFAFAFA),
+              fillColor: const Color(0xFFF8FAFC),
               filled: true,
             ),
           ),
+          ?actionWidget,
         ],
       ),
     );
