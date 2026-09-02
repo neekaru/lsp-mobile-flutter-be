@@ -256,6 +256,17 @@ class ApiService {
     int jadwalId,
     int pesertaId,
   ) => JadwalService.getParticipantDetail(jadwalId, pesertaId);
+  static Future<TransferAsesiResult> transferAsesi({
+    required int jadwalId,
+    required int asesiId,
+    required int targetAsesorId,
+    int? expectedSourceAsesorId,
+  }) => AsesorService.transferAsesi(
+    jadwalId: jadwalId,
+    asesiId: asesiId,
+    targetAsesorId: targetAsesorId,
+    expectedSourceAsesorId: expectedSourceAsesorId,
+  );
   static Future<JadwalAsesorDetailResponse?> getJadwalAsesorDetail(
     int jadwalId,
   ) => JadwalService.getJadwalAsesorDetail(jadwalId);

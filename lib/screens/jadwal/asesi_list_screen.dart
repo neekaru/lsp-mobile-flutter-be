@@ -3,6 +3,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/jadwal_models.dart';
 import '../../services/api_service.dart';
 import '../../services/auth/auth_repository.dart';
+import '../../widgets/jadwal/transfer_asesi_sheet.dart';
 import '../asesi/asesor_detail_asesi_screen.dart';
 
 class AsesiListScreen extends StatefulWidget {
@@ -34,6 +35,9 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
   List<AsesiItem> _filteredAsesi = [];
   final Map<int, String> _rekomendasiMap = {};
   final TextEditingController _searchController = TextEditingController();
+  List<AsesorDetailItem> _jadwalAsesors = [];
+  String _asesorErrorMessage = '';
+  int? _transferringAsesiId;
 
   @override
   void initState() {
@@ -172,6 +176,135 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
           _isSaving = false;
         });
       }
+    }
+  }
+
+  /// Ambil daftar asesor yang sedang bertugas pada jadwal ini.
+  Future<void> _loadJadwalAsesors() async {
+    try {
+      final detail = await ApiService.getJadwalAsesorDetail(widget.jadwalId);
+      if (!mounted) return;
+      setState(() {
+        _jadwalAsesors =
+            detail?.data.asesor.where((a) => a.idAsesor > 0).toList() ?? [];
+        _asesorErrorMessage = detail == null
+            ? 'Gagal memuat daftar asesor bertugas.'
+            : '';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _asesorErrorMessage = 'Gagal memuat daftar asesor bertugas.';
+      });
+    }
+  }
+
+  /// Buka bottom sheet pemilihan asesor tujuan, lalu konfirmasi & pindahkan.
+  Future<void> _openTransferSheet(AsesiItem item) async {
+    if (_jadwalAsesors.isEmpty && _asesorErrorMessage.isEmpty) {
+      setState(() {
+        _transferringAsesiId = item.id;
+      });
+      await _loadJadwalAsesors();
+      if (!mounted) return;
+      setState(() {
+        _transferringAsesiId = null;
+      });
+    }
+
+    final kandidat = _jadwalAsesors
+        .where((a) => a.idAsesor != item.idAsesor)
+        .toList();
+
+    final selected = await showModalBottomSheet<AsesorDetailItem>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => TransferAsesiSheet(
+        namaAsesi: item.namaLengkap,
+        asesorSaatIni: item.namaAsesor,
+        kandidat: kandidat,
+        errorMessage: _asesorErrorMessage,
+        onRetry: () {
+          Navigator.pop(sheetContext);
+          setState(() {
+            _asesorErrorMessage = '';
+            _jadwalAsesors = [];
+          });
+          _openTransferSheet(item);
+        },
+      ),
+    );
+
+    if (selected == null || !mounted) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text(
+          'Pindahkan Asesi',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Pindahkan ${item.namaLengkap} dari ${item.namaAsesor?.isNotEmpty == true ? item.namaAsesor : 'asesor saat ini'} ke ${selected.namaAsesor}?',
+          style: const TextStyle(fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+            ),
+            child: const Text(
+              'Pindahkan',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+    await _performTransfer(item, selected);
+  }
+
+  Future<void> _performTransfer(
+    AsesiItem item,
+    AsesorDetailItem target,
+  ) async {
+    setState(() {
+      _transferringAsesiId = item.id;
+    });
+
+    final result = await ApiService.transferAsesi(
+      jadwalId: widget.jadwalId,
+      asesiId: item.id,
+      targetAsesorId: target.idAsesor,
+      expectedSourceAsesorId: item.idAsesor,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _transferringAsesiId = null;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result.message),
+        backgroundColor:
+            result.success ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    if (result.success) {
+      await _loadJadwalAsesors();
+      if (!mounted) return;
+      await _fetchAsesiData();
     }
   }
 
@@ -719,6 +852,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
 
   Widget _buildAsesiItem(AsesiItem item) {
     final currentRekom = _rekomendasiMap[item.id] ?? '0';
+    final transferButton = _buildTransferButton(item);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -928,18 +1062,9 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
           const SizedBox(height: 10),
 
-          // Row 3: Dropdown Rekomendasi (K / BK / -)
+          // Row 3: Dropdown Rekomendasi (K / BK / -) + aksi pindah asesor
           Row(
             children: [
-              const Text(
-                'Rekomendasi:',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(width: 10),
               Expanded(
                 child: !item.isMyAsesi
                     ? Container(
@@ -1147,6 +1272,10 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                             ),
                           ),
               ),
+              if (transferButton != null) ...[
+                const SizedBox(width: 8),
+                transferButton,
+              ],
             ],
           ),
         ],
@@ -1231,4 +1360,61 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
       ),
     );
   }
+
+  /// Tombol pindah asesi ke asesor lain (kanan bawah card).
+  /// Null bila caller bukan asesor pemilik asesi tersebut.
+  Widget? _buildTransferButton(AsesiItem item) {
+    final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
+    final hasAsesor = (item.idAsesor ?? 0) > 0;
+    if (!isAsesor || !item.isMyAsesi || !hasAsesor) return null;
+
+    final isFinal = item.rekomendasiAsesor == '1' ||
+        item.rekomendasiAsesor == '2' ||
+        item.hasilRekomendasi == 'K' ||
+        item.hasilRekomendasi == 'BK';
+    final isProcessing = _transferringAsesiId == item.id;
+    final canTransfer = !isFinal && _transferringAsesiId == null;
+
+    return Tooltip(
+      message: isFinal
+          ? 'Rekomendasi sudah final, asesi tidak dapat dipindahkan'
+          : 'Pindahkan ke asesor lain',
+      child: InkWell(
+        key: ValueKey('transfer-asesi-${item.id}'),
+        onTap: canTransfer ? () => _openTransferSheet(item) : null,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: canTransfer
+                ? const Color(0xFFEFF6FF)
+                : const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: canTransfer
+                  ? const Color(0xFFBFDBFE)
+                  : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: Center(
+            child: isProcessing
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    Icons.swap_horiz_rounded,
+                    size: 18,
+                    color: canTransfer
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFF94A3B8),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
 }

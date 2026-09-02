@@ -698,6 +698,50 @@ class AsesorService {
     }
   }
 
+  /// Pindahkan asesi ke asesor lain yang sedang bertugas pada jadwal yang sama
+  /// PATCH /api/asesor/jadwal/:jadwal_id/peserta/:asesi_id/assignment
+  static Future<TransferAsesiResult> transferAsesi({
+    required int jadwalId,
+    required int asesiId,
+    required int targetAsesorId,
+    int? expectedSourceAsesorId,
+  }) async {
+    try {
+      final Map<String, dynamic> payload = {
+        'target_asesor_id': targetAsesorId,
+      };
+      if (expectedSourceAsesorId != null && expectedSourceAsesorId > 0) {
+        payload['expected_source_asesor_id'] = expectedSourceAsesorId;
+      }
+
+      final response = await _dio.patch(
+        ApiRoutes.asesorJadwalPesertaAssignment(jadwalId, asesiId),
+        data: payload,
+      );
+
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        return TransferAsesiResult.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+      }
+      return TransferAsesiResult.failure('Gagal memindahkan asesi');
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      String message = 'Gagal memindahkan asesi';
+      if (data is Map) {
+        message =
+            data['errors']?.toString() ??
+            data['message']?.toString() ??
+            message;
+      }
+      debugPrint('🔴 Error transfer asesi: $message');
+      return TransferAsesiResult.failure(message);
+    } catch (e) {
+      debugPrint('🔴 Error transfer asesi: $e');
+      return TransferAsesiResult.failure('Gagal memindahkan asesi');
+    }
+  }
+
   /// 22. Update FR-APL.02 / Pra-Asesmen & MAPA Recommendation
   /// PUT /api/asesor/asesi/:id/apl02
   static Future<Map<String, dynamic>?> updateAPL02({

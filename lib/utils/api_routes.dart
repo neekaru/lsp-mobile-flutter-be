@@ -201,6 +201,8 @@ class ApiRoutes {
       '/api/asesor/jadwal/$jadwalId/peserta';
   static String asesorJadwalPesertaDetail(int jadwalId, int pesertaId) =>
       '/api/asesor/jadwal/$jadwalId/peserta/$pesertaId';
+  static String asesorJadwalPesertaAssignment(int jadwalId, int pesertaId) =>
+      '/api/asesor/jadwal/$jadwalId/peserta/$pesertaId/assignment';
   static String asesorJadwalDetail(int jadwalId) =>
       '/api/asesor/jadwal/$jadwalId/detail';
   static String asesorJadwalSuratTugas(int jadwalId) =>

@@ -934,3 +934,36 @@ class StatusAssessment {
     );
   }
 }
+
+/// Hasil pemindahan asesi ke asesor lain.
+class TransferAsesiResult {
+  final bool success;
+  final String message;
+  final int? targetAsesorId;
+  final String? targetAsesorName;
+
+  const TransferAsesiResult({
+    required this.success,
+    required this.message,
+    this.targetAsesorId,
+    this.targetAsesorName,
+  });
+
+  factory TransferAsesiResult.fromJson(Map<String, dynamic> json) {
+    final data = json['data'];
+    final target = data is Map<String, dynamic> ? data['target_asesor'] : null;
+    return TransferAsesiResult(
+      success: json['status']?.toString() == 'success',
+      message: json['message']?.toString() ?? 'Asesi berhasil dipindahkan',
+      targetAsesorId: target is Map<String, dynamic>
+          ? int.tryParse(target['id_asesor']?.toString() ?? '')
+          : null,
+      targetAsesorName: target is Map<String, dynamic>
+          ? target['nama_asesor']?.toString()
+          : null,
+    );
+  }
+
+  factory TransferAsesiResult.failure(String message) =>
+      TransferAsesiResult(success: false, message: message);
+}
