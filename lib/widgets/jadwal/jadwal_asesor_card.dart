@@ -18,53 +18,12 @@ class JadwalAsesorCard extends StatelessWidget {
 
   const JadwalAsesorCard({super.key, required this.item, required this.onTap});
 
-  String get _badgeText {
-    if (item.isDraft) {
-      return 'Draft';
-    } else if (item.isRunning) {
-      return 'Berjalan';
-    } else if (item.status == 'pelaporan') {
-      return 'Pelaporan';
-    } else if (item.status == 'canceled') {
-      return 'Batal';
-    } else if (item.status == 'completed') {
-      return 'Selesai';
-    }
-    return item.status;
-  }
-
-  Color get _badgeBg {
-    if (item.isDraft) {
-      return const Color(0xFFFEF3C7);
-    } else if (item.isRunning) {
-      return const Color(0xFFDBEAFE);
-    } else if (item.status == 'pelaporan') {
-      return const Color(0xFFF3E8FF);
-    } else if (item.status == 'canceled') {
-      return const Color(0xFFFEE2E2);
-    } else if (item.status == 'completed') {
-      return const Color(0xFFD1FAE5);
-    }
-    return const Color(0xFFE2E8F0);
-  }
-
-  Color get _badgeTextColor {
-    if (item.isDraft) {
-      return const Color(0xFFD97706);
-    } else if (item.isRunning) {
-      return const Color(0xFF2563EB);
-    } else if (item.status == 'pelaporan') {
-      return const Color(0xFF7C3AED);
-    } else if (item.status == 'canceled') {
-      return const Color(0xFFDC2626);
-    } else if (item.status == 'completed') {
-      return const Color(0xFF059669);
-    }
-    return const Color(0xFF475569);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final badgeText = jadwalBadgeText(item);
+    final badgeBg = jadwalBadgeBg(item);
+    final badgeTextColor = jadwalBadgeTextColor(item);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -84,7 +43,7 @@ class JadwalAsesorCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Row 1: Icon, Title & TUK, Status Badge
+              // Row 1: Icon, Title & TUK, Tanggal Asesmen, Status Badge
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -162,6 +121,33 @@ class JadwalAsesorCard extends StatelessWidget {
                             ],
                           ],
                         ),
+                        const SizedBox(height: 4),
+                        // Tanggal dibawah TUK (Mulai sd Akhir)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today_outlined,
+                              size: 11,
+                              color: Color(0xFF6B7280),
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                jadwalFormatDateRange(
+                                  item.tanggalMulai,
+                                  item.tanggalSelesai,
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF4B5563),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -173,13 +159,13 @@ class JadwalAsesorCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: _badgeBg,
+                      color: badgeBg,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      _badgeText,
+                      badgeText,
                       style: TextStyle(
-                        color: _badgeTextColor,
+                        color: badgeTextColor,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -191,38 +177,30 @@ class JadwalAsesorCard extends StatelessWidget {
               const Divider(height: 1, color: Color(0xFFECEFF1)),
               const SizedBox(height: 12),
 
-              // Columns: Waktu Asesmen, Asesor, Jumlah Peserta
+              // Columns: Asesor (paling kiri dengan space luas) & Peserta
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   JadwalInfoColumn(
-                    icon: Icons.access_time_rounded,
-                    label: 'Waktu Asesmen',
-                    value:
-                        '${jadwalFormatIndonesianDayAndDate(item.tanggalMulai)}\n08:00 - 11:00 WIB',
-                  ),
-                  Container(
-                    width: 1,
-                    height: 44,
-                    color: const Color(0xFFECEFF1),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                  ),
-                  JadwalInfoColumn(
                     icon: Icons.person_outline_rounded,
                     label: 'Asesor',
                     value: jadwalDisplayAsesor(item),
+                    flex: 3,
+                    maxLines: 4,
                   ),
                   Container(
                     width: 1,
                     height: 44,
                     color: const Color(0xFFECEFF1),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
                   ),
                   JadwalInfoColumn(
                     icon: Icons.people_outline_rounded,
                     label: 'Peserta',
                     value:
                         '${item.totalAsesi > 0 ? item.totalAsesi : (item.jumlahAsesi > 0 ? item.jumlahAsesi : 0)} Asesi',
+                    flex: 1,
+                    maxLines: 1,
                   ),
                 ],
               ),

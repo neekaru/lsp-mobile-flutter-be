@@ -81,6 +81,149 @@ String jadwalFormatIndonesianDayAndDate(String yyyymmdd) {
   }
 }
 
+/// Format rentang tanggal asesmen:
+/// Jika tanggal mulai dan akhir sama atau akhir kosong: "12 Jan 2026"
+/// Jika berbeda: "12 Jan 2026 sd 15 Jan 2026"
+String jadwalFormatDateRange(String tanggalMulai, String tanggalSelesai) {
+  final start = tanggalMulai.split(' ').first.trim();
+  final end = tanggalSelesai.split(' ').first.trim();
+
+  if (start.isEmpty && end.isEmpty) return '-';
+  if (start.isEmpty) return jadwalFormatIndonesianDate(end);
+  if (end.isEmpty || end == start) {
+    return jadwalFormatIndonesianDate(start);
+  }
+
+  final formattedStart = jadwalFormatIndonesianDate(start);
+  final formattedEnd = jadwalFormatIndonesianDate(end);
+  if (formattedStart == formattedEnd) {
+    return formattedStart;
+  }
+  return '$formattedStart sd $formattedEnd';
+}
+
+DateTime? _parseJadwalDate(String dateStr) {
+  if (dateStr.trim().isEmpty) return null;
+  final part = dateStr.trim().split(' ').first;
+  try {
+    return DateTime.tryParse(part);
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Menghitung teks badge kartu jadwal secara dinamis:
+/// - 'Sekarang'
+/// - 'Besok'
+/// - 'X Hari Lagi'
+/// - 'Lewat X Hari' (dihitung dari tanggal asesmen terakhir)
+String jadwalBadgeText(JadwalItem item) {
+  if (item.isDraft) {
+    return 'Draft';
+  } else if (item.status == 'canceled') {
+    return 'Batal';
+  } else if (item.status == 'completed') {
+    return 'Selesai';
+  }
+
+  // Jika running atau pelaporan, hitung dari tanggal asesmen
+  if (item.isRunning || item.status == 'pelaporan' || item.status == 'running') {
+    final startDt = _parseJadwalDate(item.tanggalMulai);
+    final endDt = _parseJadwalDate(item.tanggalSelesai) ?? startDt;
+
+    if (startDt != null) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final start = DateTime(startDt.year, startDt.month, startDt.day);
+      final end = endDt != null ? DateTime(endDt.year, endDt.month, endDt.day) : start;
+
+      if (today.isBefore(start)) {
+        final diffDays = start.difference(today).inDays;
+        if (diffDays == 1) {
+          return 'Besok';
+        }
+        return '$diffDays Hari Lagi';
+      } else if (today.isAfter(end)) {
+        final daysLate = today.difference(end).inDays;
+        if (daysLate >= 1) {
+          return 'Lewat $daysLate Hari';
+        }
+        return 'Sekarang';
+      } else {
+        return 'Sekarang';
+      }
+    }
+
+    // Fallback jika parsing tanggal gagal
+    if (item.daysLate != null && item.daysLate! > 0) {
+      return 'Lewat ${item.daysLate} Hari';
+    }
+    if (item.sisaHari == 0) {
+      return 'Sekarang';
+    }
+    if (item.sisaHari == 1) {
+      return 'Besok';
+    }
+    if (item.sisaHari > 1) {
+      return '${item.sisaHari} Hari Lagi';
+    }
+    if (item.status == 'pelaporan') {
+      return 'Pelaporan';
+    }
+    return 'Berjalan';
+  }
+
+  return item.displayStatusLabel;
+}
+
+Color jadwalBadgeBg(JadwalItem item) {
+  if (item.isDraft) {
+    return const Color(0xFFFEF3C7);
+  } else if (item.status == 'canceled') {
+    return const Color(0xFFFEE2E2);
+  } else if (item.status == 'completed') {
+    return const Color(0xFFD1FAE5);
+  }
+
+  final text = jadwalBadgeText(item);
+  if (text.startsWith('Lewat')) {
+    return const Color(0xFFFEE2E2); // Merah muda
+  } else if (text == 'Sekarang') {
+    return const Color(0xFFDBEAFE); // Biru muda
+  } else if (text == 'Besok' || text.endsWith('Hari Lagi')) {
+    return const Color(0xFFFEF3C7); // Kuning/amber muda
+  }
+
+  if (item.status == 'pelaporan') {
+    return const Color(0xFFF3E8FF);
+  }
+  return const Color(0xFFDBEAFE);
+}
+
+Color jadwalBadgeTextColor(JadwalItem item) {
+  if (item.isDraft) {
+    return const Color(0xFFD97706);
+  } else if (item.status == 'canceled') {
+    return const Color(0xFFDC2626);
+  } else if (item.status == 'completed') {
+    return const Color(0xFF059669);
+  }
+
+  final text = jadwalBadgeText(item);
+  if (text.startsWith('Lewat')) {
+    return const Color(0xFFDC2626); // Merah
+  } else if (text == 'Sekarang') {
+    return const Color(0xFF2563EB); // Biru
+  } else if (text == 'Besok' || text.endsWith('Hari Lagi')) {
+    return const Color(0xFFD97706); // Amber
+  }
+
+  if (item.status == 'pelaporan') {
+    return const Color(0xFF7C3AED);
+  }
+  return const Color(0xFF2563EB);
+}
+
 Color jadwalStatusColor(JadwalItem item) {
   switch (item.status) {
     case 'draft':
@@ -109,21 +252,8 @@ String jadwalStatusText(JadwalItem item) {
     case 'canceled':
       return item.displayStatusLabel;
     case 'running':
-      if (item.daysLate != null && item.daysLate! > 0) {
-        return 'Lewat ${item.daysLate} Hari';
-      }
-      if (item.sisaHari == 0) {
-        return 'Hari Ini';
-      }
-      if (item.sisaHari == 1) {
-        return 'Besok';
-      }
-      return '${item.sisaHari} Hari Lagi';
     case 'pelaporan':
-      if (item.daysLate != null && item.daysLate! > 0) {
-        return 'Lewat ${item.daysLate} Hari';
-      }
-      return item.displayStatusLabel;
+      return jadwalBadgeText(item);
     default:
       return item.displayStatusLabel;
   }
@@ -137,7 +267,11 @@ String jadwalDisplayAsesor(JadwalItem item) {
 }
 
 bool jadwalShouldShowWarning(JadwalItem item) {
-  // Tampilkan warning jika status running dan ada days_late (terlambat)
+  // Tampilkan warning jika terlambat
+  final text = jadwalBadgeText(item);
+  if (text.startsWith('Lewat')) {
+    return true;
+  }
   if (item.status == 'running') {
     if (item.daysLate != null && item.daysLate! > 0) {
       return true; // Terlambat

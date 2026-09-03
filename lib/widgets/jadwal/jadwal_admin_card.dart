@@ -138,7 +138,7 @@ class JadwalAdminCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${jadwalFormatIndonesianDate(item.tanggalMulai)} - ${jadwalFormatIndonesianDate(item.tanggalSelesai)}',
+                              jadwalFormatDateRange(item.tanggalMulai, item.tanggalSelesai),
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey,

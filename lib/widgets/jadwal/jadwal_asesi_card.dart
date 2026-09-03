@@ -18,35 +18,12 @@ class JadwalAsesiCard extends StatelessWidget {
 
   const JadwalAsesiCard({super.key, required this.item, required this.onTap});
 
-  String get _badgeText {
-    if (item.isRunning || item.isDraft) {
-      return 'Terjadwal';
-    } else if (item.status == 'pelaporan') {
-      return 'Berjalan';
-    }
-    return 'Selesai';
-  }
-
-  Color get _badgeBg {
-    if (item.isRunning || item.isDraft) {
-      return const Color(0xFFD2E3F4);
-    } else if (item.status == 'pelaporan') {
-      return const Color(0xFFE8F5E9);
-    }
-    return const Color(0xFFFFEBEE);
-  }
-
-  Color get _badgeTextColor {
-    if (item.isRunning || item.isDraft) {
-      return const Color(0xFF2C6C9C);
-    } else if (item.status == 'pelaporan') {
-      return const Color(0xFF4CAF50);
-    }
-    return const Color(0xFFEF5350);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final badgeText = jadwalBadgeText(item);
+    final badgeBg = jadwalBadgeBg(item);
+    final badgeTextColor = jadwalBadgeTextColor(item);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -66,7 +43,7 @@ class JadwalAsesiCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Row 1: Icon, Title & TUK, Status Badge
+              // Row 1: Icon, Title & TUK, Tanggal Asesmen, Status Badge
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -117,6 +94,58 @@ class JadwalAsesiCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            if (item.isSjj) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 1.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: const Color(0xFFBFDBFE),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: const Text(
+                                  'AJJ',
+                                  style: TextStyle(
+                                    color: Color(0xFF1D4ED8),
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        // Tanggal dibawah TUK (Mulai sd Akhir)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today_outlined,
+                              size: 11,
+                              color: Color(0xFF6B7280),
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                jadwalFormatDateRange(
+                                  item.tanggalMulai,
+                                  item.tanggalSelesai,
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF4B5563),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -130,13 +159,13 @@ class JadwalAsesiCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: _badgeBg,
+                      color: badgeBg,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      _badgeText,
+                      badgeText,
                       style: TextStyle(
-                        color: _badgeTextColor,
+                        color: badgeTextColor,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -148,38 +177,30 @@ class JadwalAsesiCard extends StatelessWidget {
               const Divider(height: 1, color: Color(0xFFECEFF1)),
               const SizedBox(height: 12),
 
-              // Columns: Waktu Asesmen, Asesor, Jumlah Peserta
+              // Columns: Asesor (paling kiri dengan space luas) & Peserta
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   JadwalInfoColumn(
-                    icon: Icons.access_time_rounded,
-                    label: 'Waktu Asesmen',
-                    value:
-                        '${jadwalFormatIndonesianDayAndDate(item.tanggalMulai)}\n08:00 - 11:00 WIB',
-                  ),
-                  Container(
-                    width: 1,
-                    height: 44,
-                    color: const Color(0xFFECEFF1),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                  ),
-                  JadwalInfoColumn(
                     icon: Icons.person_outline_rounded,
                     label: 'Asesor',
                     value: jadwalDisplayAsesor(item),
+                    flex: 3,
+                    maxLines: 4,
                   ),
                   Container(
                     width: 1,
                     height: 44,
                     color: const Color(0xFFECEFF1),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
                   ),
                   JadwalInfoColumn(
                     icon: Icons.people_outline_rounded,
                     label: 'Peserta',
                     value:
                         '${item.totalAsesi > 0 ? item.totalAsesi : (item.jumlahAsesi > 0 ? item.jumlahAsesi : 0)} Asesi',
+                    flex: 1,
+                    maxLines: 1,
                   ),
                 ],
               ),

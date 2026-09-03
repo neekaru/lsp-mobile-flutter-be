@@ -7,22 +7,27 @@
 
 import 'package:material_ui/material_ui.dart';
 
-/// Kolom kecil (Waktu / Asesor / Peserta) di kartu asesi & asesor.
+/// Kolom info (Asesor / Peserta / Waktu) di kartu jadwal.
 class JadwalInfoColumn extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final int flex;
+  final int maxLines;
 
   const JadwalInfoColumn({
     super.key,
     required this.icon,
     required this.label,
     required this.value,
+    this.flex = 1,
+    this.maxLines = 2,
   });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
+      flex: flex,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -48,7 +53,7 @@ class JadwalInfoColumn extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: Color(0xFF1F2937), // Dark gray
             ),
-            maxLines: 2,
+            maxLines: maxLines,
             overflow: TextOverflow.ellipsis,
           ),
         ],
