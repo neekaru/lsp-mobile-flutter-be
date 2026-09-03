@@ -6,6 +6,7 @@ import '../../utils/date_format_helper.dart';
 import '../../services/common/app_notification_storage.dart';
 import '../../services/common/notification_service.dart';
 import '../../services/auth/auth_repository.dart';
+import '../../screens/jadwal/jadwal_detail_screen.dart';
 import 'notification_card.dart';
 
 class NotificationPanel extends StatefulWidget {
@@ -381,13 +382,34 @@ class _NotificationPanelState extends State<NotificationPanel> {
                               itemBuilder: (context, index) {
                                 final role =
                                     AuthRepository.currentUserInstance?.role;
+                                final currentUser =
+                                    AuthRepository.currentUserInstance;
+                                final userRole = currentUser != null
+                                    ? UserRole(
+                                        role: currentUser.role ?? 'asesi',
+                                        name: currentUser.name ?? '',
+                                        email: currentUser.email ?? '',
+                                      )
+                                    : (role == 'admin'
+                                        ? UserRole.admin
+                                        : (role == 'asesor'
+                                            ? UserRole.asesor
+                                            : UserRole.asesi));
                                 return NotificationCard(
                                   schedule: _schedules[index],
-                                  canConfirm:
-                                      role == 'admin' || role == 'asesor',
+                                  canConfirm: role == 'admin',
                                   onStatusUpdated: _loadAllData,
                                   onTap: () {
                                     Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => JadwalDetailScreen(
+                                          jadwal: _schedules[index].toJadwalItem(),
+                                          userRole: userRole,
+                                        ),
+                                      ),
+                                    );
                                   },
                                 );
                               },

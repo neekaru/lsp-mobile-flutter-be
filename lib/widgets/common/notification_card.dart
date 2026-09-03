@@ -8,7 +8,7 @@ class NotificationCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onStatusUpdated;
 
-  /// Whether the current user may confirm the schedule (admin & asesor).
+  /// Whether the current user may confirm the schedule (admin only).
   final bool canConfirm;
 
   const NotificationCard({

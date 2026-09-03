@@ -405,6 +405,31 @@ class WaitingSchedule {
       jumlahBelumKompeten: jumlahBelumKompeten,
     );
   }
+
+  JadwalItem toJadwalItem() {
+    return JadwalItem(
+      id: id,
+      skema: jadwal,
+      tuk: tuk,
+      tanggalMulai: tanggal,
+      tanggalSelesai: tanggalAkhir ?? tanggal,
+      createdWhen: '',
+      status: 'draft',
+      statusJadwal: statusJadwal,
+      statusLabel: statusLabel,
+      statusJadwalLabel: statusLabel,
+      statusRekaman: '',
+      statusBlanko: '',
+      statusPengiriman: '',
+      jumlahAsesi: jumlahAsesi,
+      asesor: asesor,
+      sisaHari: 0,
+      totalAsesi: totalAsesi,
+      jumlahKompeten: jumlahKompeten,
+      jumlahBelumKompeten: jumlahBelumKompeten,
+      needsAcc: false,
+    );
+  }
 }
 
 class WaitingScheduleResponse {
