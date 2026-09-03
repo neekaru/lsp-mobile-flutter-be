@@ -386,8 +386,8 @@ class _NotificationPanelState extends State<NotificationPanel> {
                                     AuthRepository.currentUserInstance;
                                 final userRole = currentUser != null
                                     ? UserRole(
-                                        role: currentUser.role ?? 'asesi',
-                                        name: currentUser.name ?? '',
+                                        role: currentUser.role,
+                                        name: currentUser.name,
                                         email: currentUser.email ?? '',
                                       )
                                     : (role == 'admin'

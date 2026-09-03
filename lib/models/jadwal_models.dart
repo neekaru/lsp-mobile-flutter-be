@@ -331,6 +331,7 @@ class UserRole {
 
   static const admin = UserRole(role: 'admin', name: 'Admin', email: '');
   static const asesor = UserRole(role: 'asesor', name: 'Asesor', email: '');
+  static const asesi = UserRole(role: 'asesi', name: 'Asesi', email: '');
 
   bool get isAdmin => role.toLowerCase() == 'admin';
   bool get canEditSchedule => isAdmin;
