@@ -239,10 +239,13 @@ class _TransferAsesiSheetState extends State<TransferAsesiSheet> {
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
       itemBuilder: (context, index) {
         final asesor = items[index];
-        final subtitle = [
-          if (asesor.noReg.isNotEmpty) asesor.noReg,
-          if (asesor.email.isNotEmpty) asesor.email,
-        ].join(' • ');
+        final isTidakHadir = asesor.idAsesor == 99999;
+        final subtitle = isTidakHadir
+            ? (asesor.noReg.isNotEmpty ? asesor.noReg : 'Tandai sebagai peserta tidak hadir')
+            : [
+                if (asesor.noReg.isNotEmpty) asesor.noReg,
+                if (asesor.email.isNotEmpty) asesor.email,
+              ].join(' • ');
 
         return Material(
           color: Colors.transparent,
@@ -252,37 +255,43 @@ class _TransferAsesiSheetState extends State<TransferAsesiSheet> {
             leading: Container(
               width: 34,
               height: 34,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE5F1FC),
+              decoration: BoxDecoration(
+                color: isTidakHadir ? const Color(0xFFFEE2E2) : const Color(0xFFE5F1FC),
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Text(
-                  asesor.namaAsesor.isNotEmpty
-                      ? asesor.namaAsesor
-                            .trim()
-                            .split(' ')
-                            .map((s) => s.isNotEmpty ? s[0] : '')
-                            .take(2)
-                            .join()
-                            .toUpperCase()
-                      : 'A',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C6C9C),
-                  ),
-                ),
+                child: isTidakHadir
+                    ? const Icon(
+                        Icons.person_off_rounded,
+                        size: 18,
+                        color: Color(0xFFDC2626),
+                      )
+                    : Text(
+                        asesor.namaAsesor.isNotEmpty
+                            ? asesor.namaAsesor
+                                .trim()
+                                .split(' ')
+                                .map((s) => s.isNotEmpty ? s[0] : '')
+                                .take(2)
+                                .join()
+                                .toUpperCase()
+                            : 'A',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2C6C9C),
+                        ),
+                      ),
               ),
             ),
             title: Text(
               asesor.namaAsesor.isNotEmpty
                   ? asesor.namaAsesor
                   : 'Asesor #${asesor.idAsesor}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF0F172A),
+                color: isTidakHadir ? const Color(0xFFDC2626) : const Color(0xFF0F172A),
               ),
             ),
             subtitle: subtitle.isEmpty
@@ -291,15 +300,15 @@ class _TransferAsesiSheetState extends State<TransferAsesiSheet> {
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF64748B),
+                      color: isTidakHadir ? const Color(0xFFEF4444) : const Color(0xFF64748B),
                     ),
                   ),
-            trailing: const Icon(
+            trailing: Icon(
               Icons.chevron_right_rounded,
               size: 18,
-              color: Color(0xFF94A3B8),
+              color: isTidakHadir ? const Color(0xFFEF4444) : const Color(0xFF94A3B8),
             ),
             onTap: () => Navigator.pop(context, asesor),
           ),

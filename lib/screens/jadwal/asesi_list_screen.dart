@@ -29,7 +29,7 @@ class AsesiListScreen extends StatefulWidget {
 class _AsesiListScreenState extends State<AsesiListScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
-  bool _filterOnlyMyAsesi = true;
+  int _selectedTab = 0; // 0: Asesi Saya, 1: Semua Peserta, 2: Tidak Hadir
   String _errorMessage = '';
   AsesiListResponse? _response;
   List<AsesiItem> _filteredAsesi = [];
@@ -89,9 +89,17 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
 
     setState(() {
       _filteredAsesi = _response!.data.where((asesi) {
-        if (isAsesor && _filterOnlyMyAsesi && !asesi.isMyAsesi) {
-          return false;
+        if (_selectedTab == 2) {
+          // Tab: Tidak Hadir
+          if (!asesi.isAbsent) return false;
+        } else if (_selectedTab == 0 && isAsesor) {
+          // Tab: Asesi Saya (yang hadir)
+          if (asesi.isAbsent || !asesi.isMyAsesi) return false;
+        } else {
+          // Tab: Semua Peserta (yang hadir)
+          if (asesi.isAbsent) return false;
         }
+
         if (query.isNotEmpty) {
           final matches = asesi.namaLengkap.toLowerCase().contains(query) ||
               (asesi.nik != null && asesi.nik!.contains(query)) ||
@@ -213,8 +221,23 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     }
 
     final kandidat = _jadwalAsesors
-        .where((a) => a.idAsesor != item.idAsesor)
+        .where((a) => a.idAsesor != item.idAsesor && a.idAsesor != 99999)
         .toList();
+
+    // Tambahkan opsi 'Tidak Hadir' di paling bawah jika asesi belum berstatus Tidak Hadir
+    if (!item.isAbsent) {
+      kandidat.add(
+        const AsesorDetailItem(
+          idAsesor: 99999,
+          namaAsesor: 'Tidak Hadir',
+          noReg: 'Tandai peserta tidak hadir',
+          email: '',
+          hp: '',
+          jenisAsesmen: '',
+          statusSpt: '',
+        ),
+      );
+    }
 
     final selected = await showModalBottomSheet<AsesorDetailItem>(
       context: context,
@@ -238,15 +261,18 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
 
     if (selected == null || !mounted) return;
 
+    final isTargetTidakHadir = selected.idAsesor == 99999;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text(
-          'Pindahkan Asesi',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+        title: Text(
+          isTargetTidakHadir ? 'Tandai Tidak Hadir' : 'Pindahkan Asesi',
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'Pindahkan ${item.namaLengkap} dari ${item.namaAsesor?.isNotEmpty == true ? item.namaAsesor : 'asesor saat ini'} ke ${selected.namaAsesor}?',
+          isTargetTidakHadir
+              ? 'Tandai ${item.namaLengkap} sebagai Tidak Hadir pada jadwal ini?'
+              : 'Pindahkan ${item.namaLengkap} dari ${item.namaAsesor?.isNotEmpty == true ? item.namaAsesor : (item.isAbsent ? "status Tidak Hadir" : "asesor saat ini")} ke ${selected.namaAsesor}?',
           style: const TextStyle(fontSize: 13),
         ),
         actions: [
@@ -257,11 +283,13 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogContext, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB),
+              backgroundColor: isTargetTidakHadir
+                  ? const Color(0xFFDC2626)
+                  : const Color(0xFF2563EB),
             ),
-            child: const Text(
-              'Pindahkan',
-              style: TextStyle(color: Colors.white),
+            child: Text(
+              isTargetTidakHadir ? 'Ya, Tidak Hadir' : 'Pindahkan',
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ],
@@ -475,7 +503,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
             ),
 
             // Persistent Footer Button
-            if (!_isLoading && _filteredAsesi.isNotEmpty)
+            if (!_isLoading && _filteredAsesi.isNotEmpty && _selectedTab != 2)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -678,10 +706,9 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     if (_response == null) return const SizedBox.shrink();
     final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
     final totalCount = _response!.data.length;
-    final myAsesiCount = _response!.data.where((a) => a.isMyAsesi).length;
-    final otherCount = totalCount - myAsesiCount;
-
-    if (!isAsesor || otherCount == 0) return const SizedBox.shrink();
+    final tidakHadirCount = _response!.data.where((a) => a.isAbsent).length;
+    final myAsesiCount = _response!.data.where((a) => a.isMyAsesi && !a.isAbsent).length;
+    final presentCount = totalCount - tidakHadirCount;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -693,83 +720,82 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
         ),
         child: Row(
           children: [
-            Expanded(
-              child: GestureDetector(
+            if (isAsesor)
+              _buildFilterTabItem(
+                label: 'Asesi Saya ($myAsesiCount)',
+                isSelected: _selectedTab == 0,
                 onTap: () {
-                  if (!_filterOnlyMyAsesi) {
-                    setState(() {
-                      _filterOnlyMyAsesi = true;
-                    });
+                  if (_selectedTab != 0) {
+                    setState(() => _selectedTab = 0);
                     _applyFilter();
                   }
                 },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _filterOnlyMyAsesi ? Colors.white : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: _filterOnlyMyAsesi
-                        ? [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Asesi Saya ($myAsesiCount)',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: _filterOnlyMyAsesi ? const Color(0xFF2C6C9C) : const Color(0xFF64748B),
-                      ),
-                    ),
-                  ),
-                ),
               ),
+            _buildFilterTabItem(
+              label: 'Semua Peserta ($presentCount)',
+              isSelected: _selectedTab == 1,
+              onTap: () {
+                if (_selectedTab != 1) {
+                  setState(() => _selectedTab = 1);
+                  _applyFilter();
+                }
+              },
             ),
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  if (_filterOnlyMyAsesi) {
-                    setState(() {
-                      _filterOnlyMyAsesi = false;
-                    });
-                    _applyFilter();
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: !_filterOnlyMyAsesi ? Colors.white : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: !_filterOnlyMyAsesi
-                        ? [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Semua Peserta ($totalCount)',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: !_filterOnlyMyAsesi ? const Color(0xFF2C6C9C) : const Color(0xFF64748B),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            _buildFilterTabItem(
+              label: 'Tidak Hadir ($tidakHadirCount)',
+              isSelected: _selectedTab == 2,
+              activeTextColor: const Color(0xFFDC2626),
+              onTap: () {
+                if (_selectedTab != 2) {
+                  setState(() => _selectedTab = 2);
+                  _applyFilter();
+                }
+              },
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterTabItem({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    Color? activeTextColor,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: isSelected
+                    ? (activeTextColor ?? const Color(0xFF2C6C9C))
+                    : const Color(0xFF64748B),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -924,7 +950,23 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                             color: Colors.grey,
                           ),
                         ),
-                        if (item.namaAsesor != null && item.namaAsesor!.isNotEmpty) ...[
+                        if (item.isAbsent) ...[
+                          const Text(' • ', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                          const Icon(
+                            Icons.person_off_rounded,
+                            size: 11,
+                            color: Color(0xFFDC2626),
+                          ),
+                          const SizedBox(width: 3),
+                          const Text(
+                            'Tidak Hadir',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFDC2626),
+                            ),
+                          ),
+                        ] else if (item.namaAsesor != null && item.namaAsesor!.isNotEmpty) ...[
                           const Text(' • ', style: TextStyle(color: Colors.grey, fontSize: 11)),
                           Icon(
                             item.isMyAsesi ? LucideIcons.user_check : LucideIcons.lock,
@@ -949,7 +991,35 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                   ],
                 ),
               ),
-              if (!item.isMyAsesi)
+              if (item.isAbsent)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEE2E2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFFECACA)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.person_off_rounded,
+                        size: 12,
+                        color: Color(0xFFDC2626),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'Tidak Hadir',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFDC2626),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (!item.isMyAsesi)
                 InkWell(
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1066,7 +1136,35 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
           Row(
             children: [
               Expanded(
-                child: !item.isMyAsesi
+                child: item.isAbsent
+                    ? Container(
+                        height: 38,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFFEE2E2)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              Icons.block_rounded,
+                              size: 14,
+                              color: Color(0xFFEF4444),
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Peserta Tidak Hadir (Tidak Dinilai)',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFDC2626),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : !item.isMyAsesi
                     ? Container(
                         height: 38,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -1362,23 +1460,28 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
   }
 
   /// Tombol pindah asesi ke asesor lain (kanan bawah card).
-  /// Null bila caller bukan asesor pemilik asesi tersebut.
+  /// Null bila caller bukan asesor pemilik asesi tersebut dan asesi tidak dalam status Tidak Hadir.
   Widget? _buildTransferButton(AsesiItem item) {
     final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
     final hasAsesor = (item.idAsesor ?? 0) > 0;
-    if (!isAsesor || !item.isMyAsesi || !hasAsesor) return null;
+    final isAbsent = item.isAbsent;
+    if (!isAsesor || (!item.isMyAsesi && !isAbsent) || !hasAsesor) return null;
 
-    final isFinal = item.rekomendasiAsesor == '1' ||
+    final isFinal = !isAbsent && (item.rekomendasiAsesor == '1' ||
         item.rekomendasiAsesor == '2' ||
         item.hasilRekomendasi == 'K' ||
-        item.hasilRekomendasi == 'BK';
+        item.hasilRekomendasi == 'BK');
     final isProcessing = _transferringAsesiId == item.id;
     final canTransfer = !isFinal && _transferringAsesiId == null;
 
+    final tooltipMsg = isFinal
+        ? 'Rekomendasi sudah final, asesi tidak dapat dipindahkan'
+        : (isAbsent
+            ? 'Pindahkan atau batalkan status tidak hadir'
+            : 'Pindahkan ke asesor lain');
+
     return Tooltip(
-      message: isFinal
-          ? 'Rekomendasi sudah final, asesi tidak dapat dipindahkan'
-          : 'Pindahkan ke asesor lain',
+      message: tooltipMsg,
       child: InkWell(
         key: ValueKey('transfer-asesi-${item.id}'),
         onTap: canTransfer ? () => _openTransferSheet(item) : null,

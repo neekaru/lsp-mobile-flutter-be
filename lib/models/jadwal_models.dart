@@ -479,6 +479,7 @@ class AsesiItem {
   final int? idAsesor;
   final bool isMyAsesi;
   final bool canEdit;
+  final bool isTidakHadir;
 
   const AsesiItem({
     required this.id,
@@ -502,9 +503,11 @@ class AsesiItem {
     this.idAsesor,
     this.isMyAsesi = true,
     this.canEdit = true,
+    this.isTidakHadir = false,
   });
 
-  bool get isEditable => canEdit && isAPL01Valid;
+  bool get isEditable => canEdit && isAPL01Valid && !isAbsent;
+  bool get isAbsent => isTidakHadir || idAsesor == 99999;
 
   factory AsesiItem.fromJson(Map<String, dynamic> json) {
     final rawKota =
@@ -521,11 +524,12 @@ class AsesiItem {
     final idAsesorVal = json['id_asesor'] is int
         ? json['id_asesor'] as int
         : int.tryParse(json['id_asesor']?.toString() ?? '');
-    final isMyAsesiVal = json['is_my_asesi'] != false; // default true unless explicitly false
+    final isTidakHadirVal = json['is_tidak_hadir'] == true || idAsesorVal == 99999;
+    final isMyAsesiVal = !isTidakHadirVal && (json['is_my_asesi'] != false); // default true unless explicitly false
     final isAPL01ValidVal = json['is_apl01_valid'] == true;
     final isAPL02ValidVal = json['is_apl02_valid'] == true && isAPL01ValidVal;
     final isAK02ValidVal = (json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2') && isAPL01ValidVal && isAPL02ValidVal;
-    final canEditVal = json['can_edit'] != false && isAPL01ValidVal;
+    final canEditVal = !isTidakHadirVal && json['can_edit'] != false && isAPL01ValidVal;
 
     return AsesiItem(
       id: json['id'] ?? 0,
@@ -549,6 +553,7 @@ class AsesiItem {
       idAsesor: idAsesorVal,
       isMyAsesi: isMyAsesiVal,
       canEdit: canEditVal,
+      isTidakHadir: isTidakHadirVal,
     );
   }
 }
@@ -565,6 +570,7 @@ class AsesiMeta {
   final int jumlahKompeten;
   final int jumlahBelumKompeten;
   final int jumlahBelumDinilai;
+  final int jumlahTidakHadir;
 
   const AsesiMeta({
     required this.jadwalId,
@@ -578,6 +584,7 @@ class AsesiMeta {
     required this.jumlahKompeten,
     required this.jumlahBelumKompeten,
     required this.jumlahBelumDinilai,
+    this.jumlahTidakHadir = 0,
   });
 
   factory AsesiMeta.fromJson(Map<String, dynamic> json) {
@@ -593,6 +600,7 @@ class AsesiMeta {
       jumlahKompeten: json['jumlah_kompeten'] ?? 0,
       jumlahBelumKompeten: json['jumlah_belum_kompeten'] ?? 0,
       jumlahBelumDinilai: json['jumlah_belum_dinilai'] ?? 0,
+      jumlahTidakHadir: json['jumlah_tidak_hadir'] ?? 0,
     );
   }
 }
@@ -785,18 +793,18 @@ class AsesorDetailItem {
   const AsesorDetailItem({
     required this.idAsesor,
     required this.namaAsesor,
-    required this.noReg,
-    required this.email,
-    required this.hp,
-    required this.jenisAsesmen,
-    required this.statusSpt,
-    required this.isComplete,
+    this.noReg = '',
+    this.email = '',
+    this.hp = '',
+    this.jenisAsesmen = '',
+    this.statusSpt = '',
+    this.isComplete = '',
     this.sertifikatAsesor,
     this.sertifikatTeknis,
-    required this.masaBerlaku,
-    required this.kabupatenKota,
-    required this.provinsiId,
-    required this.kabupatenId,
+    this.masaBerlaku = '',
+    this.kabupatenKota = '',
+    this.provinsiId = '',
+    this.kabupatenId = '',
     this.totalAsesmen = 0,
   });
 
