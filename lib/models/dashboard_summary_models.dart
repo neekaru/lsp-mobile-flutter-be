@@ -260,40 +260,6 @@ class TopProvinsi {
   });
 }
 
-class SkemaStats {
-  final int totalSkema;
-  final int provinsi;
-  final int skemaAktif;
-  final int skemaNonaktif;
-
-  const SkemaStats({
-    required this.totalSkema,
-    required this.provinsi,
-    required this.skemaAktif,
-    required this.skemaNonaktif,
-  });
-
-  factory SkemaStats.fallback() {
-    return const SkemaStats(
-      totalSkema: 0,
-      provinsi: 0,
-      skemaAktif: 0,
-      skemaNonaktif: 0,
-    );
-  }
-}
-
-class TopMitra {
-  final String name;
-  final int value;
-  final String percentage;
-
-  const TopMitra({
-    required this.name,
-    required this.value,
-    required this.percentage,
-  });
-}
 
 class TUKKabupaten {
   final String kabupaten;

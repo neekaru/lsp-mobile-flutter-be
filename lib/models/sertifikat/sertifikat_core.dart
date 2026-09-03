@@ -71,34 +71,6 @@ class SertifikatItem {
   }
 }
 
-class SertifikatRingkasan {
-  final int totalPemegangSertifikat;
-  final double persentasePertumbuhan;
-  final int totalSkema;
-  final double persentaseSkema;
-  final int totalSertifikatYangDiterbitkan;
-  final double persentaseSertifikat;
-
-  const SertifikatRingkasan({
-    required this.totalPemegangSertifikat,
-    required this.persentasePertumbuhan,
-    required this.totalSkema,
-    required this.persentaseSkema,
-    required this.totalSertifikatYangDiterbitkan,
-    required this.persentaseSertifikat,
-  });
-
-  factory SertifikatRingkasan.fallback() {
-    return const SertifikatRingkasan(
-      totalPemegangSertifikat: 0,
-      persentasePertumbuhan: 0,
-      totalSkema: 0,
-      persentaseSkema: 0,
-      totalSertifikatYangDiterbitkan: 0,
-      persentaseSertifikat: 0,
-    );
-  }
-}
 
 class SertifikatDistribusi {
   final int idSkema;

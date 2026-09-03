@@ -1,36 +1,25 @@
-// ============================================================================
-// Number Format Helper
-// ============================================================================
-// Helper untuk formatting angka dengan separator
+import 'package:intl/intl.dart';
 
+/// Helper pemformatan angka menggunakan standard intl.
 class NumberFormatHelper {
-  /// Format angka dengan titik sebagai thousands separator
-  /// 
-  /// Example: 1000 -> "1.000", 1000000 -> "1.000.000"
-  static String formatWithDots(int number) {
-    RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    return number.toString().replaceAllMapped(reg, (Match match) => '${match[1]}.');
-  }
+  static final NumberFormat _dotFormat = NumberFormat('#,###', 'id_ID');
 
-  /// Format angka dengan koma sebagai thousands separator
-  /// 
-  /// Example: 1000 -> "1,000", 1000000 -> "1,000,000"
-  static String formatWithCommas(int number) {
-    RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    return number.toString().replaceAllMapped(reg, (Match match) => '${match[1]},');
-  }
+  /// Format angka integer dengan titik pemisah ribuan (misal: 1000 -> "1.000")
+  static String formatWithDots(int number) => _dotFormat.format(number);
 
-  /// Format double dengan koma sebagai decimal separator
-  /// 
-  /// Example: 82.8 -> "82,8"
+  /// Format desimal dengan koma pemisah (misal: 82.8 -> "82,8")
   static String formatDecimalWithComma(double number, {int decimals = 1}) {
-    return number.toStringAsFixed(decimals).replaceAll('.', ',');
+    return NumberFormat.decimalPatternDigits(
+      locale: 'id_ID',
+      decimalDigits: decimals,
+    ).format(number);
   }
 
-  /// Format persentase dengan koma sebagai decimal separator
-  /// 
-  /// Example: 0.828 -> "82,8%"
+  /// Format persentase (misal: 0.828 -> "82,8%")
   static String formatPercentage(double value, {int decimals = 1}) {
-    return '${(value * 100).toStringAsFixed(decimals).replaceAll('.', ',')}%';
+    final fmt = NumberFormat.percentPattern('id_ID')
+      ..minimumFractionDigits = decimals
+      ..maximumFractionDigits = decimals;
+    return fmt.format(value);
   }
 }

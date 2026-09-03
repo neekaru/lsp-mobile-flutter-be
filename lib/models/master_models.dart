@@ -1,3 +1,5 @@
+import '../utils/json_helper.dart';
+
 class MasterItem {
   final String id;
   final String name;
@@ -250,17 +252,13 @@ class SkemaPersyaratanItem {
 
   factory SkemaPersyaratanItem.fromJson(Map<String, dynamic> json) {
     return SkemaPersyaratanItem(
-      id: json['id'] is int
-          ? json['id'] as int
-          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      id: JsonHelper.asInt(json['id']),
       key: json['key']?.toString() ?? '',
       jenisBukti: json['jenis_bukti']?.toString() ?? '',
       label: json['label']?.toString() ?? '',
       namaPersyaratan: json['nama_persyaratan']?.toString() ?? '',
-      mandatory: json['mandatory'] == true || json['mandatory']?.toString() == '1',
-      urutan: json['urutan'] is int
-          ? json['urutan'] as int
-          : int.tryParse(json['urutan']?.toString() ?? '0') ?? 0,
+      mandatory: JsonHelper.asBool(json['mandatory']),
+      urutan: JsonHelper.asInt(json['urutan']),
     );
   }
 }
@@ -282,12 +280,10 @@ class SkemaPersyaratanAdminItem {
 
   factory SkemaPersyaratanAdminItem.fromJson(Map<String, dynamic> json) {
     return SkemaPersyaratanAdminItem(
-      id: json['id'] is int
-          ? json['id'] as int
-          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      id: JsonHelper.asInt(json['id']),
       key: json['key']?.toString() ?? '',
       label: json['label']?.toString() ?? '',
-      mandatory: json['mandatory'] == true || json['mandatory']?.toString() == '1',
+      mandatory: JsonHelper.asBool(json['mandatory']),
       source: json['source']?.toString() ?? 'default',
     );
   }

@@ -49,20 +49,6 @@ class BpsCodeHelper {
     return _provinceMapping[provinceId] ?? 0;
   }
 
-  /// Mengecek apakah province ID valid
-  static bool isValidProvinceId(String provinceId) {
-    return _provinceMapping.containsKey(provinceId);
-  }
-
-  /// Mendapatkan semua province IDs yang tersedia
-  static List<String> getAllProvinceIds() {
-    return _provinceMapping.keys.toList();
-  }
-
-  /// Mendapatkan semua BPS codes yang tersedia
-  static List<int> getAllBpsCodes() {
-    return _provinceMapping.values.toList();
-  }
 
   static final Map<String, String> _bpsToMapCode = {
     for (var entry in _provinceMapping.entries) entry.value.toString(): entry.key,

@@ -1,3 +1,5 @@
+import '../utils/json_helper.dart';
+
 import 'jadwal_models.dart';
 import 'asesor_statistik_models.dart';
 
@@ -121,14 +123,9 @@ class AsesorDashboardJadwal {
   }
 
   factory AsesorDashboardJadwal.fromJson(Map<String, dynamic> json) {
-    final rawIsAjj = json['is_ajj'];
-    final isAjj = rawIsAjj == true || rawIsAjj == 1 || rawIsAjj == '1' || rawIsAjj == 'true';
-    final kuotaVal = json['kuota'] is int
-        ? json['kuota'] as int
-        : int.tryParse(json['kuota']?.toString() ?? '0') ?? 0;
-    final totalAsesiVal = json['total_asesi'] is int
-        ? json['total_asesi'] as int
-        : int.tryParse(json['total_asesi']?.toString() ?? '0') ?? 0;
+    final isAjj = JsonHelper.asBool(json['is_ajj']);
+    final kuotaVal = JsonHelper.asInt(json['kuota']);
+    final totalAsesiVal = JsonHelper.asInt(json['total_asesi']);
 
     return AsesorDashboardJadwal(
       idJadwal: json['id_jadwal'] ?? 0,

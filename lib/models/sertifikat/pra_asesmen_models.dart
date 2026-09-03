@@ -1,3 +1,5 @@
+import '../../utils/json_helper.dart';
+
 // ============================================================================
 // Pra-Asesmen Models
 // ============================================================================
@@ -68,7 +70,7 @@ class PraAsesmenKompetensi {
   factory PraAsesmenKompetensi.fromJson(Map<String, dynamic> json) {
     final List<dynamic> list = json['unit_kompetensi'] ?? [];
     return PraAsesmenKompetensi(
-      skemaId: _asInt(json['skema_id']),
+      skemaId: JsonHelper.asInt(json['skema_id']),
       namaSkema: json['nama_skema']?.toString() ?? '',
       unitKompetensi: list
           .map(
@@ -141,13 +143,13 @@ class UjianSkemaSoal {
   factory UjianSkemaSoal.fromJson(Map<String, dynamic> json) {
     final list = json['soal'] as List? ?? [];
     return UjianSkemaSoal(
-      skemaId: _asInt(json['skema_id']),
+      skemaId: JsonHelper.asInt(json['skema_id']),
       namaSkema: json['nama_skema']?.toString() ?? '',
       kodeSkema: json['kode_skema']?.toString() ?? '',
-      examId: _asInt(json['exam_id']),
+      examId: JsonHelper.asInt(json['exam_id']),
       namaExam: json['nama_exam']?.toString() ?? '',
-      durasiMenit: _asInt(json['durasi_menit']),
-      totalSoal: _asInt(json['total_soal']),
+      durasiMenit: JsonHelper.asInt(json['durasi_menit']),
+      totalSoal: JsonHelper.asInt(json['total_soal']),
       soal: list
           .map((e) =>
               UjianSoalItem.fromJson(Map<String, dynamic>.from(e as Map)))
@@ -185,7 +187,7 @@ class UjianSoalItem {
 
   factory UjianSoalItem.fromJson(Map<String, dynamic> json) {
     return UjianSoalItem(
-      id: _asInt(json['id']),
+      id: JsonHelper.asInt(json['id']),
       pertanyaan: json['pertanyaan']?.toString() ?? '',
       jenisSoal: json['jenis_soal']?.toString() ?? '',
       tipeSoal: json['tipe_soal']?.toString() ?? '',
@@ -195,7 +197,7 @@ class UjianSoalItem {
       jawabanD: json['jawaban_d']?.toString() ?? '',
       jawabanE: json['jawaban_e']?.toString() ?? '',
       jawabanBenar: json['jawaban_benar']?.toString() ?? '',
-      urutan: _asInt(json['urutan']),
+      urutan: JsonHelper.asInt(json['urutan']),
     );
   }
 
@@ -242,18 +244,13 @@ class KukItem {
 
   factory KukItem.fromJson(Map<String, dynamic> json) {
     return KukItem(
-      idKuk: _asInt(json['id_kuk']),
-      idElemen: _asInt(json['id_elemen']),
+      idKuk: JsonHelper.asInt(json['id_kuk']),
+      idElemen: JsonHelper.asInt(json['id_elemen']),
       pertanyaanKuk: json['pertanyaan_kuk']?.toString() ?? '',
     );
   }
 }
 
-int _asInt(dynamic v) {
-  if (v is int) return v;
-  if (v is num) return v.toInt();
-  return int.tryParse(v?.toString() ?? '') ?? 0;
-}
 
 class ElemenKompetensi {
   final int idElemen;
@@ -271,7 +268,7 @@ class ElemenKompetensi {
   factory ElemenKompetensi.fromJson(Map<String, dynamic> json) {
     final List<dynamic> kukList = json['kuk'] ?? [];
     return ElemenKompetensi(
-      idElemen: _asInt(json['id_elemen']),
+      idElemen: JsonHelper.asInt(json['id_elemen']),
       elemenKompetensi: json['elemen_kompetensi']?.toString() ?? '',
       pertanyaanKuk: json['pertanyaan_kuk']?.toString() ?? '',
       kuk: kukList

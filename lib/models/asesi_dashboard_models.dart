@@ -1,3 +1,5 @@
+import '../utils/json_helper.dart';
+
 // ============================================================================
 // Asesi Dashboard Summary Model
 // ============================================================================
@@ -30,11 +32,6 @@ class AsesiDashboardSummary {
     this.alertSubtitle = '',
   });
 
-  static int _asInt(dynamic v) {
-    if (v is int) return v;
-    if (v is num) return v.toInt();
-    return int.tryParse(v?.toString() ?? '') ?? 0;
-  }
 
   factory AsesiDashboardSummary.fromJson(Map<String, dynamic> json) {
     // Check if the json has a nested 'summary' key (from /api/asesi/dashboard)
@@ -45,18 +42,18 @@ class AsesiDashboardSummary {
         ? json['alert_banner']
         : {};
 
-    final skemaDiikuti = _asInt(
+    final skemaDiikuti = JsonHelper.asInt(
       summary['skema_diikuti'] ?? summary['total_jadwal_diikuti'],
     );
-    final sertAktif = _asInt(
+    final sertAktif = JsonHelper.asInt(
       summary['sertifikat_aktif'] ?? summary['sertifikat_diterima'],
     );
-    final skemaKomp = _asInt(
+    final skemaKomp = JsonHelper.asInt(
       summary['skema_kompetensi'] ?? summary['hasil_asesmen'],
     );
-    final sertKadal = _asInt(summary['sertifikat_kadaluarsa']);
-    final tuk = _asInt(summary['tuk_terdekat'] ?? json['tuk_terdekat']);
-    final hasil = _asInt(
+    final sertKadal = JsonHelper.asInt(summary['sertifikat_kadaluarsa']);
+    final tuk = JsonHelper.asInt(summary['tuk_terdekat'] ?? json['tuk_terdekat']);
+    final hasil = JsonHelper.asInt(
       summary['hasil_asesmen'] ?? summary['skema_pernah_dijalani'],
     );
 

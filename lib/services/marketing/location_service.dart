@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geocode_cache/geocode_cache.dart';
 import 'package:geocoding/geocoding.dart' as native_geo;
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 class UserGeoLocation {
   final double latitude;
@@ -182,12 +182,19 @@ class LocationService {
     try {
       final url =
           'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&language=id&key=$apiKey';
-      final response = await http.get(Uri.parse(url)).timeout(
-            const Duration(seconds: 5),
-          );
+      final dio = Dio();
+      final response = await dio.get(
+        url,
+        options: Options(
+          receiveTimeout: const Duration(seconds: 5),
+          sendTimeout: const Duration(seconds: 5),
+        ),
+      );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
+        final Map<String, dynamic> data = response.data is Map<String, dynamic>
+            ? response.data as Map<String, dynamic>
+            : jsonDecode(response.data.toString());
         final status = data['status']?.toString();
 
         if (status == 'OK') {

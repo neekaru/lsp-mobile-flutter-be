@@ -15,7 +15,6 @@ dependencies:
   flutter_lucide: ^1.38.0
   januscaler_flutter_ringtone_player: ^1.0.2
   flutter_secure_storage: ^11.0.0
-  http: ^1.6.0
   intl: 0.20.3
   syncfusion_flutter_maps: ^34.2.5
   file_picker: ^12.1.3

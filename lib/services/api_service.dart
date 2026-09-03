@@ -294,8 +294,6 @@ class ApiService {
       AsesorService.getSebaranSkemaAsesor();
   static Future<List<TopProvinsi>> getTopProvinces() =>
       AsesorService.getTopProvinces();
-  static Future<List<TopMitra>> getTopMitras() => AsesorService.getTopMitras();
-  static Future<SkemaStats> getSkemaStats() => AsesorService.getSkemaStats();
 
 
   // ── Sertifikat ──────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_places_sdk_plus/google_places_sdk_plus.dart'
     as places_sdk;
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import '../../models/lead_model.dart';
 import 'location_service.dart';
 
@@ -243,12 +243,19 @@ class PlacesService {
           url += '&location=$latitude,$longitude&radius=$radius';
         }
 
-        final response = await http.get(Uri.parse(url)).timeout(
-              const Duration(seconds: 8),
-            );
+        final dio = Dio();
+        final response = await dio.get(
+          url,
+          options: Options(
+            receiveTimeout: const Duration(seconds: 8),
+            sendTimeout: const Duration(seconds: 8),
+          ),
+        );
 
         if (response.statusCode == 200) {
-          final Map<String, dynamic> data = jsonDecode(response.body);
+          final Map<String, dynamic> data = response.data is Map<String, dynamic>
+              ? response.data as Map<String, dynamic>
+              : jsonDecode(response.data.toString());
           final status = data['status']?.toString();
 
           if (status == 'OK') {
@@ -430,21 +437,26 @@ class PlacesService {
       };
     }
 
-    final response = await http
-        .post(
-          Uri.parse(url),
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Goog-Api-Key': apiKey,
-            'X-Goog-FieldMask':
-                'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.types,places.nationalPhoneNumber,places.websiteUri,places.photos',
-          },
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 8));
+    final dio = Dio();
+    final response = await dio.post(
+      url,
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask':
+              'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.types,places.nationalPhoneNumber,places.websiteUri,places.photos',
+        },
+        receiveTimeout: const Duration(seconds: 8),
+        sendTimeout: const Duration(seconds: 8),
+      ),
+      data: body,
+    );
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
+    if (response.statusCode == 200 && response.data != null) {
+      final Map<String, dynamic> data = response.data is Map<String, dynamic>
+          ? response.data as Map<String, dynamic>
+          : jsonDecode(response.data.toString());
       final List<dynamic> places = data['places'] as List<dynamic>? ?? [];
 
       return places.map((p) {
