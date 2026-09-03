@@ -428,34 +428,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                           if (!isGuest) ...[
                             if (isAsesor) ...[
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ProfileAsesorScreen(),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.3),
-                                      width: 1.2,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.person_rounded,
-                                    color: Colors.white,
-                                    size: 22,
-                                  ),
-                                ),
-                              ),
+                              _buildAsesorMenuDropdown(context),
                               const SizedBox(width: 8),
                             ],
                             const NotificationBell(),
@@ -790,6 +763,262 @@ class _DashboardScreenState extends State<DashboardScreen> {
               size: 24,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAsesorMenuDropdown(BuildContext context) {
+    return PopupMenuButton<String>(
+      tooltip: 'Menu Layanan & Profil',
+      offset: const Offset(0, 48),
+      elevation: 6,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      onSelected: (value) {
+        if (value == 'profil') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ProfileAsesorScreen(),
+            ),
+          );
+        } else if (value == 'digital_product') {
+          _showComingSoonDialog(
+            context,
+            'Digital Product',
+            Icons.shopping_bag_outlined,
+            const Color(0xFF0D9488),
+          );
+        } else if (value == 'career_expo') {
+          _showComingSoonDialog(
+            context,
+            'Career Expo',
+            Icons.work_outline_rounded,
+            const Color(0xFFEA580C),
+          );
+        } else if (value == 'magang_hub') {
+          _showComingSoonDialog(
+            context,
+            'Magang Hub',
+            Icons.school_outlined,
+            const Color(0xFF7C3AED),
+          );
+        } else if (value == 'investment') {
+          _showComingSoonDialog(
+            context,
+            'Investment',
+            Icons.trending_up_rounded,
+            const Color(0xFF059669),
+          );
+        }
+      },
+      itemBuilder: (context) => [
+        _buildHeaderDropdownItem(
+          value: 'profil',
+          icon: Icons.person_outline_rounded,
+          iconColor: const Color(0xFF2563EB),
+          title: 'Profil',
+        ),
+        const PopupMenuDivider(height: 1),
+        _buildHeaderDropdownItem(
+          value: 'digital_product',
+          icon: Icons.shopping_bag_outlined,
+          iconColor: const Color(0xFF0D9488),
+          title: 'Digital Product',
+          badgeText: 'Segera Hadir',
+        ),
+        _buildHeaderDropdownItem(
+          value: 'career_expo',
+          icon: Icons.work_outline_rounded,
+          iconColor: const Color(0xFFEA580C),
+          title: 'Career Expo',
+          badgeText: 'Segera Hadir',
+        ),
+        _buildHeaderDropdownItem(
+          value: 'magang_hub',
+          icon: Icons.school_outlined,
+          iconColor: const Color(0xFF7C3AED),
+          title: 'Magang Hub',
+          badgeText: 'Segera Hadir',
+        ),
+        _buildHeaderDropdownItem(
+          value: 'investment',
+          icon: Icons.trending_up_rounded,
+          iconColor: const Color(0xFF059669),
+          title: 'Investment',
+          badgeText: 'Segera Hadir',
+        ),
+      ],
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.3),
+            width: 1.2,
+          ),
+        ),
+        child: const Icon(
+          Icons.apps_rounded,
+          color: Colors.white,
+          size: 22,
+        ),
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildHeaderDropdownItem({
+    required String value,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? badgeText,
+  }) {
+    return PopupMenuItem<String>(
+      value: value,
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: iconColor, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ),
+          if (badgeText != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: const Color(0xFFE2E8F0),
+                  width: 0.8,
+                ),
+              ),
+              child: Text(
+                badgeText,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _showComingSoonDialog(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color iconColor,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 8,
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(22.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 30),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'Segera Hadir',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2563EB),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Layanan $title sedang dalam proses pengembangan untuk melengkapi ekosistem LSP Teknologi Digital. Nantikan pembaruan mendatang!',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF64748B),
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Mengerti',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
