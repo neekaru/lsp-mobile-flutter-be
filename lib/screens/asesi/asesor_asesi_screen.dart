@@ -809,6 +809,9 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
       badgeText = const Color(0xFFDC2626);
     }
 
+    final bool isSudahRekomendasi = _selectedTab == 'sudah' ||
+        (statusStr.contains('kompeten') && !statusStr.contains('belum'));
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -954,7 +957,7 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
 
               const SizedBox(height: 6),
 
-              // Jadwal Row (Berapa hari sudah lewat tanggal asesmen)
+              // Jadwal Row
               Row(
                 children: [
                   const Icon(
@@ -973,11 +976,19 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
                   ),
                   Expanded(
                     child: Text(
-                      _formatJadwalStatus(item.jadwalTanggal),
+                      _formatJadwalStatus(
+                        item.jadwalTanggal,
+                        isSudahRekomendasi: isSudahRekomendasi,
+                      ),
                       style: TextStyle(
                         fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: _getJadwalStatusColor(item.jadwalTanggal),
+                        fontWeight: isSudahRekomendasi
+                            ? FontWeight.w500
+                            : FontWeight.w600,
+                        color: _getJadwalStatusColor(
+                          item.jadwalTanggal,
+                          isSudahRekomendasi: isSudahRekomendasi,
+                        ),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -998,9 +1009,13 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
     );
   }
 
-  String _formatJadwalStatus(String dateStr) {
+  String _formatJadwalStatus(String dateStr, {bool isSudahRekomendasi = false}) {
     if (dateStr.trim().isEmpty || dateStr == '-') {
       return '-';
+    }
+    // Jika asesi sudah selesai / sudah rekomendasi, tampilkan tanggal asesmen saja
+    if (isSudahRekomendasi) {
+      return DateFormatHelper.formatToIndonesian(dateStr);
     }
     final parsed = DateFormatHelper.parseDate(dateStr);
     if (parsed == null) {
@@ -1024,7 +1039,10 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
     }
   }
 
-  Color _getJadwalStatusColor(String dateStr) {
+  Color _getJadwalStatusColor(String dateStr, {bool isSudahRekomendasi = false}) {
+    if (isSudahRekomendasi) {
+      return const Color(0xFF334155);
+    }
     if (dateStr.trim().isEmpty || dateStr == '-') {
       return const Color(0xFF64748B);
     }
