@@ -228,7 +228,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     if (!item.isAbsent) {
       kandidat.add(
         const AsesorDetailItem(
-          idAsesor: 9999,
+          idAsesor: 99999,
           namaAsesor: 'Tidak Hadir',
           noReg: 'Tandai peserta tidak hadir',
           email: '',
