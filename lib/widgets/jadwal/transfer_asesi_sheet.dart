@@ -239,7 +239,7 @@ class _TransferAsesiSheetState extends State<TransferAsesiSheet> {
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
       itemBuilder: (context, index) {
         final asesor = items[index];
-        final isTidakHadir = asesor.idAsesor == 99999;
+        final isTidakHadir = asesor.idAsesor == 99999 || asesor.idAsesor == 9999;
         final subtitle = isTidakHadir
             ? (asesor.noReg.isNotEmpty ? asesor.noReg : 'Tandai sebagai peserta tidak hadir')
             : [

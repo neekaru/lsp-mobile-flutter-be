@@ -221,14 +221,14 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     }
 
     final kandidat = _jadwalAsesors
-        .where((a) => a.idAsesor != item.idAsesor && a.idAsesor != 99999)
+        .where((a) => a.idAsesor != item.idAsesor && a.idAsesor != 99999 && a.idAsesor != 9999)
         .toList();
 
     // Tambahkan opsi 'Tidak Hadir' di paling bawah jika asesi belum berstatus Tidak Hadir
     if (!item.isAbsent) {
       kandidat.add(
         const AsesorDetailItem(
-          idAsesor: 99999,
+          idAsesor: 9999,
           namaAsesor: 'Tidak Hadir',
           noReg: 'Tandai peserta tidak hadir',
           email: '',
@@ -261,7 +261,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
 
     if (selected == null || !mounted) return;
 
-    final isTargetTidakHadir = selected.idAsesor == 99999;
+    final isTargetTidakHadir = selected.idAsesor == 99999 || selected.idAsesor == 9999;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(

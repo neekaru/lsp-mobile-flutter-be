@@ -532,7 +532,7 @@ class AsesiItem {
   });
 
   bool get isEditable => canEdit && isAPL01Valid && !isAbsent;
-  bool get isAbsent => isTidakHadir || idAsesor == 99999;
+  bool get isAbsent => isTidakHadir || idAsesor == 99999 || idAsesor == 9999;
 
   factory AsesiItem.fromJson(Map<String, dynamic> json) {
     final rawKota =
@@ -549,7 +549,7 @@ class AsesiItem {
     final idAsesorVal = json['id_asesor'] is int
         ? json['id_asesor'] as int
         : int.tryParse(json['id_asesor']?.toString() ?? '');
-    final isTidakHadirVal = json['is_tidak_hadir'] == true || idAsesorVal == 99999;
+    final isTidakHadirVal = json['is_tidak_hadir'] == true || idAsesorVal == 99999 || idAsesorVal == 9999;
     final isMyAsesiVal = !isTidakHadirVal && (json['is_my_asesi'] != false); // default true unless explicitly false
     final isAPL01ValidVal = json['is_apl01_valid'] == true;
     final isAPL02ValidVal = json['is_apl02_valid'] == true && isAPL01ValidVal;
