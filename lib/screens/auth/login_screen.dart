@@ -206,6 +206,20 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _goToHome(BuildContext context) {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      mainNavigatorKey = GlobalKey<MainNavigatorState>();
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => MainNavigator(key: mainNavigatorKey),
+        ),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -216,7 +230,34 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
+              // Link / Tombol kembali ke Beranda (Guest)
+              InkWell(
+                onTap: () => _goToHome(context),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(
+                        Icons.arrow_back_rounded,
+                        size: 18,
+                        color: Color(0xFF64748B),
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        'Kembali ke Beranda',
+                        style: TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
 
               // Header: Title + Subtitle and Illustration next to it
               Row(
@@ -543,6 +584,28 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Link Kembali ke Beranda (Tamu)
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () => _goToHome(context),
+                        icon: const Icon(
+                          Icons.home_outlined,
+                          size: 18,
+                          color: Color(0xFF2563EB),
+                        ),
+                        label: const Text(
+                          'Kembali ke Beranda (Tamu)',
+                          style: TextStyle(
+                            color: Color(0xFF2563EB),
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),

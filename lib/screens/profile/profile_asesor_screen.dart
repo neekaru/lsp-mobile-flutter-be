@@ -7,7 +7,7 @@ import '../../services/api_service.dart';
 import '../../services/auth/token_storage.dart';
 import '../../utils/api_routes.dart';
 import '../../services/common/notification_service.dart';
-import '../auth/login_screen.dart';
+import '../../core/navigation/main_navigator.dart';
 import 'data_diri_screen.dart';
 import 'keamanan_screen.dart';
 import 'honor_asesor_screen.dart';
@@ -142,10 +142,11 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
         setState(() {
           _isLoggingOut = false;
         });
+        mainNavigatorKey = GlobalKey<MainNavigatorState>();
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
-                const LoginScreen(),
+                MainNavigator(key: mainNavigatorKey),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
                   final slideAnimation =
