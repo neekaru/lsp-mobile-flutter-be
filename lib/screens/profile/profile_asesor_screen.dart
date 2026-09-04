@@ -669,6 +669,13 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
                           },
                         ),
                         _buildMenuCard(
+                          icon: Icons.star_rounded,
+                          title: 'Beri Rating & Ulasan',
+                          iconColor: const Color(0xFF378CE7),
+                          iconBgColor: const Color(0xFFE3F2FD),
+                          onTap: () => UrlHelper.openAppReview(),
+                        ),
+                        _buildMenuCard(
                           icon: Icons.logout_rounded,
                           title: 'Keluar',
                           iconColor: const Color(0xFFEF4444),

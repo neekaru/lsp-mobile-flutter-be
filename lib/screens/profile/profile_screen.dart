@@ -708,6 +708,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       );
                     },
+                    onReviewAppTap: () => UrlHelper.openAppReview(),
                     onKeluarTap: _isLoggingOut
                         ? null
                         : _showLogoutConfirmDialog,

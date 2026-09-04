@@ -4,6 +4,7 @@ import '../dashboard/faq_screen.dart';
 import '../dashboard/panduan_sertifikasi_screen.dart';
 import '../dashboard/tentang_sistem_screen.dart';
 import 'public_statistik_screen.dart';
+import '../../utils/url_helper.dart';
 
 class PublicProfileScreen extends StatelessWidget {
   final VoidCallback? onBackToHome;
@@ -408,6 +409,13 @@ class PublicProfileScreen extends StatelessWidget {
                     icon: Icons.headset_mic_outlined,
                     title: 'Hubungi Kami',
                     onTap: () => _showHubungiKamiBottomSheet(context),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildPublicMenuItem(
+                    context,
+                    icon: Icons.star_outline_rounded,
+                    title: 'Beri Rating & Ulasan Aplikasi',
+                    onTap: () => UrlHelper.openAppReview(),
                   ),
                 ],
               ),

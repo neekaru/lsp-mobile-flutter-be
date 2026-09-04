@@ -8,6 +8,7 @@ class MenuProfilWidget extends StatelessWidget {
   final String instansiType;
   final Map<String, String> instansiData;
   final VoidCallback? onKeamananTap;
+  final VoidCallback? onReviewAppTap;
   final VoidCallback? onKeluarTap;
 
   const MenuProfilWidget({
@@ -19,6 +20,7 @@ class MenuProfilWidget extends StatelessWidget {
     this.instansiType = 'Mahasiswa',
     this.instansiData = const {},
     this.onKeamananTap,
+    this.onReviewAppTap,
     this.onKeluarTap,
   });
 
@@ -157,6 +159,13 @@ class MenuProfilWidget extends StatelessWidget {
                   title: 'Keamanan',
                   iconColor: const Color(0xFF378CE7),
                   onTap: onKeamananTap,
+                ),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                _buildMenuItem(
+                  icon: Icons.star_rounded,
+                  title: 'Beri Rating & Ulasan',
+                  iconColor: const Color(0xFF378CE7),
+                  onTap: onReviewAppTap,
                 ),
                 const Divider(height: 1, color: Color(0xFFF1F5F9)),
                 _buildMenuItem(

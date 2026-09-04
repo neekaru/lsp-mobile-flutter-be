@@ -645,6 +645,35 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
                 ],
               ),
             ),
+
+            const SizedBox(height: 24),
+
+            // Lainnya Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Lainnya',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ProfileMenuCard(
+                    icon: Icons.star_rounded,
+                    title: 'Beri Rating & Ulasan',
+                    iconColor: const Color(0xFF378CE7),
+                    iconBgColor: const Color(0xFFE3F2FD),
+                    onTap: () => UrlHelper.openAppReview(),
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 40),
           ],
         ),
