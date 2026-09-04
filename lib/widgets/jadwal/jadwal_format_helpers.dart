@@ -7,34 +7,17 @@
 
 import 'package:material_ui/material_ui.dart';
 
+import 'package:intl/intl.dart';
+import '../../utils/date_format_helper.dart';
 import '../../models/jadwal_models.dart';
 
 String jadwalFormatIndonesianDate(String yyyymmdd) {
+  final dt = DateFormatHelper.parseDate(yyyymmdd);
+  if (dt == null) return yyyymmdd;
   try {
-    final parts = yyyymmdd.split('-');
-    if (parts.length != 3) return yyyymmdd;
-    final year = parts[0];
-    final monthIndex = int.parse(parts[1]);
-    final day = int.parse(parts[2]).toString();
-
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-    final monthName = months[monthIndex - 1];
-    return '$day $monthName $year';
-  } catch (e) {
-    return yyyymmdd;
+    return DateFormat('d MMM yyyy', 'id_ID').format(dt);
+  } catch (_) {
+    return DateFormat('d MMM yyyy').format(dt);
   }
 }
 
@@ -47,38 +30,7 @@ String jadwalFormatIndonesianDateOnly(String value) {
 }
 
 String jadwalFormatIndonesianDayAndDate(String yyyymmdd) {
-  try {
-    final dt = DateTime.tryParse(yyyymmdd);
-    if (dt == null) return yyyymmdd;
-    const days = [
-      'Senin',
-      'Selasa',
-      'Rabu',
-      'Kamis',
-      'Jumat',
-      'Sabtu',
-      'Minggu',
-    ];
-    const months = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
-    ];
-    final dayName = days[dt.weekday - 1];
-    final monthName = months[dt.month - 1];
-    return '$dayName, ${dt.day} $monthName ${dt.year}';
-  } catch (e) {
-    return yyyymmdd;
-  }
+  return DateFormatHelper.formatToLong(yyyymmdd);
 }
 
 /// Format rentang tanggal asesmen:
@@ -103,13 +55,7 @@ String jadwalFormatDateRange(String tanggalMulai, String tanggalSelesai) {
 }
 
 DateTime? _parseJadwalDate(String dateStr) {
-  if (dateStr.trim().isEmpty) return null;
-  final part = dateStr.trim().split(' ').first;
-  try {
-    return DateTime.tryParse(part);
-  } catch (_) {
-    return null;
-  }
+  return DateFormatHelper.parseDate(dateStr);
 }
 
 /// Menghitung teks badge kartu jadwal secara dinamis:

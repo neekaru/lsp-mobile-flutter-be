@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import '../../utils/bps_code_helper.dart';
 import '../../services/api_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../models/jadwal_models.dart';
@@ -59,42 +60,6 @@ class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
   SebaranSkemaAsesorItem? _selectedSkema;
   String _skemaSearchQuery = '';
 
-  static const Map<String, String> provinsiIdToMapCode = {
-    "11": "IDAC",
-    "12": "IDSU",
-    "13": "IDSB",
-    "14": "IDRI",
-    "15": "IDJA",
-    "16": "IDSS",
-    "17": "IDBE",
-    "18": "IDLA",
-    "19": "IDBB",
-    "21": "IDKR",
-    "31": "IDJK",
-    "32": "IDJB",
-    "33": "IDJT",
-    "34": "IDYO",
-    "35": "IDJI",
-    "36": "IDBT",
-    "51": "IDBA",
-    "52": "IDNB",
-    "53": "IDNT",
-    "61": "IDKB",
-    "62": "IDKT",
-    "63": "IDKS",
-    "64": "IDKI",
-    "65": "IDKU",
-    "71": "IDSA",
-    "72": "IDST",
-    "73": "IDSG",
-    "74": "IDSN",
-    "75": "IDGO",
-    "76": "IDSR",
-    "81": "IDMA",
-    "82": "IDMU",
-    "91": "IDPB",
-    "92": "IDPA",
-  };
 
   SebaranSkemaAsesorItem? _cachedSkemaForMap;
   Map<String, int>? _cachedSkemaMapData;
@@ -110,7 +75,7 @@ class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
     }
     final Map<String, int> mapData = {};
     for (var detail in skema.wilayahDetail) {
-      final code = provinsiIdToMapCode[detail.provinsiId];
+      final code = BpsCodeHelper.mapCodeFromProvinsiId(detail.provinsiId);
       if (code != null) {
         mapData[code] = detail.jumlahAsesor;
       }

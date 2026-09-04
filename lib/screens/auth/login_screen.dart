@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:material_ui/material_ui.dart';
-import '../../widgets/auth/google_icon.dart';
 import 'package:dio/dio.dart';
 import 'lupa_password_screen.dart';
 import '../../core/navigation/main_navigator.dart';
@@ -222,6 +221,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool canPop = ModalRoute.of(context)?.canPop ?? false;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -230,35 +231,36 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Link / Tombol kembali ke Beranda (Guest)
-              InkWell(
-                onTap: () => _goToHome(context),
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(
-                        Icons.arrow_back_rounded,
-                        size: 18,
-                        color: Color(0xFF64748B),
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        'Kembali ke Beranda',
-                        style: TextStyle(
+              // Link / Tombol kembali ke Beranda jika dibuka dari dalam navigasi (bisa pop)
+              if (canPop) ...[
+                InkWell(
+                  onTap: () => _goToHome(context),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(
+                          Icons.arrow_back_rounded,
+                          size: 18,
                           color: Color(0xFF64748B),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 6),
+                        Text(
+                          'Kembali ke Beranda',
+                          style: TextStyle(
+                            color: Color(0xFF64748B),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-
+                const SizedBox(height: 12),
+              ],
               // Header: Title + Subtitle and Illustration next to it
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -573,7 +575,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              GoogleIcon(),
+                              Image(
+                                image: AssetImage('assets/google_logo.png'),
+                                width: 18,
+                                height: 18,
+                                fit: BoxFit.contain,
+                              ),
                               SizedBox(width: 8),
                               Text(
                                 'Google',
@@ -589,27 +596,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
-
-                    // Link Kembali ke Beranda (Tamu)
-                    Center(
-                      child: TextButton.icon(
-                        onPressed: () => _goToHome(context),
-                        icon: const Icon(
-                          Icons.home_outlined,
-                          size: 18,
-                          color: Color(0xFF2563EB),
-                        ),
-                        label: const Text(
-                          'Kembali ke Beranda (Tamu)',
-                          style: TextStyle(
+                    // Link Kembali ke Beranda (Tamu) hanya jika layar utama / root (tidak bisa pop)
+                    if (!canPop) ...[
+                      const SizedBox(height: 24),
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: () => _goToHome(context),
+                          icon: const Icon(
+                            Icons.home_outlined,
+                            size: 18,
                             color: Color(0xFF2563EB),
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w600,
+                          ),
+                          label: const Text(
+                            'Kembali ke Beranda (Tamu)',
+                            style: TextStyle(
+                              color: Color(0xFF2563EB),
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),

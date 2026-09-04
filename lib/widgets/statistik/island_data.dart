@@ -77,5 +77,3 @@ Map<String, IslandData> islandDataFromApi(List<RegionalDistribution> rows) {
   return map;
 }
 
-/// No static dummy regional stats — load via [islandDataFromApi] / API only.
-final Map<String, IslandData> islandDataMap = {};

@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:intl/intl.dart';
+import '../../utils/date_format_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/common/bottom_menu_bar.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -178,21 +178,8 @@ class _KeamananScreenState extends State<KeamananScreen> {
   }
 
   String _formatDateTime(String? utcString) {
-    if (utcString == null || utcString.isEmpty) {
-      return '-';
-    }
-    try {
-      final dateTime = DateTime.parse(utcString);
-      try {
-        final formatter = DateFormat('dd MMM yyyy, HH:mm', 'id_ID');
-        return formatter.format(dateTime.toLocal());
-      } catch (_) {
-        final formatter = DateFormat('dd MMM yyyy, HH:mm');
-        return formatter.format(dateTime.toLocal());
-      }
-    } catch (_) {
-      return utcString;
-    }
+    if (utcString == null || utcString.isEmpty) return '-';
+    return DateFormatHelper.formatToIndonesianWithTime(utcString);
   }
 
   @override

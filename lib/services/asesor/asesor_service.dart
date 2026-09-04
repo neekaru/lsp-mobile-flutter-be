@@ -69,10 +69,7 @@ class AsesorService {
   static Future<List<TopProvinsi>> getTopProvinces() async {
     try {
       final response = await _dio.get(
-        ApiRoutes.withLimit(
-          ApiRoutes.dashboardAsesorDistribution,
-          DataLimit.five.value,
-        ),
+        ApiRoutes.withLimit(ApiRoutes.dashboardAsesorDistribution, 5),
       );
 
       if (response.statusCode == 200 && response.data != null) {

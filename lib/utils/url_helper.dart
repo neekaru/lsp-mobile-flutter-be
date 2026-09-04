@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../services/api_service.dart';
+import '../services/api_client.dart';
 
 /// Helper to resolve image, document, and PDF URLs across the app,
 /// and open external app links like Play Store review.
@@ -27,17 +27,9 @@ class UrlHelper {
       if (await launchUrl(marketUri, mode: LaunchMode.externalApplication)) {
         return true;
       }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Could not launch market URI: $e');
-      }
-    }
-    try {
       return await launchUrl(webUri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Could not launch web Play Store URL: $e');
-      }
+      if (kDebugMode) debugPrint('Could not launch app review: $e');
       return false;
     }
   }
@@ -47,7 +39,7 @@ class UrlHelper {
   /// Priority / Rules:
   /// 1. Already complete URL (starts with http:// or https://) -> return as-is
   /// 2. Web LSP repository path (starts with /repo/) -> prefix with [webLspBaseUrl]
-  /// 3. Mobile backend upload path (starts with /upload/ or relative) -> prefix with [ApiService.baseUrl]
+  /// 3. Mobile backend upload path (starts with /upload/ or relative) -> prefix with [ApiClient.baseUrl]
   static String resolveUrl(String? rawUrl) {
     if (rawUrl == null || rawUrl.trim().isEmpty) return '';
     final trimmed = rawUrl.trim();
@@ -58,7 +50,7 @@ class UrlHelper {
     if (path.startsWith('/repo/')) {
       return '$webLspBaseUrl$path';
     }
-    final baseUrl = ApiService.baseUrl.replaceAll(RegExp(r'/+$'), '');
+    final baseUrl = ApiClient.baseUrl.replaceAll(RegExp(r'/+$'), '');
     return '$baseUrl$path';
   }
 }

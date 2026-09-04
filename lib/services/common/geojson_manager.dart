@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_maps/maps.dart';
+import '../../utils/bps_code_helper.dart';
 
 /// Singleton service untuk manage GeoJSON data dengan caching dan isolate parsing
 /// untuk menghindari blocking UI thread dan re-render yang tidak perlu.
@@ -148,65 +149,8 @@ List<ProvinceModel> _parseProvinces(String jsonString) {
     final props = feature['properties'] as Map<String, dynamic>;
     final id = props['id'] as String;
     final name = props['name'] as String;
-    final islandId = _inferIslandId(id);
+    final islandId = BpsCodeHelper.inferIslandId(id);
     return ProvinceModel(id: id, name: name, islandId: islandId);
   }).toList();
 }
 
-/// Mapping province ID ke island ID
-/// Berdasarkan data dari indonesia_geojson.dart yang sudah ada
-String _inferIslandId(String provinceId) {
-  // Mapping berdasarkan province ID
-  const provinceToIsland = {
-    // Sumatera
-    'IDAC': 'sumatera',
-    'IDSU': 'sumatera',
-    'IDSB': 'sumatera',
-    'IDRI': 'sumatera',
-    'IDJA': 'sumatera',
-    'IDSS': 'sumatera',
-    'IDBE': 'sumatera',
-    'IDLA': 'sumatera',
-    'IDBB': 'sumatera',
-    'IDKR': 'sumatera',
-
-    // Jawa
-    'IDBT': 'jawa',
-    'IDJK': 'jawa',
-    'IDJB': 'jawa',
-    'IDJT': 'jawa',
-    'IDYO': 'jawa',
-    'IDJI': 'jawa',
-
-    // Kalimantan
-    'IDKB': 'kalimantan',
-    'IDKT': 'kalimantan',
-    'IDKS': 'kalimantan',
-    'IDKI': 'kalimantan',
-    'IDKU': 'kalimantan',
-
-    // Sulawesi
-    'IDSA': 'sulawesi',
-    'IDST': 'sulawesi',
-    'IDSG': 'sulawesi',
-    'IDSN': 'sulawesi',
-    'IDGO': 'sulawesi',
-    'IDSR': 'sulawesi',
-
-    // Bali & Nusa Tenggara
-    'IDBA': 'bali_nusa_tenggara',
-    'IDNB': 'bali_nusa_tenggara',
-    'IDNT': 'bali_nusa_tenggara',
-
-    // Maluku
-    'IDMA': 'maluku',
-    'IDMU': 'maluku',
-
-    // Papua
-    'IDPA': 'papua',
-    'IDPB': 'papua',
-    'IDIT': 'papua',
-  };
-
-  return provinceToIsland[provinceId] ?? 'unknown';
-}

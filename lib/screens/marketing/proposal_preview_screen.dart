@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import '../../utils/date_format_helper.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/lead_model.dart';
@@ -70,8 +70,9 @@ class ProposalPreviewScreen extends StatelessWidget {
       lead: lead,
       asesorName: asesorName,
     );
-    final dateStr =
-        DateFormat('dd MMMM yyyy', 'id_ID').format(doc.tanggal);
+    final dateStr = DateFormatHelper.formatToIndonesian(
+      doc.tanggal.toIso8601String(),
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),

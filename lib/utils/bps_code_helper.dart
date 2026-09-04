@@ -60,4 +60,54 @@ class BpsCodeHelper {
     final str = provinsiId.toString().trim();
     return _bpsToMapCode[str];
   }
+
+  static const Map<String, String> _provinceToIsland = {
+    // Sumatera
+    'IDAC': 'sumatera',
+    'IDSU': 'sumatera',
+    'IDSB': 'sumatera',
+    'IDRI': 'sumatera',
+    'IDJA': 'sumatera',
+    'IDSS': 'sumatera',
+    'IDBE': 'sumatera',
+    'IDLA': 'sumatera',
+    'IDBB': 'sumatera',
+    'IDKR': 'sumatera',
+    // Jawa
+    'IDBT': 'jawa',
+    'IDJK': 'jawa',
+    'IDJB': 'jawa',
+    'IDJT': 'jawa',
+    'IDYO': 'jawa',
+    'IDJI': 'jawa',
+    // Kalimantan
+    'IDKB': 'kalimantan',
+    'IDKT': 'kalimantan',
+    'IDKS': 'kalimantan',
+    'IDKI': 'kalimantan',
+    'IDKU': 'kalimantan',
+    // Sulawesi
+    'IDSA': 'sulawesi',
+    'IDST': 'sulawesi',
+    'IDSG': 'sulawesi',
+    'IDSN': 'sulawesi',
+    'IDGO': 'sulawesi',
+    'IDSR': 'sulawesi',
+    // Bali & Nusa Tenggara
+    'IDBA': 'bali_nusa_tenggara',
+    'IDNB': 'bali_nusa_tenggara',
+    'IDNT': 'bali_nusa_tenggara',
+    // Maluku
+    'IDMA': 'maluku',
+    'IDMU': 'maluku',
+    // Papua
+    'IDPA': 'papua',
+    'IDPB': 'papua',
+    'IDIT': 'papua',
+  };
+
+  /// Mapping province ID ke island ID
+  static String inferIslandId(String provinceId) {
+    return _provinceToIsland[provinceId] ?? 'unknown';
+  }
 }

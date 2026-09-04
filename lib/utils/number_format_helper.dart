@@ -4,8 +4,13 @@ import 'package:intl/intl.dart';
 class NumberFormatHelper {
   static final NumberFormat _dotFormat = NumberFormat('#,###', 'id_ID');
 
-  /// Format angka integer dengan titik pemisah ribuan (misal: 1000 -> "1.000")
-  static String formatWithDots(int number) => _dotFormat.format(number);
+  /// Format angka dengan titik pemisah ribuan (misal: 1000 -> "1.000")
+  static String formatWithDots(dynamic number) {
+    if (number == null) return '0';
+    if (number is num) return _dotFormat.format(number);
+    final parsed = num.tryParse(number.toString());
+    return parsed != null ? _dotFormat.format(parsed) : number.toString();
+  }
 
   /// Format desimal dengan koma pemisah (misal: 82.8 -> "82,8")
   static String formatDecimalWithComma(double number, {int decimals = 1}) {

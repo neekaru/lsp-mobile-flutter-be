@@ -18,7 +18,7 @@ class JadwalService {
   static Future<List<JadwalBaru>> getJadwalBaru() async {
     try {
       final response = await _dio.get(
-        ApiRoutes.withLimit(ApiRoutes.jadwalBaru, DataLimit.three.value),
+        ApiRoutes.withLimit(ApiRoutes.jadwalBaru, 3),
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -38,7 +38,7 @@ class JadwalService {
   static Future<List<JadwalOverdue>> getJadwalOutOfDate() async {
     try {
       final response = await _dio.get(
-        ApiRoutes.withLimit(ApiRoutes.jadwalOutOfDate, DataLimit.three.value),
+        ApiRoutes.withLimit(ApiRoutes.jadwalOutOfDate, 3),
       );
 
       if (response.statusCode == 200 && response.data != null) {

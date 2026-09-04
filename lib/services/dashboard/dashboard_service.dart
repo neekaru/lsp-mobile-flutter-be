@@ -99,10 +99,7 @@ class DashboardService {
   static Future<List<MonthlyAssessment>> getMonthlyAssessments() async {
     try {
       final response = await _dio.get(
-        ApiRoutes.withMonths(
-          ApiRoutes.dashboardMonthlyAssessments,
-          MonthsRange.fourMonths.value,
-        ),
+        ApiRoutes.withMonths(ApiRoutes.dashboardMonthlyAssessments, 4),
       );
 
       if (response.statusCode == 200 && response.data != null) {
@@ -218,10 +215,7 @@ class DashboardService {
   static Future<List<SectorDistribution>> getSectorDistribution() async {
     try {
       final response = await _dio.get(
-        ApiRoutes.withLimit(
-          ApiRoutes.dashboardDistribusiSektor,
-          DataLimit.five.value,
-        ),
+        ApiRoutes.withLimit(ApiRoutes.dashboardDistribusiSektor, 5),
       );
 
       if (response.statusCode == 200 && response.data != null) {

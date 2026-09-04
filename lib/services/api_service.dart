@@ -27,7 +27,6 @@ export 'sertifikat/sertifikat_service.dart';
 export 'common/master_service.dart';
 export 'common/file_service.dart';
 export 'common/health_service.dart';
-export 'auth/session_service.dart';
 export 'admin/blanko_service.dart';
 export '../models/asesor_statistik_models.dart';
 
@@ -42,7 +41,6 @@ import 'sertifikat/sertifikat_service.dart';
 import 'common/master_service.dart';
 import 'common/file_service.dart';
 import 'common/health_service.dart';
-import 'auth/session_service.dart';
 import 'auth/auth_repository.dart';
 import '../utils/api_routes.dart';
 import '../models/dashboard_models.dart';
@@ -358,9 +356,9 @@ class ApiService {
 
   // ── Sessions ─────────────────────────────────────────────────────────────────
   static Future<List<LoginSession>> getActiveSessions() =>
-      AuthSessionService.getActiveSessions();
+      AuthRepository.getActiveSessions();
   static Future<bool> deleteSession(int id) =>
-      AuthSessionService.deleteSession(id);
+      AuthRepository.deleteSession(id);
 
   // ── Berita ───────────────────────────────────────────────────────────────────
   static Future<List<BeritaItem>> getBerita({int page = 1, int size = 10}) =>
