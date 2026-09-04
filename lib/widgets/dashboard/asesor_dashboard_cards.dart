@@ -347,12 +347,13 @@ class AsesorJadwalBelumLengkapCard extends StatelessWidget {
 
     switch (task.type) {
       case 'asesmen_berlangsung':
+        final isLate = task.title.toLowerCase().startsWith('lewat');
         icon = Icons.play_circle_outline_rounded;
-        iconColor = const Color(0xFF2563EB);
-        iconBgColor = const Color(0xFFEFF6FF);
+        iconColor = isLate ? const Color(0xFFDC2626) : const Color(0xFF2563EB);
+        iconBgColor = isLate ? const Color(0xFFFEF2F2) : const Color(0xFFEFF6FF);
         badgeText = task.title.isNotEmpty ? task.title : 'Asesmen berlangsung';
-        badgeTextColor = const Color(0xFF2563EB);
-        badgeBgColor = const Color(0xFFEFF6FF);
+        badgeTextColor = isLate ? const Color(0xFFDC2626) : const Color(0xFF2563EB);
+        badgeBgColor = isLate ? const Color(0xFFFEE2E2) : const Color(0xFFEFF6FF);
         break;
       case 'menunggu_verifikasi':
         icon = Icons.hourglass_top_rounded;
