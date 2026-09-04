@@ -771,10 +771,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return PopupMenuButton<String>(
       tooltip: 'Menu Layanan & Profil',
       offset: const Offset(0, 48),
-      elevation: 6,
+      elevation: 4,
       color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       ),
       onSelected: (value) {
         if (value == 'profil') {
@@ -851,21 +851,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           badgeText: 'Segera Hadir',
         ),
       ],
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
-          shape: BoxShape.circle,
-          border: Border.all(
+      icon: const Icon(Icons.apps_rounded, color: Colors.white, size: 22),
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.white.withValues(alpha: 0.15),
+        shape: CircleBorder(
+          side: BorderSide(
             color: Colors.white.withValues(alpha: 0.3),
             width: 1.2,
           ),
-        ),
-        child: const Icon(
-          Icons.apps_rounded,
-          color: Colors.white,
-          size: 22,
         ),
       ),
     );
@@ -880,25 +873,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }) {
     return PopupMenuItem<String>(
       value: value,
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: iconColor, size: 18),
-          ),
+          Icon(icon, color: iconColor, size: 18),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               title,
               style: const TextStyle(
-                fontSize: 13.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF1E293B),
               ),
