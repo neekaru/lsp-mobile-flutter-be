@@ -505,6 +505,7 @@ class AsesiItem {
   final int? idAsesor;
   final bool isMyAsesi;
   final bool canEdit;
+  final bool canViewDetail;
   final bool isTidakHadir;
 
   const AsesiItem({
@@ -529,6 +530,7 @@ class AsesiItem {
     this.idAsesor,
     this.isMyAsesi = true,
     this.canEdit = true,
+    this.canViewDetail = true,
     this.isTidakHadir = false,
   });
 
@@ -556,6 +558,9 @@ class AsesiItem {
     final isAPL02ValidVal = json['is_apl02_valid'] == true && isAPL01ValidVal;
     final isAK02ValidVal = (json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2') && isAPL01ValidVal && isAPL02ValidVal;
     final canEditVal = !isTidakHadirVal && json['can_edit'] != false && isAPL01ValidVal;
+    final canViewDetailVal = json['can_view_detail'] != null
+        ? json['can_view_detail'] == true
+        : (!isTidakHadirVal && isMyAsesiVal);
 
     return AsesiItem(
       id: json['id'] ?? 0,
@@ -579,6 +584,7 @@ class AsesiItem {
       idAsesor: idAsesorVal,
       isMyAsesi: isMyAsesiVal,
       canEdit: canEditVal,
+      canViewDetail: canViewDetailVal,
       isTidakHadir: isTidakHadirVal,
     );
   }
@@ -592,6 +598,9 @@ class AsesiMeta {
   final String tanggalAkhir;
   final String waktuAsesmen;
   final String lokasiAsesmen;
+  final String statusJadwal;
+  final String statusLabel;
+  final bool isSelesai;
   final int totalAsesi;
   final int jumlahKompeten;
   final int jumlahBelumKompeten;
@@ -606,6 +615,9 @@ class AsesiMeta {
     this.tanggalAkhir = '',
     this.waktuAsesmen = '',
     this.lokasiAsesmen = '',
+    this.statusJadwal = '',
+    this.statusLabel = '',
+    this.isSelesai = false,
     required this.totalAsesi,
     required this.jumlahKompeten,
     required this.jumlahBelumKompeten,
@@ -614,6 +626,13 @@ class AsesiMeta {
   });
 
   factory AsesiMeta.fromJson(Map<String, dynamic> json) {
+    final statusJadwal = json['status_jadwal']?.toString() ?? '';
+    final statusLabel = json['status_label']?.toString() ?? '';
+    final isSelesai = json['is_selesai'] == true ||
+        statusJadwal == '1' ||
+        statusJadwal.toLowerCase() == 'completed' ||
+        statusLabel.toLowerCase() == 'selesai';
+
     return AsesiMeta(
       jadwalId: json['jadwal_id'] ?? 0,
       namaJadwal: json['nama_jadwal'] ?? json['jadwal'] ?? '',
@@ -622,6 +641,9 @@ class AsesiMeta {
       tanggalAkhir: json['tanggal_akhir'] ?? '',
       waktuAsesmen: json['waktu_asesmen'] ?? '',
       lokasiAsesmen: json['lokasi_asesmen'] ?? '',
+      statusJadwal: statusJadwal,
+      statusLabel: statusLabel,
+      isSelesai: isSelesai,
       totalAsesi: json['total_asesi'] ?? 0,
       jumlahKompeten: json['jumlah_kompeten'] ?? 0,
       jumlahBelumKompeten: json['jumlah_belum_kompeten'] ?? 0,
@@ -638,6 +660,9 @@ class AsesiListResponse {
   final String tanggalAkhir;
   final String waktuAsesmen;
   final String lokasiAsesmen;
+  final String statusJadwal;
+  final String statusLabel;
+  final bool isSelesai;
   final List<AsesiItem> data;
   final AsesiMeta meta;
 
@@ -648,11 +673,31 @@ class AsesiListResponse {
     this.tanggalAkhir = '',
     this.waktuAsesmen = '',
     this.lokasiAsesmen = '',
+    this.statusJadwal = '',
+    this.statusLabel = '',
+    this.isSelesai = false,
     required this.data,
     required this.meta,
   });
 
   factory AsesiListResponse.fromJson(Map<String, dynamic> json) {
+    final metaObj = AsesiMeta.fromJson(json['meta'] ?? {});
+    final statusJadwal = json['status_jadwal']?.toString() ??
+        json['jadwal_detail']?['status_jadwal']?.toString() ??
+        json['jadwal_info']?['status_jadwal']?.toString() ??
+        metaObj.statusJadwal;
+    final statusLabel = json['status_label']?.toString() ??
+        json['jadwal_detail']?['status_label']?.toString() ??
+        json['jadwal_info']?['status_label']?.toString() ??
+        metaObj.statusLabel;
+    final isSelesai = json['is_selesai'] == true ||
+        metaObj.isSelesai ||
+        statusJadwal == '1' ||
+        statusJadwal.toLowerCase() == 'completed' ||
+        statusLabel.toLowerCase() == 'selesai' ||
+        json['jadwal_detail']?['is_selesai'] == true ||
+        json['jadwal_info']?['is_selesai'] == true;
+
     return AsesiListResponse(
       namaJadwal: json['nama_jadwal'] ?? json['jadwal'] ?? '',
       tuk: json['tuk'] ?? json['nama_tuk'] ?? '',
@@ -660,12 +705,15 @@ class AsesiListResponse {
       tanggalAkhir: json['tanggal_akhir'] ?? '',
       waktuAsesmen: json['waktu_asesmen'] ?? '',
       lokasiAsesmen: json['lokasi_asesmen'] ?? '',
+      statusJadwal: statusJadwal,
+      statusLabel: statusLabel,
+      isSelesai: isSelesai,
       data:
           (json['data'] as List<dynamic>?)
               ?.map((item) => AsesiItem.fromJson(item))
               .toList() ??
           [],
-      meta: AsesiMeta.fromJson(json['meta'] ?? {}),
+      meta: metaObj,
     );
   }
 }

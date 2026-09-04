@@ -285,6 +285,8 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                           jadwalTitle: widget.jadwal.skema,
                                           tanggal: widget.jadwal.tanggalMulai,
                                           tuk: widget.jadwal.tuk,
+                                          statusJadwal: widget.jadwal.statusJadwal,
+                                          isSelesai: widget.jadwal.status == 'completed' || widget.jadwal.statusJadwal == '1',
                                         ),
                                       ),
                                     );

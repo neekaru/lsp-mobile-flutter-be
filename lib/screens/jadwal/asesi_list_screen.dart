@@ -12,6 +12,8 @@ class AsesiListScreen extends StatefulWidget {
   final String? tanggal;
   final String? waktu;
   final String? tuk;
+  final String? statusJadwal;
+  final bool? isSelesai;
 
   const AsesiListScreen({
     super.key,
@@ -20,6 +22,8 @@ class AsesiListScreen extends StatefulWidget {
     this.tanggal,
     this.waktu,
     this.tuk,
+    this.statusJadwal,
+    this.isSelesai,
   });
 
   @override
@@ -38,6 +42,17 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
   List<AsesorDetailItem> _jadwalAsesors = [];
   String _asesorErrorMessage = '';
   int? _transferringAsesiId;
+
+  bool get _isJadwalSelesai {
+    if (widget.isSelesai == true) return true;
+    final s = widget.statusJadwal?.toString().trim().toLowerCase() ?? '';
+    if (s == '1' || s == 'completed' || s == 'selesai') return true;
+    if (_response?.isSelesai == true) return true;
+    if (_response?.meta.isSelesai == true) return true;
+    final rs = _response?.statusJadwal.trim().toLowerCase() ?? '';
+    if (rs == '1' || rs == 'completed' || rs == 'selesai') return true;
+    return false;
+  }
 
   @override
   void initState() {
@@ -503,7 +518,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
             ),
 
             // Persistent Footer Button
-            if (!_isLoading && _filteredAsesi.isNotEmpty && _selectedTab != 2)
+            if (!_isLoading && _filteredAsesi.isNotEmpty && _selectedTab != 2 && !_isJadwalSelesai)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1061,6 +1076,8 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                     ),
                   ),
                 )
+              else if (_isJadwalSelesai || !item.canViewDetail)
+                const SizedBox.shrink()
               else
                 InkWell(
                   onTap: () {
@@ -1218,7 +1235,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                           ],
                         ),
                       )
-                    : (item.canEdit && item.isAPL01Valid)
+                    : (item.canEdit && item.isAPL01Valid && !_isJadwalSelesai)
                         ? Container(
                             height: 38,
                             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -1465,7 +1482,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
     final hasAsesor = (item.idAsesor ?? 0) > 0;
     final isAbsent = item.isAbsent;
-    if (!isAsesor || (!item.isMyAsesi && !isAbsent) || !hasAsesor) return null;
+    if (_isJadwalSelesai || !isAsesor || (!item.isMyAsesi && !isAbsent) || !hasAsesor) return null;
 
     final isFinal = !isAbsent && (item.rekomendasiAsesor == '1' ||
         item.rekomendasiAsesor == '2' ||

@@ -266,6 +266,8 @@ class JadwalDetailAsesorView extends StatelessWidget {
                     jadwalTitle: jadwal.skema,
                     tanggal: jadwal.tanggalMulai,
                     tuk: jadwal.tuk,
+                    statusJadwal: jadwal.statusJadwal,
+                    isSelesai: jadwal.status == 'completed' || jadwal.statusJadwal == '1',
                   ),
                 ),
               );
