@@ -14,6 +14,35 @@ class AuthRepository {
 
   final Dio _dio;
   final TokenStorage _tokenStorage;
+  static AuthRepository get instance => AuthRepository(
+    dio: ApiClient.dio,
+    tokenStorage: TokenStorage.instance,
+  );
+  static Future<Map<String, dynamic>?> uploadProfilePhoto(String filePath) async {
+    try {
+      final fileName = filePath.split(RegExp(r'[\\/]')).last;
+      final formData = FormData.fromMap({
+        'foto': await MultipartFile.fromFile(filePath, filename: fileName),
+      });
+      final response = await ApiClient.dio.post(
+        ApiRoutes.uploadFotoProfil,
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      if (response.statusCode != 200 || response.data == null) return null;
+
+      final data = response.data['data'] as Map<String, dynamic>?;
+      if (data != null) {
+        await updateCurrentUserPhoto(
+          fotoProfil: data['foto_profil']?.toString() ?? '',
+          fotoProfilUrl: data['foto_profil_url']?.toString() ?? '',
+        );
+      }
+      return data;
+    } catch (_) {
+      return null;
+    }
+  }
 
   static AuthUser? currentUserInstance;
 

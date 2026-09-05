@@ -97,7 +97,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
         final filePath = file.path;
         if (filePath == null) return;
         setState(() => _isUploadingPhoto = true);
-        final uploaded = await ApiService.uploadProfilePhoto(filePath);
+        final uploaded = await AuthRepository.uploadProfilePhoto(filePath);
         if (!mounted) return;
         if (uploaded != null && uploaded['foto_profil_url'] != null) {
           final photoUrl = uploaded['foto_profil_url'].toString();

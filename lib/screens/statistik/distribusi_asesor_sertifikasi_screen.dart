@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
-import '../../services/api_service.dart';
+import '../../services/asesor/asesor_service.dart';
+import '../../services/jadwal/jadwal_service.dart';
+import '../../services/sertifikat/sertifikat_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../models/jadwal_models.dart';
 import '../../models/sertifikat_models.dart';
@@ -47,9 +49,9 @@ class _DistribusiAsesorSertifikasiScreenState extends State<DistribusiAsesorSert
       _isLoading = true;
     });
 
-    _asesorStatsFuture = ApiService.getAsesorStats();
-    _runningJadwalsFuture = ApiService.getJadwalList(statusJadwal: "3");
-    _sertifikatPerSkemaFuture = ApiService.getSertifikatPerSkema(limit: 50);
+    _asesorStatsFuture = AsesorService.getAsesorStats();
+    _runningJadwalsFuture = JadwalService.getJadwalList(statusJadwal: '3');
+    _sertifikatPerSkemaFuture = SertifikatService.getSertifikatPerSkema(limit: 50);
 
     Future.wait([
       _asesorStatsFuture,

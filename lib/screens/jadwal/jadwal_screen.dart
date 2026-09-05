@@ -3,13 +3,13 @@ import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
-import '../../services/api_service.dart';
+import '../../services/jadwal/jadwal_service.dart';
 import '../../widgets/jadwal/jadwal_list_view.dart';
 import '../../widgets/jadwal/jadwal_tab_content.dart';
 import '../../widgets/jadwal/custom_tab_bar.dart';
 import '../../widgets/jadwal/jadwal_search_date_row.dart';
 import '../../services/auth/auth_repository.dart';
-import '../../utils/api_routes.dart';
+
 import '../../utils/date_format_helper.dart';
 
 class JadwalScreen extends StatefulWidget {
@@ -217,26 +217,12 @@ class _JadwalScreenState extends State<JadwalScreen>
     });
 
     try {
-      final bool isAsesi = _isAsesiRole;
-      final bool isAsesor = _isAsesorRole;
-
-      String status3 = '1';
-      String path3 = isAsesi
-          ? ApiRoutes.asesiJadwal
-          : ApiRoutes.jadwalCompleted;
-      if (isAsesor) {
-        status3 = '1,4'; // Selesai & Pelaporan
-        path3 = ApiRoutes.asesorJadwal;
-      }
-
-      final raw = await ApiService.getJadwalList(
+      final raw = await JadwalService.getJadwalForRole(
+        role: currentUser.role,
+        view: JadwalView.selesai,
         limit: _pageSize,
-        statusJadwal: status3,
         tanggalAsesmen: _selesaiTanggalParam,
         tuk: _selesaiTukParam,
-        sortBy: 'tanggal',
-        sortOrder: 'desc',
-        customRoutePath: path3,
       );
 
       if (!mounted) return;
@@ -294,63 +280,40 @@ class _JadwalScreenState extends State<JadwalScreen>
     });
 
     try {
-      final bool isAsesi = currentUser.role == 'asesi';
-      final bool isAsesor = currentUser.role == 'asesor';
-      final bool isAdmin =
-          currentUser.role == 'admin' || (!isAsesi && !isAsesor);
+      final role = currentUser.role;
+      final isAsesi = role == 'asesi';
+      final isAsesor = role == 'asesor';
+      final isAdmin = role == 'admin' || (!isAsesi && !isAsesor);
 
-      // Custom parameters per role
-      String status1 = isAsesi ? '0' : '3';
-      String path1 = isAsesi ? ApiRoutes.asesiJadwal : (isAsesor ? ApiRoutes.asesorJadwal : ApiRoutes.jadwalActive);
-
-      String status2 = isAsesi ? '3' : '4';
-      String path2 = isAsesi
-          ? ApiRoutes.asesiJadwal
-          : (isAsesor ? ApiRoutes.asesorJadwal : ApiRoutes.jadwalCompleted);
-
-      String status3 = '1';
-      String path3 = isAsesi
-          ? ApiRoutes.asesiJadwal
-          : (isAsesor ? ApiRoutes.asesorJadwal : ApiRoutes.jadwalCompleted);
-
-      // Fetch data untuk setiap tab secara parallel + statistics (badge)
       final listFutures = <Future<List<JadwalItem>>>[
         if (isAdmin)
-          ApiService.getJadwalList(
+          JadwalService.getJadwalForRole(
+            role: role,
+            view: JadwalView.draft,
             limit: _pageSize,
-            statusJadwal: '0', // Draft only
-            sortBy: 'tanggal',
-            sortOrder: 'desc',
-            customRoutePath: ApiRoutes.jadwalDraft,
           ),
-        ApiService.getJadwalList(
+        JadwalService.getJadwalForRole(
+          role: role,
+          view: JadwalView.running,
           limit: _pageSize,
-          statusJadwal: status1,
-          sortBy: 'tanggal',
-          sortOrder: 'desc',
-          customRoutePath: path1,
         ),
-        ApiService.getJadwalList(
+        JadwalService.getJadwalForRole(
+          role: role,
+          view: JadwalView.pelaporan,
           limit: _pageSize,
-          statusJadwal: status2,
-          sortBy: 'tanggal',
-          sortOrder: 'desc',
-          customRoutePath: path2,
         ),
-        ApiService.getJadwalList(
+        JadwalService.getJadwalForRole(
+          role: role,
+          view: JadwalView.selesai,
           limit: _pageSize,
-          statusJadwal: status3,
           tanggalAsesmen: _selesaiTanggalParam,
           tuk: _selesaiTukParam,
-          sortBy: 'tanggal',
-          sortOrder: 'desc',
-          customRoutePath: path3,
         ),
       ];
 
       final results = await Future.wait([
         Future.wait(listFutures),
-        if (isAdmin) ApiService.getJadwalStatistics(),
+        if (isAdmin) JadwalService.getJadwalStatistics(),
       ]);
 
       if (!mounted) return;
@@ -371,9 +334,7 @@ class _JadwalScreenState extends State<JadwalScreen>
 
         final rawRunning = lists[resultIndex];
         runningList = _sortJadwalList(
-          (isAdmin || (!isAsesi && !isAsesor))
-              ? rawRunning.where((item) => item.isRunning).toList()
-              : rawRunning,
+          isAdmin ? rawRunning.where((item) => item.isRunning).toList() : rawRunning,
         );
         _hasMoreRunning = rawRunning.length >= _pageSize;
         resultIndex++;
@@ -418,13 +379,11 @@ class _JadwalScreenState extends State<JadwalScreen>
     });
 
     try {
-      final newData = await ApiService.getJadwalList(
+      final newData = await JadwalService.getJadwalForRole(
+        role: currentUser.role,
+        view: JadwalView.draft,
         limit: _pageSize,
         offset: draftList.length,
-        statusJadwal: '0',
-        sortBy: 'tanggal',
-        sortOrder: 'desc',
-        customRoutePath: ApiRoutes.jadwalDraft,
       );
 
       if (!mounted) return;
@@ -455,31 +414,16 @@ class _JadwalScreenState extends State<JadwalScreen>
     });
 
     try {
-      final bool isAsesi = currentUser.role == 'asesi';
-      final bool isAsesor = currentUser.role == 'asesor';
-      final bool isAdmin =
-          currentUser.role == 'admin' || (!isAsesi && !isAsesor);
-
-      String status = isAsesi ? '0' : '3';
-      String sortBy = 'tanggal';
-      String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalActive;
-
-      if (isAsesor) {
-        status = '0';
-        path = ApiRoutes.asesorJadwal;
-      }
-
-      final newData = await ApiService.getJadwalList(
+      final newData = await JadwalService.getJadwalForRole(
+        role: currentUser.role,
+        view: JadwalView.running,
         limit: _pageSize,
         offset: runningList.length,
-        statusJadwal: status,
-        sortBy: sortBy,
-        sortOrder: 'desc',
-        customRoutePath: path,
       );
 
       if (!mounted) return;
 
+      final isAdmin = _isAdminRole;
       final filtered = isAdmin
           ? newData.where((item) => item.isRunning).toList()
           : newData;
@@ -508,24 +452,11 @@ class _JadwalScreenState extends State<JadwalScreen>
     });
 
     try {
-      final bool isAsesi = currentUser.role == 'asesi';
-      final bool isAsesor = currentUser.role == 'asesor';
-
-      String status = isAsesi ? '3' : '4';
-      String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalCompleted;
-
-      if (isAsesor) {
-        status = '2'; // Dibatalkan
-        path = ApiRoutes.asesorJadwal;
-      }
-
-      final newData = await ApiService.getJadwalList(
+      final newData = await JadwalService.getJadwalForRole(
+        role: currentUser.role,
+        view: JadwalView.pelaporan,
         limit: _pageSize,
         offset: pelaporanList.length,
-        statusJadwal: status,
-        sortBy: 'tanggal',
-        sortOrder: 'desc',
-        customRoutePath: path,
       );
 
       if (!mounted) return;
@@ -554,27 +485,13 @@ class _JadwalScreenState extends State<JadwalScreen>
     });
 
     try {
-      final bool isAsesi = currentUser.role == 'asesi';
-      final bool isAsesor = currentUser.role == 'asesor';
-
-      String status = isAsesor
-          ? '1,4'
-          : '1'; // Selesai; asesor = Selesai & Pelaporan
-      String path = isAsesi ? ApiRoutes.asesiJadwal : ApiRoutes.jadwalCompleted;
-
-      if (isAsesor) {
-        path = ApiRoutes.asesorJadwal;
-      }
-
-      final newData = await ApiService.getJadwalList(
+      final newData = await JadwalService.getJadwalForRole(
+        role: currentUser.role,
+        view: JadwalView.selesai,
         limit: _pageSize,
         offset: selesaiList.length,
-        statusJadwal: status,
         tanggalAsesmen: _selesaiTanggalParam,
         tuk: _selesaiTukParam,
-        sortBy: 'tanggal',
-        sortOrder: 'desc',
-        customRoutePath: path,
       );
 
       if (!mounted) return;

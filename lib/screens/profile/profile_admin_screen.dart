@@ -2,7 +2,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import '../../services/auth/auth_repository.dart';
-import '../../services/api_service.dart';
 import '../../services/auth/token_storage.dart';
 import '../../services/common/notification_service.dart';
 import '../../core/navigation/main_navigator.dart';
@@ -57,10 +56,7 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
     });
 
     try {
-      final authRepo = AuthRepository(
-        dio: ApiService.dio,
-        tokenStorage: TokenStorage.instance,
-      );
+      final authRepo = AuthRepository.instance;
 
       String? fcmToken;
       try {
@@ -227,7 +223,7 @@ class _ProfileAdminScreenState extends State<ProfileAdminScreen> {
         final filePath = file.path;
         if (filePath == null) return;
         setState(() => _isUploadingPhoto = true);
-        final uploaded = await ApiService.uploadProfilePhoto(filePath);
+        final uploaded = await AuthRepository.uploadProfilePhoto(filePath);
         if (!mounted) return;
         if (uploaded != null && uploaded['foto_profil_url'] != null) {
           setState(() {});

@@ -98,6 +98,15 @@ class AsesorService {
   }
 
 
+  static Future<int> getAssignmentCount() async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorJadwal);
+      final data = response.data?['data'];
+      return data is List ? data.length : 0;
+    } catch (_) {
+      return 0;
+    }
+  }
   /// 6. Daftar Laporan Tugas Asesor
   static Future<List<Map<String, dynamic>>> getLaporanList() async {
     try {

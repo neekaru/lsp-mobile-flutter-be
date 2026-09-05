@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/dashboard_service.dart';
+import '../../services/asesor/asesor_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../utils/bps_code_helper.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -51,11 +52,11 @@ class _AdminStatistikBaruState extends State<AdminStatistikBaru> {
 
     try {
       final results = await Future.wait([
-        ApiService.getStatistikOverview(),
-        ApiService.getAsesorStats(),
-        ApiService.getTopProvinces(),
-        ApiService.getPenyebaranRegional(),
-        ApiService.getDomisiliAsesor(),
+        DashboardService.getStatistikOverview(),
+        AsesorService.getAsesorStats(),
+        AsesorService.getTopProvinces(),
+        DashboardService.getPenyebaranRegional(),
+        DashboardService.getDomisiliAsesor(),
       ]);
 
       if (mounted) {

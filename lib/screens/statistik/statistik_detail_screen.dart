@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:material_ui/material_ui.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/dashboard_service.dart';
+import '../../services/sertifikat/sertifikat_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../models/sertifikat_models.dart';
 import '../../widgets/statistik/statistik_detail_sections.dart';
@@ -70,37 +71,37 @@ class _StatistikDetailScreenState extends State<StatistikDetailScreen> {
     try {
       switch (widget.menuKey) {
         case 'domisili_asesor':
-          _domisiliData = await ApiService.getDomisiliAsesor();
+          _domisiliData = await DashboardService.getDomisiliAsesor();
           break;
         case 'kompetensi_teknis':
-          _kompetensiList = await ApiService.getKompetensiTeknis();
+          _kompetensiList = await DashboardService.getKompetensiTeknis();
           break;
         case 'masa_berlaku':
-          _masaBerlakuData = await ApiService.getMasaBerlakuAsesor();
+          _masaBerlakuData = await DashboardService.getMasaBerlakuAsesor();
           break;
         case 'masa_tenggang_sertifikat':
-          _masaTenggangData = await ApiService.getMasaTenggangSertifikat();
+          _masaTenggangData = await DashboardService.getMasaTenggangSertifikat();
           break;
         case 'jenis_skema':
-          _jenisSkemaList = await ApiService.getJenisSkema();
+          _jenisSkemaList = await DashboardService.getJenisSkema();
           break;
         case 'muk':
-          _mukList = await ApiService.getMUKDistribusi();
+          _mukList = await DashboardService.getMUKDistribusi();
           break;
         case 'spt_2026':
-          _sptData = await ApiService.getSptAsesor2026();
+          _sptData = await DashboardService.getSptAsesor2026();
           break;
         case 'asesi_2026':
-          _asesi2026Data = await ApiService.getAsesi2026();
+          _asesi2026Data = await DashboardService.getAsesi2026();
           break;
         case 'tahun_2026':
-          _monthlyAssessments = await ApiService.getMonthlyAssessments();
+          _monthlyAssessments = await DashboardService.getMonthlyAssessments();
           break;
         case '3_tahun':
-          _monthlyAssessments = await ApiService.getAssessmentGraph(months: 36);
+          _monthlyAssessments = await DashboardService.getAssessmentGraph(months: 36);
           break;
         case 'kompetensi':
-          final response = await ApiService.getSertifikatPerSkema(limit: 50);
+          final response = await SertifikatService.getSertifikatPerSkema(limit: 50);
           _sertifikatPerSkema = response.data;
           break;
       }

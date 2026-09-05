@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import '../../models/dashboard_models.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/dashboard_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 
 class MUKDetailScreen extends StatefulWidget {
@@ -62,7 +62,7 @@ class _MUKDetailScreenState extends State<MUKDetailScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final result = await ApiService.getMUKDistribusiDetail(
+      final result = await DashboardService.getMUKDistribusiDetail(
         skemaId: widget.skemaId,
         search: _searchController.text.trim(),
       );

@@ -127,10 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     try {
-      final authRepo = AuthRepository(
-        dio: ApiService.dio,
-        tokenStorage: TokenStorage.instance,
-      );
+      final authRepo = AuthRepository.instance;
 
       String? fcmToken;
       try {
@@ -298,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final filePath = file.path;
         if (filePath == null) return;
         setState(() => _isUploadingPhoto = true);
-        final uploaded = await ApiService.uploadProfilePhoto(filePath);
+        final uploaded = await AuthRepository.uploadProfilePhoto(filePath);
         if (!mounted) return;
         if (uploaded != null && uploaded['foto_profil_url'] != null) {
           setState(() {});

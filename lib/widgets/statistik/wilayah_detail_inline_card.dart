@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import '../../models/dashboard_models.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/dashboard_service.dart';
 import '../../utils/number_format_helper.dart';
 
 class WilayahDetailInlineCard extends StatefulWidget {
@@ -46,11 +46,10 @@ class _WilayahDetailInlineCardState extends State<WilayahDetailInlineCard> {
     });
 
     try {
-      final res = await ApiService.getPenyebaranWilayahDetail(
+      final res = await DashboardService.getPenyebaranWilayahDetail(
         widget.provinceId,
         widget.provinceName,
       );
-
       if (mounted) {
         setState(() {
           _detail = res;

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import '../../models/dashboard_models.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/dashboard_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 
 class KompetensiTeknisDetailScreen extends StatefulWidget {
@@ -65,7 +65,7 @@ class _KompetensiTeknisDetailScreenState
     setState(() => _isLoading = true);
 
     try {
-      final result = await ApiService.getKompetensiTeknisDetail(
+      final result = await DashboardService.getKompetensiTeknisDetail(
         skemaId: widget.skemaId,
         search: _searchController.text.trim(),
         status: _selectedStatus,

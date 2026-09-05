@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import '../../models/dashboard_models.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/dashboard_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 
 class MasaBerlakuAsesorDetailScreen extends StatefulWidget {
@@ -88,7 +88,7 @@ class _MasaBerlakuAsesorDetailScreenState
     });
 
     try {
-      final result = await ApiService.getMasaBerlakuAsesorDetail(
+      final result = await DashboardService.getMasaBerlakuAsesorDetail(
         status: widget.statusFilter,
         search: _searchController.text.trim(),
         limit: _pageSize,
@@ -129,7 +129,7 @@ class _MasaBerlakuAsesorDetailScreenState
 
     try {
       final nextOffset = _asesorList.length;
-      final result = await ApiService.getMasaBerlakuAsesorDetail(
+      final result = await DashboardService.getMasaBerlakuAsesorDetail(
         status: widget.statusFilter,
         search: _searchController.text.trim(),
         limit: _pageSize,

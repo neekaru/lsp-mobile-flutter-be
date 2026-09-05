@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import '../../models/dashboard_models.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/dashboard_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 
 class DomisiliAsesorDetailScreen extends StatefulWidget {
@@ -68,7 +68,7 @@ class _DomisiliAsesorDetailScreenState
     setState(() => _isLoading = true);
 
     try {
-      final result = await ApiService.getDomisiliAsesorDetail(
+      final result = await DashboardService.getDomisiliAsesorDetail(
         provinsiId: widget.provinsiId,
         search: _searchController.text.trim(),
         tipe: _selectedTipe,

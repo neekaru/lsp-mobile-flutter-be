@@ -2,10 +2,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
-import '../../services/auth/auth_repository.dart';
 import '../../services/api_service.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../services/auth/token_storage.dart';
-import '../../utils/api_routes.dart';
+
 import '../../services/common/notification_service.dart';
 import '../../core/navigation/main_navigator.dart';
 import 'data_diri_screen.dart';
@@ -51,14 +51,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
       final profile = await AsesorService.getProfile();
       final honor = await AsesorService.getHonorList('Juli 2026');
 
-      // Fetch assignment count
-      int penugasanCount = 0;
-      try {
-        final res = await ApiService.dio.get(ApiRoutes.asesorJadwal);
-        if (res.data != null && res.data['data'] is List) {
-          penugasanCount = (res.data['data'] as List).length;
-        }
-      } catch (_) {}
+      final penugasanCount = await AsesorService.getAssignmentCount();
 
       // Fetch reports count
       int laporanCount = 0;
@@ -114,10 +107,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
     });
 
     try {
-      final authRepo = AuthRepository(
-        dio: ApiService.dio,
-        tokenStorage: TokenStorage.instance,
-      );
+      final authRepo = AuthRepository.instance;
 
       String? fcmToken;
       try {
@@ -285,7 +275,7 @@ class _ProfileAsesorScreenState extends State<ProfileAsesorScreen> {
         final filePath = file.path;
         if (filePath == null) return;
         setState(() => _isUploadingPhoto = true);
-        final uploaded = await ApiService.uploadProfilePhoto(filePath);
+        final uploaded = await AuthRepository.uploadProfilePhoto(filePath);
         if (!mounted) return;
         if (uploaded != null && uploaded['foto_profil_url'] != null) {
           final photoUrl = uploaded['foto_profil_url'].toString();

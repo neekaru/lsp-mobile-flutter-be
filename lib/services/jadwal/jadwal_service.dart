@@ -11,8 +11,62 @@ import '../../models/dashboard_models.dart';
 // Jadwal Service
 // ============================================================================
 
+enum JadwalView { draft, running, pelaporan, selesai }
+
 class JadwalService {
   static Dio get _dio => ApiClient.dio;
+
+  /// Fetch schedules using the role-specific endpoint and status contract.
+  static Future<List<JadwalItem>> getJadwalForRole({
+    required String role,
+    required JadwalView view,
+    int limit = 20,
+    int offset = 0,
+    String? tanggalAsesmen,
+    String? tuk,
+  }) {
+    final isAsesi = role == 'asesi';
+    final isAsesor = role == 'asesor';
+
+    final (status, route) = switch (view) {
+      JadwalView.draft => ('0', ApiRoutes.jadwalDraft),
+      JadwalView.running => (
+        isAsesi ? '0' : isAsesor ? '0' : '3',
+        isAsesi
+            ? ApiRoutes.asesiJadwal
+            : isAsesor
+            ? ApiRoutes.asesorJadwal
+            : ApiRoutes.jadwalActive,
+      ),
+      JadwalView.pelaporan => (
+        isAsesi ? '3' : isAsesor ? '2' : '4',
+        isAsesi
+            ? ApiRoutes.asesiJadwal
+            : isAsesor
+            ? ApiRoutes.asesorJadwal
+            : ApiRoutes.jadwalCompleted,
+      ),
+      JadwalView.selesai => (
+        isAsesi ? '1' : isAsesor ? '1,4' : '1',
+        isAsesi
+            ? ApiRoutes.asesiJadwal
+            : isAsesor
+            ? ApiRoutes.asesorJadwal
+            : ApiRoutes.jadwalCompleted,
+      ),
+    };
+
+    return getJadwalList(
+      limit: limit,
+      offset: offset,
+      statusJadwal: status,
+      tanggalAsesmen: tanggalAsesmen,
+      tuk: tuk,
+      sortBy: 'tanggal',
+      sortOrder: 'desc',
+      customRoutePath: route,
+    );
+  }
 
   /// Fetch Jadwal Asesmen Baru
   static Future<List<JadwalBaru>> getJadwalBaru() async {

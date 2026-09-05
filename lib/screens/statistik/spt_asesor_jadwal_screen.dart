@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 
 import '../../models/admin_statistik_detail_models.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/dashboard_service.dart';
 import '../../utils/date_format_helper.dart';
 import '../../widgets/common/custom_app_bar.dart';
 
@@ -64,7 +64,7 @@ class _SptAsesorJadwalScreenState extends State<SptAsesorJadwalScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final res = await ApiService.getAsesorJadwalHistory(
+      final res = await DashboardService.getAsesorJadwalHistory(
         widget.asesorId,
         tahun: _selectedTahun,
         bulan: _selectedBulan,

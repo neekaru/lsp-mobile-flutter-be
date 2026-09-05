@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import '../../utils/bps_code_helper.dart';
-import '../../services/api_service.dart';
+import '../../services/asesor/asesor_service.dart';
+import '../../services/jadwal/jadwal_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../models/jadwal_models.dart';
 import '../../widgets/statistik/indonesia_map.dart';
@@ -92,12 +93,12 @@ class _StatistikDistribusiViewState extends State<StatistikDistribusiView> {
   }
 
   void _loadData() {
-    _asesorStatsFuture = ApiService.getAsesorStats();
-    _topProvincesFuture = ApiService.getTopProvinces();
-    _runningJadwalsFuture = ApiService.getJadwalList(statusJadwal: "3");
+    _asesorStatsFuture = AsesorService.getAsesorStats();
+    _topProvincesFuture = AsesorService.getTopProvinces();
+    _runningJadwalsFuture = JadwalService.getJadwalList(statusJadwal: '3');
 
     _isSebaranSkemaAsesorLoading = true;
-    ApiService.getSebaranSkemaAsesor().then((value) {
+    AsesorService.getSebaranSkemaAsesor().then((value) {
       if (mounted) {
         setState(() {
           _sebaranSkemaAsesorList = value;
