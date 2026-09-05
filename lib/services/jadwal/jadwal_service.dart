@@ -31,7 +31,7 @@ class JadwalService {
     final (status, route) = switch (view) {
       JadwalView.draft => ('0', ApiRoutes.jadwalDraft),
       JadwalView.running => (
-        isAsesi ? '0' : isAsesor ? '0' : '3',
+        isAsesi ? '0' : '3',
         isAsesi
             ? ApiRoutes.asesiJadwal
             : isAsesor
@@ -39,7 +39,7 @@ class JadwalService {
             : ApiRoutes.jadwalActive,
       ),
       JadwalView.pelaporan => (
-        isAsesi ? '3' : isAsesor ? '2' : '4',
+        isAsesi ? '3' : '4',
         isAsesi
             ? ApiRoutes.asesiJadwal
             : isAsesor
