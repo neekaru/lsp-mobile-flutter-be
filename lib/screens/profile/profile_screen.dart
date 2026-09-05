@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import '../../services/auth/auth_repository.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/dashboard_service.dart';
+import '../../services/asesi/asesi_service.dart';
 import '../../services/auth/token_storage.dart';
 import '../../services/common/notification_service.dart';
 import '../../models/dashboard_models.dart';
@@ -50,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchRingkasan() async {
     setState(() => _isLoadingRingkasan = true);
     try {
-      final data = await ApiService.getAsesiSummary();
+      final data = await DashboardService.getAsesiSummary();
       if (!mounted) return;
       setState(() {
         _ringkasan = data;

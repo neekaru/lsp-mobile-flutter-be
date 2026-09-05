@@ -43,12 +43,10 @@ import 'common/file_service.dart';
 import 'common/health_service.dart';
 import 'auth/auth_repository.dart';
 import '../models/dashboard_models.dart';
-import '../models/asesor_statistik_models.dart';
 import '../models/sertifikat_models.dart';
 import '../models/jadwal_models.dart';
 import '../models/master_models.dart';
 import '../models/auth_models.dart';
-import '../models/berita_models.dart';
 
 // ignore: avoid_classes_with_only_static_members
 class ApiService {
@@ -80,93 +78,6 @@ class ApiService {
       DashboardService.getPenyebaranRegional();
   static Future<List<TUKKabupaten>> getTUKKabupaten(String provinceId) =>
       DashboardService.getTUKKabupaten(provinceId);
-  static Future<PenyebaranWilayahDetail?> getPenyebaranWilayahDetail(
-    String provinceId,
-    String provinceName,
-  ) =>
-      DashboardService.getPenyebaranWilayahDetail(provinceId, provinceName);
-  static Future<DomisiliAsesorData?> getDomisiliAsesor() =>
-      DashboardService.getDomisiliAsesor();
-  static Future<DomisiliAsesorDetailData?> getDomisiliAsesorDetail({
-    required String provinsiId,
-    String? search,
-    String? tipe,
-    int limit = 50,
-    int offset = 0,
-  }) =>
-      DashboardService.getDomisiliAsesorDetail(
-        provinsiId: provinsiId,
-        search: search,
-        tipe: tipe,
-        limit: limit,
-        offset: offset,
-      );
-  static Future<List<KompetensiTeknisItem>> getKompetensiTeknis() =>
-      DashboardService.getKompetensiTeknis();
-  static Future<KompetensiTeknisDetailData?> getKompetensiTeknisDetail({
-    required dynamic skemaId,
-    String? search,
-    String? status,
-    int limit = 50,
-    int offset = 0,
-  }) =>
-      DashboardService.getKompetensiTeknisDetail(
-        skemaId: skemaId,
-        search: search,
-        status: status,
-        limit: limit,
-        offset: offset,
-      );
-  static Future<MasaBerlakuAsesorData?> getMasaBerlakuAsesor() =>
-      DashboardService.getMasaBerlakuAsesor();
-  static Future<MasaTenggangSertifikatData?> getMasaTenggangSertifikat() =>
-      DashboardService.getMasaTenggangSertifikat();
-  static Future<MasaBerlakuAsesorDetailData?> getMasaBerlakuAsesorDetail({
-    required String status,
-    String? search,
-    int limit = 50,
-    int offset = 0,
-  }) =>
-      DashboardService.getMasaBerlakuAsesorDetail(
-        status: status,
-        search: search,
-        limit: limit,
-        offset: offset,
-      );
-  static Future<List<JenisSkemaItem>> getJenisSkema() =>
-      DashboardService.getJenisSkema();
-  static Future<List<MUKDistribusiItem>> getMUKDistribusi() =>
-      DashboardService.getMUKDistribusi();
-  static Future<MUKDetailData?> getMUKDistribusiDetail({
-    required dynamic skemaId,
-    String? search,
-  }) =>
-      DashboardService.getMUKDistribusiDetail(
-        skemaId: skemaId,
-        search: search,
-      );
-  static Future<SptAsesorData?> getSptAsesor2026({int tahun = 2026}) =>
-      DashboardService.getSptAsesor2026(tahun: tahun);
-  static Future<AsesorJadwalHistoryData?> getAsesorJadwalHistory(
-    int asesorId, {
-    int? tahun,
-    int? bulan,
-    String? search,
-    int limit = 50,
-    int offset = 0,
-  }) =>
-      DashboardService.getAsesorJadwalHistory(
-        asesorId,
-        tahun: tahun,
-        bulan: bulan,
-        search: search,
-        limit: limit,
-        offset: offset,
-      );
-  static Future<Asesi2026Data?> getAsesi2026({int tahun = 2026}) =>
-      DashboardService.getAsesi2026(tahun: tahun);
-  static Future<AsesorStatistikData?> getAsesorStatistikBulanan({int tahun = 2026}) =>
-      AsesorService.getAsesorStatistikBulanan(tahun: tahun);
 
 
   // ── Jadwal ──────────────────────────────────────────────────────────────────
@@ -257,11 +168,6 @@ class ApiService {
   );
 
   // ── Asesor ──────────────────────────────────────────────────────────────────
-  static Future<AsesorStats> getAsesorStats() => AsesorService.getAsesorStats();
-  static Future<List<SebaranSkemaAsesorItem>> getSebaranSkemaAsesor() =>
-      AsesorService.getSebaranSkemaAsesor();
-  static Future<List<TopProvinsi>> getTopProvinces() =>
-      AsesorService.getTopProvinces();
 
 
   // ── Sertifikat ──────────────────────────────────────────────────────────────
@@ -270,15 +176,6 @@ class ApiService {
   ) => SertifikatService.validateSertifikat(noDokumen);
   static Future<SertifikatSummary> getSertifikatSummary() =>
       SertifikatService.getSertifikatSummary();
-  static Future<SertifikatApiResponse> getSertifikatPerSkema({
-    int limit = 10,
-    int? tahun,
-    String sort = 'desc',
-  }) => SertifikatService.getSertifikatPerSkema(
-    limit: limit,
-    tahun: tahun,
-    sort: sort,
-  );
   static Future<List<SertifikatItem>> searchSertifikat({
     String? query,
     String? skema,
@@ -331,10 +228,6 @@ class ApiService {
       AuthRepository.deleteSession(id);
 
   // ── Berita ───────────────────────────────────────────────────────────────────
-  static Future<List<BeritaItem>> getBerita({int page = 1, int size = 10}) =>
-      BeritaService.getBerita(page: page, size: size);
-  static Future<BeritaDetail?> getBeritaDetail(int id) =>
-      BeritaService.getBeritaDetail(id);
   static Future<Map<String, dynamic>?> uploadBeritaFoto(String filePath) =>
       BeritaService.uploadBeritaFoto(filePath);
   static Future<Map<String, dynamic>?> getSignedUrl(String filePath) =>
@@ -376,13 +269,4 @@ class ApiService {
   static Future<bool> deleteAdminBerita(int id) =>
       BeritaService.deleteAdminBerita(id);
 
-  // ── Jadwal AK.05 & AK.06 Kolektif ──────────────────────────────────────────
-  static Future<Map<String, dynamic>?> getJadwalAK05(int jadwalId) =>
-      AsesorService.getJadwalAK05(jadwalId);
-  static Future<Map<String, dynamic>?> saveJadwalAK05(int jadwalId, Map<String, dynamic> data) =>
-      AsesorService.saveJadwalAK05(jadwalId: jadwalId, data: data);
-  static Future<Map<String, dynamic>?> getJadwalAK06(int jadwalId) =>
-      AsesorService.getJadwalAK06(jadwalId);
-  static Future<Map<String, dynamic>?> saveJadwalAK06(int jadwalId, Map<String, dynamic> data) =>
-      AsesorService.saveJadwalAK06(jadwalId: jadwalId, data: data);
 }

@@ -1,6 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/berita_service.dart';
 
 int kategoriNameToId(String? name) {
   if (name == null || name.isEmpty) return 2;
@@ -201,7 +201,7 @@ Future<void> showAdminBeritaFormDialog({
                                         );
                                         if (file != null && file.path != null) {
                                           setModalState(() => isUploadingFoto = true);
-                                          final uploaded = await ApiService.uploadBeritaFoto(file.path!);
+                                          final uploaded = await BeritaService.uploadBeritaFoto(file.path!);
                                           if (!ctx.mounted) return;
                                           if (uploaded != null && uploaded['filename'] != null) {
                                             final serverName = uploaded['filename'].toString();
@@ -307,7 +307,7 @@ Future<void> showAdminBeritaFormDialog({
                                     String msg = '';
 
                                     if (isEdit) {
-                                      final res = await ApiService.updateAdminBerita(
+                                      final res = await BeritaService.updateAdminBerita(
                                         beritaId,
                                         judul: judulController.text.trim(),
                                         headline: headlineController.text.trim(),
@@ -322,7 +322,7 @@ Future<void> showAdminBeritaFormDialog({
                                               ? 'Berita berhasil diperbarui'
                                               : 'Gagal memperbarui berita');
                                     } else {
-                                      final res = await ApiService.createAdminBerita(
+                                      final res = await BeritaService.createAdminBerita(
                                         judul: judulController.text.trim(),
                                         headline: headlineController.text.trim(),
                                         isi: isiController.text.trim(),
@@ -434,7 +434,7 @@ Future<void> confirmDeleteAdminBerita({
   );
 
   if (confirm == true) {
-    final success = await ApiService.deleteAdminBerita(beritaId);
+    final success = await BeritaService.deleteAdminBerita(beritaId);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

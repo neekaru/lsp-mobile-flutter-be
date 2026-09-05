@@ -1,7 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/jadwal_models.dart';
-import '../../services/api_service.dart';
+import '../../services/asesor/asesor_service.dart';
+import '../../services/jadwal/jadwal_service.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../widgets/jadwal/transfer_asesi_sheet.dart';
 import '../asesi/asesor_detail_asesi_screen.dart';
@@ -75,7 +76,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
     });
 
     try {
-      final data = await ApiService.getAsesiList(widget.jadwalId);
+      final data = await JadwalService.getAsesiList(widget.jadwalId);
       setState(() {
         _response = data;
         _rekomendasiMap.clear();
@@ -164,7 +165,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
         return;
       }
 
-      final success = await ApiService.updateRekomendasiKolektif(
+      final success = await AsesorService.updateRekomendasiKolektif(
         jadwalId: widget.jadwalId,
         peserta: pesertaPayload,
       );
@@ -205,7 +206,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
   /// Ambil daftar asesor yang sedang bertugas pada jadwal ini.
   Future<void> _loadJadwalAsesors() async {
     try {
-      final detail = await ApiService.getJadwalAsesorDetail(widget.jadwalId);
+      final detail = await JadwalService.getJadwalAsesorDetail(widget.jadwalId);
       if (!mounted) return;
       setState(() {
         _jadwalAsesors =
@@ -323,7 +324,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
       _transferringAsesiId = item.id;
     });
 
-    final result = await ApiService.transferAsesi(
+    final result = await AsesorService.transferAsesi(
       jadwalId: widget.jadwalId,
       asesiId: item.id,
       targetAsesorId: target.idAsesor,

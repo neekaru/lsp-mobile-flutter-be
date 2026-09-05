@@ -4,8 +4,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:dio/dio.dart';
 import 'lupa_password_screen.dart';
 import '../../core/navigation/main_navigator.dart';
-import '../../services/api_service.dart';
-import '../../services/auth/token_storage.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../services/common/notification_service.dart';
 
@@ -41,10 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final authRepo = AuthRepository(
-        dio: ApiService.dio,
-        tokenStorage: TokenStorage.instance,
-      );
+      final authRepo = AuthRepository.instance;
 
       String? fcmToken;
       try {
@@ -135,10 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      final authRepo = AuthRepository(
-        dio: ApiService.dio,
-        tokenStorage: TokenStorage.instance,
-      );
+      final authRepo = AuthRepository.instance;
 
       String? fcmToken;
       try {

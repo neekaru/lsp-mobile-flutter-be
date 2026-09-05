@@ -7,7 +7,9 @@ import '../../widgets/dashboard/tren_asesmen_chart.dart';
 import '../jadwal/pelaporan_screen.dart';
 import '../pendaftaran/permohonan_pendaftaran_screen.dart';
 import '../../widgets/common/notification_bell.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/dashboard_service.dart';
+import '../../services/dashboard/berita_service.dart';
+import '../../services/jadwal/jadwal_service.dart';
 import '../../models/dashboard_models.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../widgets/dashboard/mulai_sertifikasi_card.dart';
@@ -77,10 +79,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (isAsesi) {
         // Panggil API yang dibutuhkan asesi secara parallel (termasuk berita, chart graf, dan jadwal baru)
         final results = await Future.wait([
-          ApiService.getAsesiSummary(),
-          ApiService.getBerita(page: 1, size: 5),
-          ApiService.getAssessmentGraph(),
-          ApiService.getJadwalBaru(),
+          DashboardService.getAsesiSummary(),
+          BeritaService.getBerita(page: 1, size: 5),
+          DashboardService.getAssessmentGraph(),
+          JadwalService.getJadwalBaru(),
         ]);
 
         if (_isDisposed || !mounted) return;
@@ -93,7 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       } else if (isAsesor) {
         // Fetch Asesor Dashboard API data
-        final data = await ApiService.getAsesorDashboard();
+        final data = await DashboardService.getAsesorDashboard();
         if (_isDisposed || !mounted) return;
         setState(() {
           _asesorDashboardData = data;
@@ -103,10 +105,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // Admin / other roles: admin summary APIs only.
         // Do NOT call /api/asesor/dashboard (role=asesor → 403 for admin).
         final results = await Future.wait([
-          ApiService.getSummary(),
-          ApiService.getBerita(page: 1, size: 5),
-          ApiService.getAssessmentGraph(),
-          ApiService.getJadwalBaru(),
+          DashboardService.getSummary(),
+          BeritaService.getBerita(page: 1, size: 5),
+          DashboardService.getAssessmentGraph(),
+          JadwalService.getJadwalBaru(),
         ]);
 
         if (_isDisposed || !mounted) return;
@@ -131,7 +133,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ignore: unused_element
   Future<void> _refreshJadwalData() async {
     try {
-      final jadwalData = await ApiService.getJadwalBaru();
+      final jadwalData = await JadwalService.getJadwalBaru();
       if (!_isDisposed && mounted) {
         setState(() {
           _jadwalData = jadwalData;

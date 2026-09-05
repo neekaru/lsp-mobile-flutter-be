@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../models/jadwal_models.dart';
-import '../../services/api_service.dart';
+import '../../services/jadwal/jadwal_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/jadwal/jadwal_edit_dialogs.dart';
 import '../../widgets/jadwal/jadwal_edit_status_utils.dart';
@@ -60,7 +60,7 @@ class _JadwalEditScreenState extends State<JadwalEditScreen> {
         newStatus: selectedStatus,
       );
 
-      final result = await ApiService.updateJadwalStatus(
+      final result = await JadwalService.updateJadwalStatus(
         jadwalId: widget.jadwal.id,
         rule: rule,
       );

@@ -4,7 +4,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/asesor_asesi_models.dart';
-import '../../services/api_service.dart';
+import '../../services/asesor/asesor_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/asesi/asesi_form_common.dart';
 
@@ -64,7 +64,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
       _errorMessage = '';
     });
     try {
-      final res = await ApiService.getJadwalAK05(widget.jadwalId);
+      final res = await AsesorService.getJadwalAK05(widget.jadwalId);
       if (res != null && res['data'] != null) {
         final data = JadwalAK05DetailData.fromJson(res['data'] as Map<String, dynamic>);
         setState(() {
@@ -133,7 +133,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
         'peserta_rekomendasi': pesertaList,
       };
 
-      final res = await ApiService.saveJadwalAK05(widget.jadwalId, payload);
+      final res = await AsesorService.saveJadwalAK05(jadwalId: widget.jadwalId, data: payload);
       if (res != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

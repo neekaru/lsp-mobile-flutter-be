@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import '../../models/berita_models.dart';
-import '../../services/api_service.dart';
+import '../../services/dashboard/berita_service.dart';
+import '../../services/api_client.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../widgets/berita/admin_berita_dialog.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -39,7 +40,7 @@ class _BeritaDetailScreenState extends State<BeritaDetailScreen> {
     });
 
     try {
-      final result = await ApiService.getBeritaDetail(widget.beritaId);
+      final result = await BeritaService.getBeritaDetail(widget.beritaId);
       if (mounted) {
         setState(() {
           _detail = result;

@@ -1,9 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../services/api_service.dart';
 import '../../services/auth/auth_repository.dart';
-import '../../services/auth/token_storage.dart';
 
 class LupaPasswordScreen extends StatefulWidget {
   const LupaPasswordScreen({super.key});
@@ -40,10 +38,7 @@ class _LupaPasswordScreenState extends State<LupaPasswordScreen> {
     });
 
     try {
-      final authRepo = AuthRepository(
-        dio: ApiService.dio,
-        tokenStorage: TokenStorage.instance,
-      );
+      final authRepo = AuthRepository.instance;
 
       final result = await authRepo.forgotPassword(identity: identity);
       final data = result['data'] as Map<String, dynamic>? ?? {};

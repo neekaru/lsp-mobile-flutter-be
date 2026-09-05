@@ -4,10 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/common/bottom_menu_bar.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../core/navigation/main_navigator.dart';
-import '../../services/api_service.dart';
+import '../../services/auth/auth_repository.dart';
 import '../../models/auth_models.dart';
 import '../../services/auth/token_storage.dart';
-import '../../services/auth/auth_repository.dart';
 
 class KeamananScreen extends StatefulWidget {
   const KeamananScreen({super.key});
@@ -30,7 +29,7 @@ class _KeamananScreenState extends State<KeamananScreen> {
     setState(() {
       _isLoadingSessions = true;
     });
-    final sessions = await ApiService.getActiveSessions();
+    final sessions = await AuthRepository.getActiveSessions();
     if (mounted) {
       setState(() {
         _sessions = sessions;
@@ -117,7 +116,7 @@ class _KeamananScreenState extends State<KeamananScreen> {
         ),
       );
 
-      final success = await ApiService.deleteSession(session.id);
+      final success = await AuthRepository.deleteSession(session.id);
 
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();

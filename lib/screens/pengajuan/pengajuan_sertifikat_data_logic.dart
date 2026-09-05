@@ -233,10 +233,7 @@ mixin PengajuanSertifikatDataLogic on PengajuanSertifikatSkemaLogic {
     }
     if (account.length > 18) account = account.substring(0, 18);
 
-    final auth = AuthRepository(
-      dio: ApiClient.dio,
-      tokenStorage: TokenStorage.instance,
-    );
+    final auth = AuthRepository.instance;
     await auth.ensureAsesi(
       account: account,
       password: '123456',

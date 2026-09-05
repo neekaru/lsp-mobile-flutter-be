@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../models/asesor_asesi_models.dart';
-import '../../services/api_service.dart';
+import '../../services/asesor/asesor_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/asesi/asesi_form_common.dart';
 
@@ -70,7 +70,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
       _errorMessage = '';
     });
     try {
-      final res = await ApiService.getJadwalAK06(widget.jadwalId);
+      final res = await AsesorService.getJadwalAK06(widget.jadwalId);
       if (res != null && res['data'] != null) {
         final data = JadwalAK06DetailData.fromJson(res['data'] as Map<String, dynamic>);
         setState(() {
@@ -167,7 +167,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
         'catatan': _catatanController.text.trim(),
       };
 
-      final res = await ApiService.saveJadwalAK06(widget.jadwalId, payload);
+      final res = await AsesorService.saveJadwalAK06(jadwalId: widget.jadwalId, data: payload);
       if (res != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

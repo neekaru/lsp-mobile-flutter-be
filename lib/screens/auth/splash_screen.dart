@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../../services/api_service.dart';
+import '../../services/common/health_service.dart';
 import '../../services/auth/token_storage.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../services/session_manager.dart';
@@ -96,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       });
     }
 
-    bool serverHealthy = await ApiService.healthCheck();
+    bool serverHealthy = await HealthService.healthCheck();
     if (!serverHealthy) {
       debugPrint('⚠️ Server health check failed');
       await _showNoConnectionDialog();
@@ -104,7 +104,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     }
 
     // Stage 1.6: Readiness check (verify DB connection)
-    bool serverReady = await ApiService.readyCheck();
+    bool serverReady = await HealthService.readyCheck();
     if (!serverReady) {
       debugPrint('⚠️ Server not ready (DB issue)');
       await _showNoConnectionDialog();
@@ -124,10 +124,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     try {
       final token = await TokenStorage.instance.getAccessToken();
       if (token != null && token.isNotEmpty) {
-        final authRepo = AuthRepository(
-          dio: ApiService.dio,
-          tokenStorage: TokenStorage.instance,
-        );
+        final authRepo = AuthRepository.instance;
         loggedInUser = await authRepo.currentUser();
         
         // Register token for all roles
@@ -146,10 +143,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
       if (shouldForceLogout) {
         try {
-          final authRepo = AuthRepository(
-            dio: ApiService.dio,
-            tokenStorage: TokenStorage.instance,
-          );
+          final authRepo = AuthRepository.instance;
           await authRepo.logout();
         } catch (ex) {
           debugPrint('Logout during failed session loading failed: $ex');

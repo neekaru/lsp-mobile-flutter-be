@@ -6,7 +6,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../models/jadwal_models.dart';
 import 'jadwal_edit_screen.dart';
 import '../../services/auth/auth_repository.dart';
-import '../../services/api_service.dart';
+import '../../services/jadwal/jadwal_service.dart';
 import 'profil_asesor_screen.dart';
 import 'asesi_list_screen.dart';
 
@@ -40,7 +40,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
       _isLoading = true;
     });
     try {
-      final res = await ApiService.getJadwalAsesorDetail(widget.jadwal.id);
+      final res = await JadwalService.getJadwalAsesorDetail(widget.jadwal.id);
       if (res != null && mounted) {
         setState(() {
           _detailData = res.data;
