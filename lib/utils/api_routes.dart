@@ -50,14 +50,11 @@ class ApiRoutes {
       '/api/dashboard/masa-berlaku-asesor/detail';
   static const String dashboardMasaTenggangSertifikat =
       '/api/dashboard/masa-tenggang-sertifikat';
-  static const String dashboardJenisSkema =
-      '/api/dashboard/jenis-skema';
-  static const String dashboardMukDistribusi =
-      '/api/dashboard/muk-distribusi';
+  static const String dashboardJenisSkema = '/api/dashboard/jenis-skema';
+  static const String dashboardMukDistribusi = '/api/dashboard/muk-distribusi';
   static String dashboardMukDistribusiDetail(dynamic skemaId) =>
       '/api/dashboard/muk-distribusi/$skemaId/perangkat';
-  static const String dashboardSptAsesor2026 =
-      '/api/dashboard/spt-asesor-2026';
+  static const String dashboardSptAsesor2026 = '/api/dashboard/spt-asesor-2026';
   static String dashboardSptAsesorJadwal(int asesorId) =>
       '/api/dashboard/spt-asesor/$asesorId/jadwal';
   static const String asesi2026 = '/api/dashboard/asesi-2026';
@@ -185,6 +182,7 @@ class ApiRoutes {
   // ============================================================================
 
   static const String asesorDashboard = '/api/asesor/dashboard';
+  static const String asesorMUK = '/api/asesor/muk';
   static const String asesorStatistikBulanan = '/api/asesor/statistik-bulanan';
   static const String asesorJadwal = '/api/asesor/jadwal';
   static const String asesorLaporan = '/api/asesor/laporan';
@@ -355,7 +353,9 @@ class ApiRoutes {
       params.add('search=${Uri.encodeQueryComponent(search.trim())}');
     }
     if (tanggalAsesmen != null && tanggalAsesmen.trim().isNotEmpty) {
-      params.add('tanggal_asesmen=${Uri.encodeQueryComponent(tanggalAsesmen.trim())}');
+      params.add(
+        'tanggal_asesmen=${Uri.encodeQueryComponent(tanggalAsesmen.trim())}',
+      );
     }
     if (tuk != null && tuk.trim().isNotEmpty) {
       params.add('tuk=${Uri.encodeQueryComponent(tuk.trim())}');
@@ -369,7 +369,8 @@ class ApiRoutes {
   // Asesor Asesi Routes
   static const String asesorAsesi = '/api/asesor/asesi';
   static String asesorAsesiDetail(int id) => '/api/asesor/asesi/$id';
-  static String asesorAsesiUpdateRekomendasi(int id) => '/api/asesor/asesi/$id/rekomendasi';
+  static String asesorAsesiUpdateRekomendasi(int id) =>
+      '/api/asesor/asesi/$id/rekomendasi';
   static String asesorAsesiUpdateAK01(int id) => '/api/asesor/asesi/$id/ak01';
   static String asesorAsesiUpdateAPL02(int id) => '/api/asesor/asesi/$id/apl02';
   static String asesorAsesiUpdateAK02(int id) => '/api/asesor/asesi/$id/ak02';
@@ -380,4 +381,3 @@ class ApiRoutes {
   static String asesorAsesiIA04B(int id) => '/api/asesor/asesi/$id/ia04b';
   static String asesorAsesiIA05(int id) => '/api/asesor/asesi/$id/ia05';
 }
-

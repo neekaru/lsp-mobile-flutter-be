@@ -3,6 +3,12 @@
 Daftar pekerjaan yang **belum** dilakukan setelah refactor file >1000 baris
 (commit `5dd6019`, tag `v1.2.1-beta.68`).
 
+## 📊 Dashboard Asesor — Detail Statistik
+
+- [ ] **Tampilkan detail mitra pada klik “Jumlah Mitra”**
+  - Backend menyediakan daftar `data.mitra` berdasarkan `id_asesor` dari akun asesor yang sedang login.
+  - Flutter menampilkan daftar mitra: tanggal bermitra, TUK, deskripsi, proyeksi, link MOU, dan status.
+  - Jangan memakai `id_asesor` dari request/client sebagai sumber otorisasi.
 ## 🔧 Belum Selesai — Refactor
 
 - [ ] **Pecah `lib/screens/pengajuan/pengajuan_sertifikat_data_logic.dart` (1109 baris)**

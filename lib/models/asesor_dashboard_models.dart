@@ -109,7 +109,9 @@ class AsesorDashboardJadwal {
   bool get isAJJ => isSjj;
   bool get isSjj {
     if (isAjj == true) return true;
-    if (jenisUji?.trim() == '1' || jenisUji?.trim().toUpperCase() == 'AJJ' || jenisUji?.trim().toLowerCase() == 'online') {
+    if (jenisUji?.trim() == '1' ||
+        jenisUji?.trim().toUpperCase() == 'AJJ' ||
+        jenisUji?.trim().toLowerCase() == 'online') {
       return true;
     }
     final s = '$namaJadwal $skema'.toUpperCase();
@@ -145,7 +147,9 @@ class AsesorDashboardJadwal {
   JadwalItem toJadwalItem() {
     return JadwalItem(
       id: idJadwal,
-      skema: skema.isNotEmpty ? skema : (namaJadwal.isNotEmpty ? namaJadwal : 'Jadwal Asesmen'),
+      skema: skema.isNotEmpty
+          ? skema
+          : (namaJadwal.isNotEmpty ? namaJadwal : 'Jadwal Asesmen'),
       tuk: tuk,
       tanggalMulai: tanggal,
       tanggalSelesai: tanggal,
@@ -184,7 +188,9 @@ class AsesorDashboardTugas {
   bool get isAJJ => isSjj;
   bool get isSjj {
     if (isAjj == true) return true;
-    if (jenisUji?.trim() == '1' || jenisUji?.trim().toUpperCase() == 'AJJ' || jenisUji?.trim().toLowerCase() == 'online') {
+    if (jenisUji?.trim() == '1' ||
+        jenisUji?.trim().toUpperCase() == 'AJJ' ||
+        jenisUji?.trim().toLowerCase() == 'online') {
       return true;
     }
     final s = subtitle.toUpperCase();
@@ -206,12 +212,16 @@ class AsesorDashboardTugas {
     final rawIdJadwal = json['id_jadwal'];
     final parsedIdJadwal = rawIdJadwal != null
         ? (rawIdJadwal is int
-            ? rawIdJadwal
-            : int.tryParse(rawIdJadwal.toString()) ?? 0)
+              ? rawIdJadwal
+              : int.tryParse(rawIdJadwal.toString()) ?? 0)
         : parsedIdTugas;
 
     final rawIsAjj = json['is_ajj'];
-    final isAjj = rawIsAjj == true || rawIsAjj == 1 || rawIsAjj == '1' || rawIsAjj == 'true';
+    final isAjj =
+        rawIsAjj == true ||
+        rawIsAjj == 1 ||
+        rawIsAjj == '1' ||
+        rawIsAjj == 'true';
 
     return AsesorDashboardTugas(
       idTugas: parsedIdTugas,
@@ -271,10 +281,12 @@ class AsesorDashboardData {
     return AsesorDashboardData(
       summary: AsesorDashboardSummaryCount.fromJson(summaryJson),
       alertBanner: AsesorDashboardAlertBanner.fromJson(alertJson),
-      jadwalHariIni:
-          jadwalList.map((j) => AsesorDashboardJadwal.fromJson(j)).toList(),
-      jadwalBelumLengkap:
-          tugasList.map((t) => AsesorDashboardTugas.fromJson(t)).toList(),
+      jadwalHariIni: jadwalList
+          .map((j) => AsesorDashboardJadwal.fromJson(j))
+          .toList(),
+      jadwalBelumLengkap: tugasList
+          .map((t) => AsesorDashboardTugas.fromJson(t))
+          .toList(),
       statistikBulanan: statJson is Map<String, dynamic>
           ? AsesorStatistikData.fromJson(statJson)
           : null,
@@ -293,4 +305,28 @@ class AsesorDashboardData {
   }
 }
 
+class AsesorMUKItem {
+  final int id;
+  final String namaMapa;
+  final String tanggalPembuatan;
+  final String validator;
+  final String status;
 
+  const AsesorMUKItem({
+    required this.id,
+    required this.namaMapa,
+    required this.tanggalPembuatan,
+    required this.validator,
+    required this.status,
+  });
+
+  factory AsesorMUKItem.fromJson(Map<String, dynamic> json) {
+    return AsesorMUKItem(
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      namaMapa: json['nama_mapa']?.toString() ?? 'MUK / MAPA',
+      tanggalPembuatan: json['tanggal_pembuatan']?.toString() ?? '-',
+      validator: json['validator']?.toString() ?? '-',
+      status: json['status']?.toString() ?? 'Menunggu Verifikasi',
+    );
+  }
+}

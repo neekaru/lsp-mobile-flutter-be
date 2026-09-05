@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../screens/jadwal/jadwal_screen.dart';
 import '../../models/dashboard_models.dart';
 import '../../utils/date_format_helper.dart';
+import '../../screens/statistik/asesor_muk_detail_screen.dart';
 import 'asesor_dashboard_cards.dart';
 
 class RangkumanAsesor extends StatefulWidget {
@@ -27,9 +28,7 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
     } else {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const JadwalScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const JadwalScreen()),
       );
     }
   }
@@ -70,16 +69,9 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
           data: widget.data,
           onTapSpt: _openJadwalScreen,
           onTapMuk: () {
-            showAsesorStatDetailDialog(
-              context: context,
-              title: 'Jumlah MUK 2026',
-              count: widget.data?.summary.jumlahMuk2026 ?? 0,
-              unit: 'Perangkat',
-              description:
-                  'Total perangkat MUK / MAPA yang dikembangkan atau ditugaskan kepada Anda pada tahun 2026.',
-              icon: Icons.menu_book_rounded,
-              iconColor: const Color(0xFFF59E0B),
-              iconBgColor: const Color(0xFFFEF3C7),
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AsesorMUKDetailScreen()),
             );
           },
           onTapMitra: () {
@@ -107,12 +99,15 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
 
         // Jadwal Hari Ini Cards (Filter running only, exclude draft)
         () {
-          final runningList = widget.data?.jadwalHariIni
-                  .where((item) =>
-                      item.status.toLowerCase() != 'draft' &&
-                      item.status != '0' &&
-                      item.status != '1' &&
-                      item.status.toLowerCase() != 'waiting')
+          final runningList =
+              widget.data?.jadwalHariIni
+                  .where(
+                    (item) =>
+                        item.status.toLowerCase() != 'draft' &&
+                        item.status != '0' &&
+                        item.status != '1' &&
+                        item.status.toLowerCase() != 'waiting',
+                  )
                   .toList() ??
               [];
 
@@ -128,8 +123,11 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.calendar_today_rounded,
-                      color: Color(0xFF94A3B8), size: 36),
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    color: Color(0xFF94A3B8),
+                    size: 36,
+                  ),
                   SizedBox(height: 8),
                   Text(
                     'Tidak ada jadwal asesmen hari ini',
@@ -146,10 +144,12 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
 
           return Column(
             children: runningList
-                .map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: AsesorJadwalHariIniCard(item: item),
-                    ))
+                .map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: AsesorJadwalHariIniCard(item: item),
+                  ),
+                )
                 .toList(),
           );
         }(),
@@ -175,7 +175,11 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
             child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.assignment_turned_in_rounded, color: Color(0xFF94A3B8), size: 36),
+                Icon(
+                  Icons.assignment_turned_in_rounded,
+                  color: Color(0xFF94A3B8),
+                  size: 36,
+                ),
                 SizedBox(height: 8),
                 Text(
                   'Tidak ada jadwal yang belum lengkap',

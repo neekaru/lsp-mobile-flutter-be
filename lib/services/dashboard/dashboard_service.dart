@@ -30,11 +30,18 @@ class DashboardService {
           totalTuk: data['total_tuk'] ?? 0,
           totalAsesi: data['total_asesi'] ?? 0,
           jadwalBelumTerkonfirmasi: data['jadwal_belum_terkonfirmasi'] ?? 0,
-          suratTugasMenungguPengiriman: data['surat_tugas_menunggu_pengiriman'] ?? 0,
+          suratTugasMenungguPengiriman:
+              data['surat_tugas_menunggu_pengiriman'] ?? 0,
           pendaftaranAsesiBaru: data['pendaftaran_asesi_baru'] ?? 0,
           honorAsesorBelumDibayar: data['honor_asesor_belum_dibayar'] ?? 0,
-          pengajuanBlankoBelumSelesai: data['pengajuan_blanko_belum_selesai'] ?? data['pengajuan_blanko_pending'] ?? 0,
-          pengajuanBlankoPending: data['pengajuan_blanko_pending'] ?? data['pengajuan_blanko_belum_selesai'] ?? 0,
+          pengajuanBlankoBelumSelesai:
+              data['pengajuan_blanko_belum_selesai'] ??
+              data['pengajuan_blanko_pending'] ??
+              0,
+          pengajuanBlankoPending:
+              data['pengajuan_blanko_pending'] ??
+              data['pengajuan_blanko_belum_selesai'] ??
+              0,
           trendAsesmen: trends?['asesmen']?['formatted'] ?? '+0,0%',
           trendPemegangSertifikat:
               trends?['pemegang_sertifikat']?['formatted'] ?? '+0,0%',
@@ -75,7 +82,9 @@ class DashboardService {
   }
 
   /// Fetch Asesor Dashboard Data
-  static Future<AsesorDashboardData> getAsesorDashboard({String? tanggal}) async {
+  static Future<AsesorDashboardData> getAsesorDashboard({
+    String? tanggal,
+  }) async {
     try {
       final url = tanggal != null
           ? '${ApiRoutes.asesorDashboard}?tanggal=$tanggal'
@@ -109,14 +118,18 @@ class DashboardService {
         int maxTotal = 1;
 
         for (var item in data) {
-          int total = (item['total'] as num?)?.toInt() ??
-                      (item['jumlah_asesmen'] as num?)?.toInt() ?? 0;
+          int total =
+              (item['total'] as num?)?.toInt() ??
+              (item['jumlah_asesmen'] as num?)?.toInt() ??
+              0;
           if (total > maxTotal) maxTotal = total;
         }
 
         for (var item in data) {
-          int total = (item['total'] as num?)?.toInt() ??
-                      (item['jumlah_asesmen'] as num?)?.toInt() ?? 0;
+          int total =
+              (item['total'] as num?)?.toInt() ??
+              (item['jumlah_asesmen'] as num?)?.toInt() ??
+              0;
           list.add(
             MonthlyAssessment(
               label: item['label'] ?? '',
@@ -155,14 +168,18 @@ class DashboardService {
         int maxTotal = 1;
 
         for (var item in data) {
-          int total = (item['jumlah_asesmen'] as num?)?.toInt() ??
-                     (item['total'] as num?)?.toInt() ?? 0;
+          int total =
+              (item['jumlah_asesmen'] as num?)?.toInt() ??
+              (item['total'] as num?)?.toInt() ??
+              0;
           if (total > maxTotal) maxTotal = total;
         }
 
         for (var item in data) {
-          int total = (item['jumlah_asesmen'] as num?)?.toInt() ??
-                     (item['total'] as num?)?.toInt() ?? 0;
+          int total =
+              (item['jumlah_asesmen'] as num?)?.toInt() ??
+              (item['total'] as num?)?.toInt() ??
+              0;
           list.add(
             MonthlyAssessment(
               label: item['label'] ?? '',
@@ -250,7 +267,10 @@ class DashboardService {
 
         if (data != null && data.isNotEmpty) {
           return data
-              .map((item) => RegionalDistribution.fromJson(item as Map<String, dynamic>))
+              .map(
+                (item) =>
+                    RegionalDistribution.fromJson(item as Map<String, dynamic>),
+              )
               .toList();
         }
       }
@@ -295,7 +315,10 @@ class DashboardService {
           )
           .toList();
 
-      final totalTuk = tukItems.fold<int>(0, (sum, item) => sum + item.jumlahTuk);
+      final totalTuk = tukItems.fold<int>(
+        0,
+        (sum, item) => sum + item.jumlahTuk,
+      );
 
       return PenyebaranWilayahDetail(
         provinsiId: provinceId,
@@ -464,7 +487,9 @@ class DashboardService {
       if (search != null && search.trim().isNotEmpty) {
         queryParams['search'] = search.trim();
       }
-      if (status != null && status.trim().isNotEmpty && status.trim().toLowerCase() != 'semua') {
+      if (status != null &&
+          status.trim().isNotEmpty &&
+          status.trim().toLowerCase() != 'semua') {
         queryParams['status'] = status.trim().toLowerCase();
       }
 
@@ -532,7 +557,9 @@ class DashboardService {
   /// Fetch Masa Tenggang Sertifikat (certificates expiring in next 3 months)
   static Future<MasaTenggangSertifikatData?> getMasaTenggangSertifikat() async {
     try {
-      final response = await _dio.get(ApiRoutes.dashboardMasaTenggangSertifikat);
+      final response = await _dio.get(
+        ApiRoutes.dashboardMasaTenggangSertifikat,
+      );
       if (response.statusCode == 200 && response.data != null) {
         return MasaTenggangSertifikatData.fromJson(response.data);
       }
@@ -602,7 +629,9 @@ class DashboardService {
   /// Fetch Surat Tugas / SPT Asesor 2026
   static Future<SptAsesorData?> getSptAsesor2026({int tahun = 2026}) async {
     try {
-      final response = await _dio.get('${ApiRoutes.dashboardSptAsesor2026}?tahun=$tahun');
+      final response = await _dio.get(
+        '${ApiRoutes.dashboardSptAsesor2026}?tahun=$tahun',
+      );
       if (response.statusCode == 200 && response.data != null) {
         return SptAsesorData.fromJson(response.data);
       }
@@ -637,16 +666,16 @@ class DashboardService {
     int offset = 0,
   }) async {
     try {
-      final queryParams = <String, dynamic>{
-        'limit': limit,
-        'offset': offset,
-      };
+      final queryParams = <String, dynamic>{'limit': limit, 'offset': offset};
       if (tahun != null && tahun > 0) queryParams['tahun'] = tahun;
       if (bulan != null && bulan > 0) queryParams['bulan'] = bulan;
       if (search != null && search.isNotEmpty) queryParams['search'] = search;
 
-      final queryString = Uri(queryParameters: queryParams.map((k, v) => MapEntry(k, v.toString()))).query;
-      final url = '${ApiRoutes.dashboardSptAsesorJadwal(asesorId)}${queryString.isNotEmpty ? '?$queryString' : ''}';
+      final queryString = Uri(
+        queryParameters: queryParams.map((k, v) => MapEntry(k, v.toString())),
+      ).query;
+      final url =
+          '${ApiRoutes.dashboardSptAsesorJadwal(asesorId)}${queryString.isNotEmpty ? '?$queryString' : ''}';
 
       final response = await _dio.get(url);
       if (response.statusCode == 200 && response.data != null) {
@@ -658,5 +687,19 @@ class DashboardService {
       return null;
     }
   }
-}
 
+  static Future<List<AsesorMUKItem>> getAsesorMUK() async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorMUK);
+      if (response.statusCode == 200 && response.data != null) {
+        final list = response.data['data'] as List<dynamic>? ?? [];
+        return list
+            .map((item) => AsesorMUKItem.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching asesor MUK: $e');
+    }
+    return [];
+  }
+}
