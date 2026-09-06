@@ -752,6 +752,8 @@ class MateriUjiItem {
     this.statusMapa = '',
   });
 
+  bool get hasDownloadLink => linkMukManual.trim().isNotEmpty;
+
   factory MateriUjiItem.fromJson(Map<String, dynamic> json) {
     return MateriUjiItem(
       id: json['id'] is int
@@ -760,7 +762,6 @@ class MateriUjiItem {
       namaMapa: json['nama_mapa']?.toString() ?? 'MUK / MAPA',
       linkMukManual: json['link_muk_manual']?.toString() ??
           json['link_mapa_manual']?.toString() ??
-          json['link_mapa2']?.toString() ??
           '',
       penyusun: json['penyusun']?.toString() ?? '',
       statusMapa: json['status_mapa']?.toString() ?? '',

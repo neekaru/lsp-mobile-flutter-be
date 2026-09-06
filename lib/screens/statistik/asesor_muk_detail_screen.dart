@@ -173,12 +173,19 @@ class _MUKCard extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: item.hasDownloadLink
                   ? () async {
-                      final uri = Uri.tryParse(item.downloadUrl);
+                      final uri = Uri.tryParse(item.linkMukManual);
                       if (uri != null) {
-                        if (!await launchUrl(uri,
-                            mode: LaunchMode.externalApplication)) {
-                          await launchUrl(uri,
-                              mode: LaunchMode.platformDefault);
+                        try {
+                          if (!await launchUrl(uri,
+                              mode: LaunchMode.externalApplication)) {
+                            await launchUrl(uri,
+                                mode: LaunchMode.platformDefault);
+                          }
+                        } catch (_) {
+                          try {
+                            await launchUrl(uri,
+                                mode: LaunchMode.inAppBrowserView);
+                          } catch (_) {}
                         }
                       }
                     }

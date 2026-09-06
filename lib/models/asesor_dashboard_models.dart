@@ -312,7 +312,6 @@ class AsesorMUKItem {
   final String validator;
   final String status;
   final String linkMukManual;
-  final String linkMapa2;
 
   const AsesorMUKItem({
     required this.id,
@@ -321,12 +320,9 @@ class AsesorMUKItem {
     required this.validator,
     required this.status,
     this.linkMukManual = '',
-    this.linkMapa2 = '',
   });
 
-  String get downloadUrl =>
-      linkMukManual.isNotEmpty ? linkMukManual : linkMapa2;
-  bool get hasDownloadLink => downloadUrl.trim().isNotEmpty;
+  bool get hasDownloadLink => linkMukManual.trim().isNotEmpty;
 
   factory AsesorMUKItem.fromJson(Map<String, dynamic> json) {
     return AsesorMUKItem(
@@ -338,7 +334,6 @@ class AsesorMUKItem {
       linkMukManual: json['link_muk_manual']?.toString() ??
           json['link_mapa_manual']?.toString() ??
           '',
-      linkMapa2: json['link_mapa2']?.toString() ?? '',
     );
   }
 }

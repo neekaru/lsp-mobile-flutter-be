@@ -365,7 +365,7 @@ class JadwalDetailAsesorView extends StatelessWidget {
                           const SizedBox(height: 12),
                           if (mukList.isNotEmpty)
                             ...mukList.map((m) {
-                              final hasLink = m.linkMukManual.isNotEmpty;
+                              final hasLink = m.hasDownloadLink;
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 10),
                                 padding: const EdgeInsets.all(12),
@@ -403,8 +403,14 @@ class JadwalDetailAsesorView extends StatelessWidget {
                                           onPressed: () async {
                                             final uri = Uri.tryParse(m.linkMukManual);
                                             if (uri != null) {
-                                              if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-                                                await launchUrl(uri, mode: LaunchMode.platformDefault);
+                                              try {
+                                                if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                                                  await launchUrl(uri, mode: LaunchMode.platformDefault);
+                                                }
+                                              } catch (_) {
+                                                try {
+                                                  await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+                                                } catch (_) {}
                                               }
                                             }
                                           },
