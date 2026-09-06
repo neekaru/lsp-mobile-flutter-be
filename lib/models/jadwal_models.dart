@@ -540,6 +540,8 @@ class AsesiItem {
   factory AsesiItem.fromJson(Map<String, dynamic> json) {
     final rawKota =
         json['kota'] ??
+        json['kabupaten'] ??
+        json['nama_kabupaten'] ??
         json['kabupaten_kota'] ??
         json['tempat_lahir'] ??
         json['alamat'];

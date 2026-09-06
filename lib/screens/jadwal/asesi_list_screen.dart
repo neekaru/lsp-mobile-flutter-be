@@ -960,7 +960,11 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
                     Row(
                       children: [
                         Text(
-                          'No. Peserta: ${item.noPeserta ?? item.id.toString()}',
+                          (item.kota != null && item.kota!.isNotEmpty)
+                              ? item.kota!
+                              : (item.noPeserta != null && item.noPeserta!.isNotEmpty
+                                  ? item.noPeserta!
+                                  : item.id.toString()),
                           style: const TextStyle(
                             fontSize: 11,
                             color: Colors.grey,
