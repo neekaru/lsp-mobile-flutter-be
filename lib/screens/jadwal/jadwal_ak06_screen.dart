@@ -245,13 +245,13 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── Lock Banner (if AK.01 not yet completed) ─────────────────────────
           if (!data.isUnlocked) ...[
             Container(
+              width: double.infinity,
               margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: const Color(0xFFFEF2F2),
                 borderRadius: BorderRadius.circular(10),
@@ -296,7 +296,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           // Header Summary Card
           FormSectionCard(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const FormSectionHeader(
                   title: 'Informasi Pelaksanaan',
@@ -318,7 +318,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           // ── Card 1: Penjelasan Proses Asesmen (Dropdown / Accordion) ──────────
           FormSectionCard(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 InkWell(
                   onTap: () {
@@ -352,6 +352,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
                   const Divider(height: 1, color: Color(0xFFF1F5F9)),
                   const SizedBox(height: 12),
                   Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF8FAFC),
@@ -378,7 +379,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           // ── Card 2: Pemenuhan terhadap Prinsip-Prinsip Asesmen ────────────────
           FormSectionCard(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
                   '2. Pemenuhan terhadap Prinsip-Prinsip Asesmen',
@@ -403,6 +404,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
                   final isFlexibleBlocked = index == 3 || index == 4;
 
                   return Container(
+                    width: double.infinity,
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -479,7 +481,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
           // ── Card 3: Pemenuhan terhadap Dimensi Kompetensi ─────────────────────
           FormSectionCard(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
                   '3. Pemenuhan terhadap Dimensi Kompetensi',
@@ -566,6 +568,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
 
   Widget _buildDimensiField(String label, TextEditingController controller) {
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -721,7 +724,7 @@ class _JadwalAK06ScreenState extends State<JadwalAK06Screen> {
     required String hintText,
   }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           label,

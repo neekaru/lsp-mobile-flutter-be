@@ -298,175 +298,240 @@ class JadwalDetailAsesorView extends StatelessWidget {
                 context: context,
                 backgroundColor: Colors.transparent,
                 isScrollControlled: true,
+                useSafeArea: true,
                 builder: (modalCtx) {
                   return Container(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(modalCtx).size.height * 0.85,
+                    ),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                     ),
                     child: SafeArea(
+                      top: false,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Center(
-                            child: Container(
-                              width: 40,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade300,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.menu_book_rounded,
-                                  color: Color(0xFF2563EB),
-                                  size: 22,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              const Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Materi Uji Kompetensi (MUK)',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Center(
+                                  child: Container(
+                                    width: 40,
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade300,
+                                      borderRadius: BorderRadius.circular(2),
                                     ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Dokumen MAPA & materi yang diujikan',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          const Divider(height: 1),
-                          const SizedBox(height: 12),
-                          if (mukList.isNotEmpty)
-                            ...mukList.map((m) {
-                              final hasLink = m.hasDownloadLink;
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      m.namaMapa,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    if (m.penyusun.isNotEmpty) ...[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Penyusun: ${m.penyusun}',
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          color: Color(0xFF64748B),
-                                        ),
-                                      ),
-                                    ],
-                                    const SizedBox(height: 10),
-                                    if (hasLink)
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: ElevatedButton.icon(
-                                          onPressed: () async {
-                                            final uri = Uri.tryParse(m.linkMukManual);
-                                            if (uri != null) {
-                                              try {
-                                                if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-                                                  await launchUrl(uri, mode: LaunchMode.platformDefault);
-                                                }
-                                              } catch (_) {
-                                                try {
-                                                  await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
-                                                } catch (_) {}
-                                              }
-                                            }
-                                          },
-                                          icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                                          label: const Text(
-                                            'Buka Link MUK Manual',
-                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                          ),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF2563EB),
-                                            foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.symmetric(vertical: 10),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            elevation: 0,
-                                          ),
-                                        ),
-                                      )
-                                    else
-                                      const Text(
-                                        'Link MUK manual belum diunggah',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontStyle: FontStyle.italic,
-                                          color: Color(0xFF94A3B8),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              );
-                            })
-                          else if (primaryLink.isNotEmpty)
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () async {
-                                  final uri = Uri.tryParse(primaryLink);
-                                  if (uri != null) {
-                                    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-                                      await launchUrl(uri, mode: LaunchMode.platformDefault);
-                                    }
-                                  }
-                                },
-                                icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                                label: const Text('Buka Link MUK Manual'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF2563EB),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEFF6FF),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.menu_book_rounded,
+                                        color: Color(0xFF2563EB),
+                                        size: 22,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Materi Uji Kompetensi (MUK)',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                          SizedBox(height: 2),
+                                          Text(
+                                            'Dokumen MAPA & materi yang diujikan',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                const Divider(height: 1),
+                              ],
+                            ),
+                          ),
+                          Flexible(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (mukList.isNotEmpty)
+                                    ...mukList.map((m) {
+                                      final hasLink = m.hasDownloadLink;
+                                      return Container(
+                                        width: double.infinity,
+                                        margin: const EdgeInsets.only(bottom: 12),
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF8FAFC),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              m.namaMapa,
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                            if (m.penyusun.isNotEmpty) ...[
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'Penyusun: ${m.penyusun}',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Color(0xFF64748B),
+                                                ),
+                                              ),
+                                            ],
+                                            const SizedBox(height: 12),
+                                            SizedBox(
+                                              width: double.infinity,
+                                              child: ElevatedButton.icon(
+                                                onPressed: hasLink
+                                                    ? () async {
+                                                        final uri = Uri.tryParse(m.linkMukManual);
+                                                        if (uri != null) {
+                                                          try {
+                                                            if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                                                              await launchUrl(uri, mode: LaunchMode.platformDefault);
+                                                            }
+                                                          } catch (_) {
+                                                            try {
+                                                              await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+                                                            } catch (_) {}
+                                                          }
+                                                        }
+                                                      }
+                                                    : null,
+                                                icon: Icon(
+                                                  hasLink
+                                                      ? Icons.open_in_new_rounded
+                                                      : Icons.link_off_rounded,
+                                                  size: 16,
+                                                ),
+                                                label: Text(
+                                                  hasLink
+                                                      ? 'Buka Link MUK Manual'
+                                                      : 'Link MUK Belum Tersedia',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: const Color(0xFF2563EB),
+                                                  foregroundColor: Colors.white,
+                                                  disabledBackgroundColor: const Color(0xFFF1F5F9),
+                                                  disabledForegroundColor: const Color(0xFF94A3B8),
+                                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    side: hasLink
+                                                        ? BorderSide.none
+                                                        : const BorderSide(color: Color(0xFFE2E8F0)),
+                                                  ),
+                                                  elevation: 0,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    })
+                                  else if (primaryLink.isNotEmpty)
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(14),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF8FAFC),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Materi Uji Kompetensi (MUK)',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton.icon(
+                                              onPressed: () async {
+                                                final uri = Uri.tryParse(primaryLink);
+                                                if (uri != null) {
+                                                  try {
+                                                    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                                                      await launchUrl(uri, mode: LaunchMode.platformDefault);
+                                                    }
+                                                  } catch (_) {
+                                                    try {
+                                                      await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+                                                    } catch (_) {}
+                                                  }
+                                                }
+                                              },
+                                              icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                                              label: const Text(
+                                                'Buka Link MUK Manual',
+                                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                              ),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFF2563EB),
+                                                foregroundColor: Colors.white,
+                                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                elevation: 0,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
+                          ),
                         ],
                       ),
                     ),
