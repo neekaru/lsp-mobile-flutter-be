@@ -212,26 +212,6 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
             ),
             child: Row(
               children: [
-                // Back Button (if provided)
-                if (widget.onBackToHome != null)
-                  GestureDetector(
-                    onTap: widget.onBackToHome,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      margin: const EdgeInsets.only(right: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.keyboard_arrow_left_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-
                 // AI Icon Avatar
                 Container(
                   width: 42,

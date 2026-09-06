@@ -358,30 +358,18 @@ class _AsesorAsesiScreenState extends State<AsesorAsesiScreen> {
           // Subtitle / Total Count
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    '${_selectedTab == 'belum' ? 'Menampilkan: $_totalCount Asesi Belum Rekomendasi' : 'Menampilkan: $_totalCount Asesi Sudah Rekomendasi'}${_selectedDateFilter == 'today' ? ' (Hari Ini)' : (_selectedDateFilter == 'yesterday' ? ' (Kemarin)' : (_selectedDateFilter != 'all' ? ' ($_selectedDateFilter)' : ''))}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF64748B),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${_selectedTab == 'belum' ? 'Menampilkan: $_totalCount Asesi Belum Rekomendasi' : 'Menampilkan: $_totalCount Asesi Sudah Rekomendasi'}${_selectedDateFilter == 'today' ? ' (Hari Ini)' : (_selectedDateFilter == 'yesterday' ? ' (Kemarin)' : (_selectedDateFilter != 'all' ? ' ($_selectedDateFilter)' : ''))}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
                 ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Jadwal Terbaru',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF94A3B8),
-                  ),
-                ),
-              ],
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
 
