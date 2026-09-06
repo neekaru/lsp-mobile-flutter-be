@@ -311,6 +311,8 @@ class AsesorMUKItem {
   final String tanggalPembuatan;
   final String validator;
   final String status;
+  final String linkMukManual;
+  final String linkMapa2;
 
   const AsesorMUKItem({
     required this.id,
@@ -318,7 +320,13 @@ class AsesorMUKItem {
     required this.tanggalPembuatan,
     required this.validator,
     required this.status,
+    this.linkMukManual = '',
+    this.linkMapa2 = '',
   });
+
+  String get downloadUrl =>
+      linkMukManual.isNotEmpty ? linkMukManual : linkMapa2;
+  bool get hasDownloadLink => downloadUrl.trim().isNotEmpty;
 
   factory AsesorMUKItem.fromJson(Map<String, dynamic> json) {
     return AsesorMUKItem(
@@ -327,6 +335,10 @@ class AsesorMUKItem {
       tanggalPembuatan: json['tanggal_pembuatan']?.toString() ?? '-',
       validator: json['validator']?.toString() ?? '-',
       status: json['status']?.toString() ?? 'Menunggu Verifikasi',
+      linkMukManual: json['link_muk_manual']?.toString() ??
+          json['link_mapa_manual']?.toString() ??
+          '',
+      linkMapa2: json['link_mapa2']?.toString() ?? '',
     );
   }
 }
