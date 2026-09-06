@@ -275,6 +275,201 @@ class JadwalDetailAsesorView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
+          // Card 3.5: Materi Uji Kompetensi (MUK / MAPA)
+          ActionButtonCard(
+            icon: Icons.menu_book_rounded,
+            title: 'Materi Uji Kompetensi (MUK)',
+            onTap: () {
+              final mukList = detailData?.materiUji ?? [];
+              final primaryLink = detailData?.linkMukManual ?? '';
+
+              if (mukList.isEmpty && primaryLink.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Materi Uji Kompetensi (MUK) belum tersedia untuk skema ini.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                return;
+              }
+
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                builder: (modalCtx) {
+                  return Container(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    child: SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 40,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.menu_book_rounded,
+                                  color: Color(0xFF2563EB),
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Materi Uji Kompetensi (MUK)',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Dokumen MAPA & materi yang diujikan',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          const Divider(height: 1),
+                          const SizedBox(height: 12),
+                          if (mukList.isNotEmpty)
+                            ...mukList.map((m) {
+                              final hasLink = m.linkMukManual.isNotEmpty;
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      m.namaMapa,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    if (m.penyusun.isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Penyusun: ${m.penyusun}',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF64748B),
+                                        ),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 10),
+                                    if (hasLink)
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton.icon(
+                                          onPressed: () async {
+                                            final uri = Uri.tryParse(m.linkMukManual);
+                                            if (uri != null) {
+                                              if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                                                await launchUrl(uri, mode: LaunchMode.platformDefault);
+                                              }
+                                            }
+                                          },
+                                          icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                                          label: const Text(
+                                            'Buka Link MUK Manual',
+                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFF2563EB),
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(vertical: 10),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            elevation: 0,
+                                          ),
+                                        ),
+                                      )
+                                    else
+                                      const Text(
+                                        'Link MUK manual belum diunggah',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontStyle: FontStyle.italic,
+                                          color: Color(0xFF94A3B8),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            })
+                          else if (primaryLink.isNotEmpty)
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  final uri = Uri.tryParse(primaryLink);
+                                  if (uri != null) {
+                                    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                                      await launchUrl(uri, mode: LaunchMode.platformDefault);
+                                    }
+                                  }
+                                },
+                                icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                                label: const Text('Buka Link MUK Manual'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2563EB),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
           // Card 4: FR-AK.05 Laporan Asesmen
           Builder(
             builder: (context) {

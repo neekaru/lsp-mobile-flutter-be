@@ -737,6 +737,37 @@ class JadwalAsesorDetailResponse {
   }
 }
 
+class MateriUjiItem {
+  final int id;
+  final String namaMapa;
+  final String linkMukManual;
+  final String penyusun;
+  final String statusMapa;
+
+  const MateriUjiItem({
+    required this.id,
+    required this.namaMapa,
+    required this.linkMukManual,
+    this.penyusun = '',
+    this.statusMapa = '',
+  });
+
+  factory MateriUjiItem.fromJson(Map<String, dynamic> json) {
+    return MateriUjiItem(
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      namaMapa: json['nama_mapa']?.toString() ?? 'MUK / MAPA',
+      linkMukManual: json['link_muk_manual']?.toString() ??
+          json['link_mapa_manual']?.toString() ??
+          json['link_mapa2']?.toString() ??
+          '',
+      penyusun: json['penyusun']?.toString() ?? '',
+      statusMapa: json['status_mapa']?.toString() ?? '',
+    );
+  }
+}
+
 class JadwalAsesorDetailData {
   final int id;
   final String jadwal;
@@ -752,6 +783,8 @@ class JadwalAsesorDetailData {
   final String jenisTuk;
   final List<AsesorDetailItem> asesor;
   final List<AsesiItem> asesi;
+  final List<MateriUjiItem> materiUji;
+  final String? linkMukManual;
   final String? waktuAsesmen;
   final String? leadAsesor;
   final int? jumlahPeserta;
@@ -776,6 +809,8 @@ class JadwalAsesorDetailData {
     required this.jenisTuk,
     required this.asesor,
     this.asesi = const [],
+    this.materiUji = const [],
+    this.linkMukManual,
     this.waktuAsesmen,
     this.leadAsesor,
     this.jumlahPeserta,
@@ -787,7 +822,6 @@ class JadwalAsesorDetailData {
     this.lockReasonAK05 = 'Selesaikan dan setujui formulir FR-AK.01 terlebih dahulu sebelum mengisi Laporan Asesmen (FR-AK.05).',
     this.lockReasonAK06 = 'Selesaikan FR-AK.01 dan FR-AK.05 terlebih dahulu sebelum meninjau proses asesmen (FR-AK.06).',
   });
-
   bool get isAJJ => isSjj;
   bool get isSjj {
     if (isAjj == true) return true;
@@ -845,6 +879,12 @@ class JadwalAsesorDetailData {
               ?.map((item) => AsesiItem.fromJson(item as Map<String, dynamic>))
               .toList() ??
           [],
+      materiUji:
+          (json['materi_uji'] as List<dynamic>?)
+              ?.map((item) => MateriUjiItem.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      linkMukManual: json['link_muk_manual']?.toString(),
     );
   }
 }
