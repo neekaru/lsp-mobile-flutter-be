@@ -34,7 +34,7 @@ class AsesiListScreen extends StatefulWidget {
 class _AsesiListScreenState extends State<AsesiListScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
-  int _selectedTab = 1; // 0: Asesi Saya, 1: Semua Peserta (Default), 2: Tidak Hadir
+  int _selectedTab = 0; // 0: Asesi Saya (Asesor), 1: Semua Peserta (Admin), 2: Tidak Hadir
   String _errorMessage = '';
   AsesiListResponse? _response;
   List<AsesiItem> _filteredAsesi = [];
@@ -58,6 +58,8 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
   @override
   void initState() {
     super.initState();
+    final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
+    _selectedTab = isAsesor ? 0 : 1;
     _fetchAsesiData();
     _searchController.addListener(_applyFilter);
   }
@@ -77,6 +79,10 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
 
     try {
       final data = await JadwalService.getAsesiList(widget.jadwalId);
+      final isAsesor = AuthRepository.currentUserInstance?.role == 'asesor';
+      if (!isAsesor && _selectedTab == 0) {
+        _selectedTab = 1;
+      }
       setState(() {
         _response = data;
         _rekomendasiMap.clear();
