@@ -128,7 +128,7 @@ class _AsesorMUKDetailScreenState extends State<AsesorMUKDetailScreen> {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: filteredItems.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (context, index) => const SizedBox(height: 10),
                     itemBuilder: (context, index) =>
                         _MUKCard(item: filteredItems[index]),
                   ),

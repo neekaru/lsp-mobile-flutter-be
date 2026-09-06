@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:januscaler_flutter_ringtone_player/flutter_ringtone_player.dart';
 import '../api_service.dart';
 import '../auth/auth_repository.dart';
+import '../auth/token_storage.dart';
 import '../../utils/api_routes.dart';
 import '../../models/jadwal_models.dart';
 import '../../screens/jadwal/jadwal_detail_screen.dart';
@@ -234,7 +235,7 @@ class NotificationService {
     );
   }
 
-  void _handleNotificationClick(RemoteMessage message) {
+  Future<void> _handleNotificationClick(RemoteMessage message) async {
     String? currentUserId = AuthRepository.currentUserInstance?.id;
     if (currentUserId == null) {
       try {
@@ -260,7 +261,7 @@ class NotificationService {
     final body = message.notification?.body ?? _getBodyFromData(message.data);
 
     // Save notification locally just in case it was a background click and wasn't stored yet
-    AppNotificationStorage.instance.saveNotification(
+    await AppNotificationStorage.instance.saveNotification(
       title,
       body,
       type,
