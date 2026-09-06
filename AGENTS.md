@@ -12,17 +12,22 @@
 
 Untuk **SETIAP PERUBAHAN APAPUN** (Widget, Screen, Form, Model Parsing, Service API, Navigasi, State Management, Filter/Search, Storage/Cache):
 
-1. **Defensive Parsing & Fault-Tolerant by Default**:
+1. **Kepatuhan Mutlak pada Kontrak Backend (Backend Alignment)**:
+   - Frontend **WAJIB selalu mengikuti (follow) struktur data dan kontrak resmi Backend**.
+   - **DILARANG** membuat parsing liar atau asumsi struktur data sepihak di Flutter yang berbeda dari apa yang disediakan oleh API Backend.
+   - **Jika Ingin / Terpaksa Melakukan Parsing Khusus**: **WAJIB tanyakan / konfirmasi terlebih dahulu ke user di chat** agar dapat diselaraskan di sisi Backend terlebih dahulu, sehingga struktur data tetap *cross-compatible* dan tidak menimbulkan mismatch di kemudian hari.
+
+2. **Defensive Parsing & Fault-Tolerant by Default**:
    - Model Flutter **WAJIB** kebal terhadap segala variasi format API backend:
      - Gunakan `JsonHelper.asInt`, `JsonHelper.asBool`, `JsonHelper.asString` untuk mencegah runtime type mismatch (misal backend kirim string `"123"` vs int `123`, `true` vs `"1"` vs `1`).
      - Jangan pernah berasumsi key/field selalu ada atau tidak pernah `null` (selalu sediakan safe default value).
      - Parser status/enum/label **WAJIB** case-insensitive dan menangani format kode angka maupun format teks (contoh: `'0'/'draft'/'menunggu'`, `'1'/'selesai'/'completed'`).
 
-2. **Konsistensi Alur Data Navigasi (Dashboard ➔ List ➔ Detail ➔ Form Action)**:
+3. **Konsistensi Alur Data Navigasi (Dashboard ➔ List ➔ Detail ➔ Form Action)**:
    - Saat mengoper data lewat route arguments/model converter (misal `toJadwalItem()`, `toAsesiItem()`), pastikan seluruh field esensial terpetakan lengkap tanpa ada data yang terpotong.
    - Di halaman Detail / Edit: **WAJIB memprioritaskan data realtime hasil fetch API** (`detailData`) dibanding argumen awal navigasi yang statis/usang.
 
-3. **Audit 360° Semua Entry Point (Cross-Module Verification)**:
+4. **Audit 360° Semua Entry Point (Cross-Module Verification)**:
    - Sebelum menyatakan task selesai, uji semua alur masuk:
      - Dari Dashboard Card/Shortcut
      - Dari List Menu / Filter Tab
@@ -30,7 +35,8 @@ Untuk **SETIAP PERUBAHAN APAPUN** (Widget, Screen, Form, Model Parsing, Service 
      - Dari Search Bar / Modal Picker
    - Pastikan status, warna badge, aksi tombol, dan data yang tampil **100% identik dan konsisten** di semua jalur tersebut.
 
-4. **Self-Verification Checklist**:
+5. **Self-Verification Checklist**:
+   - [ ] Apakah model/parsing sudah 100% sesuai dengan contract Backend? (Jika ada parsing khusus, sudah konfirmasi user?)
    - [ ] Apakah model parsing aman jika backend mengirim field null/empty atau tipe yang berbeda?
    - [ ] Apakah data di Dashboard, List, dan Detail selaras dan tidak ada status mismatch?
    - [ ] Apakah semua state UI (Loading, Empty Data, Error / Offline, Success) tertangani dengan rapi?
