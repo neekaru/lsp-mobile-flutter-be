@@ -153,63 +153,66 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
                 .toList(),
           );
         }(),
-        const SizedBox(height: 28),
-
-        // 3. Jadwal Belum Lengkap Section Header
-        AsesorSectionHeader(
-          title: 'Jadwal Belum Lengkap',
-          onTapLihatSemua: _openJadwalScreen,
-        ),
-        const SizedBox(height: 12),
-
-        // Jadwal Belum Lengkap List
-        if (widget.data == null || widget.data!.jadwalBelumLengkap.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.assignment_turned_in_rounded,
-                  color: Color(0xFF94A3B8),
-                  size: 36,
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Tidak ada jadwal yang belum lengkap',
-                  style: TextStyle(
-                    color: Color(0xFF64748B),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+        // 3. Jadwal Belum Lengkap Section
+        Padding(
+          padding: EdgeInsets.zero,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AsesorSectionHeader(
+                title: 'Jadwal Belum Lengkap',
+                onTapLihatSemua: _openJadwalScreen,
+              ),
+              const SizedBox(height: 12),
+              if (widget.data == null || widget.data!.jadwalBelumLengkap.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.assignment_turned_in_rounded,
+                        color: Color(0xFF94A3B8),
+                        size: 36,
+                       ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Tidak ada jadwal yang belum lengkap',
+                        style: TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 360),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    itemCount: widget.data!.jadwalBelumLengkap.length,
+                    itemBuilder: (context, index) {
+                      final task = widget.data!.jadwalBelumLengkap[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: AsesorJadwalBelumLengkapCard(task: task),
+                      );
+                    },
                   ),
                 ),
-              ],
-            ),
-          )
-        else
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 360),
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.zero,
-              itemCount: widget.data!.jadwalBelumLengkap.length,
-              itemBuilder: (context, index) {
-                final task = widget.data!.jadwalBelumLengkap[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: AsesorJadwalBelumLengkapCard(task: task),
-                );
-              },
-            ),
+            ],
           ),
-        const SizedBox(height: 16),
+        ),
       ],
     );
   }
