@@ -144,9 +144,9 @@ class MarketingKpiHeader extends StatelessWidget {
     final isSelected = activeTab.toLowerCase() == statusKey.toLowerCase();
 
     return Expanded(
-      child: InkWell(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () => onSelectStatusTab(statusKey),
-        borderRadius: BorderRadius.circular(10),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),

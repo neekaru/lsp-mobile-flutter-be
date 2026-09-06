@@ -1025,27 +1025,32 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 10),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFE2E8F0),
+        color: const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
           Expanded(
-            child: InkWell(
-              onTap: () => setState(() => _selectedMode = 0),
-              borderRadius: BorderRadius.circular(10),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (_selectedMode != 0) {
+                  setState(() => _selectedMode = 0);
+                }
+              },
+              child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
                   color: _selectedMode == 0 ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(9),
                   boxShadow: _selectedMode == 0
                       ? const [
                           BoxShadow(
-                              color: Color(0x0F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 1)),
+                            color: Color(0x0D000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 1),
+                          ),
                         ]
                       : null,
                 ),
@@ -1066,7 +1071,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                         fontSize: 12.5,
                         fontWeight: _selectedMode == 0
                             ? FontWeight.bold
-                            : FontWeight.w600,
+                            : FontWeight.w500,
                         color: _selectedMode == 0
                             ? const Color(0xFF2563EB)
                             : const Color(0xFF64748B),
@@ -1078,21 +1083,25 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
             ),
           ),
           Expanded(
-            child: InkWell(
-              onTap: () => setState(() => _selectedMode = 1),
-              borderRadius: BorderRadius.circular(10),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (_selectedMode != 1) {
+                  setState(() => _selectedMode = 1);
+                }
+              },
+              child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
                   color: _selectedMode == 1 ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(9),
                   boxShadow: _selectedMode == 1
                       ? const [
                           BoxShadow(
-                              color: Color(0x0F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 1)),
+                            color: Color(0x0D000000),
+                            blurRadius: 4,
+                            offset: Offset(0, 1),
+                          ),
                         ]
                       : null,
                 ),
@@ -1113,7 +1122,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                         fontSize: 12.5,
                         fontWeight: _selectedMode == 1
                             ? FontWeight.bold
-                            : FontWeight.w600,
+                            : FontWeight.w500,
                         color: _selectedMode == 1
                             ? const Color(0xFF2563EB)
                             : const Color(0xFF64748B),
