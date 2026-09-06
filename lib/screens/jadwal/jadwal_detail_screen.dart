@@ -102,7 +102,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                     detailData: _detailData,
                   )
                 : SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 32),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

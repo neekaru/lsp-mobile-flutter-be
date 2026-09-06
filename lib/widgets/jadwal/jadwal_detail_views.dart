@@ -83,8 +83,9 @@ class JadwalDetailAsesorView extends StatelessWidget {
             ? detailData!.alamatTuk
             : (jadwal.tuk.isNotEmpty ? jadwal.tuk : '-'));
 
+    final double bottomInset = MediaQuery.of(context).padding.bottom;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset + 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -562,8 +563,9 @@ class JadwalDetailAsesiView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double bottomInset = MediaQuery.of(context).padding.bottom;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset + 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
