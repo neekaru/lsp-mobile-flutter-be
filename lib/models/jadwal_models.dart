@@ -172,16 +172,26 @@ class JadwalItem {
 
   /// Canonical map: 0=Draft, 1=Completed, 2=Canceled, 3=Running, 4=Pelaporan
   static String mapStatusCode(String statusJadwal) {
-    switch (statusJadwal) {
+    switch (statusJadwal.toLowerCase().trim()) {
       case '0':
+      case 'draft':
+      case 'waiting':
+      case 'menunggu':
         return 'draft';
       case '1':
+      case 'completed':
+      case 'selesai':
         return 'completed';
       case '2':
+      case 'canceled':
+      case 'dibatalkan':
         return 'canceled';
       case '3':
+      case 'running':
+      case 'berlangsung':
         return 'running';
       case '4':
+      case 'pelaporan':
         return 'pelaporan';
       default:
         return 'draft';

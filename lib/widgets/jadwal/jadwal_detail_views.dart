@@ -184,7 +184,16 @@ class JadwalDetailAsesorView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    AsesorStatusBadge(status: jadwal.status),
+                    AsesorStatusBadge(
+                      status: (detailData != null && detailData!.statusLabel.isNotEmpty)
+                          ? detailData!.statusLabel
+                          : (detailData != null && detailData!.statusJadwal.isNotEmpty
+                              ? detailData!.statusJadwal
+                              : (jadwal.statusLabel.isNotEmpty ? jadwal.statusLabel : jadwal.status)),
+                      label: (detailData != null && detailData!.statusLabel.isNotEmpty)
+                          ? detailData!.statusLabel
+                          : (jadwal.statusLabel.isNotEmpty ? jadwal.statusLabel : null),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),

@@ -6,6 +6,19 @@
 - Langsung eksekusi setelah memahami permintaan. Kalau ambigu, ambil interpretasi paling masuk akal dari kode yang ada.
 - Jangan menambah fitur/helper/komentar yang tidak diminta.
 
+## Wajib Cek Efek Domino / Ripple-Effect & Defensive Parsing (WAJIB)
+
+> **PENTING**: Review & rilis update ke Google Play Store memakan waktu lama. Kita **HARUS SEKALI UPDATE LANGSUNG BERES** dan memitigasi update berulang hanya karena salah mapping/contract mismatch sepele.
+
+- **Defensive Parsing (Parsing Kebal Error)**:
+  - Model Flutter **WAJIB** kebal terhadap variasi response backend: selalu toleran terhadap tipe data string angka vs int (`JsonHelper.asInt`), boolean 1/true, dan case-insensitive string parsing.
+  - Mapper status (seperti `mapStatusCode` / `statusColorsFor`) **WAJIB** menangani baik kode angka (`'0'`, `'1'`, `'2'`, `'3'`, `'4'`) maupun label teks (`'draft'`, `'running'`, `'berlangsung'`, `'completed'`, `'selesai'`, dll.). Jangan biarkan format string baru menyebabkan fallback ke state yang salah (misal jadi Draft).
+- **Konsistensi Navigasi Data (Dashboard ➔ List ➔ Detail)**:
+  - Saat mengoper data lewat navigasi (misal `item.toJadwalItem()`), pastikan seluruh field esensial (ID, status, label, tipe, JJ/TUK) terpetakan dengan benar dan identik dengan data di List API.
+  - Di halaman Detail: **WAJIB memprioritaskan data realtime hasil fetch API detail** (`detailData`) dibanding argumen awal navigasi (`widget.jadwal`) yang mungkin sudah usang/terpotong.
+- **Cross-Module Verification**:
+  - Sebelum rilis/selesai, cek semua entry point: apakah fitur ini dibuka dari Dashboard Card, List Menu, Notifikasi, atau Deep Link? Pastikan perilakunya konsisten di semua skenario.
+
 ## Clean Code & Standar Flutter (WAJIB)
 
 - Pertahankan struktur folder dan arsitektur yang sudah ada di Flutter (`lib/`).

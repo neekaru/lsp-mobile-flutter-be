@@ -225,16 +225,19 @@ class AsesiInfoRow extends StatelessWidget {
   }
 }
 
-/// Badge status asesor (label dihitung dari status).
+/// Badge status asesor (label dihitung dari status atau label eksplisit).
 class AsesorStatusBadge extends StatelessWidget {
   final String status;
+  final String? label;
 
-  const AsesorStatusBadge({super.key, required this.status});
+  const AsesorStatusBadge({super.key, required this.status, this.label});
 
   @override
   Widget build(BuildContext context) {
     final (textColor, bgColor) = JadwalItem.statusColorsFor(status);
-    final label = status.isNotEmpty ? '${status[0].toUpperCase()}${status.substring(1)}' : status;
+    final displayLabel = (label != null && label!.trim().isNotEmpty)
+        ? label!.trim()
+        : (status.isNotEmpty ? '${status[0].toUpperCase()}${status.substring(1)}' : status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -243,7 +246,7 @@ class AsesorStatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        label,
+        displayLabel,
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,

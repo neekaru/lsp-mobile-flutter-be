@@ -180,6 +180,7 @@ class AsesorDashboardJadwal {
       tanggalSelesai: tanggal,
       status: JadwalItem.mapStatusCode(status),
       statusJadwal: status,
+      statusLabel: statusLabel,
       jumlahAsesi: totalAsesi > 0 ? totalAsesi : kuota,
       totalAsesi: totalAsesi,
       kuota: kuota,
