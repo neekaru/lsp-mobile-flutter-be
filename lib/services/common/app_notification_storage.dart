@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../auth/auth_repository.dart';
+import '../auth/token_storage.dart';
 
 class AppNotification {
   final String id;
@@ -9,6 +11,7 @@ class AppNotification {
   final String type;
   final Map<String, dynamic> data;
   final bool isRead;
+  final String? userId;
 
   AppNotification({
     required this.id,
@@ -18,6 +21,7 @@ class AppNotification {
     required this.type,
     required this.data,
     this.isRead = false,
+    this.userId,
   });
 
   Map<String, dynamic> toJson() => {
@@ -28,6 +32,7 @@ class AppNotification {
         'type': type,
         'data': data,
         'isRead': isRead,
+        'userId': userId,
       };
 
   factory AppNotification.fromJson(Map<String, dynamic> json) => AppNotification(
@@ -38,6 +43,7 @@ class AppNotification {
         type: json['type'] as String? ?? '',
         data: Map<String, dynamic>.from(json['data'] ?? {}),
         isRead: json['isRead'] as bool? ?? false,
+        userId: json['userId']?.toString() ?? json['data']?['user_id']?.toString(),
       );
 
   AppNotification copyWith({
@@ -48,6 +54,7 @@ class AppNotification {
     String? type,
     Map<String, dynamic>? data,
     bool? isRead,
+    String? userId,
   }) {
     return AppNotification(
       id: id ?? this.id,
@@ -57,6 +64,7 @@ class AppNotification {
       type: type ?? this.type,
       data: data ?? this.data,
       isRead: isRead ?? this.isRead,
+      userId: userId ?? this.userId,
     );
   }
 }
@@ -71,15 +79,48 @@ class AppNotificationStorage {
     ),
   );
 
-  static const _notificationsKey = 'app_notifications_list';
+  static const _legacyKey = 'app_notifications_list';
 
-  Future<List<AppNotification>> getNotifications() async {
+  Future<String?> _resolveCurrentUserId() async {
+    final memoryId = AuthRepository.currentUserInstance?.id;
+    if (memoryId != null && memoryId.isNotEmpty) {
+      return memoryId;
+    }
     try {
-      final jsonStr = await _storage.read(key: _notificationsKey);
+      final profile = await TokenStorage.instance.getUserProfile();
+      if (profile != null && profile.id.isNotEmpty) {
+        return profile.id;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<String> _getStorageKey({String? explicitUserId}) async {
+    final uid = explicitUserId ?? await _resolveCurrentUserId();
+    if (uid != null && uid.isNotEmpty) {
+      return 'app_notifications_user_$uid';
+    }
+    return 'app_notifications_guest';
+  }
+
+  Future<List<AppNotification>> getNotifications({String? explicitUserId}) async {
+    try {
+      final currentUid = explicitUserId ?? await _resolveCurrentUserId();
+      final key = await _getStorageKey(explicitUserId: currentUid);
+      final jsonStr = await _storage.read(key: key);
       if (jsonStr == null || jsonStr.isEmpty) return [];
 
       final List<dynamic> decodedList = jsonDecode(jsonStr);
-      final list = decodedList.map((item) => AppNotification.fromJson(item)).toList();
+      final list = decodedList
+          .map((item) => AppNotification.fromJson(item))
+          // STRICT ISOLATION: Exclude notifications that belong to a different user
+          .where((n) {
+            if (currentUid == null || currentUid.isEmpty) {
+              return n.userId == null || n.userId!.isEmpty;
+            }
+            return n.userId == null || n.userId == currentUid;
+          })
+          .toList();
       
       // Sort newest first
       list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
@@ -89,9 +130,24 @@ class AppNotificationStorage {
     }
   }
 
-  Future<void> saveNotification(String title, String body, String type, Map<String, dynamic> data) async {
+  Future<void> saveNotification(
+    String title,
+    String body,
+    String type,
+    Map<String, dynamic> data, {
+    String? targetUserId,
+  }) async {
     try {
-      final list = await getNotifications();
+      final notifUserId = targetUserId ??
+          data['user_id']?.toString() ??
+          await _resolveCurrentUserId();
+
+      final currentUid = await _resolveCurrentUserId();
+
+      // If targetUserId is explicitly for another user and does not match the active user,
+      // save to that target user's isolated storage so it won't bleed into the current user
+      final key = await _getStorageKey(explicitUserId: notifUserId);
+      final list = await getNotifications(explicitUserId: notifUserId);
       
       final newNotif = AppNotification(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -101,6 +157,7 @@ class AppNotificationStorage {
         type: type,
         data: data,
         isRead: false,
+        userId: notifUserId,
       );
 
       // Deduplicate: If an identical notification arrived recently, update it instead of adding duplicate spam
@@ -115,6 +172,7 @@ class AppNotificationStorage {
           timestamp: DateTime.now(),
           data: data,
           isRead: false,
+          userId: notifUserId,
         );
       } else {
         list.insert(0, newNotif);
@@ -125,46 +183,52 @@ class AppNotificationStorage {
         list.removeRange(100, list.length);
       }
 
-      await _storage.write(key: _notificationsKey, value: jsonEncode(list.map((e) => e.toJson()).toList()));
+      await _storage.write(key: key, value: jsonEncode(list.map((e) => e.toJson()).toList()));
     } catch (_) {}
   }
 
   Future<void> markAsRead(String id) async {
     try {
+      final key = await _getStorageKey();
       final list = await getNotifications();
       final index = list.indexWhere((element) => element.id == id);
       if (index != -1) {
         list[index] = list[index].copyWith(isRead: true);
-        await _storage.write(key: _notificationsKey, value: jsonEncode(list.map((e) => e.toJson()).toList()));
+        await _storage.write(key: key, value: jsonEncode(list.map((e) => e.toJson()).toList()));
       }
     } catch (_) {}
   }
 
   Future<void> markAllAsRead() async {
     try {
+      final key = await _getStorageKey();
       final list = await getNotifications();
       final updatedList = list.map((e) => e.copyWith(isRead: true)).toList();
-      await _storage.write(key: _notificationsKey, value: jsonEncode(updatedList.map((e) => e.toJson()).toList()));
+      await _storage.write(key: key, value: jsonEncode(updatedList.map((e) => e.toJson()).toList()));
     } catch (_) {}
   }
 
   Future<void> deleteNotification(String id) async {
     try {
+      final key = await _getStorageKey();
       final list = await getNotifications();
       list.removeWhere((element) => element.id == id);
-      await _storage.write(key: _notificationsKey, value: jsonEncode(list.map((e) => e.toJson()).toList()));
+      await _storage.write(key: key, value: jsonEncode(list.map((e) => e.toJson()).toList()));
     } catch (_) {}
   }
 
   Future<void> clearAll() async {
     try {
-      await _storage.delete(key: _notificationsKey);
+      final key = await _getStorageKey();
+      await _storage.delete(key: key);
+      // Also clean up any legacy unscoped storage
+      await _storage.delete(key: _legacyKey);
     } catch (_) {}
   }
 
-  Future<int> getUnreadCount() async {
+  Future<int> getUnreadCount({String? explicitUserId}) async {
     try {
-      final list = await getNotifications();
+      final list = await getNotifications(explicitUserId: explicitUserId);
       return list.where((element) => !element.isRead).length;
     } catch (_) {
       return 0;

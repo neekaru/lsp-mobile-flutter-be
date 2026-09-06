@@ -143,9 +143,13 @@ class NotificationService {
   }
 
   Future<void> _showForegroundNotification(RemoteMessage message) async {
-    final currentUserId = AuthRepository.currentUserInstance?.id;
+    String? currentUserId = AuthRepository.currentUserInstance?.id;
+    if (currentUserId == null) {
+      try {
+        currentUserId = (await TokenStorage.instance.getUserProfile())?.id;
+      } catch (_) {}
+    }
     final notifUserId = message.data['user_id']?.toString();
-
     if (notifUserId != null && notifUserId.isNotEmpty) {
       if (currentUserId == null || notifUserId != currentUserId) {
         if (kDebugMode) {
@@ -231,9 +235,13 @@ class NotificationService {
   }
 
   void _handleNotificationClick(RemoteMessage message) {
-    final currentUserId = AuthRepository.currentUserInstance?.id;
+    String? currentUserId = AuthRepository.currentUserInstance?.id;
+    if (currentUserId == null) {
+      try {
+        currentUserId = (await TokenStorage.instance.getUserProfile())?.id;
+      } catch (_) {}
+    }
     final notifUserId = message.data['user_id']?.toString();
-
     if (notifUserId != null && notifUserId.isNotEmpty) {
       if (currentUserId == null || notifUserId != currentUserId) {
         if (kDebugMode) {

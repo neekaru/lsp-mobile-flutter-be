@@ -4,6 +4,7 @@ import '../api_client.dart';
 import '../../utils/api_routes.dart';
 import '../../models/auth_models.dart';
 import 'token_storage.dart';
+import '../common/notification_service.dart';
 
 class AuthRepository {
   AuthRepository({
@@ -231,6 +232,7 @@ class AuthRepository {
     }
     await _tokenStorage.clear();
     currentUserInstance = null;
+    NotificationService.onNotificationReceived.add(null);
   }
 
   static void notifyTokenExpired() {
@@ -246,6 +248,7 @@ class AuthRepository {
         }
       }
     }
+    NotificationService.onNotificationReceived.add(null);
   }
 
   static void registerTokenExpiredCallback(void Function() callback) {
