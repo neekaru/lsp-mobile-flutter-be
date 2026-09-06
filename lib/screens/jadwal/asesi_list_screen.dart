@@ -731,8 +731,9 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
+          color: const Color(0xFFE2E8F0),
           borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFCBD5E1)),
         ),
         child: Row(
           children: [
@@ -787,13 +788,13 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(7),
             boxShadow: isSelected
-                ? [
+                ? const [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: Color(0x1F000000),
                       blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 1.5),
                     ),
                   ]
                 : null,
