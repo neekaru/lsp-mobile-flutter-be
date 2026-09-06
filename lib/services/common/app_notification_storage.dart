@@ -106,6 +106,10 @@ class AppNotificationStorage {
   Future<List<AppNotification>> getNotifications({String? explicitUserId}) async {
     try {
       final currentUid = explicitUserId ?? await _resolveCurrentUserId();
+      if (currentUid == null || currentUid.isEmpty) {
+        return [];
+      }
+
       final key = await _getStorageKey(explicitUserId: currentUid);
       final jsonStr = await _storage.read(key: key);
       if (jsonStr == null || jsonStr.isEmpty) return [];
@@ -113,13 +117,8 @@ class AppNotificationStorage {
       final List<dynamic> decodedList = jsonDecode(jsonStr);
       final list = decodedList
           .map((item) => AppNotification.fromJson(item))
-          // STRICT ISOLATION: Exclude notifications that belong to a different user
-          .where((n) {
-            if (currentUid == null || currentUid.isEmpty) {
-              return n.userId == null || n.userId!.isEmpty;
-            }
-            return n.userId == null || n.userId == currentUid;
-          })
+          // STRICT ISOLATION: ONLY include notifications belonging strictly to this user
+          .where((n) => n.userId != null && n.userId == currentUid)
           .toList();
       
       // Sort newest first
@@ -138,14 +137,16 @@ class AppNotificationStorage {
     String? targetUserId,
   }) async {
     try {
+      final currentUid = await _resolveCurrentUserId();
       final notifUserId = targetUserId ??
           data['user_id']?.toString() ??
-          await _resolveCurrentUserId();
+          currentUid;
 
-      final currentUid = await _resolveCurrentUserId();
+      if (notifUserId == null || notifUserId.isEmpty) {
+        return;
+      }
 
-      // If targetUserId is explicitly for another user and does not match the active user,
-      // save to that target user's isolated storage so it won't bleed into the current user
+      // Save to that specific user's isolated storage key
       final key = await _getStorageKey(explicitUserId: notifUserId);
       final list = await getNotifications(explicitUserId: notifUserId);
       
