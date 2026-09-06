@@ -105,6 +105,31 @@ class AsesorDashboardJadwal {
     this.kuota = 0,
     this.totalAsesi = 0,
   });
+  String get statusLabel {
+    switch (status.toLowerCase().trim()) {
+      case '0':
+      case 'draft':
+      case 'waiting':
+        return 'Menunggu';
+      case '1':
+      case 'completed':
+      case 'selesai':
+        return 'Selesai';
+      case '2':
+      case 'canceled':
+      case 'dibatalkan':
+        return 'Dibatalkan';
+      case '3':
+      case 'running':
+      case 'berlangsung':
+        return 'Berlangsung';
+      case '4':
+      case 'pelaporan':
+        return 'Pelaporan';
+      default:
+        return status;
+    }
+  }
 
   bool get isAJJ => isSjj;
   bool get isSjj {

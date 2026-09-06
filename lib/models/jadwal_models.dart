@@ -148,15 +148,19 @@ class JadwalItem {
       case '0':
       case 'draft':
       case 'waiting':
+      case 'menunggu':
         return (const Color(0xFFEA580C), const Color(0xFFFFEDD5));
       case '1':
       case 'completed':
+      case 'selesai':
         return (const Color(0xFF10B981), const Color(0xFFECFDF5));
       case '2':
       case 'canceled':
+      case 'dibatalkan':
         return (const Color(0xFFEF4444), const Color(0xFFFEE2E2));
       case '3':
       case 'running':
+      case 'berlangsung':
         return (const Color(0xFF3F8CFF), const Color(0xFFF0F5FF));
       case '4':
       case 'pelaporan':

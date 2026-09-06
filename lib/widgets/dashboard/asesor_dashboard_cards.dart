@@ -73,7 +73,7 @@ class AsesorJadwalHariIniCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (statusColor, statusBgColor) = JadwalItem.statusColorsFor(item.status);
-    final statusLabel = item.status;
+    final statusLabel = item.statusLabel;
     final displayName = item.namaJadwal.isNotEmpty ? item.namaJadwal : item.skema;
     final formattedDate = DateFormatHelper.formatToIndonesian(item.tanggal);
     final hasTime = item.waktu.isNotEmpty && item.waktu != '0';
