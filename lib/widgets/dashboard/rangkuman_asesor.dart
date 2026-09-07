@@ -155,7 +155,7 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
         }(),
         // 3. Jadwal Belum Lengkap Section
         Padding(
-          padding: EdgeInsets.zero,
+          padding: const EdgeInsets.only(top: 14.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

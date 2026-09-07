@@ -590,11 +590,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // 3. Bantuan & Informasi Section - Tampil untuk Asesi & Asesor
             if (!isGuest && !isAdmin)
               const Padding(
-                padding: EdgeInsets.zero,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: BantuanInformasiSection(),
+                padding: EdgeInsets.only(
+                  left: 16.0,
+                  right: 16.0,
+                  top: 14.0,
+                  bottom: 16.0,
                 ),
+                child: BantuanInformasiSection(),
               )
             else
               const SizedBox(height: 32),
