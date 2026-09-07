@@ -3,6 +3,29 @@
 // Diekstrak dari asesor_asesi_models.dart.
 // ============================================================================
 
+String _cleanUnitBk(dynamic val) {
+  if (val == null) return '';
+  final str = val.toString().trim();
+  if (str.isEmpty || str == '0' || str == 'b:0;' || str == 'b:1;' || str == 'a:0:{}' || str == 's:0:"";' || str == '-' || str.toLowerCase() == 'null') {
+    return '';
+  }
+  if (str.startsWith('a:') || str.startsWith('s:') || str.startsWith('i:') || str.startsWith('b:')) {
+    final matches = RegExp(r'[si]:\d+:?"?([^";]*)"?;').allMatches(str);
+    final items = <String>[];
+    for (final m in matches) {
+      final v = m.group(1)?.trim() ?? '';
+      if (v.isNotEmpty && v != '0' && v != 'b:0;' && v != 'a:0:{}' && v != '-') {
+        items.add(v);
+      }
+    }
+    if (items.isNotEmpty) {
+      return items.join(', ');
+    }
+    return '';
+  }
+  return str;
+}
+
 class AK06AspectItem {
   final String aspect;
   final String kesesuaian;
@@ -61,7 +84,7 @@ class JadwalAK05PesertaItem {
       nik: json['nik'] as String? ?? '',
       rekomendasiAsesor: rawCode,
       rekomendasiLabel: label,
-      unitBk: json['unit_bk'] as String? ?? '',
+      unitBk: _cleanUnitBk(json['unit_bk']),
     );
   }
 }
@@ -203,7 +226,7 @@ class JadwalAK05DetailData {
       daftarAsesor: asesorList,
       peserta: pesertaList,
       pencapaian: json['pencapaian'] as String? ?? '',
-      unitBk: json['unit_bk'] as String? ?? '',
+      unitBk: _cleanUnitBk(json['unit_bk']),
       saranTindakLanjut: json['saran_tindak_lanjut'] as String? ?? '',
       peliharaKompetensi: json['pelihara_kompetensi'] as String? ?? '',
       catatan: json['catatan'] as String? ?? '',

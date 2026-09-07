@@ -817,7 +817,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
                 _buildInputField(
                   label: 'Unit yang Belum Kompeten (Jika ada)',
                   controller: _unitBkController,
-                  hintText: 'Tuliskan kode/judul unit yang belum kompeten...',
+                  hintText: 'Kosongkan jika semua peserta kompeten...',
                 ),
                 const SizedBox(height: 12),
                 _buildInputField(
