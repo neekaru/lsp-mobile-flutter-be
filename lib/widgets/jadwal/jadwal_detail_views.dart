@@ -425,6 +425,16 @@ class JadwalDetailAsesorView extends StatelessWidget {
                                                 ),
                                               ),
                                             ],
+                                            if (m.validator.isNotEmpty) ...[
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'Validator: ${m.validator}',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Color(0xFF64748B),
+                                                ),
+                                              ),
+                                            ],
                                             const SizedBox(height: 12),
                                             SizedBox(
                                               width: double.infinity,

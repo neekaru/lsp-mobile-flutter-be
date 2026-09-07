@@ -756,6 +756,7 @@ class MateriUjiItem {
   final String namaMapa;
   final String linkMukManual;
   final String penyusun;
+  final String validator;
   final String statusMapa;
 
   const MateriUjiItem({
@@ -763,6 +764,7 @@ class MateriUjiItem {
     required this.namaMapa,
     required this.linkMukManual,
     this.penyusun = '',
+    this.validator = '',
     this.statusMapa = '',
   });
 
@@ -778,6 +780,7 @@ class MateriUjiItem {
           json['link_mapa_manual']?.toString() ??
           '',
       penyusun: json['penyusun']?.toString() ?? '',
+      validator: json['validator']?.toString() ?? '',
       statusMapa: json['status_mapa']?.toString() ?? '',
     );
   }
