@@ -284,6 +284,7 @@ class AsesorDashboardData {
   final AsesorDashboardAlertBanner alertBanner;
   final List<AsesorDashboardJadwal> jadwalHariIni;
   final List<AsesorDashboardTugas> jadwalBelumLengkap;
+  final List<AsesorMitra> mitra;
   final AsesorStatistikData? statistikBulanan;
 
   List<AsesorDashboardTugas> get tugasPrioritas => jadwalBelumLengkap;
@@ -293,6 +294,7 @@ class AsesorDashboardData {
     required this.alertBanner,
     required this.jadwalHariIni,
     required this.jadwalBelumLengkap,
+    this.mitra = const [],
     this.statistikBulanan,
   });
 
@@ -300,36 +302,85 @@ class AsesorDashboardData {
     final summaryJson = json['summary'] ?? {};
     final alertJson = json['alert_banner'] ?? {};
     final List<dynamic> jadwalList = json['jadwal_hari_ini'] ?? [];
-    final List<dynamic> tugasList =
-        json['jadwal_belum_lengkap'] ?? json['tugas_prioritas'] ?? [];
+    final List<dynamic> tugasList = json['jadwal_belum_lengkap'] ?? json['tugas_prioritas'] ?? [];
+    final List<dynamic> mitraList = json['mitra'] ?? [];
     final statJson = json['statistik_bulanan'];
 
     return AsesorDashboardData(
       summary: AsesorDashboardSummaryCount.fromJson(summaryJson),
       alertBanner: AsesorDashboardAlertBanner.fromJson(alertJson),
-      jadwalHariIni: jadwalList
-          .map((j) => AsesorDashboardJadwal.fromJson(j))
-          .toList(),
-      jadwalBelumLengkap: tugasList
-          .map((t) => AsesorDashboardTugas.fromJson(t))
-          .toList(),
-      statistikBulanan: statJson is Map<String, dynamic>
-          ? AsesorStatistikData.fromJson(statJson)
-          : null,
+      jadwalHariIni: jadwalList.map((j) => AsesorDashboardJadwal.fromJson(j)).toList(),
+      jadwalBelumLengkap: tugasList.map((t) => AsesorDashboardTugas.fromJson(t)).toList(),
+      mitra: mitraList.map((m) => AsesorMitra.fromJson(m as Map<String, dynamic>)).toList(),
+      statistikBulanan: statJson is Map<String, dynamic> ? AsesorStatistikData.fromJson(statJson) : null,
     );
   }
 
-  /// Empty shell when API fails — no demo jadwal/tugas.
   factory AsesorDashboardData.empty() {
     return AsesorDashboardData(
       summary: AsesorDashboardSummaryCount.empty(),
       alertBanner: AsesorDashboardAlertBanner.empty(),
       jadwalHariIni: const [],
       jadwalBelumLengkap: const [],
-      statistikBulanan: null,
     );
   }
 }
+
+class AsesorMitra {
+  final int id;
+  final int idAsesor;
+  final String tanggalBermitra;
+  final int idTuk;
+  final String namaTuk;
+  final String kota;
+  final String alamat;
+  final String deskripsiMitra;
+  final String proyeksiMitra;
+  final String linkMouMitra;
+  final double? latitude;
+  final double? longitude;
+  final int statusMitra;
+
+  const AsesorMitra({
+    required this.id,
+    required this.idAsesor,
+    required this.tanggalBermitra,
+    required this.idTuk,
+    this.namaTuk = '',
+    this.kota = '',
+    this.alamat = '',
+    this.deskripsiMitra = '',
+    this.proyeksiMitra = '',
+    this.linkMouMitra = '',
+    this.latitude,
+    this.longitude,
+    this.statusMitra = 0,
+  });
+
+  bool get hasCoordinates => latitude != null && longitude != null;
+
+  factory AsesorMitra.fromJson(Map<String, dynamic> json) {
+    final lat = (json['latitude'] as num?)?.toDouble();
+    final lng = (json['longitude'] as num?)?.toDouble();
+    final validCoordinates = lat != null && lng != null && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    return AsesorMitra(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      idAsesor: (json['id_asesor'] as num?)?.toInt() ?? 0,
+      tanggalBermitra: json['tanggal_bermitra']?.toString() ?? '',
+      idTuk: (json['id_tuk'] as num?)?.toInt() ?? 0,
+      namaTuk: json['nama_tuk']?.toString() ?? '',
+      kota: json['kota']?.toString() ?? '',
+      alamat: json['alamat']?.toString() ?? '',
+      deskripsiMitra: json['deskripsi_mitra']?.toString() ?? '',
+      proyeksiMitra: json['proyeksi_mitra']?.toString() ?? '',
+      linkMouMitra: json['link_mou_mitra']?.toString() ?? '',
+      latitude: validCoordinates ? lat : null,
+      longitude: validCoordinates ? lng : null,
+      statusMitra: (json['status_mitra'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
 
 class AsesorMUKItem {
   final int id;

@@ -3,8 +3,8 @@ import '../../screens/jadwal/jadwal_screen.dart';
 import '../../models/dashboard_models.dart';
 import '../../utils/date_format_helper.dart';
 import '../../screens/statistik/asesor_muk_detail_screen.dart';
+import '../../screens/dashboard/asesor_mitra_list_screen.dart';
 import 'asesor_dashboard_cards.dart';
-
 class RangkumanAsesor extends StatefulWidget {
   final bool isLoading;
   final VoidCallback? onNavigateToJadwal;
@@ -75,16 +75,13 @@ class _RangkumanAsesorState extends State<RangkumanAsesor> {
             );
           },
           onTapMitra: () {
-            showAsesorStatDetailDialog(
-              context: context,
-              title: 'Jumlah Mitra',
-              count: widget.data?.summary.jumlahMitra ?? 0,
-              unit: 'Mitra',
-              description:
-                  'Total mitra kerja sama asosiasi, instansi, atau TUK terkait penugasan asesmen Anda.',
-              icon: Icons.handshake_rounded,
-              iconColor: const Color(0xFF10B981),
-              iconBgColor: const Color(0xFFECFDF5),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AsesorMitraListScreen(
+                  mitra: widget.data?.mitra ?? const [],
+                ),
+              ),
             );
           },
         ),
