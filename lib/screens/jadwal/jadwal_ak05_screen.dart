@@ -529,7 +529,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '1. ${data.namaAsesor}',
+                          '1. ${data.namaAsesor.isNotEmpty ? data.namaAsesor : "Asesor"}',
                           style: const TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
