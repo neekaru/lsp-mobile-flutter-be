@@ -82,18 +82,11 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
       'desc': 'Umpan Balik & Catatan Asesi',
     },
     {
-      'id': 'AK04A',
-      'code': 'FR-AK.04A',
-      'title': '7. FR-AK.04A Permohonan Banding',
-      'short': '7. AK-04A',
-      'desc': 'Pengajuan Permohonan Banding Asesi',
-    },
-    {
-      'id': 'AK04B',
-      'code': 'FR-AK.04B',
-      'title': '8. FR-AK.04B Keputusan Banding',
-      'short': '8. AK-04B',
-      'desc': 'Keputusan Banding oleh Komite / Tim',
+      'id': 'AK04',
+      'code': 'FR-AK.04',
+      'title': '7. FR-AK.04 Banding Asesmen',
+      'short': '7. AK-04',
+      'desc': 'Permohonan & Keputusan Banding Asesmen',
     },
   ];
 
@@ -720,9 +713,7 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
       case 'AK03':
         return AK03Section(detailData: _detailData);
       case 'AK04A':
-        return AK04ASection(detailData: _detailData);
       case 'AK04B':
-        return AK04BSection(detailData: _detailData);
       case 'AK04':
         return AK04Section(detailData: _detailData);
       default:

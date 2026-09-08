@@ -69,9 +69,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
         final data = JadwalAK05DetailData.fromJson(res['data'] as Map<String, dynamic>);
         setState(() {
           _detailData = data;
-          _linkRekamanController.text = data.linkRekamanAsesor.isNotEmpty
-              ? data.linkRekamanAsesor
-              : data.linkFolderRekaman;
+          _linkRekamanController.text = data.linkRekamanAsesor;
           _pencapaianController.text = data.pencapaian;
           _unitBkController.text = data.unitBk;
           _saranController.text = data.saranTindakLanjut;
@@ -561,11 +559,7 @@ class _JadwalAK05ScreenState extends State<JadwalAK05Screen> {
                   ...data.daftarAsesor.asMap().entries.map((entry) {
                     final index = entry.key;
                     final as = entry.value;
-                    final link = as.linkRekaman.isNotEmpty
-                        ? as.linkRekaman
-                        : (_linkRekamanController.text.isNotEmpty
-                            ? _linkRekamanController.text.trim()
-                            : '');
+                    final link = as.linkRekaman;
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 10),
