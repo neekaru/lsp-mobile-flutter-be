@@ -23,6 +23,13 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
   bool get _isAdmin =>
       AuthRepository.currentUserInstance?.role == 'admin';
 
+  int get _ticketId {
+    final raw = widget.ticket['id'];
+    if (raw is int) return raw;
+    if (raw is num) return raw.toInt();
+    return int.tryParse(raw?.toString().replaceAll(RegExp(r'[^0-9]'), '') ?? '') ?? 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -42,7 +49,7 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
   Future<void> _fetchTicketDetail() async {
     setState(() => _isLoading = true);
     try {
-      final id = widget.ticket['id'] as int;
+      final id = _ticketId;
       final res = _isAdmin
           ? await TiketService.getTiketDetail(id)
           : await AsesorService.getTiketDetail(id);
@@ -66,7 +73,7 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
   Future<void> _sendReply() async {
     final text = _replyController.text.trim();
     if (text.isEmpty) return;
-    final id = widget.ticket['id'] as int;
+    final id = _ticketId;
 
     setState(() => _isSending = true);
     _replyController.clear();
@@ -86,7 +93,7 @@ class _DetailTiketScreenState extends State<DetailTiketScreen> {
 
   // ── Admin only: ubah status ──────────────────────────────────────────────────
   Future<void> _changeStatus(String newStatus) async {
-    final id = widget.ticket['id'] as int;
+    final id = _ticketId;
     final ok = await TiketService.updateStatus(id, newStatus);
     if (mounted) {
       if (ok) {
