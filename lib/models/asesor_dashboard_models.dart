@@ -358,6 +358,20 @@ class AsesorMitra {
   });
 
   bool get hasCoordinates => latitude != null && longitude != null;
+  bool get isAktif => statusMitra == 1;
+  bool get hasMou => linkMouMitra.trim().isNotEmpty;
+
+  String get statusLabel {
+    switch (statusMitra) {
+      case 1:
+        return 'Aktif';
+      case 2:
+        return 'Selesai';
+      case 0:
+      default:
+        return 'Menunggu';
+    }
+  }
 
   factory AsesorMitra.fromJson(Map<String, dynamic> json) {
     final lat = (json['latitude'] as num?)?.toDouble();
