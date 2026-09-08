@@ -1,4 +1,5 @@
 import '../utils/json_helper.dart';
+import 'jadwal_models.dart';
 
 // ============================================================================
 // Asesi Dashboard Summary Model
@@ -17,6 +18,7 @@ class AsesiDashboardSummary {
   final bool hasAlert;
   final String alertTitle;
   final String alertSubtitle;
+  final AsesiTimelineTerakhir timelineTerakhir;
 
   const AsesiDashboardSummary({
     required this.totalJadwalDiikuti,
@@ -30,8 +32,8 @@ class AsesiDashboardSummary {
     this.hasAlert = false,
     this.alertTitle = '',
     this.alertSubtitle = '',
+    this.timelineTerakhir = const AsesiTimelineTerakhir(),
   });
-
 
   factory AsesiDashboardSummary.fromJson(Map<String, dynamic> json) {
     // Check if the json has a nested 'summary' key (from /api/asesi/dashboard)
@@ -57,6 +59,12 @@ class AsesiDashboardSummary {
       summary['hasil_asesmen'] ?? summary['skema_pernah_dijalani'],
     );
 
+    final timeline = AsesiTimelineTerakhir.fromJson(
+      json['timeline_terakhir'] is Map<String, dynamic>
+          ? json['timeline_terakhir']
+          : null,
+    );
+
     return AsesiDashboardSummary(
       totalJadwalDiikuti: skemaDiikuti,
       sertifikatDiterima: sertAktif,
@@ -69,6 +77,7 @@ class AsesiDashboardSummary {
       hasAlert: alert['has_alert'] == true,
       alertTitle: alert['title']?.toString() ?? '',
       alertSubtitle: alert['subtitle']?.toString() ?? '',
+      timelineTerakhir: timeline,
     );
   }
 
@@ -85,6 +94,125 @@ class AsesiDashboardSummary {
       hasAlert: false,
       alertTitle: '',
       alertSubtitle: '',
+      timelineTerakhir: AsesiTimelineTerakhir(),
+    );
+  }
+}
+
+// ============================================================================
+// Asesi Timeline Models
+// ============================================================================
+
+class AsesiTimelineTerakhir {
+  final bool hasUji;
+  final int asesiId;
+  final int jadwalId;
+  final String namaJadwal;
+  final String tanggalMulai;
+  final String tanggalAkhir;
+  final String tuk;
+  final int skemaId;
+  final String namaSkema;
+  final String kodeSkema;
+  final String statusJadwal;
+  final String statusLabel;
+  final String currentStep;
+  final List<AsesiTimelineStep> steps;
+
+  const AsesiTimelineTerakhir({
+    this.hasUji = false,
+    this.asesiId = 0,
+    this.jadwalId = 0,
+    this.namaJadwal = '',
+    this.tanggalMulai = '',
+    this.tanggalAkhir = '',
+    this.tuk = '',
+    this.skemaId = 0,
+    this.namaSkema = '',
+    this.kodeSkema = '',
+    this.statusJadwal = '0',
+    this.statusLabel = 'Aktif',
+    this.currentStep = 'apl01',
+    this.steps = const [],
+  });
+
+  factory AsesiTimelineTerakhir.fromJson(Map<String, dynamic>? json) {
+    if (json == null || json['has_uji'] != true) {
+      return const AsesiTimelineTerakhir();
+    }
+
+    final rawSteps = json['steps'];
+    final List<AsesiTimelineStep> parsedSteps = [];
+    if (rawSteps is List) {
+      for (final s in rawSteps) {
+        if (s is Map<String, dynamic>) {
+          parsedSteps.add(AsesiTimelineStep.fromJson(s));
+        }
+      }
+    }
+
+    return AsesiTimelineTerakhir(
+      hasUji: json['has_uji'] == true,
+      asesiId: JsonHelper.asInt(json['asesi_id']),
+      jadwalId: JsonHelper.asInt(json['jadwal_id']),
+      namaJadwal: json['nama_jadwal']?.toString() ?? '',
+      tanggalMulai: json['tanggal_mulai']?.toString() ?? '',
+      tanggalAkhir: json['tanggal_akhir']?.toString() ?? '',
+      tuk: json['tuk']?.toString() ?? '',
+      skemaId: JsonHelper.asInt(json['skema_id']),
+      namaSkema: json['nama_skema']?.toString() ?? '',
+      kodeSkema: json['kode_skema']?.toString() ?? '',
+      statusJadwal: json['status_jadwal']?.toString() ?? '0',
+      statusLabel: json['status_label']?.toString() ?? 'Aktif',
+      currentStep: json['current_step']?.toString() ?? 'apl01',
+      steps: parsedSteps,
+    );
+  }
+
+  JadwalItem toJadwalItem() {
+    return JadwalItem(
+      id: jadwalId,
+      skema: namaSkema,
+      tuk: tuk,
+      tanggalMulai: tanggalMulai,
+      tanggalSelesai: tanggalAkhir.isNotEmpty ? tanggalAkhir : tanggalMulai,
+      status: statusJadwal == '1' ? 'completed' : (statusJadwal == '3' ? 'running' : 'draft'),
+      statusJadwal: statusJadwal,
+      statusLabel: statusLabel,
+      jumlahAsesi: 1,
+      asesor: const [],
+    );
+  }
+}
+
+class AsesiTimelineStep {
+  final String key;
+  final String title;
+  final String subtitle;
+  final String status;
+  final String statusLabel;
+  final bool isActive;
+  final bool canClick;
+
+  const AsesiTimelineStep({
+    required this.key,
+    required this.title,
+    required this.subtitle,
+    required this.status,
+    required this.statusLabel,
+    this.isActive = false,
+    this.canClick = false,
+  });
+
+  factory AsesiTimelineStep.fromJson(Map<String, dynamic> json) {
+    return AsesiTimelineStep(
+      key: json['key']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      subtitle: json['subtitle']?.toString() ?? '',
+      status: json['status']?.toString() ?? 'pending',
+      statusLabel: json['status_label']?.toString() ?? '',
+      isActive: json['is_active'] == true,
+      canClick: json['can_click'] == true,
     );
   }
 }

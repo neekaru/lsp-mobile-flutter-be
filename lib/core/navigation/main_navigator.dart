@@ -49,7 +49,10 @@ class MainNavigatorState extends State<MainNavigator> {
     final isGuest = AuthRepository.currentUserInstance == null;
     if (isGuest) {
       _screens = [
-        DashboardScreen(onNavigateToJadwal: () {}),
+        DashboardScreen(
+          onNavigateToJadwal: () {},
+          onNavigateToTab: setTab,
+        ),
         BeritaScreen(onBackToHome: () => setTab(0)),
         ValidasiSertifikatScreen(onBackToHome: () => setTab(0)),
         ProfileScreen(onBackToHome: () => setTab(0)),
@@ -62,7 +65,10 @@ class MainNavigatorState extends State<MainNavigator> {
 
       if (isAsesor) {
         _screens = [
-          DashboardScreen(onNavigateToJadwal: () => setTab(1)),
+          DashboardScreen(
+            onNavigateToJadwal: () => setTab(1),
+            onNavigateToTab: setTab,
+          ),
           JadwalScreen(onBackToHome: () => setTab(0)),
           AsesorAiScreen(
             onBackToHome: () => setTab(0),
@@ -74,7 +80,10 @@ class MainNavigatorState extends State<MainNavigator> {
         ];
       } else if (isAsesi) {
         _screens = [
-          DashboardScreen(onNavigateToJadwal: () => setTab(2)),
+          DashboardScreen(
+            onNavigateToJadwal: () => setTab(2),
+            onNavigateToTab: setTab,
+          ),
           SkemaSertifikasiScreen(onBackToHome: () => setTab(0)),
           JadwalScreen(onBackToHome: () => setTab(0)),
           AsesiSertifikatScreen(onBackToHome: () => setTab(0)),
@@ -82,7 +91,10 @@ class MainNavigatorState extends State<MainNavigator> {
         ];
       } else {
         _screens = [
-          DashboardScreen(onNavigateToJadwal: () => setTab(2)),
+          DashboardScreen(
+            onNavigateToJadwal: () => setTab(2),
+            onNavigateToTab: setTab,
+          ),
           StatistikScreen(onBackToHome: () => setTab(0)),
           JadwalScreen(onBackToHome: () => setTab(0)),
           SertifikatScreen(onBackToHome: () => setTab(0)),

@@ -23,11 +23,17 @@ import '../profile/honor_asesor_screen.dart';
 import '../profile/profile_asesor_screen.dart';
 import '../blanko/admin_pengajuan_blanko_screen.dart';
 import '../../utils/url_helper.dart';
+import '../../widgets/dashboard/asesi_timeline_section.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
+  final Function(int tabIndex)? onNavigateToTab;
 
-  const DashboardScreen({super.key, this.onNavigateToJadwal});
+  const DashboardScreen({
+    super.key,
+    this.onNavigateToJadwal,
+    this.onNavigateToTab,
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -454,6 +460,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ? RangkumanAsesi(
                                 data: _asesiSummaryData,
                                 isLoading: _isLoading,
+                                onNavigateToTab: widget.onNavigateToTab,
                               )
                             : (isAsesor
                                   ? RangkumanAsesor(
@@ -543,6 +550,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
 
+            // 1.4. Linimasa Uji Terakhir Section — Khusus untuk Asesi
+            if (isAsesi)
+              AsesiTimelineSection(
+                timeline: _asesiSummaryData?.timelineTerakhir,
+                isLoading: _isLoading,
+                onNavigateToTab: widget.onNavigateToTab,
+                onRefresh: _loadAllData,
+              ),
+
             // 1.5. Mulai Skema Sertifikasi Section - Hanya untuk Guest/Publik (sembunyi untuk asesi/admin/asesor)
             if (isGuest)
               const Padding(
@@ -569,8 +585,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (isAdmin)
               _buildAdminRingkasanSection(),
 
-            // 2. Tren Asesmen Bulanan Section — tampil untuk role login (bukan guest/publik, bukan asesor)
-            if (!isAsesor && !isGuest)
+            // 2. Tren Asesmen Bulanan Section — hanya untuk Admin/pengguna selain Asesi & Asesor
+            if (!isAsesor && !isGuest && !isAsesi)
               Padding(
                 padding: const EdgeInsets.only(
                   left: 16.0,
