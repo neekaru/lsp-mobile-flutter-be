@@ -356,9 +356,15 @@ class NotificationService {
             )
           : const UserRole(role: 'asesor', name: 'User', email: '');
 
+      final rawNamaJadwal = (data['nama_jadwal'] ?? '').toString().trim();
+      final rawSkema = (data['skema'] ?? '').toString().trim();
+      final displayTitle = rawNamaJadwal.isNotEmpty
+          ? rawNamaJadwal
+          : (rawSkema.isNotEmpty ? rawSkema : 'Jadwal Asesmen');
+
       final jadwalItem = JadwalItem(
         id: jadwalId,
-        skema: (data['skema'] ?? data['nama_jadwal'] ?? 'Jadwal Asesmen').toString(),
+        skema: displayTitle,
         tuk: (data['tuk'] ?? 'TUK Mandiri').toString(),
         tanggalMulai: (data['tanggal'] ?? '').toString(),
         tanggalSelesai: (data['tanggal'] ?? '').toString(),

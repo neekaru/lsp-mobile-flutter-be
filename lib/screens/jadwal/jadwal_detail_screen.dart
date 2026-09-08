@@ -56,6 +56,18 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
       }
     }
   }
+  String get _displayTitle =>
+      _detailData?.jadwal.isNotEmpty == true ? _detailData!.jadwal : widget.jadwal.skema;
+
+  String get _displayTuk {
+    if (_detailData != null && _detailData!.tuk.isNotEmpty) {
+      return _detailData!.alamatTuk.isNotEmpty
+          ? '${_detailData!.tuk}\n(${_detailData!.alamatTuk})'
+          : _detailData!.tuk;
+    }
+    return widget.jadwal.tuk;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +141,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.jadwal.skema,
+                                      _displayTitle,
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -243,11 +255,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                 iconColor: const Color(0xFFEF5350),
                                 iconBgColor: const Color(0xFFFFEBEE),
                                 label: 'Tempat Uji Kompetensi',
-                                value:
-                                    _detailData != null &&
-                                        _detailData!.alamatTuk.isNotEmpty
-                                    ? '${_detailData!.tuk}\n(${_detailData!.alamatTuk})'
-                                    : widget.jadwal.tuk,
+                                value: _displayTuk,
                               ),
                               DetailInfoRow(
                                 icon: LucideIcons.calendar,
@@ -282,9 +290,9 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                       MaterialPageRoute(
                                         builder: (context) => AsesiListScreen(
                                           jadwalId: widget.jadwal.id,
-                                          jadwalTitle: widget.jadwal.skema,
+                                          jadwalTitle: _displayTitle,
                                           tanggal: widget.jadwal.tanggalMulai,
-                                          tuk: widget.jadwal.tuk,
+                                          tuk: _displayTuk,
                                           statusJadwal: widget.jadwal.statusJadwal,
                                           isSelesai: widget.jadwal.status == 'completed' || widget.jadwal.statusJadwal == '1',
                                         ),
@@ -362,7 +370,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        'Pelaksanaan uji kompetensi untuk skema ${widget.jadwal.skema} sudah sesuai dengan standar yang berlaku.',
+                                        'Pelaksanaan uji kompetensi untuk skema $_displayTitle sudah sesuai dengan standar yang berlaku.',
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: Colors.black87,
@@ -485,8 +493,7 @@ class _JadwalDetailScreenState extends State<JadwalDetailScreen> {
                                                     ProfilAsesorScreen(
                                                       name:
                                                           asesorItem.namaAsesor,
-                                                      skema:
-                                                          widget.jadwal.skema,
+                                                      skema: _displayTitle,
                                                       lokasi: asesorItem
                                                           .kabupatenKota,
                                                       asesorDetail: asesorItem,
