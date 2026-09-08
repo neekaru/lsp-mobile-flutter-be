@@ -186,11 +186,13 @@ class _AK02SectionState extends State<AK02Section> {
     }
 
     final isExp = kandidat == '3' || kandidat == '4';
-    final isTerstruktur = !isExp && selectedMapa != null && (
+    final isTerstruktur = (!isExp && selectedMapa != null && (
         selectedMapa.isTerstruktur ||
         selectedMapa.namaMapa.toLowerCase().contains('terstruktur') ||
-        selectedMapa.namaMapa.toLowerCase().contains('dit')
-    );
+        selectedMapa.namaMapa.toLowerCase().contains('dit') ||
+        selectedMapa.hasIA04A ||
+        selectedMapa.hasIA04B
+    )) || (selectedMapa?.hasIA04A == true || selectedMapa?.hasIA04B == true);
     final isPorto = isExp || (selectedMapa != null && (
         selectedMapa.isPortofolio ||
         selectedMapa.namaMapa.toLowerCase().contains('portofolio') ||

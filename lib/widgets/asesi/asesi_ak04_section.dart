@@ -358,7 +358,7 @@ class _AK04SectionState extends State<AK04Section> {
                         Row(
                           children: [
                             Icon(
-                              LucideIcons.file_question,
+                              LucideIcons.file_question_mark,
                               size: 16,
                               color: adaBanding ? const Color(0xFFDC2626) : const Color(0xFF2563EB),
                             ),

@@ -81,13 +81,6 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
       'short': '6. AK-03',
       'desc': 'Umpan Balik & Catatan Asesi',
     },
-    {
-      'id': 'AK04',
-      'code': 'FR-AK.04',
-      'title': '7. FR-AK.04 Banding Asesmen',
-      'short': '7. AK-04',
-      'desc': 'Permohonan & Keputusan Banding Asesmen',
-    },
   ];
 
   bool isFormUnlocked(String formId) {
