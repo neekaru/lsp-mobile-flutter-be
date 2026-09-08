@@ -12,10 +12,11 @@
 
 Untuk **SETIAP PERUBAHAN APAPUN** (Widget, Screen, Form, Model Parsing, Service API, Navigasi, State Management, Filter/Search, Storage/Cache):
 
-1. **Kepatuhan Mutlak pada Kontrak Backend (Backend Alignment)**:
-   - Frontend **WAJIB selalu mengikuti (follow) struktur data dan kontrak resmi Backend**.
-   - **DILARANG** membuat parsing liar atau asumsi struktur data sepihak di Flutter yang berbeda dari apa yang disediakan oleh API Backend.
-   - **Jika Ingin / Terpaksa Melakukan Parsing Khusus**: **WAJIB tanyakan / konfirmasi terlebih dahulu ke user di chat** agar dapat diselaraskan di sisi Backend terlebih dahulu, sehingga struktur data tetap *cross-compatible* dan tidak menimbulkan mismatch di kemudian hari.
+1. **Kepatuhan pada Kontrak Backend & Kebijakan Breaking Changes**:
+   - Frontend **WAJIB selalu selaras dengan struktur data dan kontrak resmi Backend**.
+   - **Breaking Changes Diizinkan Jika Benar-Benar Diperlukan**: Jika perombakan UI/UX, simplifikasi model, atau kebutuhan bisnis menuntut perubahan struktur, breaking changes **boleh dilakukan** dengan menyelaraskan kedua sisi (Frontend & Backend) sekaligus.
+   - **Jika Tidak Perlu Breaking Changes $\rightarrow$ WAJIB 100% Backward Compatible**:
+     - Jika perubahan tidak memerlukan breaking change, pertahankan fallback field dan parsing yang toleran agar APK versi sebelumnya tetap aman dan tidak crash.
 
 2. **Defensive Parsing & Fault-Tolerant by Default**:
    - Model Flutter **WAJIB** kebal terhadap segala variasi format API backend:
@@ -36,7 +37,7 @@ Untuk **SETIAP PERUBAHAN APAPUN** (Widget, Screen, Form, Model Parsing, Service 
    - Pastikan status, warna badge, aksi tombol, dan data yang tampil **100% identik dan konsisten** di semua jalur tersebut.
 
 5. **Self-Verification Checklist**:
-   - [ ] Apakah model/parsing sudah 100% sesuai dengan contract Backend? (Jika ada parsing khusus, sudah konfirmasi user?)
+   - [ ] Jika ada breaking change, apakah memang benar-benar diperlukan dan sudah diselaraskan di frontend & backend? Jika tidak perlu, apakah model/parsing sudah 100% backward compatible?
    - [ ] Apakah model parsing aman jika backend mengirim field null/empty atau tipe yang berbeda?
    - [ ] Apakah data di Dashboard, List, dan Detail selaras dan tidak ada status mismatch?
    - [ ] Apakah semua state UI (Loading, Empty Data, Error / Offline, Success) tertangani dengan rapi?
