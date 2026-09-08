@@ -214,6 +214,7 @@ class ApiRoutes {
   static const String asesorAiChat = '/api/asesor/ai/chat';
   static const String asesorLeads = '/api/asesor/leads';
   static const String asesorLeadsStats = '/api/asesor/leads/stats';
+  static const String asesorLeadsRegisteredPlaces = '/api/asesor/leads/registered-places';
   static String asesorLeadDetail(String id) => '/api/asesor/leads/$id';
   static String asesorLeadStatus(String id) => '/api/asesor/leads/$id/status';
 

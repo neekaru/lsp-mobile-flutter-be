@@ -289,6 +289,33 @@ class LeadStorageService {
     );
   }
 
+  /// Search registered TUK places from Backend Database
+  static Future<List<RegisteredPlace>> searchRegisteredPlaces(String query) async {
+    final clean = query.trim();
+    if (clean.isEmpty) return [];
+
+    try {
+      final response = await ApiClient.dio.get(
+        ApiRoutes.asesorLeadsRegisteredPlaces,
+        queryParameters: {'q': clean},
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'];
+        if (data is List) {
+          return data
+              .map((item) => RegisteredPlace.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('⚠️ searchRegisteredPlaces error: $e');
+      }
+    }
+    return [];
+  }
+
   /// AI Potensi Generator Engine
   /// Menghasilkan analisis potensi jurusan, estimasi siswa per tahun, dan target skema uji LSP
   static Future<LeadModel> generateAiPotensi(LeadModel lead) async {

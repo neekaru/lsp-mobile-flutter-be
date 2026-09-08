@@ -316,4 +316,44 @@ class PlaceResult {
   }
 }
 
+class RegisteredPlace {
+  final int idTuk;
+  final String namaTempat;
+  final String kota;
+  final String alamat;
+  final String telepon;
+  final String email;
+  final String picName;
+  final double? latitude;
+  final double? longitude;
+
+  const RegisteredPlace({
+    required this.idTuk,
+    required this.namaTempat,
+    this.kota = '',
+    this.alamat = '',
+    this.telepon = '',
+    this.email = '',
+    this.picName = '',
+    this.latitude,
+    this.longitude,
+  });
+
+  bool get hasCoordinates => latitude != null && longitude != null;
+
+  factory RegisteredPlace.fromJson(Map<String, dynamic> json) {
+    return RegisteredPlace(
+      idTuk: (json['id_tuk'] as num?)?.toInt() ?? 0,
+      namaTempat: json['nama_tempat']?.toString() ?? '',
+      kota: json['kota']?.toString() ?? '',
+      alamat: json['alamat']?.toString() ?? '',
+      telepon: json['telepon']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      picName: json['pic_name']?.toString() ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+    );
+  }
+}
+
 
