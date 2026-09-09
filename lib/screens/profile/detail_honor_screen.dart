@@ -337,6 +337,9 @@ class _DetailHonorScreenState extends State<DetailHonorScreen> {
 
           Expanded(
             child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(

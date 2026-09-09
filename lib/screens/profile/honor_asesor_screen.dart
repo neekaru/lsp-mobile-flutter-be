@@ -24,7 +24,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
   DateTime? _selectedMonth;
   bool _isLoading = false;
   List<Map<String, dynamic>> _honorItems = [];
-
+  List<Map<String, dynamic>> _filteredItems = [];
   String get _selectedMonthLabel => _selectedMonth == null
       ? 'Semua'
       : '${_monthNames[_selectedMonth!.month - 1]} ${_selectedMonth!.year}';
@@ -83,6 +83,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
               'tanggal': map['tanggal'] ?? '',
             };
           }).toList();
+          _updateFilteredItems();
         });
         return;
       }
@@ -109,6 +110,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
               'tanggal': map['tanggal'] ?? '',
             };
           }).toList();
+          _updateFilteredItems();
         });
       }
     } catch (e) {
@@ -266,7 +268,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
     );
   }
 
-  List<Map<String, dynamic>> _getFilteredItems() {
+  void _updateFilteredItems() {
     List<Map<String, dynamic>> result = List.from(_honorItems);
 
     // Filter out items that are already lunas / Selesai per business rule
@@ -287,7 +289,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       }).toList();
     }
 
-    return result;
+    _filteredItems = result;
   }
 
   void _navigateToHonorDetail(Map<String, dynamic> item) {
@@ -303,7 +305,6 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredList = _getFilteredItems();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -356,9 +357,11 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
             child: RefreshIndicator(
               onRefresh: _fetchHonorData,
               color: const Color(0xFF378CE7),
-              child: filteredList.isEmpty
+              child: _filteredItems.isEmpty
                   ? SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
                       child: SizedBox(
                         height: MediaQuery.of(context).size.height * 0.5,
                         child: const Center(
@@ -385,11 +388,17 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                       ),
                     )
                   : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      addAutomaticKeepAlives: false,
+                      addRepaintBoundaries: true,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: filteredList.length,
+                      itemCount: _filteredItems.length,
                       itemBuilder: (context, index) {
-                        final item = filteredList[index];
-                        return _buildHonorCard(item);
+                        return RepaintBoundary(
+                          child: _buildHonorCard(_filteredItems[index]),
+                        );
                       },
                     ),
             ),
@@ -398,7 +407,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       ),
     ),
   );
-  }
+}
 
   Widget _buildPillTabs() {
     return Container(
@@ -469,6 +478,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                     if (mounted) {
                       setState(() {
                         _searchQuery = val;
+                        _updateFilteredItems();
                       });
                     }
                   });
@@ -485,13 +495,11 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                             _searchController.clear();
                             setState(() {
                               _searchQuery = '';
+                              _updateFilteredItems();
                             });
                           },
                         )
                       : null,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  isDense: true,
-                  filled: true,
                   fillColor: Colors.white,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),

@@ -378,27 +378,45 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
                     ),
                     const Text(': ', style: TextStyle(fontSize: 12.5)),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
                         border: Border.all(color: const Color(0xFFCBD5E1)),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: DropdownButton<String>(
-                        value: _isKompeten == 'BK' ? 'BK' : 'K',
-                        underline: const SizedBox(),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'K',
-                            child: Text('K (Kompeten)', style: TextStyle(color: Color(0xFF15803D), fontWeight: FontWeight.bold)),
-                          ),
-                          DropdownMenuItem(
-                            value: 'BK',
-                            child: Text('BK (Belum Kompeten)', style: TextStyle(color: Color(0xFFB91C1C), fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) setState(() => _isKompeten = val);
-                        },
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _isKompeten == 'BK' ? 'BK' : 'K',
+                          isDense: true,
+                          icon: const Icon(LucideIcons.chevron_down, size: 14, color: Color(0xFF64748B)),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'K',
+                              child: Text(
+                                'K (Kompeten)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF15803D),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'BK',
+                              child: Text(
+                                'BK (Belum Kompeten)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFFB91C1C),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) setState(() => _isKompeten = val);
+                          },
+                        ),
                       ),
                     ),
                   ],

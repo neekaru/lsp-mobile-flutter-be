@@ -162,6 +162,9 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
 
           Expanded(
             child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 children: [
