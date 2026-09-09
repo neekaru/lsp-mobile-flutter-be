@@ -75,7 +75,7 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
     {
       'id': 'IA03',
       'code': 'FR.IA.03',
-      'title': 'FR.IA.03 Pertanyaan Mendukung Observasi',
+      'title': 'FR.IA.03. Pertanyaan Untuk Mendukung Observasi',
       'desc': 'Pertanyaan Untuk Mendukung Observasi',
       'status': 'Aktif',
     },
@@ -218,7 +218,7 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
     if (res != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ FR.IA.03 Pertanyaan Lisan berhasil disimpan ke database'),
+          content: Text('✅ FR.IA.03. Pertanyaan Untuk Mendukung Observasi berhasil disimpan ke database'),
           backgroundColor: Color(0xFF16A34A),
         ),
       );

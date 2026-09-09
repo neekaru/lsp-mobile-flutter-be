@@ -225,7 +225,7 @@ class _AK02SectionState extends State<AK02Section> {
             // Kondisi 1: Observasi Langsung (Peserta Pelatihan)
             AsesiDetailRow('Hasil Observasi Langsung (FR.IA.01)', ak02?.hasilObservasi ?? '-'),
             AsesiDetailRow('Hasil Uji Praktik / Demonstrasi (FR.IA.02)', ak02?.hasilPraktik ?? '-'),
-            AsesiDetailRow('Hasil Pertanyaan Mendukung Observasi (FR.IA.03)', ak02?.hasilLisan ?? '-'),
+            AsesiDetailRow('Hasil Pertanyaan Untuk Mendukung Observasi (FR.IA.03)', ak02?.hasilLisan ?? '-'),
             AsesiDetailRow('Hasil Pertanyaan Tertulis / Esai (FR.IA.05/06)', (ak02?.hasilPG != '-' && ak02?.hasilPG.isNotEmpty == true) ? ak02!.hasilPG : (ak02?.hasilEsai ?? '-')),
           ],
 
@@ -290,7 +290,7 @@ class _AK02SectionState extends State<AK02Section> {
                 ),
                 _buildIAQuickButton(
                   context,
-                  label: 'IA.03 Pertanyaan Mendukung Observasi',
+                  label: 'IA.03 Pertanyaan Untuk Mendukung Observasi',
                   formId: 'IA03',
                   color: const Color(0xFFD97706),
                   icon: LucideIcons.message_circle,

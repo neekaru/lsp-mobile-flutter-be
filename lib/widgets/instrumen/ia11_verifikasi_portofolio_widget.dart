@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/instrumen_asesmen_models.dart';
+import '../../utils/url_helper.dart';
 
 class IA11VerifikasiPortofolioWidget extends StatefulWidget {
   final IA11Data? data;
@@ -391,6 +392,51 @@ class _IA11VerifikasiPortofolioWidgetState
     );
   }
 
+  Future<void> _openDocument(String rawUrl) async {
+    if (rawUrl.trim().isEmpty) return;
+    final resolvedUrl = UrlHelper.resolveUrl(rawUrl);
+    final uri = Uri.tryParse(resolvedUrl);
+    if (uri != null && uri.hasScheme) {
+      try {
+        if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+          return;
+        }
+        if (await launchUrl(uri, mode: LaunchMode.platformDefault)) {
+          return;
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Tidak dapat membuka file: $resolvedUrl'),
+              backgroundColor: const Color(0xFFDC2626),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal membuka tautan: $e'),
+              backgroundColor: const Color(0xFFDC2626),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('URL dokumen tidak valid: $rawUrl'),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildDocCard(int index, IA11DokumenItem doc) {
     final isFullyVATM = doc.valid && doc.asli && doc.terkini && doc.memadai;
 
@@ -446,18 +492,53 @@ class _IA11VerifikasiPortofolioWidgetState
                       doc.fileName,
                       style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                     ),
+                    if (doc.url.isNotEmpty || doc.fileName.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(4),
+                        onTap: () {
+                          final targetUrl = doc.url.isNotEmpty
+                              ? doc.url
+                              : '/storage/portofolio/${doc.fileName}';
+                          _openDocument(targetUrl);
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 2.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                LucideIcons.external_link,
+                                size: 13,
+                                color: Color(0xFF7C3AED),
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                'Buka Dokumen',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF7C3AED),
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
-              if (doc.url.isNotEmpty)
+              if (doc.url.isNotEmpty || doc.fileName.isNotEmpty)
                 IconButton(
                   icon: const Icon(LucideIcons.external_link, size: 16, color: Color(0xFF7C3AED)),
-                  tooltip: 'Lihat Dokumen',
-                  onPressed: () async {
-                    final uri = Uri.parse(doc.url);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    }
+                  tooltip: 'Buka Dokumen',
+                  onPressed: () {
+                    final targetUrl = doc.url.isNotEmpty
+                        ? doc.url
+                        : '/storage/portofolio/${doc.fileName}';
+                    _openDocument(targetUrl);
                   },
                 ),
             ],
@@ -489,30 +570,38 @@ class _IA11VerifikasiPortofolioWidgetState
             ],
           ),
           const SizedBox(height: 6),
-          Row(
+          Column(
             children: [
-              _buildVATMChip(
-                label: 'Valid (V)',
-                checked: doc.valid,
-                onTap: () => setState(() => doc.valid = !doc.valid),
+              Row(
+                children: [
+                  _buildVATMChip(
+                    label: 'Valid (V)',
+                    checked: doc.valid,
+                    onTap: () => setState(() => doc.valid = !doc.valid),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildVATMChip(
+                    label: 'Asli (A)',
+                    checked: doc.asli,
+                    onTap: () => setState(() => doc.asli = !doc.asli),
+                  ),
+                ],
               ),
-              const SizedBox(width: 6),
-              _buildVATMChip(
-                label: 'Asli (A)',
-                checked: doc.asli,
-                onTap: () => setState(() => doc.asli = !doc.asli),
-              ),
-              const SizedBox(width: 6),
-              _buildVATMChip(
-                label: 'Terkini (T)',
-                checked: doc.terkini,
-                onTap: () => setState(() => doc.terkini = !doc.terkini),
-              ),
-              const SizedBox(width: 6),
-              _buildVATMChip(
-                label: 'Memadai (M)',
-                checked: doc.memadai,
-                onTap: () => setState(() => doc.memadai = !doc.memadai),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  _buildVATMChip(
+                    label: 'Terkini (T)',
+                    checked: doc.terkini,
+                    onTap: () => setState(() => doc.terkini = !doc.terkini),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildVATMChip(
+                    label: 'Memadai (M)',
+                    checked: doc.memadai,
+                    onTap: () => setState(() => doc.memadai = !doc.memadai),
+                  ),
+                ],
               ),
             ],
           ),

@@ -916,7 +916,7 @@ class _APL02SectionState extends State<APL02Section> {
                           _buildIAQuickButton(
                             context,
                             code: 'FR.IA.03',
-                            label: isPorto ? 'IA.03 Pertanyaan Wawancara' : 'IA.03 Pertanyaan Mendukung Observasi',
+                            label: isPorto ? 'IA.03 Pertanyaan Wawancara' : 'IA.03 Pertanyaan Untuk Mendukung Observasi',
                             formId: 'IA03',
                             color: const Color(0xFFD97706),
                           ),

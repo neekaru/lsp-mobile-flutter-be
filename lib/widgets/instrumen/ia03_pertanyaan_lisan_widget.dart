@@ -83,7 +83,7 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
-                        'FR.IA.03 Pertanyaan Lisan',
+                        'FR.IA.03. Pertanyaan Untuk Mendukung Observasi',
                         style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
@@ -250,7 +250,7 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
                 widget.data.umpanBalikUntukAsesi = _umpanBalikCtrl.text.trim();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Pertanyaan pendukung observasi FR.IA.03 berhasil disimpan.'),
+                    content: Text('FR.IA.03. Pertanyaan Untuk Mendukung Observasi berhasil disimpan.'),
                     backgroundColor: Color(0xFF16A34A),
                     behavior: SnackBarBehavior.floating,
                   ),

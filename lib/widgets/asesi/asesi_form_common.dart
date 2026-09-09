@@ -140,16 +140,19 @@ class FormSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 13.5,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
           ),
         ),
+        const SizedBox(width: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
