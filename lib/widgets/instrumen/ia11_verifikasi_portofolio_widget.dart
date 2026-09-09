@@ -116,7 +116,7 @@ class _IA11VerifikasiPortofolioWidgetState
             ),
             child: const Row(
               children: [
-                const Icon(LucideIcons.file_check, size: 20, color: Color(0xFF7C3AED)),
+                Icon(LucideIcons.file_check, size: 20, color: Color(0xFF7C3AED)),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(

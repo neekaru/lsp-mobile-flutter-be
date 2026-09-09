@@ -8,10 +8,11 @@ import '../../services/marketing/places_service.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import 'lead_detail_screen.dart';
 import 'proposal_preview_screen.dart';
-import 'widgets/lead_crm_card.dart';
-import 'widgets/lead_map_canvas.dart';
-import 'widgets/marketing_kpi_header.dart';
-import 'widgets/place_search_card.dart';
+import 'widgets/add_custom_lead_dialog.dart';
+import 'widgets/crm_pipeline_view.dart';
+import 'widgets/lead_generator_view.dart';
+import 'widgets/marketing_filter_sheet.dart';
+import 'widgets/marketing_options_sheet.dart';
 
 class AsesorMarketingScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
@@ -23,10 +24,8 @@ class AsesorMarketingScreen extends StatefulWidget {
 }
 
 class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
-  // Navigation Mode: 0 = Lead Generator (Peta & Search), 1 = Pipeline CRM Saya
   int _selectedMode = 0;
 
-  // Search state
   final TextEditingController _searchController =
       TextEditingController(text: 'SMK');
   String _selectedCategory = 'Semua';
@@ -35,18 +34,16 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
   PlaceResult? _selectedPlace;
   UserGeoLocation? _userLocation;
 
-  // CRM Leads state
   bool _isLoadingLeads = false;
   List<LeadModel> _savedLeads = [];
   LeadSummaryStats _stats = const LeadSummaryStats();
-  String _crmFilterStatus = 'all'; // all, lead, prospek, interest, sales
+  String _crmFilterStatus = 'all';
   final TextEditingController _crmSearchController = TextEditingController();
 
   final Set<String> _savedPlaceIds = {};
   final Set<String> _savedNames = {};
   Timer? _debounceTimer;
 
-  // Filter settings
   bool _filterRetailNoise = true;
   int _searchRadiusKm = 12;
   final Set<String> _customAllowedCategories = {
@@ -131,10 +128,12 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
       setState(() {
         _savedLeads = leads;
         _stats = stats;
-        _savedPlaceIds.clear();
-        _savedPlaceIds.addAll(ids);
-        _savedNames.clear();
-        _savedNames.addAll(names);
+        _savedPlaceIds
+          ..clear()
+          ..addAll(ids);
+        _savedNames
+          ..clear()
+          ..addAll(names);
         _isLoadingLeads = false;
       });
     }
@@ -173,616 +172,54 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     }
   }
 
-  void _showSearchFilterModal() {
-    final TextEditingController newKeywordController = TextEditingController();
+  void _onSearchChanged(String val) {
+    _debounceTimer?.cancel();
+    final query = val.trim();
+    if (query.isNotEmpty) {
+      _debounceTimer = Timer(const Duration(milliseconds: 600), () {
+        _fetchPlaces(query: query);
+      });
+    }
+  }
 
-    // Local mutable state for the modal to ensure 120fps lag-free interaction without rebuilding parent screen
-    bool tempFilterRetail = _filterRetailNoise;
-    int tempRadiusKm = _searchRadiusKm;
-    final List<String> tempBlacklist = List<String>.from(_blacklistKeywords);
-    final List<String> tempAllowedCategories =
-        List<String>.from(_customAllowedCategories);
-
-    showModalBottomSheet(
+  void _openFilterSheet() {
+    showMarketingFilterSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return DraggableScrollableSheet(
-              initialChildSize: 0.75,
-              minChildSize: 0.4,
-              maxChildSize: 0.92,
-              expand: false,
-              builder: (context, scrollController) {
-                return Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(24)),
-                  ),
-                  child: ListView(
-                    controller: scrollController,
-                    padding: EdgeInsets.fromLTRB(
-                      20,
-                      16,
-                      20,
-                      MediaQuery.of(context).viewInsets.bottom + 24,
-                    ),
-                    children: [
-                      // Handle Bar
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 4,
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFCBD5E1),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-
-                      // Title + Reset
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.tune_rounded,
-                                  color: Color(0xFF2563EB), size: 20),
-                              SizedBox(width: 8),
-                              Text(
-                                'Pengaturan Filter & Blacklist',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                            ],
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              setModalState(() {
-                                tempFilterRetail = true;
-                                tempRadiusKm = 12;
-                                tempBlacklist
-                                  ..clear()
-                                  ..addAll(PlacesService.defaultBlacklist);
-                                tempAllowedCategories
-                                  ..clear()
-                                  ..addAll([
-                                    'SMK',
-                                    'Kampus',
-                                    'BLK',
-                                    'LPK',
-                                    'Dinas Pemda',
-                                    'Perusahaan Swasta',
-                                  ]);
-                              });
-                            },
-                            child: const Text('Reset Default',
-                                style: TextStyle(fontSize: 12)),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 20),
-
-                      // 1. Pengecualian Tempat (Blacklist Kata Kunci)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            '1. Pengecualian Tempat (Blacklist)',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          Switch(
-                            value: tempFilterRetail,
-                            activeThumbColor: const Color(0xFF10B981),
-                            onChanged: (val) {
-                              setModalState(() => tempFilterRetail = val);
-                            },
-                          ),
-                        ],
-                      ),
-                      Text(
-                        tempFilterRetail
-                            ? 'Aktif: Tempat dengan kata kunci di bawah otomatis disembunyikan.'
-                            : 'Nonaktif: Semua jenis tempat publik diizinkan muncul.',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: tempFilterRetail
-                              ? const Color(0xFF059669)
-                              : const Color(0xFF64748B),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Add Keyword TextField
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color: const Color(0xFFE2E8F0)),
-                              ),
-                              child: TextField(
-                                controller: newKeywordController,
-                                decoration: const InputDecoration(
-                                  hintText:
-                                      'Tambah kata kunci (cth: apotek, bengkel)...',
-                                  hintStyle: TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF94A3B8)),
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 10),
-                                  border: InputBorder.none,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              final text = newKeywordController.text
-                                  .trim()
-                                  .toLowerCase();
-                              if (text.isNotEmpty) {
-                                setModalState(() {
-                                  tempBlacklist.add(text);
-                                  newKeywordController.clear();
-                                });
-                              }
-                            },
-                            icon: const Icon(Icons.add_rounded, size: 16),
-                            label: const Text('Tambah',
-                                style: TextStyle(fontSize: 12)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF10B981),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 10),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Active Blacklist Chips
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: tempBlacklist.map((k) {
-                          return Chip(
-                            label: Text(k,
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF1E293B))),
-                            deleteIcon: const Icon(Icons.close_rounded,
-                                size: 14, color: Color(0xFFEF4444)),
-                            onDeleted: () {
-                              setModalState(() {
-                                tempBlacklist.remove(k);
-                              });
-                            },
-                            backgroundColor: const Color(0xFFF1F5F9),
-                            side: const BorderSide(
-                                color: Color(0xFFCBD5E1)),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 4, vertical: 0),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Popular suggestions chips
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          'apotek',
-                          'optik',
-                          'pegadaian',
-                          'klinik',
-                          'bimbel',
-                          'gym',
-                        ]
-                            .where((s) => !tempBlacklist.contains(s))
-                            .map((sug) {
-                          return ActionChip(
-                            avatar: const Icon(Icons.add,
-                                size: 12, color: Color(0xFF10B981)),
-                            label: Text(sug,
-                                style: const TextStyle(
-                                    fontSize: 10.5,
-                                    color: Color(0xFF334155))),
-                            backgroundColor: const Color(0xFFF1F5F9),
-                            onPressed: () {
-                              setModalState(() {
-                                tempBlacklist.add(sug);
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                      const Divider(height: 24),
-
-                      // 2. Radius Jangkauan Pencarian
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            '2. Radius Jangkauan Pencarian',
-                            style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B)),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: const Color(0xFFBFDBFE)),
-                            ),
-                            child: Text(
-                              '$tempRadiusKm km',
-                              style: const TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF2563EB),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Slider(
-                        value: tempRadiusKm.toDouble().clamp(1.0, 100.0),
-                        min: 1.0,
-                        max: 100.0,
-                        divisions: 99,
-                        activeColor: const Color(0xFF2563EB),
-                        inactiveColor: const Color(0xFFE2E8F0),
-                        onChanged: (val) {
-                          setModalState(() => tempRadiusKm = val.round());
-                        },
-                      ),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children:
-                            [3, 5, 8, 12, 15, 25, 50, 75, 100].map((r) {
-                          final isSelected = tempRadiusKm == r;
-                          return ChoiceChip(
-                            label: Text('$r km',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal)),
-                            selected: isSelected,
-                            selectedColor: const Color(0xFF2563EB),
-                            labelStyle: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : const Color(0xFF334155)),
-                            onSelected: (selected) {
-                              if (selected) {
-                                setModalState(() => tempRadiusKm = r);
-                              }
-                            },
-                          );
-                        }).toList(),
-                      ),
-                      const Divider(height: 24),
-
-                      // 3. Kategori Institusi Sasaran
-                      const Text(
-                        '3. Kategori Sasaran (Dapat Disesuaikan)',
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B)),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: tempAllowedCategories.map((cat) {
-                          return FilterChip(
-                            label: Text(cat,
-                                style: const TextStyle(
-                                    fontSize: 11.5,
-                                    color: Color(0xFF2563EB),
-                                    fontWeight: FontWeight.bold)),
-                            selected: true,
-                            selectedColor: const Color(0xFFEFF6FF),
-                            checkmarkColor: const Color(0xFF2563EB),
-                            side: const BorderSide(
-                                color: Color(0xFF2563EB)),
-                            onSelected: (_) {
-                              setModalState(() {
-                                if (tempAllowedCategories.length > 1) {
-                                  tempAllowedCategories.remove(cat);
-                                }
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Saran Kategori Tambahan
-                      const Text(
-                        '+ Saran Kategori Tambahan:',
-                        style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF64748B)),
-                      ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          'SMA',
-                          'Politeknik',
-                          'BUMN',
-                          'Rumah Sakit',
-                          'Hotel',
-                          'Yayasan',
-                          'Pondok Pesantren',
-                          'Balai Diklat',
-                        ]
-                            .where((s) =>
-                                !tempAllowedCategories.contains(s))
-                            .map((sug) {
-                          return ActionChip(
-                            avatar: const Icon(Icons.add,
-                                size: 13, color: Color(0xFF2563EB)),
-                            label: Text(sug,
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF334155))),
-                            backgroundColor: const Color(0xFFF1F5F9),
-                            onPressed: () {
-                              setModalState(() {
-                                tempAllowedCategories.add(sug);
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Submit Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _filterRetailNoise = tempFilterRetail;
-                              _searchRadiusKm = tempRadiusKm;
-                              _blacklistKeywords
-                                ..clear()
-                                ..addAll(tempBlacklist);
-                              _customAllowedCategories
-                                ..clear()
-                                ..addAll(tempAllowedCategories);
-                            });
-                            Navigator.pop(ctx);
-                            _fetchPlaces();
-                          },
-                          icon: const Icon(Icons.check_circle_rounded,
-                              size: 18),
-                          label: const Text(
-                              'Terapkan Filter & Telusuri Ulang',
-                              style:
-                                  TextStyle(fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                            foregroundColor: Colors.white,
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 13),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
-        );
+      filterRetail: _filterRetailNoise,
+      radiusKm: _searchRadiusKm,
+      blacklist: _blacklistKeywords,
+      allowedCategories: _customAllowedCategories,
+      onApply: (v) {
+        setState(() {
+          _filterRetailNoise = v.filterRetail;
+          _searchRadiusKm = v.radiusKm;
+          _blacklistKeywords
+            ..clear()
+            ..addAll(v.blacklist);
+          _customAllowedCategories
+            ..clear()
+            ..addAll(v.allowedCategories);
+        });
+        _fetchPlaces();
       },
     );
   }
 
-  void _showOptionsMenuSheet() {
-    showModalBottomSheet(
+  void _openOptionsSheet() {
+    showMarketingOptionsSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Drag handle bar
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFCBD5E1),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-
-                // Header
-                const Row(
-                  children: [
-                    Icon(Icons.dashboard_customize_rounded,
-                        color: Color(0xFF2563EB), size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'Menu & Opsi Penelusuran',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // 1. Filter & Blacklist
-                _buildMenuOptionItem(
-                  icon: Icons.tune_rounded,
-                  iconColor: const Color(0xFF2563EB),
-                  iconBgColor: const Color(0xFFEFF6FF),
-                  title: 'Filter Prospek & Blacklist',
-                  subtitle:
-                      'Sesuaikan radius ($_searchRadiusKm km), kategori & kata kunci',
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _showSearchFilterModal();
-                  },
-                ),
-                const SizedBox(height: 10),
-
-                // 2. GPS Location Sync
-                _buildMenuOptionItem(
-                  icon: Icons.my_location_rounded,
-                  iconColor: const Color(0xFF10B981),
-                  iconBgColor: const Color(0xFFF0FDF4),
-                  title: 'Sinkronkan Lokasi GPS Live',
-                  subtitle: _userLocation?.locationName ??
-                      'Dapatkan koordinat akurat perangkat live',
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _handleMyLocation();
-                  },
-                ),
-                const SizedBox(height: 10),
-
-                // 3. Clear Cache
-                _buildMenuOptionItem(
-                  icon: Icons.cached_rounded,
-                  iconColor: const Color(0xFFD97706),
-                  iconBgColor: const Color(0xFFFFFBEB),
-                  title: 'Bersihkan Cache Pencarian',
-                  subtitle: 'Muat ulang data tempat segar langsung dari server',
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    PlacesService.clearSearchCache();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                            Text('Cache pencarian tempat berhasil dibersihkan'),
-                        duration: Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      searchRadiusKm: _searchRadiusKm,
+      locationName: _userLocation?.locationName,
+      onOpenFilter: _openFilterSheet,
+      onSyncLocation: _handleMyLocation,
     );
   }
 
-  Widget _buildMenuOptionItem({
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBgColor,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      color: Color(0xFF64748B),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: Color(0xFF94A3B8),
-              size: 20,
-            ),
-          ],
-        ),
-      ),
+  void _openAddLeadDialog() {
+    showAddCustomLeadDialog(
+      context: context,
+      idAsesor: _idAsesor,
+      onSaved: _loadSavedLeads,
     );
   }
 
@@ -817,11 +254,8 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
 
   Future<void> _handleSavePlaceToLead(PlaceResult place) async {
     final newLead = place.toLeadModel(_idAsesor);
-
-    // Auto-generate AI Potential student estimate & relevant LSP schemes
     final leadWithAi = await LeadStorageService.generateAiPotensi(newLead);
     await LeadStorageService.saveLead(leadWithAi);
-
     await _loadSavedLeads();
 
     if (mounted) {
@@ -843,506 +277,25 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
     }
   }
 
-  void _showAddCustomLeadDialog() {
-    final nameCtrl = TextEditingController();
-    final addressCtrl = TextEditingController();
-    final phoneCtrl = TextEditingController();
-    final picCtrl = TextEditingController();
-    final latCtrl = TextEditingController();
-    final lngCtrl = TextEditingController();
-    String category = 'SMK';
-
-    List<RegisteredPlace> placeSuggestions = [];
-    bool isSearchingSuggestions = false;
-    bool isResolvingCoordinates = false;
-    Timer? debounceTimer;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDlgState) {
-            void onNameChanged(String val) {
-              debounceTimer?.cancel();
-              final q = val.trim();
-              if (q.length < 2) {
-                setDlgState(() {
-                  placeSuggestions = [];
-                  isSearchingSuggestions = false;
-                });
-                return;
-              }
-
-              setDlgState(() => isSearchingSuggestions = true);
-              debounceTimer = Timer(const Duration(milliseconds: 350), () async {
-                final results = await LeadStorageService.searchRegisteredPlaces(q);
-                setDlgState(() {
-                  placeSuggestions = results;
-                  isSearchingSuggestions = false;
-                });
-              });
-            }
-
-            void selectPlace(RegisteredPlace place) {
-              nameCtrl.text = place.namaTempat;
-              addressCtrl.text = [place.alamat, place.kota]
-                  .where((s) => s.isNotEmpty)
-                  .join(', ');
-              if (place.telepon.isNotEmpty) phoneCtrl.text = place.telepon;
-              if (place.picName.isNotEmpty) picCtrl.text = place.picName;
-
-              final up = place.namaTempat.toUpperCase();
-              if (up.contains('SMK')) {
-                category = 'SMK';
-              } else if (up.contains('UNIVERSITAS') ||
-                  up.contains('INSTITUT') ||
-                  up.contains('POLITEKNIK') ||
-                  up.contains('KAMPUS') ||
-                  up.contains('FAKULTAS') ||
-                  up.contains('AKADEMI')) {
-                category = 'Kampus';
-              } else if (up.contains('BLK')) {
-                category = 'BLK';
-              } else if (up.contains('LPK')) {
-                category = 'LPK';
-              } else if (up.contains('LKP')) {
-                category = 'LKP';
-              } else if (up.contains('DINAS')) {
-                category = 'Dinas Pemda';
-              } else {
-                category = 'Perusahaan Swasta';
-              }
-
-              if (place.hasCoordinates) {
-                latCtrl.text = place.latitude!.toStringAsFixed(6);
-                lngCtrl.text = place.longitude!.toStringAsFixed(6);
-              } else {
-                setDlgState(() => isResolvingCoordinates = true);
-                PlacesService.searchPlaces(
-                  query: '${place.namaTempat}, ${place.alamat}, ${place.kota}',
-                  filterRetail: false,
-                ).then((res) {
-                  if (res.isNotEmpty) {
-                    final p = res.first;
-                    if (p.latitude != 0.0 && p.longitude != 0.0) {
-                      latCtrl.text = p.latitude.toStringAsFixed(6);
-                      lngCtrl.text = p.longitude.toStringAsFixed(6);
-                    }
-                  }
-                }).catchError((_) {}).whenComplete(() {
-                  setDlgState(() => isResolvingCoordinates = false);
-                });
-              }
-
-              setDlgState(() {
-                placeSuggestions = [];
-              });
-            }
-
-            Future<void> autoFetchCoordinates() async {
-              final q = [nameCtrl.text.trim(), addressCtrl.text.trim()]
-                  .where((s) => s.isNotEmpty)
-                  .join(', ');
-              if (q.isEmpty) return;
-
-              setDlgState(() => isResolvingCoordinates = true);
-              try {
-                final res = await PlacesService.searchPlaces(
-                  query: q,
-                  filterRetail: false,
-                );
-                if (res.isNotEmpty) {
-                  final p = res.first;
-                  if (p.latitude != 0.0 && p.longitude != 0.0) {
-                    latCtrl.text = p.latitude.toStringAsFixed(6);
-                    lngCtrl.text = p.longitude.toStringAsFixed(6);
-                  }
-                }
-              } catch (_) {
-              } finally {
-                setDlgState(() => isResolvingCoordinates = false);
-              }
-            }
-
-            Future<void> useCurrentGpsLocation() async {
-              setDlgState(() => isResolvingCoordinates = true);
-              try {
-                final loc = await LocationService.getCurrentLocation();
-                latCtrl.text = loc.latitude.toStringAsFixed(6);
-                lngCtrl.text = loc.longitude.toStringAsFixed(6);
-              } catch (_) {
-              } finally {
-                setDlgState(() => isResolvingCoordinates = false);
-              }
-            }
-
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              title: const Row(
-                children: [
-                  Icon(Icons.add_location_alt_rounded,
-                      color: Color(0xFF2563EB), size: 22),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Tambah Lead Manual',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Input Nama Tempat / Institusi
-                      TextField(
-                        controller: nameCtrl,
-                        onChanged: onNameChanged,
-                        decoration: InputDecoration(
-                          labelText: 'Nama Tempat / Institusi *',
-                          hintText: 'Ketik nama tempat/sekolah/TUK...',
-                          suffixIcon: isSearchingSuggestions
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: Padding(
-                                    padding: EdgeInsets.all(12),
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  ),
-                                )
-                              : const Icon(Icons.search_rounded, size: 20),
-                        ),
-                      ),
-
-                      // Suggestions box from registered places database
-                      if (placeSuggestions.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Container(
-                          constraints: const BoxConstraints(maxHeight: 180),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFF93C5FD)),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x10000000),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: ListView.separated(
-                            shrinkWrap: true,
-                            itemCount: placeSuggestions.length,
-                            separatorBuilder: (_, _) =>
-                                const Divider(height: 1),
-                            itemBuilder: (context, index) {
-                              final p = placeSuggestions[index];
-                              return ListTile(
-                                dense: true,
-                                leading: const Icon(Icons.domain_rounded,
-                                    size: 18, color: Color(0xFF2563EB)),
-                                title: Text(
-                                  p.namaTempat,
-                                  style: const TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0F172A),
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  [p.kota, p.alamat]
-                                      .where((s) => s.isNotEmpty)
-                                      .join(' • '),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 11),
-                                ),
-                                trailing: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEFF6FF),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    'Terdaftar',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2563EB),
-                                    ),
-                                  ),
-                                ),
-                                onTap: () => selectPlace(p),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-
-                      const SizedBox(height: 12),
-
-                      // Coordinate Fields: Latitude & Longitude
-                      const Row(
-                        children: [
-                          Icon(Icons.pin_drop_rounded,
-                              size: 16, color: Color(0xFF2563EB)),
-                          SizedBox(width: 6),
-                          Text(
-                            'Koordinat Tempat',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: latCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      signed: true, decimal: true),
-                              decoration: const InputDecoration(
-                                labelText: 'Latitude',
-                                hintText: '-6.2088',
-                                isDense: true,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextField(
-                              controller: lngCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      signed: true, decimal: true),
-                              decoration: const InputDecoration(
-                                labelText: 'Longitude',
-                                hintText: '106.8456',
-                                isDense: true,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-
-                      // Coordinate Helper Buttons
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: [
-                          InkWell(
-                            onTap: isResolvingCoordinates
-                                ? null
-                                 : autoFetchCoordinates,
-                            borderRadius: BorderRadius.circular(6),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(6),
-                                border:
-                                    Border.all(color: const Color(0xFFBFDBFE)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (isResolvingCoordinates)
-                                    const SizedBox(
-                                      width: 12,
-                                      height: 12,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 1.5),
-                                    )
-                                  else
-                                    const Icon(Icons.explore_rounded,
-                                        size: 13, color: Color(0xFF2563EB)),
-                                  const SizedBox(width: 4),
-                                  const Text(
-                                    'Cari Koordinat via Peta',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF2563EB),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: isResolvingCoordinates
-                                ? null
-                                : useCurrentGpsLocation,
-                            borderRadius: BorderRadius.circular(6),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(6),
-                                border:
-                                    Border.all(color: const Color(0xFFE2E8F0)),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.my_location_rounded,
-                                      size: 13, color: Color(0xFF475569)),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Gunakan GPS Saat Ini',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF475569),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      // Kategori Institusi
-                      DropdownButtonFormField<String>(
-                        initialValue: category,
-                        decoration: const InputDecoration(
-                          labelText: 'Kategori Institusi',
-                          isDense: true,
-                        ),
-                        items: [
-                          'SMK',
-                          'Kampus',
-                          'BLK',
-                          'LPK',
-                          'LKP',
-                          'Dinas Pemda',
-                          'Perusahaan Swasta'
-                        ]
-                            .map((c) =>
-                                DropdownMenuItem(value: c, child: Text(c)))
-                            .toList(),
-                        onChanged: (val) {
-                          if (val != null) setDlgState(() => category = val);
-                        },
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      // Alamat / Kota
-                      TextField(
-                        controller: addressCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Alamat / Kota',
-                          hintText: 'Contoh: Jl. Raya Solo KM 14, Sleman',
-                          isDense: true,
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      // PIC & Phone
-                      TextField(
-                        controller: picCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Nama PIC / Kontak',
-                          hintText: 'Contoh: Drs. Bambang (Kepala Sekolah)',
-                          isDense: true,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: phoneCtrl,
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          labelText: 'No. WhatsApp / Telp',
-                          hintText: '0853-xxxx-xxxx',
-                          isDense: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Batal'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (nameCtrl.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Nama Institusi wajib diisi')),
-                      );
-                      return;
-                    }
-
-                    final lat = double.tryParse(latCtrl.text.trim()) ?? 0.0;
-                    final lng = double.tryParse(lngCtrl.text.trim()) ?? 0.0;
-
-                    final customLead = LeadModel(
-                      id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
-                      idAsesor: _idAsesor,
-                      namaInstitusi: nameCtrl.text.trim(),
-                      leadKategori: category,
-                      leadLocation: addressCtrl.text.trim(),
-                      latitude: lat,
-                      longitude: lng,
-                      picName: picCtrl.text.trim(),
-                      telepon: phoneCtrl.text.trim(),
-                      leadStatus: 'lead',
-                      updatedAt: DateTime.now(),
-                    );
-
-                    final aiLead =
-                        await LeadStorageService.generateAiPotensi(customLead);
-                    await LeadStorageService.saveLead(aiLead);
-                    await _loadSavedLeads();
-
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Lead "${nameCtrl.text.trim()}" berhasil disimpan!'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Simpan'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+  void _openProposal(LeadModel lead) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProposalPreviewScreen(lead: lead),
+      ),
     );
+  }
+
+  void _openLeadDetail(LeadModel lead) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LeadDetailScreen(
+          lead: lead,
+          onLeadUpdated: (updated) => _loadSavedLeads(),
+        ),
+      ),
+    ).then((_) => _loadSavedLeads());
   }
 
   @override
@@ -1359,7 +312,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
             onBack: widget.onBackToHome,
             rightWidget: _selectedMode == 1
                 ? GestureDetector(
-                    onTap: _showAddCustomLeadDialog,
+                    onTap: _openAddLeadDialog,
                     child: Container(
                       width: 32,
                       height: 32,
@@ -1375,7 +328,7 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                     ),
                   )
                 : GestureDetector(
-                    onTap: _showOptionsMenuSheet,
+                    onTap: _openOptionsSheet,
                     child: Container(
                       width: 32,
                       height: 32,
@@ -1391,687 +344,63 @@ class _AsesorMarketingScreenState extends State<AsesorMarketingScreen> {
                     ),
                   ),
           ),
-
-          // Mode Switcher Tabs (Lead Generator vs Pipeline CRM)
-          _buildModeSwitcher(),
-
-          // Main View Content
+          MarketingModeSwitcher(
+            selectedMode: _selectedMode,
+            savedCount: _savedLeads.length,
+            onSelect: (m) => setState(() => _selectedMode = m),
+          ),
           Expanded(
             child: _selectedMode == 0
-                ? _buildLeadGeneratorView()
-                : _buildCrmPipelineView(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModeSwitcher() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                if (_selectedMode != 0) {
-                  setState(() => _selectedMode = 0);
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: _selectedMode == 0 ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(9),
-                  boxShadow: _selectedMode == 0
-                      ? const [
-                          BoxShadow(
-                            color: Color(0x0D000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.map_rounded,
-                      size: 16,
-                      color: _selectedMode == 0
-                          ? const Color(0xFF2563EB)
-                          : const Color(0xFF64748B),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Peta Lead Generator',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: _selectedMode == 0
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: _selectedMode == 0
-                            ? const Color(0xFF2563EB)
-                            : const Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                if (_selectedMode != 1) {
-                  setState(() => _selectedMode = 1);
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: _selectedMode == 1 ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(9),
-                  boxShadow: _selectedMode == 1
-                      ? const [
-                          BoxShadow(
-                            color: Color(0x0D000000),
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.view_kanban_rounded,
-                      size: 16,
-                      color: _selectedMode == 1
-                          ? const Color(0xFF2563EB)
-                          : const Color(0xFF64748B),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Prospek Saya (${_savedLeads.length})',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: _selectedMode == 1
-                            ? FontWeight.bold
-                            : FontWeight.w500,
-                        color: _selectedMode == 1
-                            ? const Color(0xFF2563EB)
-                            : const Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --------------------------------------------------------------------------
-  // MODE 1: Lead Generator (Peta & Search Explorer)
-  // --------------------------------------------------------------------------
-  Widget _buildLeadGeneratorView() {
-    return Stack(
-      children: [
-        // 1. Fullscreen / Interactive Map Canvas
-        Positioned.fill(
-          child: LeadMapCanvas(
-            places: _places,
-            selectedPlace: _selectedPlace,
-            userLocation: _userLocation,
-            savedPlaceIds: _savedPlaceIds,
-            savedNames: _savedNames,
-            isLoading: _isLoadingPlaces,
-            onSelectPlace: (place) {
-              setState(() {
-                _selectedPlace = place;
-              });
-            },
-            onSearchArea: () => _fetchPlaces(),
-            onMyLocationPressed: _handleMyLocation,
-          ),
-        ),
-
-        // 2. Floating Top Search & Category Filter Chips
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: Column(
-            children: [
-              // Search Input Bar + Filter Settings Button
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x1F000000),
-                              blurRadius: 10,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          controller: _searchController,
-                          onChanged: (val) {
-                            _debounceTimer?.cancel();
-                            final query = val.trim();
-                            if (query.isNotEmpty) {
-                              _debounceTimer =
-                                  Timer(const Duration(milliseconds: 600), () {
-                                _fetchPlaces(query: query);
-                              });
-                            }
-                          },
-                          onSubmitted: (val) {
-                            _debounceTimer?.cancel();
-                            final query =
-                                val.trim().isNotEmpty ? val.trim() : 'SMK';
-                            _fetchPlaces(query: query);
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Cari SMK, Kampus, BLK, Dinas...',
-                            hintStyle: const TextStyle(
-                                fontSize: 13, color: Color(0xFF94A3B8)),
-                            prefixIcon: const Icon(Icons.search_rounded,
-                                color: Color(0xFF2563EB)),
-                            suffixIcon: _searchController.text.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(Icons.clear_rounded,
-                                        size: 18),
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      _onCategoryFilter('Semua');
-                                    },
-                                  )
-                                : null,
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Material(
-                      color: _filterRetailNoise
-                          ? const Color(0xFF2563EB)
-                          : Colors.white,
-                      shape: const CircleBorder(),
-                      elevation: 3,
-                      shadowColor: const Color(0x1F000000),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.tune_rounded,
-                          color: _filterRetailNoise
-                              ? Colors.white
-                              : const Color(0xFF2563EB),
-                          size: 20,
-                        ),
-                        onPressed: _showSearchFilterModal,
-                        tooltip: 'Pengaturan Filter & Blacklist',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Category Filter Horizontal Scroll
-              SizedBox(
-                height: 36,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    _buildCategoryChip('Semua', Icons.explore_rounded),
-                    _buildCategoryChip('SMK', Icons.school_rounded),
-                    _buildCategoryChip('Kampus', Icons.account_balance_rounded),
-                    _buildCategoryChip('BLK', Icons.build_circle_rounded),
-                    _buildCategoryChip('LPK', Icons.menu_book_rounded),
-                    _buildCategoryChip('Dinas Pemda', Icons.domain_rounded),
-                    _buildCategoryChip('Perusahaan Swasta', Icons.business_center_rounded),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // 3. Draggable Bottom Sheet (Sesuai Referensi Google Maps)
-        DraggableScrollableSheet(
-          initialChildSize: 0.38,
-          minChildSize: 0.12,
-          maxChildSize: 0.85,
-          builder: (context, scrollController) {
-            return Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x29000000),
-                    blurRadius: 16,
-                    offset: Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: ListView(
-                controller: scrollController,
-                padding: EdgeInsets.zero,
-                children: [
-                  // Drag Handle Bar
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFCBD5E1),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-
-                  // Header info + Legend + Dynamic GPS Lokasi Saya Button
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 4),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Hasil Pencarian (${_places.length} Tempat)',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              const Row(
-                                children: [
-                                  Icon(Icons.location_on,
-                                      size: 13, color: Colors.red),
-                                  SizedBox(width: 2),
-                                  Text('Baru',
-                                      style: TextStyle(
-                                          fontSize: 11,
-                                          color: Color(0xFF64748B))),
-                                  SizedBox(width: 8),
-                                  Icon(Icons.location_on,
-                                      size: 13, color: Colors.green),
-                                  SizedBox(width: 2),
-                                  Text('Tersimpan di DB',
-                                      style: TextStyle(
-                                          fontSize: 11,
-                                          color: Color(0xFF64748B))),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (_isLoadingPlaces)
-                          const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFF2563EB),
-                            ),
-                          )
-                        else
-                          InkWell(
-                            onTap: _handleMyLocation,
-                            borderRadius: BorderRadius.circular(10),
-                            child: Container(
-                              constraints: const BoxConstraints(maxWidth: 150),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                    color: const Color(0xFFBFDBFE), width: 1),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.my_location_rounded,
-                                      size: 14, color: Color(0xFF2563EB)),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      _userLocation?.locationName ??
-                                          'Lokasi Saya',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2563EB),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-
-                  // Cards List
-                  if (_places.isEmpty && !_isLoadingPlaces)
-                    const Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Center(
-                        child: Text(
-                          'Tidak ada tempat ditemukan. Coba ubah kata kunci atau geser peta.',
-                          style:
-                              TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    )
-                  else
-                    ..._places.map((place) {
-                      final isSaved = _savedPlaceIds.contains(place.placeId) ||
-                          _savedNames.contains(place.name.toLowerCase().trim());
-                      final isSelected =
-                          _selectedPlace?.placeId == place.placeId;
-                      return PlaceSearchCard(
-                        place: place,
-                        isSaved: isSaved,
-                        isSelected: isSelected,
-                        onTap: () {
-                          setState(() {
-                            _selectedPlace = place;
-                          });
-                        },
-                        onSaveLead: isSaved
-                            ? () {
-                                setState(() => _selectedMode = 1);
-                              }
-                            : () => _handleSavePlaceToLead(place),
-                        onDirectPitch: () {
-                          final dummyLead = place.toLeadModel(_idAsesor);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ProposalPreviewScreen(lead: dummyLead),
-                            ),
-                          );
-                        },
-                      );
+                ? LeadGeneratorView(
+                    searchController: _searchController,
+                    selectedCategory: _selectedCategory,
+                    isLoadingPlaces: _isLoadingPlaces,
+                    places: _places,
+                    selectedPlace: _selectedPlace,
+                    userLocation: _userLocation,
+                    savedPlaceIds: _savedPlaceIds,
+                    savedNames: _savedNames,
+                    filterRetailNoise: _filterRetailNoise,
+                    idAsesor: _idAsesor,
+                    onSearchChanged: _onSearchChanged,
+                    onSelectPlace: (p) =>
+                        setState(() => _selectedPlace = p),
+                    onFetchPlaces: _fetchPlaces,
+                    onMyLocation: _handleMyLocation,
+                    onOpenFilter: _openFilterSheet,
+                    onCategoryFilter: _onCategoryFilter,
+                    onSavePlace: _handleSavePlaceToLead,
+                    onShowSaved: () =>
+                        setState(() => _selectedMode = 1),
+                    onDirectPitch: (place) => _openProposal(
+                        place.toLeadModel(_idAsesor)),
+                  )
+                : CrmPipelineView(
+                    isLoading: _isLoadingLeads,
+                    savedLeads: _savedLeads,
+                    stats: _stats,
+                    filterStatus: _crmFilterStatus,
+                    searchController: _crmSearchController,
+                    onSearchChanged: () => setState(() {}),
+                    onClearSearch: () {
+                      _crmSearchController.clear();
+                      setState(() {});
+                    },
+                    onSelectStatus: (s) =>
+                        setState(() => _crmFilterStatus = s),
+                    onToggleKpiTab: (s) => setState(() {
+                      _crmFilterStatus =
+                          _crmFilterStatus == s ? 'all' : s;
                     }),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCategoryChip(String label, IconData icon) {
-    final isSelected = _selectedCategory == label;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: FilterChip(
-        avatar: Icon(
-          icon,
-          size: 14,
-          color: isSelected ? Colors.white : const Color(0xFF475569),
-        ),
-        label: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF1E293B),
+                    onOpenMap: () =>
+                        setState(() => _selectedMode = 0),
+                    onTapLead: _openLeadDetail,
+                    onOpenProposal: _openProposal,
+                    onRefresh: _loadSavedLeads,
+                    idAsesor: _idAsesor,
+                  ),
           ),
-        ),
-        selected: isSelected,
-        selectedColor: const Color(0xFF2563EB),
-        backgroundColor: Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black12,
-        showCheckmark: false,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
-          ),
-        ),
-        onSelected: (_) => _onCategoryFilter(label),
-      ),
-    );
-  }
-
-  // --------------------------------------------------------------------------
-  // MODE 2: Pipeline CRM Saya (Lead Management)
-  // --------------------------------------------------------------------------
-  Widget _buildCrmPipelineView() {
-    if (_isLoadingLeads) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final q = _crmSearchController.text.trim().toLowerCase();
-    final filteredLeads = _savedLeads.where((l) {
-      final matchesStatus = _crmFilterStatus == 'all' ||
-          l.leadStatus.toLowerCase() == _crmFilterStatus.toLowerCase();
-      final matchesQuery = q.isEmpty ||
-          l.namaInstitusi.toLowerCase().contains(q) ||
-          l.leadLocation.toLowerCase().contains(q) ||
-          l.leadKategori.toLowerCase().contains(q);
-      return matchesStatus && matchesQuery;
-    }).toList();
-
-    return RefreshIndicator(
-      onRefresh: _loadSavedLeads,
-      child: ListView(
-        padding: const EdgeInsets.only(bottom: 30),
-        children: [
-          // KPI Metric Header
-          MarketingKpiHeader(
-            stats: _stats,
-            activeTab: _crmFilterStatus,
-            onSelectStatusTab: (statusKey) {
-              setState(() {
-                _crmFilterStatus =
-                    _crmFilterStatus == statusKey ? 'all' : statusKey;
-              });
-            },
-          ),
-
-          // Search in CRM Bar
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: TextField(
-              controller: _crmSearchController,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'Cari di daftar prospek saya...',
-                hintStyle:
-                    const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
-                prefixIcon:
-                    const Icon(Icons.search_rounded, size: 18, color: Color(0xFF64748B)),
-                suffixIcon: _crmSearchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 16),
-                        onPressed: () {
-                          _crmSearchController.clear();
-                          setState(() {});
-                        },
-                      )
-                    : null,
-                border: InputBorder.none,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-            ),
-          ),
-
-          // Status Filter Tabs Row
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              children: [
-                _buildStatusFilterChip('all', 'Semua (${_savedLeads.length})'),
-                _buildStatusFilterChip('lead', 'Lead (${_stats.countLead})'),
-                _buildStatusFilterChip(
-                    'prospek', 'Proposal (${_stats.countProspek})'),
-                _buildStatusFilterChip(
-                    'interest', 'Follow Up (${_stats.countInterest})'),
-                _buildStatusFilterChip(
-                    'sales', 'Deal / MoU (${_stats.countSales})'),
-              ],
-            ),
-          ),
-
-          // List of Leads
-          if (filteredLeads.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(40),
-              child: Center(
-                child: Column(
-                  children: [
-                    const Icon(Icons.folder_open_rounded,
-                        size: 48, color: Color(0xFFCBD5E1)),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Belum ada data prospek pada filter ini',
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF475569)),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Gunakan tab "Peta Lead Generator" untuk menemukan calon mitra uji kompetensi terdekat.',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () => setState(() => _selectedMode = 0),
-                      icon: const Icon(Icons.map_rounded, size: 16),
-                      label: const Text('Buka Peta Generator'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            ...filteredLeads.map((lead) {
-              return LeadCrmCard(
-                lead: lead,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LeadDetailScreen(
-                        lead: lead,
-                        onLeadUpdated: (updated) => _loadSavedLeads(),
-                      ),
-                    ),
-                  ).then((_) => _loadSavedLeads());
-                },
-                onWhatsApp: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProposalPreviewScreen(lead: lead),
-                    ),
-                  );
-                },
-                onProposal: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProposalPreviewScreen(lead: lead),
-                    ),
-                  );
-                },
-                onStatusChange: (newStatus) async {
-                  await LeadStorageService.updateLeadStatus(
-                      _idAsesor, lead.id, newStatus);
-                  await _loadSavedLeads();
-                },
-              );
-            }),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStatusFilterChip(String statusKey, String label) {
-    final isSelected = _crmFilterStatus.toLowerCase() == statusKey.toLowerCase();
-    return Padding(
-      padding: const EdgeInsets.only(right: 6),
-      child: FilterChip(
-        label: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11.5,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF475569),
-          ),
-        ),
-        selected: isSelected,
-        selectedColor: const Color(0xFF2563EB),
-        backgroundColor: Colors.white,
-        showCheckmark: false,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
-          ),
-        ),
-        onSelected: (_) {
-          setState(() {
-            _crmFilterStatus = statusKey;
-          });
-        },
       ),
     );
   }
