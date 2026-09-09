@@ -111,6 +111,7 @@ class AsesiTimelineTerakhir {
   final String tanggalMulai;
   final String tanggalAkhir;
   final String tuk;
+  final String namaAsesor;
   final int skemaId;
   final String namaSkema;
   final String kodeSkema;
@@ -127,6 +128,7 @@ class AsesiTimelineTerakhir {
     this.tanggalMulai = '',
     this.tanggalAkhir = '',
     this.tuk = '',
+    this.namaAsesor = '',
     this.skemaId = 0,
     this.namaSkema = '',
     this.kodeSkema = '',
@@ -159,6 +161,7 @@ class AsesiTimelineTerakhir {
       tanggalMulai: json['tanggal_mulai']?.toString() ?? '',
       tanggalAkhir: json['tanggal_akhir']?.toString() ?? '',
       tuk: json['tuk']?.toString() ?? '',
+      namaAsesor: json['nama_asesor']?.toString() ?? '',
       skemaId: JsonHelper.asInt(json['skema_id']),
       namaSkema: json['nama_skema']?.toString() ?? '',
       kodeSkema: json['kode_skema']?.toString() ?? '',
@@ -180,7 +183,7 @@ class AsesiTimelineTerakhir {
       statusJadwal: statusJadwal,
       statusLabel: statusLabel,
       jumlahAsesi: 1,
-      asesor: const [],
+      asesor: namaAsesor.isNotEmpty ? [namaAsesor] : const [],
     );
   }
 }
