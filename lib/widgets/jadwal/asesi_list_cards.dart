@@ -1,0 +1,734 @@
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
+import '../../models/jadwal_models.dart';
+import '../../screens/asesi/asesor_detail_asesi_screen.dart';
+
+class AsesiSummaryCard extends StatelessWidget {
+  final AsesiMeta meta;
+
+  const AsesiSummaryCard({super.key, required this.meta});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(
+                LucideIcons.chart_pie,
+                size: 16,
+                color: Color(0xFF2C6C9C),
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Statistik Rekomendasi Asesmen',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              // Total
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F6F8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '${meta.totalAsesi}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Total Asesi',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Kompeten (K)
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '${meta.jumlahKompeten}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2E7D32),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Kompeten (K)',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Color(0xFF2E7D32),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Belum Kompeten (BK)
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEBEE),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '${meta.jumlahBelumKompeten}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFC62828),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Belum Komp (BK)',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Color(0xFFC62828),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AsesiStatusBadge extends StatelessWidget {
+  final String label;
+  final bool isValid;
+
+  const AsesiStatusBadge({
+    super.key,
+    required this.label,
+    required this.isValid,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bgColor = isValid ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
+    final borderColor = isValid ? const Color(0xFFA5D6A7) : const Color(0xFFFFCDD2);
+    final textColor = isValid ? const Color(0xFF2E7D32) : const Color(0xFFC62828);
+    final icon = isValid ? Icons.check_circle_rounded : Icons.cancel_rounded;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: borderColor, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: textColor),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9.5,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AsesiListItem extends StatelessWidget {
+  final AsesiItem item;
+  final String currentRekom;
+  final bool isJadwalSelesai;
+  final Widget? transferButton;
+  final ValueChanged<String> onRekomChanged;
+  final int jadwalId;
+  final String jadwalTitle;
+  final String tuk;
+  final VoidCallback onDataChanged;
+
+  const AsesiListItem({
+    super.key,
+    required this.item,
+    required this.currentRekom,
+    required this.isJadwalSelesai,
+    required this.transferButton,
+    required this.onRekomChanged,
+    required this.jadwalId,
+    required this.jadwalTitle,
+    required this.tuk,
+    required this.onDataChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final item = this.item;
+    final currentRekom = this.currentRekom;
+    final transferButton = this.transferButton;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Row 1: Avatar, Name & Detail Link
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE5F1FC),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    item.namaLengkap.isNotEmpty
+                        ? item.namaLengkap
+                            .trim()
+                            .split(' ')
+                            .map((s) => s.isNotEmpty ? s[0] : '')
+                            .take(2)
+                            .join()
+                            .toUpperCase()
+                        : 'A',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2C6C9C),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.namaLengkap,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Text(
+                          (item.kota != null && item.kota!.isNotEmpty)
+                              ? item.kota!
+                              : (item.noPeserta != null && item.noPeserta!.isNotEmpty
+                                  ? item.noPeserta!
+                                  : item.id.toString()),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        if (item.isAbsent) ...[
+                          const Text(' • ', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                          const Icon(
+                            Icons.person_off_rounded,
+                            size: 11,
+                            color: Color(0xFFDC2626),
+                          ),
+                          const SizedBox(width: 3),
+                          const Text(
+                            'Tidak Hadir',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFDC2626),
+                            ),
+                          ),
+                        ] else if (item.namaAsesor != null && item.namaAsesor!.isNotEmpty) ...[
+                          const Text(' • ', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                          Icon(
+                            item.isMyAsesi ? LucideIcons.user_check : LucideIcons.lock,
+                            size: 11,
+                            color: item.isMyAsesi ? const Color(0xFF2563EB) : const Color(0xFFE11D48),
+                          ),
+                          const SizedBox(width: 3),
+                          Flexible(
+                            child: Text(
+                              item.namaAsesor!,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: item.isMyAsesi ? const Color(0xFF2563EB) : const Color(0xFFE11D48),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (item.isAbsent)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEE2E2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFFECACA)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.person_off_rounded,
+                        size: 12,
+                        color: Color(0xFFDC2626),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'Tidak Hadir',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFDC2626),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (!item.isMyAsesi)
+                InkWell(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Akses ditolak: Asesi ini ditugaskan kepada ${item.namaAsesor ?? "asesor lain"}.',
+                        ),
+                        backgroundColor: const Color(0xFFE11D48),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.lock_outline_rounded,
+                          size: 12,
+                          color: Color(0xFF64748B),
+                        ),
+                        SizedBox(width: 3),
+                        Text(
+                          'Terkunci',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else if (isJadwalSelesai || !item.canViewDetail)
+                const SizedBox.shrink()
+              else
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AsesorDetailAsesiScreen(
+                          asesiId: item.id,
+                          namaAsesi: item.namaLengkap,
+                          jadwalId: jadwalId,
+                          jadwal: jadwalTitle,
+                          tuk: tuk,
+                        ),
+                      ),
+                    ).then((_) => onDataChanged());
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F4F8),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Detail',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF4FA8E8),
+                          ),
+                        ),
+                        SizedBox(width: 2),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 14,
+                          color: Color(0xFF4FA8E8),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Row 2: Status Validasi APL01, APL02, AK02 (Hijau/Merah)
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              AsesiStatusBadge(
+                label: 'APL-01',
+                isValid: item.isAPL01Valid,
+              ),
+              AsesiStatusBadge(
+                label: 'APL-02',
+                isValid: item.isAPL02Valid,
+              ),
+              AsesiStatusBadge(
+                label: 'AK-02',
+                isValid: item.isAK02Valid,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          const SizedBox(height: 10),
+
+          // Row 3: Dropdown Rekomendasi (K / BK / -) + aksi pindah asesor
+          Row(
+            children: [
+              Expanded(
+                child: item.isAbsent
+                    ? Container(
+                        height: 38,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFFEE2E2)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              Icons.block_rounded,
+                              size: 14,
+                              color: Color(0xFFEF4444),
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Peserta Tidak Hadir (Tidak Dinilai)',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFDC2626),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : !item.isMyAsesi
+                    ? Container(
+                        height: 38,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.lock_rounded,
+                                  size: 13,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  currentRekom == '1'
+                                      ? 'K (Kompeten)'
+                                      : (currentRekom == '2'
+                                          ? 'BK (Belum Kompeten)'
+                                          : '- (Belum Rekomendasi)'),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                item.namaAsesor != null && item.namaAsesor!.isNotEmpty
+                                    ? item.namaAsesor!
+                                    : 'Asesor Lain',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : (item.canEdit && item.isAPL01Valid && !isJadwalSelesai)
+                        ? Container(
+                            height: 38,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: currentRekom == '1'
+                                  ? const Color(0xFFE8F5E9)
+                                  : (currentRekom == '2'
+                                      ? const Color(0xFFFFEBEE)
+                                      : const Color(0xFFF5F6F8)),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: currentRekom == '1'
+                                    ? const Color(0xFFA5D6A7)
+                                    : (currentRekom == '2'
+                                        ? const Color(0xFFFFCDD2)
+                                        : const Color(0xFFE0E0E0)),
+                              ),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: currentRekom,
+                                isExpanded: true,
+                                icon: const Icon(Icons.arrow_drop_down_rounded,
+                                    color: Colors.black54),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: currentRekom == '1'
+                                      ? const Color(0xFF2E7D32)
+                                      : (currentRekom == '2'
+                                          ? const Color(0xFFC62828)
+                                          : Colors.black87),
+                                ),
+                                onChanged: (newVal) {
+                                  if (newVal != null) {
+                                    onRekomChanged(newVal);
+                                  }
+                                },
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: '1',
+                                    child: Text('K (Kompeten)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: '2',
+                                    child: Text('BK (Belum Kompeten)'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: '0',
+                                    child: Text('- (Belum Rekomendasi)'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : Container(
+                            height: 38,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: currentRekom == '1'
+                                  ? const Color(0xFFE8F5E9)
+                                  : (currentRekom == '2'
+                                      ? const Color(0xFFFFEBEE)
+                                      : const Color(0xFFF1F5F9)),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: currentRekom == '1'
+                                    ? const Color(0xFFA5D6A7)
+                                    : (currentRekom == '2'
+                                        ? const Color(0xFFFFCDD2)
+                                        : const Color(0xFFE2E8F0)),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      currentRekom == '1'
+                                          ? Icons.check_circle_rounded
+                                          : (currentRekom == '2'
+                                              ? Icons.cancel_rounded
+                                              : Icons.remove_circle_outline_rounded),
+                                      size: 14,
+                                      color: currentRekom == '1'
+                                          ? const Color(0xFF2E7D32)
+                                          : (currentRekom == '2'
+                                              ? const Color(0xFFC62828)
+                                              : const Color(0xFF64748B)),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      currentRekom == '1'
+                                          ? 'K (Kompeten)'
+                                          : (currentRekom == '2'
+                                              ? 'BK (Belum Kompeten)'
+                                              : '- (Belum Rekomendasi)'),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: currentRekom == '1'
+                                            ? const Color(0xFF2E7D32)
+                                            : (currentRekom == '2'
+                                                ? const Color(0xFFC62828)
+                                                : const Color(0xFF64748B)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: !item.isAPL01Valid
+                                        ? const Color(0xFFFEE2E2)
+                                        : const Color(0xFFE2E8F0),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.lock_outline_rounded,
+                                        size: 11,
+                                        color: !item.isAPL01Valid
+                                            ? const Color(0xFFDC2626)
+                                            : const Color(0xFF64748B),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        !item.isAPL01Valid
+                                            ? 'APL-01 Belum'
+                                            : 'Hanya Lihat',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: !item.isAPL01Valid
+                                              ? const Color(0xFFDC2626)
+                                              : const Color(0xFF475569),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+              ),
+              if (transferButton != null) ...[
+                const SizedBox(width: 8),
+                transferButton,
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
