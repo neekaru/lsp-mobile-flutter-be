@@ -381,4 +381,7 @@ class ApiRoutes {
   static String asesorAsesiIA04A(int id) => '/api/asesor/asesi/$id/ia04a';
   static String asesorAsesiIA04B(int id) => '/api/asesor/asesi/$id/ia04b';
   static String asesorAsesiIA05(int id) => '/api/asesor/asesi/$id/ia05';
+  static String asesorAsesiIA11(int id) => '/api/asesor/asesi/$id/ia11';
+  static String asesorAsesiIA04Upload(int id) =>
+      '/api/asesor/asesi/$id/ia04/upload';
 }

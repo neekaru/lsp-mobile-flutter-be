@@ -42,12 +42,38 @@ class _AsesorMitraListScreenState extends State<AsesorMitraListScreen> {
   bool _isLoading = false;
   String _searchQuery = '';
   String _selectedStatus = 'Semua'; // 'Semua', 'Aktif', 'Menunggu', 'Selesai'
+  int _activeMitraCount = 0;
+  int _waitingMitraCount = 0;
+  int _finishedMitraCount = 0;
+  int _uniqueKotaCount = 0;
 
+  void _recalculateMetrics() {
+    int active = 0;
+    int waiting = 0;
+    int finished = 0;
+    final kotas = <String>{};
+
+    for (final m in _allMitra) {
+      if (m.isAktif) active++;
+      if (m.statusMitra == 0) waiting++;
+      if (m.statusMitra == 2) finished++;
+      final k = m.kota.trim().toLowerCase();
+      if (k.isNotEmpty && k != '-') {
+        kotas.add(k);
+      }
+    }
+
+    _activeMitraCount = active;
+    _waitingMitraCount = waiting;
+    _finishedMitraCount = finished;
+    _uniqueKotaCount = kotas.length;
+  }
   @override
   void initState() {
     super.initState();
     if (widget.mitra != null) {
       _allMitra = List<AsesorMitra>.from(widget.mitra!);
+      _recalculateMetrics();
     } else {
       _fetchMitraData();
     }
@@ -74,6 +100,7 @@ class _AsesorMitraListScreenState extends State<AsesorMitraListScreen> {
       if (mounted) {
         setState(() {
           _allMitra = dashboardData.mitra;
+          _recalculateMetrics();
           _isLoading = false;
         });
       }
@@ -118,88 +145,81 @@ class _AsesorMitraListScreenState extends State<AsesorMitraListScreen> {
   }
 
   int get _totalMitraCount => _allMitra.length;
-  int get _activeMitraCount => _allMitra.where((m) => m.isAktif).length;
-  int get _waitingMitraCount => _allMitra.where((m) => m.statusMitra == 0).length;
-  int get _finishedMitraCount => _allMitra.where((m) => m.statusMitra == 2).length;
-
-  int get _uniqueKotaCount {
-    final kotas = _allMitra
-        .map((m) => m.kota.trim().toLowerCase())
-        .where((k) => k.isNotEmpty && k != '-')
-        .toSet();
-    return kotas.length;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final statusBarHeight = MediaQuery.of(context).padding.top;
     final filtered = _filteredMitra;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
-        children: [
-          SizedBox(height: statusBarHeight + 8),
-          CustomAppBar(
-            title: 'Daftar Mitra',
-            onBack: () => Navigator.of(context).pop(),
-          ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _fetchMitraData,
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSummaryBanner(),
-                          const SizedBox(height: 16),
-                          _buildSearchBar(),
-                          const SizedBox(height: 12),
-                          _buildFilterChips(),
-                          const SizedBox(height: 16),
-                          _buildListHeader(filtered.length),
-                          const SizedBox(height: 10),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (_isLoading)
-                    const SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: CircularProgressIndicator(),
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        child: Column(
+          children: [
+            CustomAppBar(
+              title: 'Daftar Mitra',
+              onBack: () => Navigator.of(context).pop(),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _fetchMitraData,
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSummaryBanner(),
+                            const SizedBox(height: 16),
+                            _buildSearchBar(),
+                            const SizedBox(height: 12),
+                            _buildFilterChips(),
+                            const SizedBox(height: 16),
+                            _buildListHeader(filtered.length),
+                            const SizedBox(height: 10),
+                          ],
                         ),
                       ),
-                    )
-                  else if (filtered.isEmpty)
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      sliver: SliverToBoxAdapter(
-                        child: _buildEmptyState(),
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                      sliver: SliverList.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          return _MitraCard(mitra: filtered[index]);
-                        },
-                      ),
                     ),
-                ],
+                    if (_isLoading)
+                      const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40),
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                      )
+                    else if (filtered.isEmpty)
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        sliver: SliverToBoxAdapter(
+                          child: _buildEmptyState(),
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                        sliver: SliverList.builder(
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            return _MitraCard(
+                              key: ValueKey(filtered[index].id),
+                              mitra: filtered[index],
+                            );
+                          },
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -597,7 +617,7 @@ class _AsesorMitraListScreenState extends State<AsesorMitraListScreen> {
 class _MitraCard extends StatelessWidget {
   final AsesorMitra mitra;
 
-  const _MitraCard({required this.mitra});
+  const _MitraCard({super.key, required this.mitra});
 
   @override
   Widget build(BuildContext context) {
@@ -1020,38 +1040,40 @@ class _AsesorMitraDetailScreenState extends State<AsesorMitraDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final statusBarHeight = MediaQuery.of(context).padding.top;
     final mitra = widget.mitra;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
-        children: [
-          SizedBox(height: statusBarHeight + 8),
-          CustomAppBar(
-            title: 'Detail Mitra Kerjasama',
-            onBack: () => Navigator.of(context).pop(),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeaderProfileCard(mitra),
-                  const SizedBox(height: 14),
-                  _buildInfoLembagaCard(mitra),
-                  const SizedBox(height: 14),
-                  _buildDetailKerjasamaCard(mitra),
-                  const SizedBox(height: 14),
-                  _buildDokumenMouCard(mitra),
-                  const SizedBox(height: 14),
-                  _buildPetaLokasiCard(mitra),
-                ],
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        child: Column(
+          children: [
+            CustomAppBar(
+              title: 'Detail Mitra Kerjasama',
+              onBack: () => Navigator.of(context).pop(),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeaderProfileCard(mitra),
+                    const SizedBox(height: 14),
+                    _buildInfoLembagaCard(mitra),
+                    const SizedBox(height: 14),
+                    _buildDetailKerjasamaCard(mitra),
+                    const SizedBox(height: 14),
+                    _buildDokumenMouCard(mitra),
+                    const SizedBox(height: 14),
+                    _buildPetaLokasiCard(mitra),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1563,6 +1585,7 @@ class _AsesorMitraDetailScreenState extends State<AsesorMitraDetailScreen> {
                     target: LatLng(lat, lng),
                     zoom: 16,
                   ),
+                  liteModeEnabled: true,
                   markers: {
                     Marker(
                       markerId: MarkerId('mitra-${mitra.id}'),

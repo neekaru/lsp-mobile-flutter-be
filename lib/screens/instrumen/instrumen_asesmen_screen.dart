@@ -8,7 +8,7 @@ import '../../widgets/instrumen/ia03_pertanyaan_lisan_widget.dart';
 import '../../widgets/instrumen/ia04a_instruksi_terstruktur_widget.dart';
 import '../../widgets/instrumen/ia04b_penilaian_proyek_widget.dart';
 import '../../widgets/instrumen/ia05_pertanyaan_tertulis_widget.dart';
-
+import '../../widgets/instrumen/ia11_verifikasi_portofolio_widget.dart';
 import '../../services/asesor/asesor_service.dart';
 
 class InstrumenAsesmenScreen extends StatefulWidget {
@@ -42,7 +42,7 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
   IA04AData? _ia04aData;
   IA04BData? _ia04bData;
   IA05Data? _ia05Data;
-
+  IA11Data? _ia11Data;
   final List<Map<String, String>> _iaForms = [
     {
       'id': 'IA01',
@@ -86,6 +86,13 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
       'desc': 'Pilihan Ganda / Esai & Lembar Jawaban',
       'status': 'Aktif',
     },
+    {
+      'id': 'IA11',
+      'code': 'FR.IA.11',
+      'title': 'FR.IA.11 Verifikasi Portofolio',
+      'desc': 'Ceklis Verifikasi & Aturan Bukti (VATM)',
+      'status': 'Aktif',
+    },
   ];
 
   @override
@@ -105,6 +112,7 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
         AsesorService.getIA04A(widget.asesiId),
         AsesorService.getIA04B(widget.asesiId),
         AsesorService.getIA05(widget.asesiId),
+        AsesorService.getIA11(widget.asesiId),
       ]);
 
       final res01 = futures[0];
@@ -113,7 +121,7 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
       final res04a = futures[3];
       final res04b = futures[4];
       final res05 = futures[5];
-
+      final res11 = futures[6];
       if (mounted) {
         setState(() {
           if (res01 != null && res01['data'] != null && res01['data']['units'] != null) {
@@ -139,6 +147,10 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
 
           if (res05 != null && res05['data'] != null) {
             _ia05Data = IA05Data.fromJson(res05['data'] as Map<String, dynamic>);
+          }
+
+          if (res11 != null && res11['data'] != null) {
+            _ia11Data = IA11Data.fromJson(res11['data'] as Map<String, dynamic>);
           }
           _isLoading = false;
         });
@@ -258,33 +270,51 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
     }
   }
 
+  Future<void> _saveIA11(IA11Data updatedData) async {
+    final res = await AsesorService.saveIA11(
+      asesiId: widget.asesiId,
+      data: updatedData.toJson(),
+    );
+    if (!mounted) return;
+    if (res != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ FR.IA.11 Verifikasi Portofolio berhasil disimpan ke database'),
+          backgroundColor: Color(0xFF7C3AED),
+        ),
+      );
+      _loadInstrumentData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final double statusBarHeight = MediaQuery.of(context).padding.top;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
-        children: [
-          SizedBox(height: statusBarHeight + 8),
-          const CustomAppBar(
-            title: 'Instrumen Asesmen (FR.IA)',
-            rightWidget: SizedBox(width: 32),
-          ),
+      body: SafeArea(
+        top: true,
+        bottom: true,
+        child: Column(
+          children: [
+            const CustomAppBar(
+              title: 'Instrumen Asesmen (FR.IA)',
+              rightWidget: SizedBox(width: 32),
+            ),
 
-          // Header Info Peserta
-          _buildAsesiHeaderBanner(),
+            // Header Info Peserta
+            _buildAsesiHeaderBanner(),
 
-          // Form Selector Tabs (IA.01, IA.02, IA.03, IA.05)
-          _buildFormTabs(),
+            // Form Selector Tabs (IA.01, IA.02, IA.03, IA.04A, IA.04B, IA.05, IA.11)
+            _buildFormTabs(),
 
-          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
 
-          // Body Active Form
-          Expanded(
-            child: _buildActiveFormContent(),
-          ),
-        ],
+            // Body Active Form
+            Expanded(
+              child: _buildActiveFormContent(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -535,6 +565,14 @@ class _InstrumenAsesmenScreenState extends State<InstrumenAsesmenScreen> {
         return IA05PertanyaanTertulisWidget(
           data: _ia05Data!,
           onSaved: _saveIA05,
+        );
+      case 'IA11':
+        if (_ia11Data == null) {
+          return _buildEmptyState('Belum ada data verifikasi portofolio untuk asesi ini.');
+        }
+        return IA11VerifikasiPortofolioWidget(
+          data: _ia11Data,
+          onSave: _saveIA11,
         );
       default:
         return _buildEmptyState('Form tidak ditemukan.');

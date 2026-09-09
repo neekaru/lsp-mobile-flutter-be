@@ -100,22 +100,22 @@ class _IA05PertanyaanTertulisWidgetState extends State<IA05PertanyaanTertulisWid
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(LucideIcons.file_text, size: 18, color: Color(0xFF2563EB)),
-                        SizedBox(width: 8),
-                        Text(
-                          'FR.IA.05 Pertanyaan Tertulis',
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
+                    const Icon(LucideIcons.file_text, size: 18, color: Color(0xFF2563EB)),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'FR.IA.05 Pertanyaan Tertulis',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
                         ),
-                      ],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -187,13 +187,21 @@ class _IA05PertanyaanTertulisWidgetState extends State<IA05PertanyaanTertulisWid
           ),
           const SizedBox(height: 14),
 
-          // ── 2. List of Soal as Cards ──
-          ...widget.data.items.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final item = entry.value;
-            return _buildSoalCard(idx + 1, item);
-          }),
-
+          // ── 2. List of Soal as Virtualized Cards ──
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.data.items.length,
+            itemBuilder: (context, idx) {
+              final item = widget.data.items[idx];
+              return _IA05SoalCardItem(
+                key: ValueKey(item.no > 0 ? item.no : idx),
+                no: idx + 1,
+                item: item,
+                onChanged: () => setState(() {}),
+              );
+            },
+          ),
           const SizedBox(height: 14),
 
           // ── 3. Card Catatan Asesor ──
@@ -296,8 +304,48 @@ class _IA05PertanyaanTertulisWidgetState extends State<IA05PertanyaanTertulisWid
       ),
     );
   }
+  Widget _buildBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+      ),
+    );
+  }
 
-  Widget _buildSoalCard(int no, IA05SoalItem item) {
+}
+
+class _IA05SoalCardItem extends StatefulWidget {
+  final int no;
+  final IA05SoalItem item;
+  final VoidCallback onChanged;
+
+  const _IA05SoalCardItem({
+    super.key,
+    required this.no,
+    required this.item,
+    required this.onChanged,
+  });
+
+  @override
+  State<_IA05SoalCardItem> createState() => _IA05SoalCardItemState();
+}
+
+class _IA05SoalCardItemState extends State<_IA05SoalCardItem> {
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    final no = widget.no;
     final isYa = item.pencapaian == 'Ya';
     final isTidak = item.pencapaian == 'Tidak';
 
@@ -402,8 +450,12 @@ class _IA05PertanyaanTertulisWidgetState extends State<IA05PertanyaanTertulisWid
                         shape: BoxShape.circle,
                       ),
                       child: Text(
-                        opt.kode.toUpperCase(),
-                        style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white),
+                        opt.kode,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -412,71 +464,54 @@ class _IA05PertanyaanTertulisWidgetState extends State<IA05PertanyaanTertulisWid
                         opt.teks,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isChosen ? const Color(0xFF0F172A) : const Color(0xFF334155),
-                          fontWeight: isChosen ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight: isChosen || isKey ? FontWeight.w600 : FontWeight.normal,
+                          color: isChosen
+                              ? (isKey ? const Color(0xFF15803D) : const Color(0xFFB91C1C))
+                              : const Color(0xFF334155),
                         ),
                       ),
                     ),
-                    if (isChosen) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isKey ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'Pilihan Asesi',
-                          style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ),
-                    ],
-                    if (isKey && !isChosen) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF16A34A),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'Kunci',
-                          style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ),
-                    ],
+                    if (isKey)
+                      const Icon(LucideIcons.check, size: 14, color: Color(0xFF16A34A))
+                    else if (isChosen)
+                      const Icon(LucideIcons.x, size: 14, color: Color(0xFFDC2626)),
                   ],
                 ),
               );
             }),
-            const SizedBox(height: 10),
           ] else if (item.jawabanAsesi.isNotEmpty) ...[
-            // Jawaban Esai
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFDBEAFE)),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Jawaban Esai Asesi:',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1D4ED8)),
+                    'Jawaban / Esai Asesi:',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     item.jawabanAsesi,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF1E40AF), height: 1.35),
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B), height: 1.35),
                   ),
+                  if (item.kunciText.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Kunci / Rujukan: ${item.kunciText}',
+                      style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Color(0xFF2563EB)),
+                    ),
+                  ],
                 ],
               ),
             ),
-            const SizedBox(height: 10),
           ],
+          const SizedBox(height: 10),
 
           // Interactive Segmented Buttons (Ya / Tidak)
           Row(
@@ -487,6 +522,7 @@ class _IA05PertanyaanTertulisWidgetState extends State<IA05PertanyaanTertulisWid
                     setState(() {
                       item.pencapaian = 'Ya';
                     });
+                    widget.onChanged();
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: AnimatedContainer(
@@ -529,6 +565,7 @@ class _IA05PertanyaanTertulisWidgetState extends State<IA05PertanyaanTertulisWid
                     setState(() {
                       item.pencapaian = 'Tidak';
                     });
+                    widget.onChanged();
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: AnimatedContainer(
@@ -571,22 +608,4 @@ class _IA05PertanyaanTertulisWidgetState extends State<IA05PertanyaanTertulisWid
     );
   }
 
-  Widget _buildBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
-      ),
-    );
-  }
 }

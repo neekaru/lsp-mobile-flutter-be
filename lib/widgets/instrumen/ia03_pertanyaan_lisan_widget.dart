@@ -78,22 +78,22 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(LucideIcons.message_circle, size: 18, color: Color(0xFF2563EB)),
-                        SizedBox(width: 8),
-                        Text(
-                          'FR.IA.03 Pertanyaan Mendukung Observasi',
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
+                    const Icon(LucideIcons.message_circle, size: 18, color: Color(0xFF2563EB)),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'FR.IA.03 Pertanyaan Lisan',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
                         ),
-                      ],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -159,13 +159,21 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
           ),
           const SizedBox(height: 14),
 
-          // ── 2. List of Pertanyaan as Cards ──
-          ...widget.data.items.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final item = entry.value;
-            return _buildPertanyaanCard(idx + 1, item);
-          }),
-
+          // ── 2. List of Pertanyaan as Virtualized Cards ──
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.data.items.length,
+            itemBuilder: (context, idx) {
+              final item = widget.data.items[idx];
+              return _IA03PertanyaanCardItem(
+                key: ValueKey(item.no > 0 ? item.no : idx),
+                no: idx + 1,
+                item: item,
+                onChanged: () => setState(() {}),
+              );
+            },
+          ),
           const SizedBox(height: 14),
 
           // ── 3. Card Umpan Balik Asesi ──
@@ -268,8 +276,48 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
       ),
     );
   }
+  Widget _buildBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+      ),
+    );
+  }
 
-  Widget _buildPertanyaanCard(int no, IA03PertanyaanItem item) {
+}
+
+class _IA03PertanyaanCardItem extends StatefulWidget {
+  final int no;
+  final IA03PertanyaanItem item;
+  final VoidCallback onChanged;
+
+  const _IA03PertanyaanCardItem({
+    super.key,
+    required this.no,
+    required this.item,
+    required this.onChanged,
+  });
+
+  @override
+  State<_IA03PertanyaanCardItem> createState() => _IA03PertanyaanCardItemState();
+}
+
+class _IA03PertanyaanCardItemState extends State<_IA03PertanyaanCardItem> {
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    final no = widget.no;
     final isYa = item.pencapaian == 'Ya';
     final isTidak = item.pencapaian == 'Tidak';
 
@@ -404,6 +452,7 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
                     setState(() {
                       item.pencapaian = 'Ya';
                     });
+                    widget.onChanged();
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: AnimatedContainer(
@@ -446,6 +495,7 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
                     setState(() {
                       item.pencapaian = 'Tidak';
                     });
+                    widget.onChanged();
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: AnimatedContainer(
@@ -488,22 +538,4 @@ class _IA03PertanyaanLisanWidgetState extends State<IA03PertanyaanLisanWidget> {
     );
   }
 
-  Widget _buildBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
-      ),
-    );
-  }
 }

@@ -398,8 +398,8 @@ class IA04AData {
   final String instruksiDit;
   final String demonstrasiDit;
   final String durasi;
-  final String fileTugasDit;
-  final String? fileUrl;
+  String fileTugasDit;
+  String? fileUrl;
   String umpanBalikDit;
   final String penyusun;
   final String validator;
@@ -512,6 +512,8 @@ class IA04BData {
   String isDitKompeten; // 'K', 'BK', '0', ''
   String catatanDit;
   String umpanBalikDit;
+  String fileTugas;
+  String? fileUrl;
 
   IA04BData({
     required this.asesiId,
@@ -520,6 +522,8 @@ class IA04BData {
     this.isDitKompeten = 'K',
     this.catatanDit = '',
     this.umpanBalikDit = '',
+    this.fileTugas = 'Belum Upload Tugas Proyek',
+    this.fileUrl,
   });
 
   factory IA04BData.fromJson(Map<String, dynamic> json) {
@@ -535,6 +539,8 @@ class IA04BData {
       isDitKompeten: json['is_dit_kompeten'] as String? ?? 'K',
       catatanDit: json['catatan_dit'] as String? ?? '',
       umpanBalikDit: json['umpan_balik_dit'] as String? ?? '',
+      fileTugas: json['file_tugas'] as String? ?? 'Belum Upload Tugas Proyek',
+      fileUrl: json['file_url'] as String?,
     );
   }
 
@@ -544,6 +550,108 @@ class IA04BData {
       'is_dit_kompeten': isDitKompeten,
       'catatan_dit': catatanDit,
       'umpan_balik_dit': umpanBalikDit,
+      if (fileTugas.isNotEmpty) 'file_jawaban': fileTugas,
+    };
+  }
+}
+
+/// Item Dokumen Portofolio FR.IA.11
+class IA11DokumenItem {
+  final int no;
+  final String nama;
+  final String fileName;
+  final String url;
+  bool valid;
+  bool asli;
+  bool terkini;
+  bool memadai;
+
+  IA11DokumenItem({
+    required this.no,
+    required this.nama,
+    required this.fileName,
+    required this.url,
+    this.valid = false,
+    this.asli = false,
+    this.terkini = false,
+    this.memadai = false,
+  });
+
+  factory IA11DokumenItem.fromJson(Map<String, dynamic> json) {
+    return IA11DokumenItem(
+      no: json['no'] as int? ?? 1,
+      nama: json['nama'] as String? ?? '',
+      fileName: json['file_name'] as String? ?? '',
+      url: json['url'] as String? ?? '',
+      valid: json['valid'] as bool? ?? false,
+      asli: json['asli'] as bool? ?? false,
+      terkini: json['terkini'] as bool? ?? false,
+      memadai: json['memadai'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'no': no,
+      'nama': nama,
+      'file_name': fileName,
+      'url': url,
+      'valid': valid,
+      'asli': asli,
+      'terkini': terkini,
+      'memadai': memadai,
+    };
+  }
+}
+
+/// Model Data untuk FR.IA.11 (Ceklis Verifikasi Portofolio)
+class IA11Data {
+  final int asesiId;
+  final String namaAsesi;
+  final String skema;
+  final String kodeSkema;
+  final List<IA11DokumenItem> dokumen;
+  String catatanPortofolio;
+  String isPortofolio; // "1" (Memadai) / "0" (Belum)
+  final String tanggalPortofolio;
+  final String rekomendasiAsesor;
+
+  IA11Data({
+    required this.asesiId,
+    required this.namaAsesi,
+    required this.skema,
+    this.kodeSkema = '',
+    required this.dokumen,
+    this.catatanPortofolio = '',
+    this.isPortofolio = '1',
+    this.tanggalPortofolio = '',
+    this.rekomendasiAsesor = '',
+  });
+
+  factory IA11Data.fromJson(Map<String, dynamic> json) {
+    var rawDocs = json['dokumen'];
+    List<IA11DokumenItem> docList = [];
+    if (rawDocs is List) {
+      docList = rawDocs.map((e) => IA11DokumenItem.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return IA11Data(
+      asesiId: int.tryParse(json['asesi_id']?.toString() ?? '') ?? 0,
+      namaAsesi: json['nama_asesi'] as String? ?? '',
+      skema: json['skema'] as String? ?? '',
+      kodeSkema: json['kode_skema'] as String? ?? '',
+      dokumen: docList,
+      catatanPortofolio: json['catatan_portofolio'] as String? ?? '',
+      isPortofolio: json['is_portofolio']?.toString() ?? '1',
+      tanggalPortofolio: json['tanggal_portofolio'] as String? ?? '',
+      rekomendasiAsesor: json['rekomendasi_asesor'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'dokumen': dokumen.map((e) => e.toJson()).toList(),
+      'catatan_portofolio': catatanPortofolio,
+      'is_portofolio': isPortofolio,
     };
   }
 }

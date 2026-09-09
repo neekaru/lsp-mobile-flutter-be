@@ -1,7 +1,9 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/instrumen_asesmen_models.dart';
-
+import '../../services/asesor/asesor_service.dart';
 class IA04BPenilaianProyekWidget extends StatefulWidget {
   final IA04BData? data;
   final Function(IA04BData updatedData) onSave;
@@ -22,7 +24,7 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
   late String _isKompeten;
   late TextEditingController _catatanController;
   bool _isSaving = false;
-
+  bool _isUploadingFile = false;
   @override
   void initState() {
     super.initState();
@@ -52,7 +54,6 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
     _catatanController.dispose();
     super.dispose();
   }
-
   String _cleanHtml(String htmlString) {
     if (htmlString.isEmpty) return '';
     String text = htmlString;
@@ -71,6 +72,64 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
         .replaceAll('&#39;', "'");
     text = text.replaceAll(RegExp(r'\n{3,}'), '\n\n');
     return text.trim();
+  }
+
+  Future<void> _pickAndUploadFile() async {
+    final d = widget.data;
+    if (d == null || d.asesiId == 0) return;
+
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg', 'zip', 'doc', 'docx', 'rar'],
+      );
+
+      if (result.isNotEmpty && result.first.path != null) {
+        final file = result.first;
+        setState(() => _isUploadingFile = true);
+
+        final res = await AsesorService.uploadIA04(
+          asesiId: d.asesiId,
+          filePath: file.path!,
+          fileName: file.name,
+        );
+
+        if (mounted) {
+          setState(() => _isUploadingFile = false);
+          if (res != null && res['data'] != null) {
+            final fileName = res['data']['file_name']?.toString() ?? file.name;
+            final fileUrl = res['data']['file_url']?.toString();
+            setState(() {
+              d.fileTugas = fileName;
+              d.fileUrl = fileUrl;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Berkas tugas FR.IA.04B berhasil diunggah.'),
+                backgroundColor: Color(0xFF16A34A),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('⚠️ Gagal mengunggah berkas tugas.'),
+                backgroundColor: Color(0xFFDC2626),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploadingFile = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('⚠️ Terjadi kesalahan: $e'),
+            backgroundColor: const Color(0xFFDC2626),
+          ),
+        );
+      }
+    }
   }
 
   void _setAllPencapaian(String pencapaian) {
@@ -187,14 +246,106 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
               ],
             ),
           ),
+          const SizedBox(height: 12),
+
+          // File Upload Tugas Proyek Asesi
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(LucideIcons.file_archive, color: Color(0xFF64748B), size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'File Tugas Proyek Asesi:',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            d.fileTugas,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (d.fileUrl != null && d.fileUrl!.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(LucideIcons.download, color: Color(0xFF2563EB), size: 18),
+                        tooltip: 'Unduh Berkas',
+                        onPressed: () async {
+                          final uri = Uri.parse(d.fileUrl!);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        },
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _isUploadingFile ? null : _pickAndUploadFile,
+                    icon: _isUploadingFile
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(LucideIcons.upload, size: 15),
+                    label: Text(
+                      _isUploadingFile
+                          ? 'Mengunggah...'
+                          : (d.fileTugas != 'Belum Upload Tugas Proyek' ? 'Ganti Berkas Proyek' : 'Unggah Berkas Proyek'),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF2563EB),
+                      side: const BorderSide(color: Color(0xFF2563EB)),
+                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 14),
 
-          // Items List
-          ..._items.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final item = entry.value;
-            return _buildRubricCard(idx, item);
-          }),
+          // Items List as Virtualized Rubric Cards
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _items.length,
+            itemBuilder: (context, idx) {
+              final item = _items[idx];
+              return _IA04BRubricCardItem(
+                key: ValueKey(item.id > 0 ? item.id : idx),
+                index: idx,
+                item: item,
+                cleanHtml: _cleanHtml,
+                onChanged: () => setState(() {}),
+              );
+            },
+          ),
 
           const SizedBox(height: 14),
 
@@ -254,7 +405,7 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Catatan / Bukti Tambahan:',
+                  'Diperlukan Bukti Tambahan:',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
                 ),
                 const SizedBox(height: 6),
@@ -315,7 +466,55 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
     );
   }
 
-  Widget _buildRubricCard(int index, IA04BItem item) {
+}
+
+class _IA04BRubricCardItem extends StatefulWidget {
+  final int index;
+  final IA04BItem item;
+  final String Function(String) cleanHtml;
+  final VoidCallback onChanged;
+
+  const _IA04BRubricCardItem({
+    super.key,
+    required this.index,
+    required this.item,
+    required this.cleanHtml,
+    required this.onChanged,
+  });
+
+  @override
+  State<_IA04BRubricCardItem> createState() => _IA04BRubricCardItemState();
+}
+
+class _IA04BRubricCardItemState extends State<_IA04BRubricCardItem> {
+  late TextEditingController _tanggapanController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tanggapanController = TextEditingController(text: widget.item.tanggapan);
+  }
+
+  @override
+  void didUpdateWidget(covariant _IA04BRubricCardItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.tanggapan != widget.item.tanggapan &&
+        _tanggapanController.text != widget.item.tanggapan) {
+      _tanggapanController.text = widget.item.tanggapan;
+    }
+  }
+
+  @override
+  void dispose() {
+    _tanggapanController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    final index = widget.index;
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
@@ -323,7 +522,14 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: item.pencapaian == 'Ya'
+              ? const Color(0xFFBBF7D0)
+              : item.pencapaian == 'Tidak'
+                  ? const Color(0xFFFECACA)
+                  : const Color(0xFFE2E8F0),
+          width: item.pencapaian != null ? 1.5 : 1.0,
+        ),
         boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
@@ -353,7 +559,7 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  item.lingkupProyek.isNotEmpty ? _cleanHtml(item.lingkupProyek) : 'Lingkup Penyajian Proyek',
+                  item.lingkupProyek.isNotEmpty ? widget.cleanHtml(item.lingkupProyek) : 'Lingkup Penyajian Proyek',
                   style: const TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.bold,
@@ -368,53 +574,73 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
           // Pertanyaan
           if (item.pertanyaan.isNotEmpty) ...[
             const Text(
-              'Pertanyaan Aspek Penilaian:',
+              'Daftar Pertanyaan:',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
             ),
             const SizedBox(height: 3),
             Text(
-              _cleanHtml(item.pertanyaan),
+              widget.cleanHtml(item.pertanyaan),
               style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B), height: 1.35),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
           ],
 
-          // Tanggapan
-          if (item.tanggapan.isNotEmpty) ...[
-            const Text(
-              'Tanggapan / Catatan Asesi:',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
-            ),
-            const SizedBox(height: 3),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+          // Tanggapan (Editable Text Box)
+          const Text(
+            'Tanggapan :',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+          ),
+          const SizedBox(height: 4),
+          TextFormField(
+            controller: _tanggapanController,
+            maxLines: 3,
+            onChanged: (val) {
+              item.tanggapan = val;
+            },
+            style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
+            decoration: InputDecoration(
+              hintText: 'Tuliskan tanggapan asesi terkait pertanyaan ini...',
+              hintStyle: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              contentPadding: const EdgeInsets.all(10),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
               ),
-              child: Text(
-                _cleanHtml(item.tanggapan),
-                style: const TextStyle(fontSize: 11.5, color: Color(0xFF334155)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
               ),
             ),
-            const SizedBox(height: 8),
-          ],
+          ),
+          const SizedBox(height: 10),
 
           // Kesesuaian Standar KUK
           if (item.kesesuaianStandar.isNotEmpty) ...[
-            Row(
-              children: [
-                const Icon(LucideIcons.tag, size: 12, color: Color(0xFF64748B)),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    'Kesesuaian Standar: ${item.kesesuaianStandar}',
-                    style: const TextStyle(fontSize: 10.5, fontStyle: FontStyle.italic, color: Color(0xFF64748B)),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.tag, size: 13, color: Color(0xFF475569)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Kesesuaian Standar: ${widget.cleanHtml(item.kesesuaianStandar)}',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF334155)),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 10),
           ],
@@ -424,7 +650,7 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Pencapaian Standar:',
+                'Pencapaian:',
                 style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
               ),
               Row(
@@ -433,14 +659,20 @@ class _IA04BPenilaianProyekWidgetState extends State<IA04BPenilaianProyekWidget>
                     label: 'Ya',
                     isSelected: item.pencapaian == 'Ya',
                     activeColor: const Color(0xFF16A34A),
-                    onTap: () => setState(() => item.pencapaian = 'Ya'),
+                    onTap: () {
+                      setState(() => item.pencapaian = 'Ya');
+                      widget.onChanged();
+                    },
                   ),
                   const SizedBox(width: 8),
                   _buildPencapaianButton(
                     label: 'Tidak',
                     isSelected: item.pencapaian == 'Tidak',
                     activeColor: const Color(0xFFDC2626),
-                    onTap: () => setState(() => item.pencapaian = 'Tidak'),
+                    onTap: () {
+                      setState(() => item.pencapaian = 'Tidak');
+                      widget.onChanged();
+                    },
                   ),
                 ],
               ),

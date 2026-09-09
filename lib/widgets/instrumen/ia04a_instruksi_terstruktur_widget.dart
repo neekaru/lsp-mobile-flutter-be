@@ -1,8 +1,10 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/instrumen_asesmen_models.dart';
+import '../../services/asesor/asesor_service.dart';
 
 class IA04AInstruksiTerstrukturWidget extends StatefulWidget {
   final IA04AData? data;
@@ -23,7 +25,7 @@ class _IA04AInstruksiTerstrukturWidgetState
     extends State<IA04AInstruksiTerstrukturWidget> {
   late TextEditingController _umpanBalikController;
   bool _isSaving = false;
-
+  bool _isUploadingFile = false;
   @override
   void initState() {
     super.initState();
@@ -43,6 +45,64 @@ class _IA04AInstruksiTerstrukturWidgetState
   void dispose() {
     _umpanBalikController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadFile() async {
+    final d = widget.data;
+    if (d == null || d.asesiId == 0) return;
+
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg', 'zip', 'doc', 'docx', 'rar'],
+      );
+
+      if (result.isNotEmpty && result.first.path != null) {
+        final file = result.first;
+        setState(() => _isUploadingFile = true);
+
+        final res = await AsesorService.uploadIA04(
+          asesiId: d.asesiId,
+          filePath: file.path!,
+          fileName: file.name,
+        );
+
+        if (mounted) {
+          setState(() => _isUploadingFile = false);
+          if (res != null && res['data'] != null) {
+            final fileName = res['data']['file_name']?.toString() ?? file.name;
+            final fileUrl = res['data']['file_url']?.toString();
+            setState(() {
+              d.fileTugasDit = fileName;
+              d.fileUrl = fileUrl;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Berkas tugas FR.IA.04A berhasil diunggah.'),
+                backgroundColor: Color(0xFF16A34A),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('⚠️ Gagal mengunggah berkas tugas.'),
+                backgroundColor: Color(0xFFDC2626),
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUploadingFile = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('⚠️ Terjadi kesalahan: $e'),
+            backgroundColor: const Color(0xFFDC2626),
+          ),
+        );
+      }
+    }
   }
 
   String _cleanHtml(String htmlString) {
@@ -322,40 +382,74 @@ $cleanDemo
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(LucideIcons.file_archive, color: Color(0xFF64748B), size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'File Upload Tugas DIT Asesi:',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                Row(
+                  children: [
+                    const Icon(LucideIcons.file_archive, color: Color(0xFF64748B), size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'File Tugas DIT Asesi:',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            d.fileTugasDit,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        d.fileTugasDit,
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0F172A),
-                        ),
+                    ),
+                    if (d.fileUrl != null && d.fileUrl!.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(LucideIcons.download, color: Color(0xFF2563EB), size: 18),
+                        tooltip: 'Unduh Berkas',
+                        onPressed: () async {
+                          final uri = Uri.parse(d.fileUrl!);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        },
                       ),
-                    ],
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _isUploadingFile ? null : _pickAndUploadFile,
+                    icon: _isUploadingFile
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(LucideIcons.upload, size: 15),
+                    label: Text(
+                      _isUploadingFile
+                          ? 'Mengunggah...'
+                          : (d.fileTugasDit != 'Belum Upload Tugas DIT' ? 'Ganti Berkas Tugas DIT' : 'Unggah Berkas Tugas DIT'),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0D9488),
+                      side: const BorderSide(color: Color(0xFF0D9488)),
+                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    ),
                   ),
                 ),
-                if (d.fileUrl != null && d.fileUrl!.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(LucideIcons.download, color: Color(0xFF2563EB), size: 18),
-                    onPressed: () async {
-                      final uri = Uri.parse(d.fileUrl!);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      }
-                    },
-                  ),
               ],
             ),
           ),

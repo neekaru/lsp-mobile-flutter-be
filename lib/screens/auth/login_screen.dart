@@ -213,8 +213,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool canPop = ModalRoute.of(context)?.canPop ?? false;
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -223,8 +221,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Link / Tombol kembali ke Beranda jika dibuka dari dalam navigasi (bisa pop)
-              if (canPop) ...[
                 InkWell(
                   onTap: () => _goToHome(context),
                   borderRadius: BorderRadius.circular(8),
@@ -252,7 +248,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-              ],
               // Header: Title + Subtitle and Illustration next to it
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -588,28 +583,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-                    // Link Kembali ke Beranda (Tamu) hanya jika layar utama / root (tidak bisa pop)
-                    if (!canPop) ...[
-                      const SizedBox(height: 24),
-                      Center(
-                        child: TextButton.icon(
-                          onPressed: () => _goToHome(context),
-                          icon: const Icon(
-                            Icons.home_outlined,
-                            size: 18,
-                            color: Color(0xFF2563EB),
-                          ),
-                          label: const Text(
-                            'Kembali ke Beranda (Tamu)',
-                            style: TextStyle(
-                              color: Color(0xFF2563EB),
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),

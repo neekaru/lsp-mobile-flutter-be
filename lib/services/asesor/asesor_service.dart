@@ -970,6 +970,67 @@ class AsesorService {
     }
   }
 
+  /// Get FR.IA.11 Ceklis Verifikasi Portofolio
+  /// GET /api/asesor/asesi/:id/ia11
+  static Future<Map<String, dynamic>?> getIA11(int asesiId) async {
+    try {
+      final response = await _dio.get(ApiRoutes.asesorAsesiIA11(asesiId));
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error fetching IA-11: $e');
+      return null;
+    }
+  }
+
+  /// Save FR.IA.11 Ceklis Verifikasi Portofolio
+  /// POST /api/asesor/asesi/:id/ia11
+  static Future<Map<String, dynamic>?> saveIA11({
+    required int asesiId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.asesorAsesiIA11(asesiId),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error saving IA-11: $e');
+      return null;
+    }
+  }
+
+  /// Upload assignment file for FR.IA.04A or FR.IA.04B
+  /// POST /api/asesor/asesi/:id/ia04/upload
+  static Future<Map<String, dynamic>?> uploadIA04({
+    required int asesiId,
+    required String filePath,
+    required String fileName,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath, filename: fileName),
+      });
+      final response = await _dio.post(
+        ApiRoutes.asesorAsesiIA04Upload(asesiId),
+        data: formData,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('🔴 Error uploading IA-04 file: $e');
+      return null;
+    }
+  }
+
   /// Get FR.AK.05 Laporan Asesmen Jadwal
   /// GET /api/asesor/jadwal/:id/ak05
   static Future<Map<String, dynamic>?> getJadwalAK05(int jadwalId) async {
