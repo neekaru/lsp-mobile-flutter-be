@@ -123,6 +123,7 @@ class AK03Section extends StatelessWidget {
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
             itemCount: displayItems.length,
             separatorBuilder: (context, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
