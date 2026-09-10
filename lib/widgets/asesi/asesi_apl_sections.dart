@@ -10,7 +10,6 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../models/asesor_asesi_models.dart';
-import '../../screens/instrumen/instrumen_asesmen_screen.dart';
 import '../../services/asesor/asesor_service.dart';
 import '../../utils/date_format_helper.dart';
 import 'asesi_form_common.dart';
@@ -202,15 +201,23 @@ class _APL02SectionState extends State<APL02Section> {
         ? apl02!.kandidat
         : '1';
     _selectedMapaId = (apl02?.idMapa != null && apl02!.idMapa! > 0) ? apl02.idMapa : null;
-    if (_selectedMapaId == null && (apl02?.mapaOptions.isNotEmpty ?? false)) {
-      final validList = _filterMapaOptions(apl02!.mapaOptions, _selectedKandidat);
-      _selectedMapaId = validList.isNotEmpty ? validList.first.id : apl02.mapaOptions.first.id;
+    final validList = _filterMapaOptions(apl02?.mapaOptions ?? [], _selectedKandidat);
+    if (_selectedMapaId != null && !validList.any((m) => m.id == _selectedMapaId)) {
+      _selectedMapaId = validList.isNotEmpty ? validList.first.id : null;
+    } else if (_selectedMapaId == null && validList.isNotEmpty) {
+      _selectedMapaId = validList.first.id;
     }
   }
 
   bool _isPortofolio(MapaOption m) {
     final t = '${m.namaMapa} ${m.displayText}'.toLowerCase();
-    return m.isPortofolio || t.contains('portofolio') || t.contains('porotofolio') || t.contains('portfolio');
+    final isTer = m.isTerstruktur || t.contains('terstruktur') || t.contains('dit');
+    if (isTer) return false;
+    return m.isPortofolio ||
+        t.contains('portofolio') ||
+        t.contains('porotofolio') ||
+        t.contains('portfolio') ||
+        t.contains('pengalaman');
   }
 
   bool _isTerstruktur(MapaOption m) {
@@ -228,12 +235,12 @@ class _APL02SectionState extends State<APL02Section> {
       if (isExp) {
         return isPort;
       } else if (isTerstrukturKandidat) {
-        return isTer || !isPort;
+        return isTer;
       } else {
-        return !isPort;
+        return !isPort && !isTer;
       }
     }).toList();
-    return filtered.isNotEmpty ? filtered : options;
+    return filtered;
   }
 
   @override
@@ -328,10 +335,13 @@ class _APL02SectionState extends State<APL02Section> {
   @override
   Widget build(BuildContext context) {
     final apl02 = widget.detailData?.apl02;
+    final bool isLocked = apl02?.isLocked ??
+        ((apl02?.isApproved ?? false) ||
+            (apl02?.praAsesmen == '1' || apl02?.praAsesmen == '2') ||
+            (widget.detailData?.rekomendasiAsesorCode == '1' || widget.detailData?.rekomendasiAsesorCode == '2'));
     final kandidatOptions = apl02?.kandidatOptions ?? [];
     final mapaOptions = apl02?.mapaOptions ?? [];
     final qrUrl = _resolveQrCodeUrl();
-
     return FormSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,6 +353,30 @@ class _APL02SectionState extends State<APL02Section> {
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
+          if (isLocked) ...[
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(LucideIcons.lock, size: 15, color: Color(0xFF475569)),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Dokumen FR-APL.02 telah ditandatangani & direkomendasikan (Terkunci)',
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           // ── Stat Row ──
           Row(
@@ -466,12 +500,12 @@ class _APL02SectionState extends State<APL02Section> {
           ),
           const SizedBox(height: 5),
           InkWell(
-            onTap: _pickDate,
+            onTap: isLocked ? null : _pickDate,
             borderRadius: BorderRadius.circular(8),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: isLocked ? const Color(0xFFF1F5F9) : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: const Color(0xFFCBD5E1)),
               ),
@@ -498,7 +532,7 @@ class _APL02SectionState extends State<APL02Section> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: isLocked ? const Color(0xFFF1F5F9) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFCBD5E1)),
             ),
@@ -512,13 +546,15 @@ class _APL02SectionState extends State<APL02Section> {
                   DropdownMenuItem(value: '1', child: Text('Asesmen Dilanjutkan')),
                   DropdownMenuItem(value: '2', child: Text('Tidak dapat dilanjutkan')),
                 ],
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _selectedRekomendasi = val;
-                    });
-                  }
-                },
+                onChanged: isLocked
+                    ? null
+                    : (val) {
+                        if (val != null) {
+                          setState(() {
+                            _selectedRekomendasi = val;
+                          });
+                        }
+                      },
               ),
             ),
           ),
@@ -532,11 +568,12 @@ class _APL02SectionState extends State<APL02Section> {
           const SizedBox(height: 5),
           TextField(
             controller: _catatanController,
+            readOnly: isLocked,
             maxLines: 2,
             style: const TextStyle(fontSize: 12.5, color: Color(0xFF1E293B)),
             decoration: InputDecoration(
               filled: true,
-              fillColor: const Color(0xFFF8FAFC),
+              fillColor: isLocked ? const Color(0xFFF1F5F9) : const Color(0xFFF8FAFC),
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -597,22 +634,26 @@ class _APL02SectionState extends State<APL02Section> {
 
           // Checkbox Persetujuan
           InkWell(
-            onTap: () {
-              setState(() {
-                _isAgreed = !_isAgreed;
-              });
-            },
+            onTap: isLocked
+                ? null
+                : () {
+                    setState(() {
+                      _isAgreed = !_isAgreed;
+                    });
+                  },
             borderRadius: BorderRadius.circular(6),
             child: Row(
               children: [
                 Checkbox(
                   value: _isAgreed,
                   activeColor: const Color(0xFF2563EB),
-                  onChanged: (val) {
-                    setState(() {
-                      _isAgreed = val ?? false;
-                    });
-                  },
+                  onChanged: isLocked
+                      ? null
+                      : (val) {
+                          setState(() {
+                            _isAgreed = val ?? false;
+                          });
+                        },
                 ),
                 const Expanded(
                   child: Text(
@@ -654,7 +695,7 @@ class _APL02SectionState extends State<APL02Section> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: isLocked ? const Color(0xFFF1F5F9) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFCBD5E1)),
             ),
@@ -694,18 +735,23 @@ class _APL02SectionState extends State<APL02Section> {
                     ),
                   );
                 }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _selectedKandidat = val;
-                      final validOptions = _filterMapaOptions(mapaOptions, val);
-                      if (validOptions.isNotEmpty &&
-                          !validOptions.any((m) => m.id == _selectedMapaId)) {
-                        _selectedMapaId = validOptions.first.id;
-                      }
-                    });
-                  }
-                },
+                onChanged: isLocked
+                    ? null
+                    : (val) {
+                        if (val != null) {
+                          setState(() {
+                            _selectedKandidat = val;
+                            final validOptions = _filterMapaOptions(mapaOptions, val);
+                            if (validOptions.isNotEmpty) {
+                              if (!validOptions.any((m) => m.id == _selectedMapaId)) {
+                                _selectedMapaId = validOptions.first.id;
+                              }
+                            } else {
+                              _selectedMapaId = null;
+                            }
+                          });
+                        }
+                      },
               ),
             ),
           ),
@@ -735,323 +781,144 @@ class _APL02SectionState extends State<APL02Section> {
               final isExp = _selectedKandidat == '3' || _selectedKandidat == '4';
               final effectiveList = _filterMapaOptions(mapaOptions, _selectedKandidat);
 
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFCBD5E1)),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    isExpanded: true,
-                    value: (effectiveList.any((m) => m.id == _selectedMapaId)) ? _selectedMapaId : null,
-                    hint: Text(
-                      effectiveList.isEmpty
-                          ? 'Tidak ada pilihan MAPA untuk skema ini'
-                          : (isExp ? 'Pilih MAPA Portofolio...' : 'Pilih MAPA Observasi/Terstruktur...'),
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: isLocked ? const Color(0xFFF1F5F9) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFCBD5E1)),
                     ),
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
-                    items: effectiveList.map((m) {
-                      return DropdownMenuItem<int>(
-                        value: m.id,
-                        child: Text(
-                          m.displayText,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        isExpanded: true,
+                        value: (effectiveList.any((m) => m.id == _selectedMapaId)) ? _selectedMapaId : null,
+                        hint: Text(
+                          effectiveList.isEmpty
+                              ? (isExp
+                                  ? 'Belum ada MAPA Portofolio untuk skema ini'
+                                  : 'Tidak ada pilihan MAPA untuk skema ini')
+                              : (isExp ? 'Pilih MAPA Portofolio...' : 'Pilih MAPA Observasi/Terstruktur...'),
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                         ),
-                      );
-                    }).toList(),
-                    onChanged: effectiveList.isEmpty
-                        ? null
-                        : (val) {
-                            if (val != null) {
-                              setState(() {
-                                _selectedMapaId = val;
-                              });
-                            }
-                          },
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
+                        items: effectiveList.map((m) {
+                          return DropdownMenuItem<int>(
+                            value: m.id,
+                            child: Text(
+                              m.displayText,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (isLocked || effectiveList.isEmpty)
+                            ? null
+                            : (val) {
+                                if (val != null) {
+                                  setState(() {
+                                    _selectedMapaId = val;
+                                  });
+                                }
+                              },
+                      ),
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 14),
-
-          // ── Link ke Halaman Instrumen Asesmen (FR.IA) ──
-          Builder(
-            builder: (context) {
-              final selectedMapa = mapaOptions.firstWhere(
-                (m) => m.id == _selectedMapaId,
-                orElse: () => MapaOption(id: 0, namaMapa: '', displayText: ''),
-              );
-              final isTerstruktur = selectedMapa.isTerstruktur;
-              final isPorto = !isTerstruktur && (selectedMapa.isPortofolio || _selectedKandidat == '3');
-              final String metodeBadge = isTerstruktur
-                  ? 'Kegiatan Terstruktur (DIT)'
-                  : (isPorto ? 'Verifikasi Portofolio' : 'Observasi Langsung');
-
-              Color bgColor = const Color(0xFFEFF6FF);
-              Color borderColor = const Color(0xFFBFDBFE);
-              Color iconColor = const Color(0xFF2563EB);
-              Color titleColor = const Color(0xFF1E40AF);
-              Color badgeBg = const Color(0xFFDBEAFE);
-              Color badgeText = const Color(0xFF1D4ED8);
-
-              if (isTerstruktur) {
-                bgColor = const Color(0xFFF0FDF4);
-                borderColor = const Color(0xFFBBF7D0);
-                iconColor = const Color(0xFF16A34A);
-                titleColor = const Color(0xFF166534);
-                badgeBg = const Color(0xFFDCFCE7);
-                badgeText = const Color(0xFF15803D);
-              } else if (isPorto) {
-                bgColor = const Color(0xFFFFFBEB);
-                borderColor = const Color(0xFFFDE68A);
-                iconColor = const Color(0xFFD97706);
-                titleColor = const Color(0xFF92400E);
-                badgeBg = const Color(0xFFFEF3C7);
-                badgeText = const Color(0xFFB45309);
-              }
-
-              return Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: borderColor),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              LucideIcons.clipboard_check,
-                              size: 18,
-                              color: iconColor,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Instrumen Asesmen (FR.IA)',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.bold,
-                                color: titleColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: badgeBg,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            metodeBadge,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: badgeText,
+                  if (isExp && effectiveList.isEmpty) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFFECACA)),
+                      ),
+                      child: const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.warning_amber_rounded, color: Color(0xFFDC2626), size: 18),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Perangkat MAPA untuk pekerja berpengalaman belum dibuat oleh LSP. Silakan hubungi admin LSP untuk menginputkan MAPA Portofolio/Berpengalaman terlebih dahulu agar dapat melanjutkan FR-APL.02.',
+                              style: TextStyle(fontSize: 11.5, color: Color(0xFF991B1B), height: 1.3),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      isTerstruktur
-                          ? 'Sesuai metode Kegiatan Terstruktur yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:'
-                          : (isPorto
-                              ? 'Sesuai metode Portofolio yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:'
-                              : 'Sesuai metode yang dipilih pada MAPA, silakan buka dan lengkapi lembar instrumen asesmen:'),
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF475569), height: 1.35),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Dynamic buttons based on selected MAPA and candidate
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        if (selectedMapa.isInstrumentActive('IA04A', _selectedKandidat))
-                          _buildIAQuickButton(
-                            context,
-                            code: 'FR.IA.04A',
-                            label: 'IA.04A Instruksi Terstruktur (DIT)',
-                            formId: 'IA04A',
-                            color: const Color(0xFF0D9488),
-                          ),
-                        if (selectedMapa.isInstrumentActive('IA04B', _selectedKandidat))
-                          _buildIAQuickButton(
-                            context,
-                            code: 'FR.IA.04B',
-                            label: 'IA.04B Penilaian Proyek',
-                            formId: 'IA04B',
-                            color: const Color(0xFF16A34A),
-                          ),
-                        if (selectedMapa.isInstrumentActive('IA01', _selectedKandidat))
-                          _buildIAQuickButton(
-                            context,
-                            code: 'FR.IA.01',
-                            label: 'IA.01 Observasi',
-                            formId: 'IA01',
-                            color: const Color(0xFF2563EB),
-                          ),
-                        if (selectedMapa.isInstrumentActive('IA02', _selectedKandidat))
-                          _buildIAQuickButton(
-                            context,
-                            code: 'FR.IA.02',
-                            label: 'IA.02 Tugas Praktik',
-                            formId: 'IA02',
-                            color: const Color(0xFF0284C7),
-                          ),
-                        if (selectedMapa.isInstrumentActive('IA03', _selectedKandidat))
-                          _buildIAQuickButton(
-                            context,
-                            code: 'FR.IA.03',
-                            label: isPorto ? 'IA.03 Pertanyaan Wawancara' : 'IA.03 Pertanyaan Untuk Mendukung Observasi',
-                            formId: 'IA03',
-                            color: const Color(0xFFD97706),
-                          ),
-                        if (selectedMapa.isInstrumentActive('IA05', _selectedKandidat))
-                          _buildIAQuickButton(
-                            context,
-                            code: 'FR.IA.05',
-                            label: 'IA.05 Tanya Tertulis',
-                            formId: 'IA05',
-                            color: const Color(0xFF16A34A),
-                          ),
-                        if (selectedMapa.isInstrumentActive('IA06', _selectedKandidat))
-                          _buildIAQuickButton(
-                            context,
-                            code: 'FR.IA.06',
-                            label: 'IA.06 Tanya Esai',
-                            formId: 'IA06',
-                            color: const Color(0xFF0D9488),
-                          ),
-                        if (selectedMapa.isInstrumentActive('IA11', _selectedKandidat))
-                          _buildIAQuickButton(
-                            context,
-                            code: 'FR.IA.11',
-                            label: 'IA.11 Verifikasi Portofolio',
-                            formId: 'IA11',
-                            color: const Color(0xFF7C3AED),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
-                ),
+                ],
               );
             },
           ),
           const SizedBox(height: 14),
 
-          // Save Button
-          SizedBox(
-            width: double.infinity,
-            height: 42,
-            child: ElevatedButton.icon(
-              onPressed: (_isSubmitting || !_isAgreed) ? null : _submitAPL02,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E293B),
-                disabledBackgroundColor: const Color(0xFFCBD5E1),
-                disabledForegroundColor: Colors.white70,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          // Save Button / Locked Banner
+          if (isLocked) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(LucideIcons.lock, size: 16, color: Color(0xFF475569)),
+                  SizedBox(width: 8),
+                  Text(
+                    'FR-APL.02 Sudah Ditandatangani & Terkunci',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF334155),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            SizedBox(
+              width: double.infinity,
+              height: 42,
+              child: ElevatedButton.icon(
+                onPressed: (_isSubmitting || !_isAgreed || _selectedMapaId == null || _selectedMapaId == 0)
+                    ? null
+                    : _submitAPL02,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E293B),
+                  disabledBackgroundColor: const Color(0xFFCBD5E1),
+                  disabledForegroundColor: Colors.white70,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: _isSubmitting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Icon(LucideIcons.save, size: 16),
+                label: Text(
+                  _isSubmitting ? 'Menyimpan...' : 'Simpan Rekomendasi FR-APL.02',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 ),
               ),
-              icon: _isSubmitting
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Icon(LucideIcons.save, size: 16),
-              label: Text(
-                _isSubmitting ? 'Menyimpan...' : 'Simpan Rekomendasi FR-APL.02',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              ),
             ),
-          ),
+          ],
         ],
-      ),
-    );
-  }
-
-  Widget _buildIAQuickButton(
-    BuildContext context, {
-    required String code,
-    required String label,
-    required String formId,
-    required Color color,
-  }) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => InstrumenAsesmenScreen(
-              asesiId: widget.detailData?.id ?? 0,
-              namaAsesi: widget.detailData?.namaLengkap ?? 'Peserta Asesmen',
-              skema: widget.detailData?.skemaSertifikat ?? 'Skema Sertifikasi',
-              tuk: widget.detailData?.tukNama ?? 'TUK',
-              jadwal: widget.detailData?.jadwalNama ?? 'Jadwal Asesmen',
-              initialForm: formId,
-            ),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: color.withValues(alpha: 0.35)),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.08),
-              blurRadius: 3,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(LucideIcons.external_link, size: 11, color: color),
-          ],
-        ),
       ),
     );
   }

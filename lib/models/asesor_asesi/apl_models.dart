@@ -278,6 +278,7 @@ class APL02Data {
   final String catatanRekomendasi;
   final String tanggal;
   final bool isApproved;
+  final bool isLocked;
   final String kandidat;
   final String kandidatLabel;
   final int? idMapa;
@@ -298,6 +299,7 @@ class APL02Data {
     this.catatanRekomendasi = 'Di rekomendasi menjadi peserta uji kompetensi',
     this.tanggal = '',
     this.isApproved = false,
+    this.isLocked = false,
     this.kandidat = '1',
     this.kandidatLabel = '',
     this.idMapa,
@@ -308,7 +310,8 @@ class APL02Data {
   });
 
   bool get isCompletedOrApproved {
-    return (isApproved && praAsesmen == '1') ||
+    return isLocked ||
+        (isApproved && praAsesmen == '1') ||
         praAsesmen == '1' ||
         rekomendasi == 'Asesmen Dilanjutkan' ||
         status == 'Asesmen Dilanjutkan';
@@ -331,6 +334,7 @@ class APL02Data {
       catatanRekomendasi: json['catatan_rekomendasi'] as String? ?? 'Di rekomendasi menjadi peserta uji kompetensi',
       tanggal: json['tanggal'] as String? ?? '',
       isApproved: json['is_approved'] as bool? ?? false,
+      isLocked: json['is_locked'] as bool? ?? (json['is_approved'] as bool? ?? false),
       kandidat: json['kandidat']?.toString() ?? '1',
       kandidatLabel: json['kandidat_label'] as String? ?? '',
       idMapa: json['id_mapa'] != null ? int.tryParse(json['id_mapa'].toString()) : null,

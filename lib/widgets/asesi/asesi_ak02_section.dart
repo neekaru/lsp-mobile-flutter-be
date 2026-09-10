@@ -174,32 +174,23 @@ class _AK02SectionState extends State<AK02Section> {
     final selectedMapaId = apl02?.idMapa;
     
     MapaOption? selectedMapa;
-    if (apl02?.mapaOptions.isNotEmpty == true) {
-      if (selectedMapaId != null && selectedMapaId > 0) {
-        selectedMapa = apl02!.mapaOptions.firstWhere(
-          (m) => m.id == selectedMapaId,
-          orElse: () => apl02.mapaOptions.first,
-        );
-      } else {
-        selectedMapa = apl02!.mapaOptions.first;
+    if (apl02?.mapaOptions.isNotEmpty == true && selectedMapaId != null && selectedMapaId > 0) {
+      for (final m in apl02!.mapaOptions) {
+        if (m.id == selectedMapaId) {
+          selectedMapa = m;
+          break;
+        }
       }
     }
 
     final isExp = kandidat == '3' || kandidat == '4';
-    final isTerstruktur = (!isExp && selectedMapa != null && (
-        selectedMapa.isTerstruktur ||
-        selectedMapa.namaMapa.toLowerCase().contains('terstruktur') ||
-        selectedMapa.namaMapa.toLowerCase().contains('dit') ||
-        selectedMapa.hasIA04A ||
-        selectedMapa.hasIA04B
-    )) || (selectedMapa?.hasIA04A == true || selectedMapa?.hasIA04B == true);
-    final isPorto = isExp || (selectedMapa != null && (
-        selectedMapa.isPortofolio ||
-        selectedMapa.namaMapa.toLowerCase().contains('portofolio') ||
-        selectedMapa.namaMapa.toLowerCase().contains('porotofolio') ||
-        selectedMapa.namaMapa.toLowerCase().contains('portfolio')
-    )) || (widget.detailData?.skemaSertifikat.toLowerCase().contains('portofolio') ?? false);
-
+    final bool hasValidMapa = selectedMapa != null && selectedMapa.id > 0;
+    final bool isPorto = hasValidMapa
+        ? (selectedMapa.isPortofolio || (!selectedMapa.isTerstruktur && isExp))
+        : isExp;
+    final bool isTerstruktur = hasValidMapa
+        ? selectedMapa.isTerstruktur
+        : false;
     return FormSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,7 +205,9 @@ class _AK02SectionState extends State<AK02Section> {
           const SizedBox(height: 12),
 
           // Ringkasan Hasil Asesmen (Sesuai Persis dengan Kondisi MAPA yang Dipilih di APL-02)
-          if (isPorto) ...[
+          if (!hasValidMapa) ...[
+            const AsesiDetailRow('Status MAPA', 'Belum Dipilih di FR-APL.02'),
+          ] else if (isPorto) ...[
             AsesiDetailRow('Hasil Verifikasi Portofolio (FR.IA.08/11)', ak02?.hasilPortofolio ?? '-'),
             AsesiDetailRow('Hasil Pertanyaan Wawancara (FR.IA.09/03)', (ak02?.hasilWawancara != '-' && ak02?.hasilWawancara.isNotEmpty == true) ? ak02!.hasilWawancara : (ak02?.hasilLisan ?? '-')),
           ] else if (isTerstruktur) ...[
@@ -231,11 +224,34 @@ class _AK02SectionState extends State<AK02Section> {
 
           const SizedBox(height: 12),
 
-          // Tombol Buka Lembar Instrumen Asesmen
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
+          // Tombol Buka Lembar Instrumen Asesmen Sesuai MAPA
+          if (!hasValidMapa) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFECACA)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: Color(0xFFDC2626), size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Pilihan MAPA belum ditentukan pada FR-APL.02. Silakan pilih dan simpan MAPA pada FR-APL.02 terlebih dahulu untuk menampilkan instrumen asesmen yang sesuai.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF991B1B)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
               if (isPorto) ...[
                 _buildIAQuickButton(
                   context,
@@ -305,6 +321,7 @@ class _AK02SectionState extends State<AK02Section> {
               ],
             ],
           ),
+        ],
 
           const SizedBox(height: 16),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
