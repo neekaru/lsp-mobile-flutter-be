@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -75,6 +76,37 @@ class _JadwalScreenState extends State<JadwalScreen>
   Timer? _searchDebounce;
   bool _isSearchingSelesai = false;
   DateTime? _selectedDate;
+
+  // Filter khusus jadwal running lewat tanggal uji akhir
+  bool _filterOnlyOverdueRunning = false;
+
+  int get _overdueRunningCount {
+    if (_statistik != null && _statistik!.runningLewatTanggal > 0) {
+      return _statistik!.runningLewatTanggal;
+    }
+    return runningList.where(_isItemOverdue).length;
+  }
+
+  bool _isItemOverdue(JadwalItem item) {
+    if (item.daysLate != null && item.daysLate! > 0) return true;
+    final endDt = _parseJadwalItemDate(item.tanggalSelesai) ?? _parseJadwalItemDate(item.tanggalMulai);
+    if (endDt != null) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final end = DateTime(endDt.year, endDt.month, endDt.day);
+      return today.isAfter(end);
+    }
+    return false;
+  }
+
+  DateTime? _parseJadwalItemDate(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      return DateTime.parse(raw);
+    } catch (_) {
+      return null;
+    }
+  }
 
   bool get _isAsesiRole => currentUser.role == 'asesi';
   bool get _isAsesorRole => currentUser.role == 'asesor';
@@ -638,11 +670,21 @@ class _JadwalScreenState extends State<JadwalScreen>
                   // Tab 1: Sedang Berjalan (Mendatang for Asesi)
                   JadwalTabContent(
                     key: const PageStorageKey('sedang_berjalan_tab'),
-                    child: _buildJadwalList(
-                      runningList,
-                      'running',
-                      _scrollControllerRunning,
-                      _hasMoreRunning,
+                    child: Column(
+                      children: [
+                        if (_overdueRunningCount > 0 && !_isAsesiRole)
+                          _buildOverdueSummaryBanner(),
+                        Expanded(
+                          child: _buildJadwalList(
+                            _filterOnlyOverdueRunning
+                                ? runningList.where(_isItemOverdue).toList()
+                                : runningList,
+                            'running',
+                            _scrollControllerRunning,
+                            _filterOnlyOverdueRunning ? false : _hasMoreRunning,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -693,6 +735,105 @@ class _JadwalScreenState extends State<JadwalScreen>
       userRole: currentUser,
       onRefresh: _handleRefresh,
       onItemUpdated: _loadJadwalData,
+    );
+  }
+
+  Widget _buildOverdueSummaryBanner() {
+    final count = _overdueRunningCount;
+    final total = _runningBadgeCount;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: _filterOnlyOverdueRunning
+            ? const Color(0xFFFEF2F2)
+            : const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: _filterOnlyOverdueRunning
+              ? const Color(0xFFFECACA)
+              : const Color(0xFFFDE68A),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: _filterOnlyOverdueRunning
+                  ? const Color(0xFFFEE2E2)
+                  : const Color(0xFFFEF3C7),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              LucideIcons.triangle_alert,
+              size: 18,
+              color: _filterOnlyOverdueRunning
+                  ? const Color(0xFFDC2626)
+                  : const Color(0xFFD97706),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$count Jadwal Lewat Tanggal Uji',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: _filterOnlyOverdueRunning
+                        ? const Color(0xFF991B1B)
+                        : const Color(0xFF92400E),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _filterOnlyOverdueRunning
+                      ? 'Menampilkan $count jadwal yang belum dilaporkan setelah uji berakhir.'
+                      : '$count dari $total jadwal running telah melewati tanggal asesmen & belum dilaporkan.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: _filterOnlyOverdueRunning
+                        ? const Color(0xFFB91C1C)
+                        : const Color(0xFFB45309),
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _filterOnlyOverdueRunning = !_filterOnlyOverdueRunning;
+              });
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: _filterOnlyOverdueRunning
+                    ? const Color(0xFFDC2626)
+                    : const Color(0xFFD97706),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                _filterOnlyOverdueRunning ? 'Semua' : 'Filter',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

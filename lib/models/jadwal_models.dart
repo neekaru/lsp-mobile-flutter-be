@@ -270,8 +270,8 @@ class JadwalStatistik {
   final int selesai;
   final int pelaporan;
   final int terlambat;
+  final int runningLewatTanggal;
   final String trendPercentage;
-
   const JadwalStatistik({
     required this.totalJadwal,
     this.draft = 0,
@@ -280,6 +280,7 @@ class JadwalStatistik {
     required this.selesai,
     this.pelaporan = 0,
     this.terlambat = 0,
+    this.runningLewatTanggal = 0,
     this.trendPercentage = '+0%',
   });
 
@@ -305,6 +306,7 @@ class JadwalStatistik {
       selesai: readInt(data['selesai']),
       pelaporan: readInt(data['pelaporan']),
       terlambat: readInt(data['terlambat']),
+      runningLewatTanggal: readInt(data['running_lewat_tanggal'] ?? data['running_overdue']),
       trendPercentage: _normalizeTrend(
         meta['trend_percentage']?.toString() ??
             data['trend_percentage']?.toString(),
