@@ -71,20 +71,17 @@ class AK07Section extends StatelessWidget {
           _buildCheckItem(
             no: 1,
             title: 'Kebutuhan Khusus / Hambatan Asesi',
-            value: 'Tidak ada kebutuhan khusus yang dilaporkan oleh asesi.',
-            isNormal: true,
+            value: 'Tidak Ada Penyesuaian',
           ),
           _buildCheckItem(
             no: 2,
             title: 'Penyesuaian Metode Asesmen',
-            value: 'Metode asesmen standar sesuai MAPA yang telah disepakati.',
-            isNormal: true,
+            value: 'Tidak Ada Penyesuaian',
           ),
           _buildCheckItem(
             no: 3,
             title: 'Fasilitas & Peralatan Pendukung TUK',
-            value: 'Fasilitas TUK telah memenuhi persyaratan teknis uji kompetensi.',
-            isNormal: true,
+            value: 'Tidak Ada Penyesuaian',
           ),
 
           const SizedBox(height: 14),
@@ -130,7 +127,6 @@ class AK07Section extends StatelessWidget {
     required int no,
     required String title,
     required String value,
-    required bool isNormal,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -166,7 +162,6 @@ class AK07Section extends StatelessWidget {
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                 ),
               ),
-              const Icon(LucideIcons.check, size: 16, color: Color(0xFF16A34A)),
             ],
           ),
           const SizedBox(height: 6),
