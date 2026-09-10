@@ -3,15 +3,16 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../../services/common/health_service.dart';
+import '../../core/navigation/main_navigator.dart';
 import '../../services/auth/token_storage.dart';
+import '../../services/common/health_service.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../services/session_manager.dart';
 import '../../services/common/notification_service.dart';
 import '../../models/auth_models.dart';
-import '../../core/navigation/main_navigator.dart';
-import 'login_screen.dart';
+import '../../services/common/app_update_service.dart';
 import 'onboarding_screen.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -103,7 +104,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       return;
     }
 
-    // Stage 1.6: Readiness check (verify DB connection)
+    // Stage 1.6: Cek update Play Store (in-app update). Tidak ada update ->
+    // lanjut tanpa jeda berarti; ada update flexible -> dialog konfirmasi.
+    if (mounted) {
+      setState(() {
+        _loadingStatus = "Memeriksa pembaruan aplikasi...";
+        _loadingProgress = 0.55;
+      });
+    }
+    try {
+      await AppUpdateService.instance.checkForUpdate();
+    } catch (e) {
+      debugPrint('⚠️ App update check failed (non-fatal): $e');
+    }
+
+    // Stage 1.7: Readiness check (verify DB connection)
     bool serverReady = await HealthService.readyCheck();
     if (!serverReady) {
       debugPrint('⚠️ Server not ready (DB issue)');
