@@ -152,7 +152,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
               ) ??
               AsesiItem(id: asesiId, namaLengkap: '', canEdit: false, isAPL01Valid: false),
         );
-        if (asesi.isMyAsesi && asesi.canEdit && asesi.isAPL01Valid) {
+        if (asesi.isMyAsesi && asesi.canEdit && asesi.isAPL01Valid && asesi.isAPL02Valid && asesi.isAK02Valid) {
           pesertaPayload.add({
             'asesi_id': asesiId,
             'rekomendasi': rekom,
@@ -164,7 +164,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Hanya asesi Anda dengan APL-01 lengkap/terverifikasi yang dapat disimpan rekomendasi.'),
+            content: Text('Hanya asesi Anda dengan APL-01, APL-02, dan AK-02 lengkap yang dapat disimpan rekomendasi.'),
             backgroundColor: Color(0xFFF59E0B),
             behavior: SnackBarBehavior.floating,
           ),

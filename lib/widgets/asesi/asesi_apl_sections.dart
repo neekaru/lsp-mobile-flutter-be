@@ -336,9 +336,7 @@ class _APL02SectionState extends State<APL02Section> {
   Widget build(BuildContext context) {
     final apl02 = widget.detailData?.apl02;
     final bool isLocked = apl02?.isLocked ??
-        ((apl02?.isApproved ?? false) ||
-            (apl02?.praAsesmen == '1' || apl02?.praAsesmen == '2') ||
-            (widget.detailData?.rekomendasiAsesorCode == '1' || widget.detailData?.rekomendasiAsesorCode == '2'));
+        (apl02?.praAsesmen == '1' || apl02?.praAsesmen == '2');
     final kandidatOptions = apl02?.kandidatOptions ?? [];
     final mapaOptions = apl02?.mapaOptions ?? [];
     final qrUrl = _resolveQrCodeUrl();
