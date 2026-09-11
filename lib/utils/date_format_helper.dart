@@ -94,6 +94,29 @@ class DateFormatHelper {
     return formatToIndonesian(dateString);
   }
 
+  /// Format a backend timestamp emitted without an offset as Jakarta time.
+  /// Input: "2026-09-11 14:48:35"; output includes seconds and WIB.
+  static String formatJakartaWithSeconds(String dateString) {
+    final clean = dateString.trim();
+    if (clean.isEmpty || clean == '-' || clean.startsWith('0000') || clean.startsWith('0001')) {
+      return '-';
+    }
+
+    try {
+      DateTime? parsed;
+      if (RegExp(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$').hasMatch(clean)) {
+        parsed = DateTime.parse('${clean.replaceFirst(' ', 'T')}+07:00');
+      } else {
+        parsed = DateTime.tryParse(clean)?.toLocal();
+      }
+      if (parsed == null) return clean;
+      final formatter = DateFormat('dd MMMM yyyy, HH:mm:ss', 'id_ID');
+      return '${formatter.format(parsed)} WIB';
+    } catch (_) {
+      return clean;
+    }
+  }
+
   /// Format tanggal ke format pendek (dd-MM-yyyy)
   /// Input: "2028-03-08Z"
   /// Output: "08-03-2028"

@@ -499,6 +499,7 @@ class AsesiItem {
   final String namaLengkap;
   final String? hasilRekomendasi; // 'K', 'BK', or '-'
   final String? rekomendasiAsesor; // '1', '2', '0'
+  final String? waktuRekomendasi;
   final String? rekomendasiAsesorLabel;
   final String? noPeserta;
   final String? nik;
@@ -534,6 +535,7 @@ class AsesiItem {
     this.nik,
     this.kota,
     this.namaAsesor,
+    this.waktuRekomendasi,
     this.isAPL01Valid = false,
     this.statusAPL01 = 'Belum Lengkap',
     this.colorAPL01 = 'red',
@@ -563,6 +565,7 @@ class AsesiItem {
         json['alamat'];
     final kotaStr = rawKota?.toString().trim();
     final asesorStr = json['nama_asesor']?.toString().trim();
+    final waktuRekomendasiVal = json['waktu_rekomendasi']?.toString().trim();
     final rekomCode = json['rekomendasi_asesor']?.toString().trim() ?? '';
     final hasilRekom = json['hasil_rekomendasi']?.toString().trim() ??
         (rekomCode == '1' ? 'K' : (rekomCode == '2' ? 'BK' : '-'));
@@ -588,6 +591,9 @@ class AsesiItem {
       rekomendasiAsesorLabel: json['rekomendasi_asesor_label'] ?? json['status_penilaian'],
       noPeserta: json['no_peserta']?.toString(),
       nik: json['nik']?.toString(),
+      waktuRekomendasi: (waktuRekomendasiVal != null && waktuRekomendasiVal.isNotEmpty)
+          ? waktuRekomendasiVal
+          : null,
       kota: (kotaStr != null && kotaStr.isNotEmpty) ? kotaStr : null,
       namaAsesor: (asesorStr != null && asesorStr.isNotEmpty) ? asesorStr : null,
       isAPL01Valid: isAPL01ValidVal,
