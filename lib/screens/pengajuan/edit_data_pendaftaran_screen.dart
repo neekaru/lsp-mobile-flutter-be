@@ -53,6 +53,7 @@ class _EditDataPendaftaranScreenState extends State<EditDataPendaftaranScreen> {
   double? _lat;
   double? _lng;
   bool _isLocating = false;
+  int _statusPencariKerja = 1;
 
   Future<void> _getCurrentLocation() async {
     setState(() => _isLocating = true);
@@ -168,6 +169,7 @@ class _EditDataPendaftaranScreenState extends State<EditDataPendaftaranScreen> {
       body['latitude'] = _lat;
       body['longitude'] = _lng;
     }
+    body['status_pencari_kerja'] = _statusPencariKerja;
 
     final ok = await AsesiService.updateProfile(body);
     if (!mounted) return;
@@ -379,6 +381,8 @@ class _EditDataPendaftaranScreenState extends State<EditDataPendaftaranScreen> {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 16),
+                        _buildStatusPencariKerjaField(),
                       ],
                     ),
                   ),
@@ -564,6 +568,77 @@ class _EditDataPendaftaranScreenState extends State<EditDataPendaftaranScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStatusPencariKerjaField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Status Pencari Kerja',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF0F172A),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value: _statusPencariKerja,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
+              items: const [
+                DropdownMenuItem(
+                  value: 0,
+                  child: Text(
+                    'Tidak sedang mencari kerja',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF334155)),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 1,
+                  child: Text(
+                    'Sedang aktif mencari kerja (Open to Work)',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF16A34A), fontWeight: FontWeight.bold),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 2,
+                  child: Text(
+                    'Bekerja, tapi terbuka untuk peluang baru',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _statusPencariKerja = val);
+                }
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          _statusPencariKerja == 0
+              ? 'Profil Anda tidak akan ditampilkan di menu Talenta.'
+              : 'Profil Anda akan ditampilkan kepada pencari talenta di menu Talenta.',
+          style: TextStyle(
+            fontSize: 11,
+            color: _statusPencariKerja == 0 ? const Color(0xFF94A3B8) : const Color(0xFF2563EB),
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
     );
   }
 }

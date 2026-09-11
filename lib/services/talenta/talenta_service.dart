@@ -15,6 +15,7 @@ class TalentaService {
     String? kabupatenId,
     String? provinsiId,
     int? skemaId,
+    int? statusPencariKerja,
     String? search,
     int limit = 20,
     int offset = 0,
@@ -39,6 +40,9 @@ class TalentaService {
       }
       if (search != null && search.trim().isNotEmpty) {
         queryParams['q'] = search.trim();
+      }
+      if (statusPencariKerja != null && statusPencariKerja > 0) {
+        queryParams['status_pencari_kerja'] = statusPencariKerja;
       }
 
       final response = await _dio.get(

@@ -18,6 +18,8 @@ class TalentaItem {
   final String jarakLabel;
   final String telp;
   final String email;
+  final int statusPencariKerja;
+  final String statusPencariKerjaLabel;
 
   const TalentaItem({
     required this.id,
@@ -39,6 +41,8 @@ class TalentaItem {
     this.jarakLabel = '',
     this.telp = '',
     this.email = '',
+    this.statusPencariKerja = 0,
+    this.statusPencariKerjaLabel = '',
   });
 
   factory TalentaItem.fromJson(Map<String, dynamic> json) {
@@ -62,12 +66,16 @@ class TalentaItem {
       jarakLabel: json['jarak_label'] as String? ?? '',
       telp: json['telp'] as String? ?? '',
       email: json['email'] as String? ?? '',
+      statusPencariKerja: (json['status_pencari_kerja'] as num?)?.toInt() ?? 0,
+      statusPencariKerjaLabel: json['status_pencari_kerja_label'] as String? ?? '',
     );
   }
 
   bool get isAktif => status == 'aktif';
   bool get hasCoordinates => latitude != null && longitude != null;
   bool get hasKontak => telp.isNotEmpty || email.isNotEmpty;
+  bool get isPencariKerjaAktif => statusPencariKerja == 1;
+  bool get isBekerjaMencariPeluang => statusPencariKerja == 2;
 }
 
 class TalentaMeta {
@@ -78,6 +86,7 @@ class TalentaMeta {
   final String? kabupatenId;
   final String? provinsiId;
   final int? skemaId;
+  final int? statusPencariKerja;
 
   const TalentaMeta({
     required this.total,
@@ -87,6 +96,7 @@ class TalentaMeta {
     this.kabupatenId,
     this.provinsiId,
     this.skemaId,
+    this.statusPencariKerja,
   });
 
   factory TalentaMeta.fromJson(Map<String, dynamic> json) {
@@ -98,6 +108,7 @@ class TalentaMeta {
       kabupatenId: json['kabupaten_id'] as String?,
       provinsiId: json['provinsi_id'] as String?,
       skemaId: (json['skema_id'] as num?)?.toInt(),
+      statusPencariKerja: (json['status_pencari_kerja'] as num?)?.toInt(),
     );
   }
 }

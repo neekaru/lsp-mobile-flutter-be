@@ -31,6 +31,7 @@ class _TalentaScreenState extends State<TalentaScreen> {
   int? _selectedSkemaId;
   String _selectedSkemaName = 'Semua Skema';
   List<MasterSkema> _skemaList = [];
+  int? _selectedStatusKerja;
 
   // Data state
   List<TalentaItem> _talentaList = [];
@@ -152,6 +153,7 @@ class _TalentaScreenState extends State<TalentaScreen> {
         lat: _currentGeo?.latitude,
         lng: _currentGeo?.longitude,
         skemaId: _selectedSkemaId,
+        statusPencariKerja: _selectedStatusKerja,
         search: _searchController.text.trim(),
         limit: _limit,
         offset: _offset,
@@ -511,6 +513,40 @@ class _TalentaScreenState extends State<TalentaScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 10),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildFilterChip(
+                            label: 'Semua Pencari Kerja',
+                            isSelected: _selectedStatusKerja == null,
+                            onTap: () {
+                              setState(() => _selectedStatusKerja = null);
+                              _fetchTalenta(isRefresh: true);
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            label: 'Aktif Mencari Kerja',
+                            isSelected: _selectedStatusKerja == 1,
+                            onTap: () {
+                              setState(() => _selectedStatusKerja = 1);
+                              _fetchTalenta(isRefresh: true);
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            label: 'Bekerja (Buka Peluang)',
+                            isSelected: _selectedStatusKerja == 2,
+                            onTap: () {
+                              setState(() => _selectedStatusKerja = 2);
+                              _fetchTalenta(isRefresh: true);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -739,6 +775,35 @@ class _TalentaScreenState extends State<TalentaScreen> {
                   ),
                 ),
               ),
+              if (item.statusPencariKerja == 1 || item.statusPencariKerja == 2) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: item.statusPencariKerja == 1
+                        ? const Color(0xFFEFF6FF)
+                        : const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: item.statusPencariKerja == 1
+                          ? const Color(0xFFBFDBFE)
+                          : const Color(0xFFFDE68A),
+                    ),
+                  ),
+                  child: Text(
+                    item.statusPencariKerja == 1
+                        ? 'Cari Kerja'
+                        : 'Buka Peluang',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: item.statusPencariKerja == 1
+                          ? const Color(0xFF2563EB)
+                          : const Color(0xFFD97706),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
 
@@ -867,6 +932,35 @@ class _TalentaScreenState extends State<TalentaScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF2563EB) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? Colors.white : const Color(0xFF475569),
+          ),
+        ),
       ),
     );
   }
