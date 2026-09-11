@@ -145,10 +145,7 @@ class _AK01SectionState extends State<AK01Section> {
   @override
   Widget build(BuildContext context) {
     final ak01 = widget.detailData?.ak01;
-    final bool isApproved = ak01?.status == 'Disetujui' ||
-        ak01?.tandaTanganAsesi == true ||
-        ak01?.tandaTanganAsesor == true ||
-        ak01?.tandaTangan == true;
+    final bool isApproved = ak01?.isApproved ?? false;
 
     final String tglFormatted = ak01?.tglAsesmen.isNotEmpty == true
         ? DateFormatHelper.formatToIndonesian(ak01!.tglAsesmen)

@@ -22,6 +22,10 @@ class BuktiAK01Item {
 
 class AK01Data {
   final String status;
+
+  /// Kanonikal dari backend: FR-AK.01 sudah disetujui asesi & asesor.
+  final bool isApproved;
+
   final String judulSkema;
   final String nomorSkema;
   final String tuk;
@@ -41,6 +45,7 @@ class AK01Data {
 
   AK01Data({
     required this.status,
+    this.isApproved = false,
     this.judulSkema = '',
     this.nomorSkema = '',
     required this.tuk,
@@ -66,6 +71,8 @@ class AK01Data {
 
     return AK01Data(
       status: json['status'] as String? ?? 'Disetujui',
+      isApproved:
+          json['is_approved'] as bool? ?? ((json['status'] as String?) == 'Disetujui'),
       judulSkema: json['judul_skema'] as String? ?? '',
       nomorSkema: json['nomor_skema'] as String? ?? '',
       tuk: json['tuk'] as String? ?? '',
@@ -102,6 +109,11 @@ class AK01Data {
 
 class AK02Data {
   final String status;
+
+  /// Kanonikal dari backend: FR-APL.02 sudah disetujui & MAPA sudah dipilih,
+  /// sehingga rekomendasi FR-AK.02 boleh disimpan.
+  final bool canSubmit;
+
   final String hasilObservasi;
   final String hasilPraktik;
   final String hasilLisan;
@@ -123,6 +135,7 @@ class AK02Data {
 
   AK02Data({
     required this.status,
+    this.canSubmit = false,
     required this.hasilObservasi,
     required this.hasilPraktik,
     required this.hasilLisan,
@@ -160,6 +173,7 @@ class AK02Data {
 
     return AK02Data(
       status: json['status'] as String? ?? 'Belum Dinilai',
+      canSubmit: json['can_submit'] as bool? ?? false,
       hasilObservasi: obs,
       hasilPraktik: json['hasil_praktik'] as String? ?? '-',
       hasilLisan: json['hasil_lisan'] as String? ?? '-',

@@ -43,7 +43,7 @@ class _DetailPermohonanScreenState extends State<DetailPermohonanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isVerified = _data['status'] == 'Terverifikasi' || _data['status'] == 'Terferivikasi';
+    final isVerified = _data['status'] == 'Terverifikasi';
     final nama = _data['nama'] ?? '-';
     final skema = _data['skema'] ?? '-';
     final noUjk = _data['no_ujk'] ?? '-';

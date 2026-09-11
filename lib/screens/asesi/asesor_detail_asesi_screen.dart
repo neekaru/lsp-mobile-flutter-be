@@ -83,118 +83,19 @@ class _AsesorDetailAsesiScreenState extends State<AsesorDetailAsesiScreen> {
     },
   ];
 
+  /// Hak akses formulir dibaca langsung dari flag kanonikal backend (`form_access`).
+  /// Frontend tidak lagi merangkai ulang rantai prasyarat APL/AK.
+  /// Jika backend belum mengirim map ini, formulir dibiarkan terbuka
+  /// (backend tetap menolak penyimpanan yang tidak sah).
   bool isFormUnlocked(String formId) {
     if (_detailData == null) return formId == 'APL01';
-
-    // APL-01 is always accessible to view
-    if (formId == 'APL01') {
-      return true;
-    }
-
-    // 1. APL-01 must be completed & verified before ANY subsequent form can be opened
-    final isAPL01Valid = _detailData!.apl01.isCompleteOrValid;
-    if (!isAPL01Valid) {
-      return false;
-    }
-
-    // 2. APL-02 is unlocked if APL-01 is valid
-    if (formId == 'APL02') {
-      return true;
-    }
-
-    // 3. APL-02 must be approved / recommended by asesor before proceeding to AK forms
-    final isAPL02Valid = _detailData!.apl02.isCompletedOrApproved;
-    if (!isAPL02Valid) {
-      return false;
-    }
-
-    // AK-07 & AK-01 are unlocked once APL-02 is approved
-    if (formId == 'AK07' || formId == 'AK01') {
-      return true;
-    }
-
-    // 4. AK-01 must be agreed / signed
-    final isAK01Valid = _detailData!.ak01.status == 'Disetujui' || _detailData!.ak01.tandaTangan;
-    if (!isAK01Valid) {
-      return false;
-    }
-
-    // AK-02 is unlocked once AK-01 is agreed
-    if (formId == 'AK02') {
-      return true;
-    }
-
-    // 5. AK-02 must have recommendation
-    final isAK02Valid = _detailData!.rekomendasiAsesorCode == '1' ||
-        _detailData!.rekomendasiAsesorCode == '2' ||
-        _detailData!.ak02.status == 'Selesai' ||
-        (_detailData!.ak02.rekomendasiAsesor != '0' &&
-            _detailData!.ak02.rekomendasiAsesor.isNotEmpty &&
-            _detailData!.ak02.rekomendasiAsesor != 'Belum Rekomendasi');
-    if (!isAK02Valid) {
-      return false;
-    }
-
-    // AK-03 is unlocked once AK-02 is completed
-    if (formId == 'AK03') {
-      return true;
-    }
-
-    // 6. AK-03 must be filled
-    final isAK03Valid = _detailData!.ak03.isSudahDiisi ||
-        _detailData!.ak03.status == 'Telah Diisi' ||
-        _detailData!.ak03.status == 'Selesai';
-    if (!isAK03Valid) {
-      return false;
-    }
-
-    // AK-04 / AK-04A / AK-04B are unlocked once AK-03 is completed
-    if (formId == 'AK04' || formId == 'AK04A' || formId == 'AK04B') {
-      return true;
-    }
-
-    return true;
+    final access = _detailData!.formAccess[formId];
+    return access?.unlocked ?? true;
   }
 
   String getLockReason(String formId) {
     if (_detailData == null) return 'Memuat data...';
-
-    // 1. Check APL-01 first
-    if (!_detailData!.apl01.isCompleteOrValid) {
-      return 'Selesaikan dan verifikasi FR-APL.01 terlebih dahulu.';
-    }
-
-    // 2. Check APL-02
-    if (!_detailData!.apl02.isCompletedOrApproved) {
-      return 'Selesaikan dan simpan rekomendasi FR-APL.02 terlebih dahulu.';
-    }
-
-    // 3. Check AK-01
-    final isAK01Valid = _detailData!.ak01.status == 'Disetujui' || _detailData!.ak01.tandaTangan;
-    if (!isAK01Valid) {
-      return 'Selesaikan dan setujui formulir FR-AK.01 terlebih dahulu.';
-    }
-
-    // 4. Check AK-02
-    final isAK02Valid = _detailData!.rekomendasiAsesorCode == '1' ||
-        _detailData!.rekomendasiAsesorCode == '2' ||
-        _detailData!.ak02.status == 'Selesai' ||
-        (_detailData!.ak02.rekomendasiAsesor != '0' &&
-            _detailData!.ak02.rekomendasiAsesor.isNotEmpty &&
-            _detailData!.ak02.rekomendasiAsesor != 'Belum Rekomendasi');
-    if (!isAK02Valid) {
-      return 'Selesaikan dan simpan rekomendasi FR-AK.02 terlebih dahulu.';
-    }
-
-    // 5. Check AK-03
-    final isAK03Valid = _detailData!.ak03.isSudahDiisi ||
-        _detailData!.ak03.status == 'Telah Diisi' ||
-        _detailData!.ak03.status == 'Selesai';
-    if (!isAK03Valid) {
-      return 'Selesaikan pengisian FR-AK.03 terlebih dahulu.';
-    }
-
-    return 'Formulir belum dapat diakses.';
+    return _detailData!.formAccess[formId]?.reason ?? '';
   }
 
   @override

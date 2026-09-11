@@ -24,17 +24,6 @@ class APL01Data {
     required this.buktiDokumen,
   });
 
-  bool get isCompleteOrValid {
-    if (isValid) return true;
-    final s = status.toLowerCase();
-    final r = rekomendasi.toLowerCase();
-    return s == 'terverifikasi' ||
-        s == 'diterima' ||
-        s == 'lengkap' ||
-        r.contains('diterima') ||
-        (tanggalValidasi.isNotEmpty && !tanggalValidasi.startsWith('0000'));
-  }
-
   factory APL01Data.fromJson(Map<String, dynamic> json) {
     final status = json['status'] as String? ?? 'Belum Terverifikasi';
     String rawRekom = json['rekomendasi'] as String? ?? '';
@@ -308,14 +297,6 @@ class APL02Data {
     this.mapaOptions = const [],
     this.kandidatOptions = const [],
   });
-
-  bool get isCompletedOrApproved {
-    return isLocked ||
-        (isApproved && praAsesmen == '1') ||
-        praAsesmen == '1' ||
-        rekomendasi == 'Asesmen Dilanjutkan' ||
-        status == 'Asesmen Dilanjutkan';
-  }
 
   factory APL02Data.fromJson(Map<String, dynamic> json) {
     return APL02Data(

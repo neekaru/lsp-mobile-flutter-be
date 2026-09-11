@@ -20,6 +20,7 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = false;
   List<SertifikatItem> _allSertifikats = [];
+  Map<String, dynamic> _meta = const {};
   String? _errorMessage;
   int _currentTab = 0;
 
@@ -71,10 +72,13 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
 
     try {
       final results = await AsesiService.getSertifikatList();
-      final mappedResults = results.map((e) => SertifikatItem.fromJson(e)).toList();
-      
+      final list = results['data'] as List<dynamic>;
+      final mappedResults =
+          list.map((e) => SertifikatItem.fromJson(e as Map<String, dynamic>)).toList();
+
       setState(() {
         _allSertifikats = mappedResults;
+        _meta = results['meta'] as Map<String, dynamic>? ?? const {};
         _isLoading = false;
       });
     } catch (e) {
@@ -154,9 +158,10 @@ class _AsesiSertifikatScreenState extends State<AsesiSertifikatScreen> {
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     
-    final int aktifCount = _allSertifikats.where((item) => item.status.toLowerCase() == 'aktif').length;
-    final int akanBerakhirCount = _allSertifikats.where((item) => item.status.toLowerCase() == 'akan_kadaluarsa').length;
-    final int kadaluarsaCount = _allSertifikats.where((item) => item.status.toLowerCase() != 'aktif' && item.status.toLowerCase() != 'akan_kadaluarsa').length;
+    // Counter tab dibaca langsung dari agregasi kanonikal backend (`meta`).
+    final int aktifCount = (_meta['total_aktif'] as num?)?.toInt() ?? 0;
+    final int akanBerakhirCount = (_meta['total_akan_kadaluarsa'] as num?)?.toInt() ?? 0;
+    final int kadaluarsaCount = (_meta['total_kadaluarsa'] as num?)?.toInt() ?? 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),

@@ -48,6 +48,10 @@ class AsesorAsesiDetailData {
   final AK03Data ak03;
   final AK04Data ak04;
 
+  /// Peta hak akses formulir kanonikal dari backend (`form_access`).
+  /// Kunci: APL01, APL02, AK07, AK01, AK02, AK03, AK04, AK04A, AK04B.
+  final Map<String, FormAccessItem> formAccess;
+
   AsesorAsesiDetailData({
     required this.id,
     required this.noPeserta,
@@ -89,6 +93,7 @@ class AsesorAsesiDetailData {
     required this.ak02,
     required this.ak03,
     required this.ak04,
+    this.formAccess = const {},
   });
 
   String get kandidat => apl02.kandidat;
@@ -144,6 +149,32 @@ class AsesorAsesiDetailData {
       ak02: AK02Data.fromJson(json['ak02'] as Map<String, dynamic>? ?? {}),
       ak03: AK03Data.fromJson(json['ak03'] as Map<String, dynamic>? ?? {}),
       ak04: AK04Data.fromJson(json['ak04'] as Map<String, dynamic>? ?? {}),
+      formAccess: _parseFormAccess(json['form_access']),
+    );
+  }
+
+  static Map<String, FormAccessItem> _parseFormAccess(dynamic raw) {
+    if (raw is! Map) return const {};
+    return raw.map(
+      (key, value) => MapEntry(
+        key.toString(),
+        FormAccessItem.fromJson(value as Map<String, dynamic>? ?? {}),
+      ),
+    );
+  }
+}
+
+/// Satu entri `form_access` dari backend: status kunci formulir + alasan kanonikal.
+class FormAccessItem {
+  final bool unlocked;
+  final String reason;
+
+  const FormAccessItem({this.unlocked = false, this.reason = ''});
+
+  factory FormAccessItem.fromJson(Map<String, dynamic> json) {
+    return FormAccessItem(
+      unlocked: json['unlocked'] as bool? ?? false,
+      reason: json['reason'] as String? ?? '',
     );
   }
 }

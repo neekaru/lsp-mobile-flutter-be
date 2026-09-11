@@ -578,7 +578,7 @@ class AsesiItem {
     final isAPL01ValidVal = json['is_apl01_valid'] == true;
     final isAPL02ValidVal = json['is_apl02_valid'] == true && isAPL01ValidVal;
     final isAK02ValidVal = (json['is_ak02_valid'] == true || rekomCode == '1' || rekomCode == '2') && isAPL01ValidVal && isAPL02ValidVal;
-    final canEditVal = !isTidakHadirVal && json['can_edit'] != false && isAPL01ValidVal;
+    final canEditVal = json['can_edit'] == true;
     final canViewDetailVal = json['can_view_detail'] != null
         ? json['can_view_detail'] == true
         : (!isTidakHadirVal && isMyAsesiVal);

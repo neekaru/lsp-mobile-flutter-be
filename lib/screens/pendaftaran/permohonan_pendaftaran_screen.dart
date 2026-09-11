@@ -18,6 +18,7 @@ class _PermohonanPendaftaranScreenState
 
   List<Map<String, String>> _allData = [];
   List<Map<String, String>> _filteredData = [];
+  Map<String, dynamic> _meta = const {};
   bool _isLoading = true;
   int _selectedFilterIndex = 0; // 0: Semua, 1: Terverifikasi, 2: Menunggu
 
@@ -33,10 +34,11 @@ class _PermohonanPendaftaranScreenState
     setState(() => _isLoading = true);
 
     try {
-      final realData = await PermohonanService.getPermohonanList();
+      final result = await PermohonanService.getPermohonanList();
       if (!mounted) return;
       setState(() {
-        _allData = realData;
+        _allData = (result['data'] as List).cast<Map<String, String>>();
+        _meta = result['meta'] as Map<String, dynamic>? ?? const {};
         _isLoading = false;
       });
       _applyFilter();
@@ -50,9 +52,7 @@ class _PermohonanPendaftaranScreenState
 
     setState(() {
       _filteredData = _allData.where((item) {
-        final status = (item['status'] ?? '').toLowerCase();
-        final isVerified =
-            status.contains('terverifikasi') || status.contains('terferivikasi');
+        final isVerified = item['status'] == 'Terverifikasi';
 
         // Check filter tab
         if (_selectedFilterIndex == 1 && !isVerified) return false;
@@ -74,13 +74,10 @@ class _PermohonanPendaftaranScreenState
     });
   }
 
-  int get _verifiedCount => _allData
-      .where((e) =>
-          (e['status'] ?? '').toLowerCase().contains('terverifikasi') ||
-          (e['status'] ?? '').toLowerCase().contains('terferivikasi'))
-      .length;
+  // Counter tab dibaca langsung dari agregasi kanonikal backend (`meta`).
+  int get _verifiedCount => (_meta['total_terverifikasi'] as num?)?.toInt() ?? 0;
 
-  int get _pendingCount => _allData.length - _verifiedCount;
+  int get _pendingCount => (_meta['total_menunggu'] as num?)?.toInt() ?? 0;
 
   @override
   void dispose() {
@@ -363,9 +360,7 @@ class _PermohonanPendaftaranScreenState
         : '-';
     final rawDate = item['tanggal'] ?? '';
     final rawJam = item['jam'] ?? '';
-    final status = (item['status'] ?? '').toLowerCase();
-    final isVerified =
-        status.contains('terverifikasi') || status.contains('terferivikasi');
+    final isVerified = item['status'] == 'Terverifikasi';
 
     String formattedDate = '-';
     if (rawDate.isNotEmpty) {

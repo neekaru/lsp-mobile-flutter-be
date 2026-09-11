@@ -6,7 +6,8 @@ class PermohonanService {
   static Dio get _dio => ApiClient.dio;
 
   /// Fetch List Permohonan from API (GET /api/permohonan?search=)
-  static Future<List<Map<String, String>>> getPermohonanList({String search = ''}) async {
+  /// Mengembalikan `data` (list) dan `meta` (counter kanonikal dari backend).
+  static Future<Map<String, dynamic>> getPermohonanList({String search = ''}) async {
     try {
       final response = await _dio.get('/api/permohonan', queryParameters: {
         if (search.isNotEmpty) 'search': search,
@@ -14,23 +15,26 @@ class PermohonanService {
 
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> list = response.data['data'] ?? [];
-        return list.map((e) {
-          final item = e as Map<String, dynamic>;
-          return {
-            'id': item['id']?.toString() ?? '',
-            'tanggal': item['tanggal']?.toString() ?? '',
-            'jam': item['jam']?.toString() ?? '',
-            'nama': item['nama']?.toString() ?? '',
-            'skema': item['skema']?.toString() ?? '',
-            'tuk': item['tuk']?.toString() ?? item['status']?.toString() ?? '',
-            'status': item['status']?.toString() ?? '',
-          };
-        }).toList();
+        return {
+          'data': list.map((e) {
+            final item = e as Map<String, dynamic>;
+            return <String, String>{
+              'id': item['id']?.toString() ?? '',
+              'tanggal': item['tanggal']?.toString() ?? '',
+              'jam': item['jam']?.toString() ?? '',
+              'nama': item['nama']?.toString() ?? '',
+              'skema': item['skema']?.toString() ?? '',
+              'tuk': item['tuk']?.toString() ?? '',
+              'status': item['status']?.toString() ?? '',
+            };
+          }).toList(),
+          'meta': response.data['meta'] as Map<String, dynamic>? ?? {},
+        };
       }
-      return [];
+      return {'data': <Map<String, String>>[], 'meta': <String, dynamic>{}};
     } catch (e) {
       debugPrint('Error getting permohonan list: $e');
-      return [];
+      return {'data': <Map<String, String>>[], 'meta': <String, dynamic>{}};
     }
   }
 

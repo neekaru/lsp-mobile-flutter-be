@@ -550,7 +550,7 @@ class _AK02SectionState extends State<AK02Section> {
             width: double.infinity,
             height: 42,
             child: ElevatedButton.icon(
-              onPressed: (_isSubmitting || !hasValidMapa || apl02?.praAsesmen != '1') ? null : _submitRekomendasi,
+              onPressed: (_isSubmitting || !(ak02?.canSubmit ?? false)) ? null : _submitRekomendasi,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,

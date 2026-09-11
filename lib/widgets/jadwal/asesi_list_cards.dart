@@ -575,7 +575,7 @@ class AsesiListItem extends StatelessWidget {
                               ],
                             ),
                           )
-                        : (item.canEdit && item.isAPL01Valid && item.isAPL02Valid && item.isAK02Valid && !isJadwalSelesai)
+                        : item.canEdit
                             ? Container(
                                 height: 38,
                                 padding: const EdgeInsets.symmetric(horizontal: 10),

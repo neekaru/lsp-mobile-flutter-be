@@ -152,7 +152,7 @@ class _AsesiListScreenState extends State<AsesiListScreen> {
               ) ??
               AsesiItem(id: asesiId, namaLengkap: '', canEdit: false, isAPL01Valid: false),
         );
-        if (asesi.isMyAsesi && asesi.canEdit && asesi.isAPL01Valid && asesi.isAPL02Valid && asesi.isAK02Valid) {
+        if (asesi.canEdit) {
           pesertaPayload.add({
             'asesi_id': asesiId,
             'rekomendasi': rekom,

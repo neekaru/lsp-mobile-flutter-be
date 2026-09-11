@@ -36,12 +36,21 @@ Untuk **SETIAP PERUBAHAN APAPUN** (Widget, Screen, Form, Model Parsing, Service 
      - Dari Search Bar / Modal Picker
    - Pastikan status, warna badge, aksi tombol, dan data yang tampil **100% identik dan konsisten** di semua jalur tersebut.
 
-5. **Self-Verification Checklist**:
+5. **Pemisahan Peran Filter & Larangan Redundan (No Duplicate / Double Filtering)**:
+   - **Backend adalah Single Source of Truth untuk Aturan Bisnis & Otorisasi**:
+     - Jangan pernah menulis ulang rantai filter bisnis di Frontend jika Backend sudah menyediakan flag kesimpulan (contoh: Backend sudah mengirim `can_edit: true/false`, maka Frontend **cukup** menggunakan `if (item.canEdit)`).
+     - **DILARANG KERAS double filter**: Hindari pola seperti `if (item.canEdit && item.isAPL01Valid && item.isAPL02Valid && !isJadwalSelesai)`. Menulis ulang filter yang sama dua kali di FE dan BE hanya menambah kompleksitas, rawan desync, dan memaksa update APK berulang ketika aturan bisnis di Backend berubah.
+   - **Peran Filter yang Tepat di Frontend**:
+     - Frontend **hanya** menangani filter tampilan/presentasi lokal yang memang cocok di FE: pencarian teks lokal (search query), tab filter visual (misal tab "Semua", "Asesi Saya", "Tidak Hadir"), pagination visual, dan sorting UI.
+     - Prinsip: Jika filter cocok di FE maka di FE; jika filter cocok di BE (aturan bisnis/akses) maka di BE — **jangan tulis dua kali**.
+
+6. **Self-Verification Checklist**:
    - [ ] Jika ada breaking change, apakah memang benar-benar diperlukan dan sudah diselaraskan di frontend & backend? Jika tidak perlu, apakah model/parsing sudah 100% backward compatible?
    - [ ] Apakah model parsing aman jika backend mengirim field null/empty atau tipe yang berbeda?
    - [ ] Apakah data di Dashboard, List, dan Detail selaras dan tidak ada status mismatch?
    - [ ] Apakah semua state UI (Loading, Empty Data, Error / Offline, Success) tertangani dengan rapi?
    - [ ] Apakah ada sisa mock/hardcode yang belum diganti data dinamis?
+   - [ ] Apakah tidak ada redundansi/double filtering aturan bisnis di Frontend?
 
 ## Clean Code & Standar Flutter (WAJIB)
 

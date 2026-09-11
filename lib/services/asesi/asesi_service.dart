@@ -39,17 +39,21 @@ class AsesiService {
   }
 
   /// 3. List Sertifikat (GET /api/asesi/sertifikat)
-  static Future<List<Map<String, dynamic>>> getSertifikatList() async {
+  /// Mengembalikan `data` (list) dan `meta` (counter kanonikal dari backend).
+  static Future<Map<String, dynamic>> getSertifikatList() async {
     try {
       final response = await _dio.get(ApiRoutes.asesiSertifikat);
       if (response.statusCode == 200 && response.data != null) {
-        final List<dynamic> list = response.data['data'] ?? [];
-        return list.map((e) => e as Map<String, dynamic>).toList();
+        final list = response.data['data'] as List<dynamic>? ?? [];
+        return {
+          'data': list.map((e) => e as Map<String, dynamic>).toList(),
+          'meta': response.data['meta'] as Map<String, dynamic>? ?? {},
+        };
       }
-      return [];
+      return {'data': <Map<String, dynamic>>[], 'meta': <String, dynamic>{}};
     } catch (e) {
       debugPrint('Error getting sertifikat list: $e');
-      return [];
+      return {'data': <Map<String, dynamic>>[], 'meta': <String, dynamic>{}};
     }
   }
 

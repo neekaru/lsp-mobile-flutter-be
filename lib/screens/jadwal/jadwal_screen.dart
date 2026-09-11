@@ -354,17 +354,13 @@ class _JadwalScreenState extends State<JadwalScreen>
         int resultIndex = 0;
         if (isAdmin) {
           final rawDraft = lists[resultIndex];
-          draftList = _sortJadwalList(
-            rawDraft.where((item) => item.isDraft).toList(),
-          );
+          draftList = _sortJadwalList(rawDraft);
           _hasMoreDraft = rawDraft.length >= _pageSize;
           resultIndex++;
         }
 
         final rawRunning = lists[resultIndex];
-        runningList = _sortJadwalList(
-          isAdmin ? rawRunning.where((item) => item.isRunning).toList() : rawRunning,
-        );
+        runningList = _sortJadwalList(rawRunning);
         _hasMoreRunning = rawRunning.length >= _pageSize;
         resultIndex++;
 
@@ -421,9 +417,7 @@ class _JadwalScreenState extends State<JadwalScreen>
         if (newData.length < _pageSize) {
           _hasMoreDraft = false;
         }
-        draftList.addAll(
-          _sortJadwalList(newData.where((item) => item.isDraft).toList()),
-        );
+        draftList.addAll(_sortJadwalList(newData));
         _isLoadingMore = false;
       });
     } catch (e) {
@@ -452,16 +446,11 @@ class _JadwalScreenState extends State<JadwalScreen>
 
       if (!mounted) return;
 
-      final isAdmin = _isAdminRole;
-      final filtered = isAdmin
-          ? newData.where((item) => item.isRunning).toList()
-          : newData;
-
       setState(() {
         if (newData.length < _pageSize) {
           _hasMoreRunning = false;
         }
-        runningList.addAll(_sortJadwalList(filtered));
+        runningList.addAll(_sortJadwalList(newData));
         _isLoadingMore = false;
       });
     } catch (e) {
