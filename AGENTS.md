@@ -43,6 +43,10 @@ Untuk **SETIAP PERUBAHAN APAPUN** (Widget, Screen, Form, Model Parsing, Service 
    - **Peran Filter yang Tepat di Frontend**:
      - Frontend **hanya** menangani filter tampilan/presentasi lokal yang memang cocok di FE: pencarian teks lokal (search query), tab filter visual (misal tab "Semua", "Asesi Saya", "Tidak Hadir"), pagination visual, dan sorting UI.
      - Prinsip: Jika filter cocok di FE maka di FE; jika filter cocok di BE (aturan bisnis/akses) maka di BE — **jangan tulis dua kali**.
+   - **Kewajiban AI Saat Membuat Fitur/Filter Baru**:
+     - Ketika membuat fitur baru yang melibatkan filter/validasi, **AI WAJIB memastikan lokasinya tunggal (BE atau FE)**:
+       1. **Utamakan Cek Pola Codebase yang Ada (Biar Cepat)**: Ikuti pola yang sudah terbukti di modul lain.
+       2. **WAJIB Tanya ke User jika Ragu/Ambigu**: Jika tidak yakin apakah filter harus ditaruh di BE (query/business flag) atau FE (interaksi lokal), **AI WAJIB bertanya eksplisit ke user di awal**: *"Apakah filter ini sebaiknya ditaruh di BE atau FE?"* agar tidak terjadi double filter lagi di kemudian hari.
 
 6. **Self-Verification Checklist**:
    - [ ] Jika ada breaking change, apakah memang benar-benar diperlukan dan sudah diselaraskan di frontend & backend? Jika tidak perlu, apakah model/parsing sudah 100% backward compatible?
