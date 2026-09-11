@@ -430,3 +430,124 @@ class AsesorMUKItem {
     );
   }
 }
+
+class TUKJadwalItem {
+  final int idJadwal;
+  final String namaJadwal;
+  final String skema;
+  final String kodeSkema;
+  final String tanggal;
+  final String tanggalAkhir;
+  final String waktu;
+  final String namaTuk;
+  final String alamatTuk;
+  final String jenisUji;
+  final String statusJadwal;
+  final String statusJadwalCode;
+  final int totalAsesi;
+  final String asesor;
+
+  const TUKJadwalItem({
+    required this.idJadwal,
+    required this.namaJadwal,
+    this.skema = '',
+    this.kodeSkema = '',
+    this.tanggal = '',
+    this.tanggalAkhir = '',
+    this.waktu = '',
+    this.namaTuk = '',
+    this.alamatTuk = '',
+    this.jenisUji = 'Offline',
+    this.statusJadwal = 'Aktif',
+    this.statusJadwalCode = '0',
+    this.totalAsesi = 0,
+    this.asesor = '',
+  });
+
+  factory TUKJadwalItem.fromJson(Map<String, dynamic> json) {
+    return TUKJadwalItem(
+      idJadwal: (json['id_jadwal'] as num?)?.toInt() ?? 0,
+      namaJadwal: json['nama_jadwal']?.toString() ?? '',
+      skema: json['skema']?.toString() ?? '',
+      kodeSkema: json['kode_skema']?.toString() ?? '',
+      tanggal: json['tanggal']?.toString() ?? '',
+      tanggalAkhir: json['tanggal_akhir']?.toString() ?? '',
+      waktu: json['waktu']?.toString() ?? '',
+      namaTuk: json['nama_tuk']?.toString() ?? '',
+      alamatTuk: json['alamat_tuk']?.toString() ?? '',
+      jenisUji: json['jenis_uji']?.toString() ?? 'Offline',
+      statusJadwal: json['status_jadwal']?.toString() ?? 'Aktif',
+      statusJadwalCode: json['status_jadwal_code']?.toString() ?? '',
+      totalAsesi: (json['total_asesi'] as num?)?.toInt() ?? 0,
+      asesor: json['asesor']?.toString() ?? '',
+    );
+  }
+}
+
+class TUKSkemaStatistikItem {
+  final String namaSkema;
+  final String kodeSkema;
+  final int totalJadwal;
+  final int totalAsesi;
+  final int jumlahKompeten;
+  final int jumlahBelumKompeten;
+
+  const TUKSkemaStatistikItem({
+    required this.namaSkema,
+    this.kodeSkema = '',
+    this.totalJadwal = 0,
+    this.totalAsesi = 0,
+    this.jumlahKompeten = 0,
+    this.jumlahBelumKompeten = 0,
+  });
+
+  factory TUKSkemaStatistikItem.fromJson(Map<String, dynamic> json) {
+    return TUKSkemaStatistikItem(
+      namaSkema: json['nama_skema']?.toString() ?? '',
+      kodeSkema: json['kode_skema']?.toString() ?? '',
+      totalJadwal: (json['total_jadwal'] as num?)?.toInt() ?? 0,
+      totalAsesi: (json['total_asesi'] as num?)?.toInt() ?? 0,
+      jumlahKompeten: (json['jumlah_kompeten'] as num?)?.toInt() ?? 0,
+      jumlahBelumKompeten: (json['jumlah_belum_kompeten'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+class TUKStatistikTahunanItem {
+  final int tahun;
+  final int totalJadwal;
+  final int totalAsesi;
+  final int jumlahKompeten;
+  final int jumlahBelumKompeten;
+  final int jumlahBelumDinilai;
+  final double persentaseKompeten;
+  final List<TUKSkemaStatistikItem> skemaList;
+
+  const TUKStatistikTahunanItem({
+    required this.tahun,
+    this.totalJadwal = 0,
+    this.totalAsesi = 0,
+    this.jumlahKompeten = 0,
+    this.jumlahBelumKompeten = 0,
+    this.jumlahBelumDinilai = 0,
+    this.persentaseKompeten = 0.0,
+    this.skemaList = const [],
+  });
+
+  factory TUKStatistikTahunanItem.fromJson(Map<String, dynamic> json) {
+    final list = (json['skema_list'] as List<dynamic>?)
+            ?.map((e) => TUKSkemaStatistikItem.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+    return TUKStatistikTahunanItem(
+      tahun: (json['tahun'] as num?)?.toInt() ?? 0,
+      totalJadwal: (json['total_jadwal'] as num?)?.toInt() ?? 0,
+      totalAsesi: (json['total_asesi'] as num?)?.toInt() ?? 0,
+      jumlahKompeten: (json['jumlah_kompeten'] as num?)?.toInt() ?? 0,
+      jumlahBelumKompeten: (json['jumlah_belum_kompeten'] as num?)?.toInt() ?? 0,
+      jumlahBelumDinilai: (json['jumlah_belum_dinilai'] as num?)?.toInt() ?? 0,
+      persentaseKompeten: (json['persentase_kompeten'] as num?)?.toDouble() ?? 0.0,
+      skemaList: list,
+    );
+  }
+}

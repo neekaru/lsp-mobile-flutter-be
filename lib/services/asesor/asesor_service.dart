@@ -1155,4 +1155,53 @@ class AsesorService {
       return 'Terjadi kendala koneksi ke server asisten AI. Silakan coba lagi.';
     }
   }
+
+  /// Fetch daftar jadwal asesmen di TUK tertentu
+  static Future<List<TUKJadwalItem>> getTukJadwal({
+    required int idTuk,
+    int? tahun,
+    String? search,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (tahun != null && tahun > 0) queryParams['tahun'] = tahun;
+      if (search != null && search.trim().isNotEmpty) queryParams['search'] = search.trim();
+
+      final response = await _dio.get(
+        '/api/asesor/mitra/$idTuk/jadwal',
+        queryParameters: queryParams,
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> list = response.data['data'] ?? [];
+        return list
+            .map((item) => TUKJadwalItem.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('⚠️ Error fetching TUK jadwal: $e');
+      return [];
+    }
+  }
+
+  /// Fetch statistik performa uji tahunan di TUK tertentu
+  static Future<List<TUKStatistikTahunanItem>> getTukStatistik({
+    required int idTuk,
+  }) async {
+    try {
+      final response = await _dio.get('/api/asesor/mitra/$idTuk/statistik');
+
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> list = response.data['data'] ?? [];
+        return list
+            .map((item) => TUKStatistikTahunanItem.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('⚠️ Error fetching TUK statistik: $e');
+      return [];
+    }
+  }
 }
