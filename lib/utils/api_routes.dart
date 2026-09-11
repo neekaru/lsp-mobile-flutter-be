@@ -102,6 +102,7 @@ class ApiRoutes {
 
   static const String sertifikatSearch = '/api/sertifikat/search';
   static const String sertifikatValidate = '/api/sertifikat/validate';
+  static const String talenta = '/api/talenta';
 
   // Skema Sertifikasi (protected, role=asesi)
   static const String sertifikatSkema = '/api/sertifikat/skema';

@@ -24,6 +24,11 @@ import '../profile/profile_asesor_screen.dart';
 import '../blanko/admin_pengajuan_blanko_screen.dart';
 import '../../utils/url_helper.dart';
 import '../../widgets/dashboard/asesi_timeline_section.dart';
+import '../../widgets/dashboard/menu_bulat_section.dart';
+import '../talenta/talenta_screen.dart';
+import '../sertifikat/skema_sertifikasi_screen.dart';
+import '../sertifikat/validasi_sertifikat_screen.dart';
+import 'berita_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
@@ -475,6 +480,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       onNavigateToJadwal:
                                           widget.onNavigateToJadwal,
                                     ))),
+                ),
+              ],
+            ),
+            MenuBulatSection(
+              items: [
+                MenuBulatItem(
+                  icon: Icons.groups_rounded,
+                  label: 'Talenta',
+                  color: const Color(0xFF2563EB),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const TalentaScreen()),
+                  ),
+                ),
+                MenuBulatItem(
+                  icon: Icons.workspace_premium_rounded,
+                  label: 'Skema',
+                  color: const Color(0xFF0EA5E9),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SkemaSertifikasiScreen()),
+                  ),
+                ),
+                MenuBulatItem(
+                  icon: Icons.verified_rounded,
+                  label: 'Validasi',
+                  color: const Color(0xFF16A34A),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ValidasiSertifikatScreen()),
+                  ),
+                ),
+                MenuBulatItem(
+                  icon: Icons.newspaper_rounded,
+                  label: 'Berita',
+                  color: const Color(0xFFF59E0B),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const BeritaScreen()),
+                  ),
                 ),
               ],
             ),

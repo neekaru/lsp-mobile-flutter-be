@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../models/master_models.dart';
 import '../../services/api_service.dart';
+import '../../services/marketing/location_service.dart';
 
 class EditDataPendaftaranScreen extends StatefulWidget {
   final String currentName;
@@ -49,6 +50,39 @@ class _EditDataPendaftaranScreenState extends State<EditDataPendaftaranScreen> {
   String _selectedPendidikanLabel = '';
   List<MasterPendidikan> _listPendidikan = [];
   bool _isLoadingPendidikan = false;
+  double? _lat;
+  double? _lng;
+  bool _isLocating = false;
+
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isLocating = true);
+    try {
+      final loc = await LocationService.getCurrentLocation();
+      if (!mounted) return;
+      setState(() {
+        _lat = loc.latitude;
+        _lng = loc.longitude;
+        _isLocating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lokasi berhasil diambil: ${loc.latitude.toStringAsFixed(5)}, ${loc.longitude.toStringAsFixed(5)}'),
+          backgroundColor: const Color(0xFF16A34A),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLocating = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal mengambil lokasi GPS. Pastikan GPS aktif.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -129,6 +163,10 @@ class _EditDataPendaftaranScreenState extends State<EditDataPendaftaranScreen> {
     };
     if (_selectedPendidikanId != null) {
       body['id_pendidikan'] = _selectedPendidikanId;
+    }
+    if (_lat != null && _lng != null) {
+      body['latitude'] = _lat;
+      body['longitude'] = _lng;
     }
 
     final ok = await AsesiService.updateProfile(body);
@@ -308,6 +346,38 @@ class _EditDataPendaftaranScreenState extends State<EditDataPendaftaranScreen> {
                           controller: _addressController,
                           hint: 'Masukan alamat Anda sekarang',
                           maxLines: 4,
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _isLocating ? null : _getCurrentLocation,
+                            icon: _isLocating
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.my_location_rounded, size: 18, color: Color(0xFF2563EB)),
+                            label: Text(
+                              _lat == null
+                                  ? 'Ambil Titik Lokasi Saya (GPS)'
+                                  : 'Lokasi Terpasang: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: _lat == null ? const Color(0xFF2563EB) : const Color(0xFF16A34A),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(
+                                color: _lat == null ? const Color(0xFFBFDBFE) : const Color(0xFFBBF7D0),
+                              ),
+                              backgroundColor: _lat == null ? const Color(0xFFEFF6FF) : const Color(0xFFF0FDF4),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                            ),
+                          ),
                         ),
                       ],
                     ),

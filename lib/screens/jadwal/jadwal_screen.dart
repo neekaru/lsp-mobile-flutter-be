@@ -77,9 +77,6 @@ class _JadwalScreenState extends State<JadwalScreen>
   bool _isSearchingSelesai = false;
   DateTime? _selectedDate;
 
-  // Filter khusus jadwal running lewat tanggal uji akhir
-  bool _filterOnlyOverdueRunning = false;
-
   int get _overdueRunningCount {
     if (_statistik != null && _statistik!.runningLewatTanggal > 0) {
       return _statistik!.runningLewatTanggal;
@@ -676,12 +673,10 @@ class _JadwalScreenState extends State<JadwalScreen>
                           _buildOverdueSummaryBanner(),
                         Expanded(
                           child: _buildJadwalList(
-                            _filterOnlyOverdueRunning
-                                ? runningList.where(_isItemOverdue).toList()
-                                : runningList,
+                            runningList,
                             'running',
                             _scrollControllerRunning,
-                            _filterOnlyOverdueRunning ? false : _hasMoreRunning,
+                            _hasMoreRunning,
                           ),
                         ),
                       ],
@@ -746,32 +741,22 @@ class _JadwalScreenState extends State<JadwalScreen>
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: _filterOnlyOverdueRunning
-            ? const Color(0xFFFEF2F2)
-            : const Color(0xFFFFFBEB),
+        color: const Color(0xFFFFFBEB),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: _filterOnlyOverdueRunning
-              ? const Color(0xFFFECACA)
-              : const Color(0xFFFDE68A),
-        ),
+        border: Border.all(color: const Color(0xFFFDE68A)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
-              color: _filterOnlyOverdueRunning
-                  ? const Color(0xFFFEE2E2)
-                  : const Color(0xFFFEF3C7),
+              color: const Color(0xFFFEF3C7),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
+            child: const Icon(
               LucideIcons.triangle_alert,
               size: 18,
-              color: _filterOnlyOverdueRunning
-                  ? const Color(0xFFDC2626)
-                  : const Color(0xFFD97706),
+              color: Color(0xFFD97706),
             ),
           ),
           const SizedBox(width: 12),
@@ -782,54 +767,22 @@ class _JadwalScreenState extends State<JadwalScreen>
               children: [
                 Text(
                   '$count Jadwal Lewat Tanggal Uji',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: _filterOnlyOverdueRunning
-                        ? const Color(0xFF991B1B)
-                        : const Color(0xFF92400E),
+                    color: Color(0xFF92400E),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _filterOnlyOverdueRunning
-                      ? 'Menampilkan $count jadwal yang belum dilaporkan setelah uji berakhir.'
-                      : '$count dari $total jadwal running telah melewati tanggal asesmen & belum dilaporkan.',
-                  style: TextStyle(
+                  '$count dari $total jadwal running telah melewati tanggal asesmen & belum dilaporkan.',
+                  style: const TextStyle(
                     fontSize: 11,
-                    color: _filterOnlyOverdueRunning
-                        ? const Color(0xFFB91C1C)
-                        : const Color(0xFFB45309),
+                    color: Color(0xFFB45309),
                     height: 1.3,
                   ),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () {
-              setState(() {
-                _filterOnlyOverdueRunning = !_filterOnlyOverdueRunning;
-              });
-            },
-            borderRadius: BorderRadius.circular(6),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: _filterOnlyOverdueRunning
-                    ? const Color(0xFFDC2626)
-                    : const Color(0xFFD97706),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                _filterOnlyOverdueRunning ? 'Semua' : 'Filter',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
             ),
           ),
         ],
