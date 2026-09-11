@@ -160,7 +160,9 @@ class AsesorDashboardJadwal {
       skema: json['skema'] ?? '',
       tanggal: json['tanggal'] ?? '',
       waktu: json['waktu'] ?? '',
-      tuk: json['tuk'] ?? '',
+      tuk: (json['tuk'] != null && json['tuk'].toString().trim().isNotEmpty)
+          ? json['tuk'].toString()
+          : (json['lokasi_tuk']?.toString() ?? ''),
       status: json['status']?.toString() ?? '0',
       jenisUji: json['jenis_uji']?.toString(),
       isAjj: isAjj,
