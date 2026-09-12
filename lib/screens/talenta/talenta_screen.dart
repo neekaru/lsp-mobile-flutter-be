@@ -1485,17 +1485,23 @@ class _TalentaScreenState extends State<TalentaScreen> {
                 decoration: BoxDecoration(
                   color: item.isAktif
                       ? const Color(0xFFDCFCE7)
-                      : const Color(0xFFFEE2E2),
+                      : (item.status == 'proses'
+                          ? const Color(0xFFEFF6FF)
+                          : const Color(0xFFFEE2E2)),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  item.isAktif ? 'Aktif' : 'Kadaluarsa',
+                  item.isAktif
+                      ? 'Aktif'
+                      : (item.status == 'proses' ? 'Proses' : 'Kadaluarsa'),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                     color: item.isAktif
                         ? const Color(0xFF16A34A)
-                        : const Color(0xFFDC2626),
+                        : (item.status == 'proses'
+                            ? const Color(0xFF2563EB)
+                            : const Color(0xFFDC2626)),
                   ),
                 ),
               ),
