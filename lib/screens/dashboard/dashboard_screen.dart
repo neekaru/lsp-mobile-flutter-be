@@ -561,42 +561,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
-            MenuBulatSection(
-              items: [
-                MenuBulatItem(
-                  icon: Icons.groups_rounded,
-                  label: 'Talenta',
-                  color: const Color(0xFF2563EB),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const TalentaScreen()),
+            if (isGuest || isAsesi)
+              MenuBulatSection(
+                items: [
+                  MenuBulatItem(
+                    icon: Icons.groups_rounded,
+                    label: 'Talenta',
+                    color: const Color(0xFF2563EB),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const TalentaScreen()),
+                    ),
                   ),
-                ),
-                MenuBulatItem(
-                  icon: Icons.workspace_premium_rounded,
-                  label: 'Skema',
-                  color: const Color(0xFF0EA5E9),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SkemaSertifikasiScreen()),
+                  MenuBulatItem(
+                    icon: Icons.workspace_premium_rounded,
+                    label: 'Skema',
+                    color: const Color(0xFF0EA5E9),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const SkemaSertifikasiScreen()),
+                    ),
                   ),
-                ),
-                MenuBulatItem(
-                  icon: Icons.verified_rounded,
-                  label: 'Validasi',
-                  color: const Color(0xFF16A34A),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ValidasiSertifikatScreen()),
+                  MenuBulatItem(
+                    icon: Icons.verified_rounded,
+                    label: 'Validasi',
+                    color: const Color(0xFF16A34A),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ValidasiSertifikatScreen()),
+                    ),
                   ),
-                ),
-                MenuBulatItem(
-                  icon: Icons.newspaper_rounded,
-                  label: 'Berita',
-                  color: const Color(0xFFF59E0B),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const BeritaScreen()),
+                  MenuBulatItem(
+                    icon: Icons.newspaper_rounded,
+                    label: 'Berita',
+                    color: const Color(0xFFF59E0B),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const BeritaScreen()),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
 
             if (isAsesi && _asesiSummaryData?.hasAlert == true)
               Padding(
