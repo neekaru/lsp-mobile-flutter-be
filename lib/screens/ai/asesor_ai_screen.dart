@@ -42,14 +42,27 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
   bool _isAiThinking = false;
   final List<_ChatMessage> _messages = [];
 
-  final List<String> _quickPrompts = [
-    '🎓 Rekomendasi skema untuk Dosen/Kampus',
+  final List<String> _asesorQuickPrompts = [
     '👥 Tampilkan asesi bulan ini',
     '📋 Tampilkan asesi hari ini',
     '📅 Cek jadwal asesmen aktif',
     '📜 Syarat pemeliharaan RCC Asesor',
     '💡 Panduan pengisian FR-AK.05 & FR-AK.06',
   ];
+
+  final List<String> _publicQuickPrompts = [
+    '🎓 Rekomendasi skema untuk Dosen/Kampus',
+    '💻 Rekomendasi skema bidang IT & Software',
+    '📊 Skema Data Science & Analis Data',
+    '📱 Skema Digital Marketing & Content Creator',
+    '📝 Persyaratan dasar pendaftaran sertifikasi',
+    '❓ Apa keuntungan sertifikasi BNSP?',
+  ];
+
+  List<String> get _currentQuickPrompts {
+    final user = AuthRepository.currentUserInstance;
+    return user?.role == 'asesor' ? _asesorQuickPrompts : _publicQuickPrompts;
+  }
   @override
   void initState() {
     super.initState();
@@ -332,10 +345,10 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _quickPrompts.length,
+              itemCount: _currentQuickPrompts.length,
               separatorBuilder: (context, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
-                final prompt = _quickPrompts[index];
+                final prompt = _currentQuickPrompts[index];
                 return ActionChip(
                   label: Text(
                     prompt,
