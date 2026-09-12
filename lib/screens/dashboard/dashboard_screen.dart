@@ -191,7 +191,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 // Sky Blue Header Background
                 Container(
                   width: double.infinity,
-                  height: 310 + statusBarHeight,
+                  height: (isGuest ? 310 : 260) + statusBarHeight,
                   decoration: const BoxDecoration(
                     color: Color(0xFF4FA8E8),
                     borderRadius: BorderRadius.only(
@@ -451,78 +451,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ],
                       ),
-                      const SizedBox(height: 14),
-                      // Searchbox AI Asisten (Tanya AI / Rekomendasi Skema)
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AsesorAiScreen(),
+                      if (isGuest) ...[
+                        const SizedBox(height: 14),
+                        // Searchbox AI Asisten (Tanya AI / Rekomendasi Skema)
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AsesorAiScreen(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            height: 44,
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          height: 44,
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.08),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.auto_awesome_rounded,
-                                  size: 17,
-                                  color: Color(0xFF2563EB),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              const Expanded(
-                                child: Text(
-                                  'Tanya AI: cari info, rekomendasi skema...',
-                                  style: TextStyle(
-                                    color: Color(0xFF64748B),
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w500,
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF2563EB),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  'Cari',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.bold,
+                                  child: const Icon(
+                                    Icons.auto_awesome_rounded,
+                                    size: 17,
+                                    color: Color(0xFF2563EB),
                                   ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 10),
+                                const Expanded(
+                                  child: Text(
+                                    'Tanya AI: cari info, rekomendasi skema...',
+                                    style: TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF2563EB),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'Cari',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -530,7 +532,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 // Rangkuman Utama Card Container (Imported widget)
                 Padding(
                   padding: EdgeInsets.only(
-                    top: statusBarHeight + (isAsesor ? 162 : 142),
+                    top: statusBarHeight + (isGuest ? 142 : (isAsesor ? 110 : 90)),
                     left: 16,
                     right: 16,
                     bottom: 12,
