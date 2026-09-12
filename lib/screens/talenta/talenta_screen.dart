@@ -1163,7 +1163,7 @@ class _TalentaScreenState extends State<TalentaScreen> {
                             : ListView.separated(
                                 shrinkWrap: true,
                                 itemCount: searchResults.length,
-                                separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                                separatorBuilder: (_, _) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
                                 itemBuilder: (_, i) {
                                   final item = searchResults[i];
                                   final nama = item['nama_lengkap']?.toString() ?? '-';
@@ -2377,6 +2377,7 @@ class _TalentaScreenState extends State<TalentaScreen> {
   }
 
   Widget _buildTalentaCard(TalentaItem item) {
+    final isGuest = AuthRepository.currentUserInstance == null;
     return Container(
       margin: const EdgeInsets.only(bottom: 12.0),
       decoration: BoxDecoration(
@@ -2665,8 +2666,9 @@ class _TalentaScreenState extends State<TalentaScreen> {
       ),
     ),
   ),
+),
 );
-
+  }
   Widget _buildFilterChip({
     required String label,
     required bool isSelected,
