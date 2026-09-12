@@ -62,4 +62,45 @@ class TalentaService {
       return TalentaResponse.empty;
     }
   }
+
+  /// Search asesi for admin plotting
+  static Future<List<Map<String, dynamic>>> searchAsesiAdmin(String query) async {
+    try {
+      final response = await _dio.get(
+        '/api/admin/asesi/search',
+        queryParameters: {'q': query},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final list = response.data['data'] as List<dynamic>?;
+        return list?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [];
+      }
+      return [];
+    } catch (e) {
+      debugPrint('🔴 Error search asesi admin: $e');
+      return [];
+    }
+  }
+
+  /// Update asesi location and job status by admin
+  static Future<bool> updateAsesiLokasiAdmin({
+    required int id,
+    required double latitude,
+    required double longitude,
+    required int statusPencariKerja,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/api/admin/asesi/$id/lokasi',
+        data: {
+          'latitude': latitude,
+          'longitude': longitude,
+          'status_pencari_kerja': statusPencariKerja,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('🔴 Error update asesi lokasi admin: $e');
+      return false;
+    }
+  }
 }

@@ -61,7 +61,19 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
   bool _isLocating = false;
   double? _lat;
   double? _lng;
+  String? _locationName;
   int _statusPencariKerja = 1;
+
+  void _resolveLocationName(double lat, double lng) async {
+    try {
+      final name = await LocationService.getRealLocationName(lat, lng);
+      if (mounted && name.isNotEmpty) {
+        setState(() {
+          _locationName = name;
+        });
+      }
+    } catch (_) {}
+  }
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
@@ -88,6 +100,9 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
     _lat = widget.currentLatitude;
     _lng = widget.currentLongitude;
     _statusPencariKerja = widget.currentStatusPencariKerja;
+    if (_lat != null && _lng != null) {
+      _resolveLocationName(_lat!, _lng!);
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -100,6 +115,7 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
         _lng = loc.longitude;
         _isLocating = false;
       });
+      _resolveLocationName(loc.latitude, loc.longitude);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -267,8 +283,35 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
                             hint: 'Masukan alamat atau domisili Anda',
                             maxLines: 3,
                           ),
-                          if (AuthRepository.currentUserInstance?.isAsesi ?? false) ...[
-                            const SizedBox(height: 4),
+                          if ((AuthRepository.currentUserInstance?.isAsesi ?? false) || _lat != null) ...[
+                            if (_locationName != null && _locationName!.isNotEmpty) ...[
+                              Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF0FDF4),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFFBBF7D0)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.location_on_rounded, size: 16, color: Color(0xFF16A34A)),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        _locationName!,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF15803D),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                             SizedBox(
                               width: double.infinity,
                               child: OutlinedButton.icon(
@@ -287,7 +330,7 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
                                 label: Text(
                                   _lat == null
                                       ? 'Ambil Titik Lokasi Saya (GPS)'
-                                      : 'Lokasi Terpasang: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}',
+                                      : 'Koordinat: ${_lat!.toStringAsFixed(6)}, ${_lng!.toStringAsFixed(6)}',
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w600,

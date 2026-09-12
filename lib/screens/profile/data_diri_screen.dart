@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../services/asesi/asesi_service.dart';
 import '../../services/asesor/asesor_service.dart';
 import '../../services/auth/auth_repository.dart';
+import '../../services/marketing/location_service.dart';
 import '../../utils/url_helper.dart';
 import '../../widgets/profile/profile_asesor_widgets.dart';
 import '../../models/auth_models.dart';
@@ -34,9 +35,26 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
   String? _fotoProfilUrl;
   double? _latitude;
   double? _longitude;
+  String? _locationName;
+  bool _isResolvingLocation = false;
   int _statusPencariKerja = 1;
   bool _isLoading = true;
   bool _isUploadingPhoto = false;
+
+  void _resolveLocationName(double lat, double lng) async {
+    if (_isResolvingLocation) return;
+    _isResolvingLocation = true;
+    try {
+      final name = await LocationService.getRealLocationName(lat, lng);
+      if (mounted && name.isNotEmpty) {
+        setState(() {
+          _locationName = name;
+        });
+      }
+    } catch (_) {} finally {
+      _isResolvingLocation = false;
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -83,6 +101,9 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
               _fotoProfilUrl = profile['foto_profil_url'].toString();
             }
           });
+          if (_latitude != null && _longitude != null) {
+            _resolveLocationName(_latitude!, _longitude!);
+          }
         }
       } else {
         final profile = await AsesorService.getProfile();
@@ -105,6 +126,19 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
             }
           });
         }
+        try {
+          final asesiProf = await AsesiService.getProfile();
+          if (asesiProf != null && mounted && asesiProf['latitude'] != null) {
+            setState(() {
+              _latitude = (asesiProf['latitude'] as num?)?.toDouble();
+              _longitude = (asesiProf['longitude'] as num?)?.toDouble();
+              _statusPencariKerja = (asesiProf['status_pencari_kerja'] as num?)?.toInt() ?? 1;
+            });
+            if (_latitude != null && _longitude != null) {
+              _resolveLocationName(_latitude!, _longitude!);
+            }
+          }
+        } catch (_) {}
       }
     } catch (_) {}
     if (mounted) {
@@ -468,7 +502,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                           hint: 'Belum diatur',
                           maxLines: 2,
                         ),
-                        if (user?.isAsesi ?? false) ...[
+                        if ((user?.isAsesi ?? false) || _latitude != null) ...[
                           Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: Column(
@@ -494,23 +528,43 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                                     ),
                                   ),
                                   child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Icon(
-                                        Icons.location_on_rounded,
-                                        size: 18,
-                                        color: _latitude != null ? const Color(0xFF16A34A) : const Color(0xFF94A3B8),
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 2),
+                                        child: Icon(
+                                          Icons.location_on_rounded,
+                                          size: 18,
+                                          color: _latitude != null ? const Color(0xFF16A34A) : const Color(0xFF94A3B8),
+                                        ),
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
-                                        child: Text(
-                                          _latitude != null
-                                              ? '${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}'
-                                              : 'Titik koordinat belum terpasang',
-                                          style: TextStyle(
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.w600,
-                                            color: _latitude != null ? const Color(0xFF16A34A) : const Color(0xFF64748B),
-                                          ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            if (_locationName != null && _locationName!.isNotEmpty) ...[
+                                              Text(
+                                                _locationName!,
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF0F172A),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                            ],
+                                            Text(
+                                              _latitude != null
+                                                  ? 'Koordinat: ${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}'
+                                                  : 'Titik koordinat belum terpasang',
+                                              style: TextStyle(
+                                                fontSize: 12.5,
+                                                fontWeight: FontWeight.w600,
+                                                color: _latitude != null ? const Color(0xFF16A34A) : const Color(0xFF64748B),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -716,6 +770,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                                   if (lat != null && lng != null) {
                                     _latitude = lat;
                                     _longitude = lng;
+                                    _resolveLocationName(lat, lng);
                                   }
                                   if (statusPencariKerja != null) {
                                     _statusPencariKerja = statusPencariKerja;

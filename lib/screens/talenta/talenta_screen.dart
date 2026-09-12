@@ -347,6 +347,87 @@ class _TalentaScreenState extends State<TalentaScreen> {
     );
   }
 
+
+  Future<void> _launchWhatsApp(String rawPhone, {String? name}) async {
+    final clean = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nomor WhatsApp tidak tersedia'),
+          backgroundColor: Color(0xFFDC2626),
+        ),
+      );
+      return;
+    }
+    String formatted = clean;
+    if (formatted.startsWith('0')) {
+      formatted = '62${formatted.substring(1)}';
+    } else if (!formatted.startsWith('62')) {
+      formatted = '62$formatted';
+    }
+
+    final greeting = name != null && name.isNotEmpty
+        ? 'Halo $name, saya melihat profil Anda di Talenta LSP Digital.'
+        : 'Halo, saya melihat profil Anda di Talenta LSP Digital.';
+    final uri = Uri.parse('https://wa.me/$formatted?text=${Uri.encodeComponent(greeting)}');
+
+    try {
+      if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        return;
+      }
+    } catch (_) {}
+
+    try {
+      await launchUrl(uri);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak dapat membuka WhatsApp. Pastikan aplikasi WhatsApp terpasang.'),
+            backgroundColor: Color(0xFFDC2626),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _launchEmail(String email, {String? name}) async {
+    final clean = email.trim();
+    if (clean.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Alamat email tidak tersedia'),
+          backgroundColor: Color(0xFFDC2626),
+        ),
+      );
+      return;
+    }
+
+    final subject = Uri.encodeComponent('Peluang Kerja / Talenta LSP Digital');
+    final body = Uri.encodeComponent(
+      name != null && name.isNotEmpty
+          ? 'Halo $name,\n\nSaya melihat profil Anda di aplikasi Talenta LSP Digital dan berminat untuk mendiskusikan peluang kerja sama.\n\nSalam,'
+          : 'Halo,\n\nSaya melihat profil Anda di aplikasi Talenta LSP Digital.\n\nSalam,',
+    );
+    final uri = Uri.parse('mailto:$clean?subject=$subject&body=$body');
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak dapat membuka aplikasi Email.'),
+            backgroundColor: Color(0xFFDC2626),
+          ),
+        );
+      }
+    }
+  }
   void _showManualLocationPicker() {
     showModalBottomSheet(
       context: context,
@@ -897,8 +978,515 @@ class _TalentaScreenState extends State<TalentaScreen> {
     );
   }
 
+  void _showAdminPlottingModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final searchController = TextEditingController();
+        final latController = TextEditingController(
+          text: _currentGeo?.latitude != null ? _currentGeo!.latitude.toString() : '',
+        );
+        final lngController = TextEditingController(
+          text: _currentGeo?.longitude != null ? _currentGeo!.longitude.toString() : '',
+        );
+
+        List<Map<String, dynamic>> searchResults = [];
+        Map<String, dynamic>? selectedAsesi;
+        int statusPencariKerja = 1;
+        bool isSearching = false;
+        bool isSaving = false;
+        Timer? debounce;
+        bool hasLoadedInitial = false;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            if (!hasLoadedInitial && searchResults.isEmpty && !isSearching) {
+              hasLoadedInitial = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                setModalState(() => isSearching = true);
+                final res = await TalentaService.searchAsesiAdmin('');
+                if (ctx.mounted) {
+                  setModalState(() {
+                    searchResults = res;
+                    isSearching = false;
+                  });
+                }
+              });
+            }
+
+            void onSearchChanged(String val) {
+              debounce?.cancel();
+              debounce = Timer(const Duration(milliseconds: 300), () async {
+                setModalState(() => isSearching = true);
+                final res = await TalentaService.searchAsesiAdmin(val.trim());
+                if (ctx.mounted) {
+                  setModalState(() {
+                    searchResults = res;
+                    isSearching = false;
+                  });
+                }
+              });
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.person_pin_circle_rounded,
+                            color: Color(0xFF16A34A),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Plotting Lokasi Asesi (Admin)',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                              Text(
+                                'Pilih asesi yang sudah ada dan tentukan titik koordinatnya',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF94A3B8)),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                    const SizedBox(height: 14),
+                    const Text(
+                      '1. Pilih Asesi',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (selectedAsesi == null) ...[
+                      TextField(
+                        controller: searchController,
+                        onChanged: onSearchChanged,
+                        decoration: InputDecoration(
+                          hintText: 'Ketik nama asesi (contoh: HANAFI)...',
+                          hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                          prefixIcon: const Icon(Icons.search_rounded, size: 20, color: Color(0xFF64748B)),
+                          suffixIcon: isSearching
+                              ? const Padding(
+                                  padding: EdgeInsets.all(12),
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                )
+                              : null,
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        constraints: const BoxConstraints(maxHeight: 180),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: searchResults.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Center(
+                                  child: Text(
+                                    isSearching ? 'Mencari asesi...' : 'Tidak ada asesi ditemukan',
+                                    style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+                                  ),
+                                ),
+                              )
+                            : ListView.separated(
+                                shrinkWrap: true,
+                                itemCount: searchResults.length,
+                                separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                                itemBuilder: (_, i) {
+                                  final item = searchResults[i];
+                                  final nama = item['nama_lengkap']?.toString() ?? '-';
+                                  final skema = item['skema']?.toString() ?? '';
+                                  final hasCoords = item['latitude'] != null && item['longitude'] != null;
+
+                                  return ListTile(
+                                    dense: true,
+                                    title: Text(
+                                      nama,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      skema.isNotEmpty ? skema : 'Skema belum terdaftar',
+                                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    trailing: hasCoords
+                                        ? const Tooltip(
+                                            message: 'Sudah memiliki koordinat',
+                                            child: Icon(Icons.check_circle_outline_rounded, size: 16, color: Color(0xFF16A34A)),
+                                          )
+                                        : null,
+                                    onTap: () {
+                                      setModalState(() {
+                                        selectedAsesi = item;
+                                        if (item['latitude'] != null) {
+                                          latController.text = item['latitude'].toString();
+                                        }
+                                        if (item['longitude'] != null) {
+                                          lngController.text = item['longitude'].toString();
+                                        }
+                                        final currentStatus = (item['status_pencari_kerja'] as num?)?.toInt() ?? 0;
+                                        if (currentStatus > 0) {
+                                          statusPencariKerja = currentStatus;
+                                        }
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
+                      ),
+                    ] else ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDF4),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFBBF7D0)),
+                        ),
+                        child: Row(
+                          children: [
+                            const CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Color(0xFF16A34A),
+                              child: Icon(Icons.person_rounded, color: Colors.white, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    selectedAsesi!['nama_lengkap']?.toString() ?? '-',
+                                    style: const TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    selectedAsesi!['skema']?.toString() ?? 'Skema belum terdaftar',
+                                    style: const TextStyle(fontSize: 12, color: Color(0xFF15803D)),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                setModalState(() {
+                                  selectedAsesi = null;
+                                });
+                              },
+                              child: const Text('Ganti', style: TextStyle(fontSize: 12, color: Color(0xFF2563EB))),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    const Text(
+                      '2. Status Pencari Kerja',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int>(
+                          value: statusPencariKerja,
+                          isExpanded: true,
+                          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 1,
+                              child: Text(
+                                'Sedang aktif mencari kerja (Open to Work)',
+                                style: TextStyle(fontSize: 13, color: Color(0xFF16A34A), fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 2,
+                              child: Text(
+                                'Bekerja, tapi terbuka untuk peluang baru',
+                                style: TextStyle(fontSize: 13, color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 0,
+                              child: Text(
+                                'Tidak sedang mencari kerja',
+                                style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                              ),
+                            ),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) {
+                              setModalState(() => statusPencariKerja = val);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '3. Titik Koordinat',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        if (_currentGeo?.latitude != null && _currentGeo?.longitude != null)
+                          GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                latController.text = _currentGeo!.latitude.toString();
+                                lngController.text = _currentGeo!.longitude.toString();
+                              });
+                            },
+                            child: const Row(
+                              children: [
+                                Icon(Icons.my_location_rounded, size: 14, color: Color(0xFF2563EB)),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Pakai Lokasi Saya',
+                                  style: TextStyle(fontSize: 12, color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: latController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                            decoration: InputDecoration(
+                              labelText: 'Latitude',
+                              labelStyle: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                              hintText: '-2.5399...',
+                              filled: true,
+                              fillColor: const Color(0xFFF8FAFC),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            controller: lngController,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                            decoration: InputDecoration(
+                              labelText: 'Longitude',
+                              labelStyle: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                              hintText: '112.942...',
+                              filled: true,
+                              fillColor: const Color(0xFFF8FAFC),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 46,
+                      child: ElevatedButton(
+                        onPressed: (isSaving || selectedAsesi == null)
+                            ? null
+                            : () async {
+                                final lat = double.tryParse(latController.text.trim());
+                                final lng = double.tryParse(lngController.text.trim());
+
+                                if (lat == null || lng == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Masukkan koordinat latitude dan longitude yang valid'),
+                                      backgroundColor: Color(0xFFDC2626),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                setModalState(() => isSaving = true);
+                                final id = selectedAsesi!['id'] as int;
+                                final success = await TalentaService.updateAsesiLokasiAdmin(
+                                  id: id,
+                                  latitude: lat,
+                                  longitude: lng,
+                                  statusPencariKerja: statusPencariKerja,
+                                );
+
+                                if (!ctx.mounted) return;
+                                setModalState(() => isSaving = false);
+
+                                if (success) {
+                                  Navigator.pop(ctx);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Lokasi & status ${selectedAsesi!['nama_lengkap']} berhasil disimpan ke Talenta!'),
+                                      backgroundColor: const Color(0xFF16A34A),
+                                    ),
+                                  );
+                                  _fetchTalenta(isRefresh: true);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Gagal memperbarui data asesi'),
+                                      backgroundColor: Color(0xFFDC2626),
+                                    ),
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF16A34A),
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: const Color(0xFFCBD5E1),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: isSaving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Text(
+                                'Simpan ke Talenta',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = AuthRepository.currentUserInstance;
+    final bool isAdmin = user != null && (user.role == 'admin' || user.roles.contains('admin'));
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -907,22 +1495,62 @@ class _TalentaScreenState extends State<TalentaScreen> {
             CustomAppBar(
               title: 'Talenta Terdekat',
               onBack: widget.onBackToHome ?? () => Navigator.of(context).pop(),
-              rightWidget: GestureDetector(
-                onTap: _showManualLocationPicker,
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFBFDBFE)),
+              rightWidget: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isAdmin) ...[
+                    GestureDetector(
+                      onTap: _showAdminPlottingModal,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF16A34A),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF16A34A).withValues(alpha: 0.25),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.person_pin_circle_rounded, color: Colors.white, size: 15),
+                            SizedBox(width: 4),
+                            Text(
+                              'Plot Asesi',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  GestureDetector(
+                    onTap: _showManualLocationPicker,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFBFDBFE)),
+                      ),
+                      child: const Icon(
+                        Icons.edit_location_alt_rounded,
+                        color: Color(0xFF2563EB),
+                        size: 18,
+                      ),
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.edit_location_alt_rounded,
-                    color: Color(0xFF2563EB),
-                    size: 18,
-                  ),
-                ),
+                ],
               ),
             ),
             Expanded(
@@ -1387,12 +2015,370 @@ class _TalentaScreenState extends State<TalentaScreen> {
 );
   }
 
-  Widget _buildTalentaCard(TalentaItem item) {
-    final isGuest = AuthRepository.currentUserInstance == null;
+  void _showTalentaDetailModal(TalentaItem item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: const Color(0xFFEFF6FF),
+                      child: Text(
+                        item.pemegang.isNotEmpty ? item.pemegang[0].toUpperCase() : 'A',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2563EB),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.pemegang,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            item.skema.isNotEmpty ? item.skema : 'Skema belum terdaftar',
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF94A3B8)),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: item.isAktif
+                            ? const Color(0xFFDCFCE7)
+                            : (item.status == 'proses'
+                                ? const Color(0xFFEFF6FF)
+                                : const Color(0xFFFEE2E2)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        item.isAktif
+                            ? 'Sertifikat Aktif'
+                            : (item.status == 'proses' ? 'Proses / Belum Terbit' : 'Kadaluarsa'),
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: item.isAktif
+                              ? const Color(0xFF16A34A)
+                              : (item.status == 'proses'
+                                  ? const Color(0xFF2563EB)
+                                  : const Color(0xFFDC2626)),
+                        ),
+                      ),
+                    ),
+                    if (item.statusPencariKerja == 1 || item.statusPencariKerja == 2)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: item.statusPencariKerja == 1
+                              ? const Color(0xFFEFF6FF)
+                              : const Color(0xFFFFFBEB),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: item.statusPencariKerja == 1
+                                ? const Color(0xFFBFDBFE)
+                                : const Color(0xFFFDE68A),
+                          ),
+                        ),
+                        child: Text(
+                          item.statusPencariKerja == 1
+                              ? 'Sedang Aktif Mencari Kerja'
+                              : 'Bekerja, Terbuka Peluang',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.bold,
+                            color: item.statusPencariKerja == 1
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFFD97706),
+                          ),
+                        ),
+                      ),
+                    if (item.jarakLabel.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.near_me_rounded, size: 12, color: Color(0xFF64748B)),
+                            const SizedBox(width: 4),
+                            Text(
+                              item.jarakLabel,
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF475569),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const SizedBox(height: 16),
+                const Text(
+                  'Informasi Sertifikasi & Kompetensi',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildDetailRow('Bidang / Kategori', item.kategori.isNotEmpty ? item.kategori : '-'),
+                _buildDetailRow('Nomor Sertifikat', item.nomorSertifikat.isNotEmpty ? item.nomorSertifikat : '-'),
+                _buildDetailRow('Nomor Registrasi', item.nomorRegistrasi.isNotEmpty ? item.nomorRegistrasi : '-'),
+                _buildDetailRow('Tanggal Terbit', item.tanggalTerbit.isNotEmpty ? item.tanggalTerbit : '-'),
+                _buildDetailRow('Tanggal Berlaku', item.tanggalBerlaku.isNotEmpty ? item.tanggalBerlaku : '-'),
+                const SizedBox(height: 14),
+                const Text(
+                  'Informasi Lokasi & Wilayah',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildDetailRow('Wilayah / Lokasi', item.lokasi.isNotEmpty ? item.lokasi : '-'),
+                if (item.provinsi.isNotEmpty) _buildDetailRow('Provinsi', item.provinsi),
+                if (item.kabupaten.isNotEmpty) _buildDetailRow('Kabupaten / Kota', item.kabupaten),
+                if (item.hasCoordinates)
+                  _buildDetailRow(
+                    'Titik Koordinat',
+                    '${item.latitude!.toStringAsFixed(6)}, ${item.longitude!.toStringAsFixed(6)}',
+                  ),
+                if (item.hasKontak) ...[
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Kontak Pemegang / Asesi',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (item.telp.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        children: [
+                          const SizedBox(
+                            width: 140,
+                            child: Text(
+                              'WhatsApp / No. HP',
+                              style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+                            ),
+                          ),
+                          const Text(': ', style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B))),
+                          Expanded(
+                            child: Text(
+                              item.telp,
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF16A34A),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18, color: Color(0xFF16A34A)),
+                            tooltip: 'Kirim WhatsApp',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => _launchWhatsApp(item.telp, name: item.pemegang),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (item.email.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        children: [
+                          const SizedBox(
+                            width: 140,
+                            child: Text(
+                              'Email',
+                              style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+                            ),
+                          ),
+                          const Text(': ', style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B))),
+                          Expanded(
+                            child: Text(
+                              item.email,
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.email_outlined, size: 18, color: Color(0xFF2563EB)),
+                            tooltip: 'Kirim Email',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => _launchEmail(item.email, name: item.pemegang),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    if (item.telp.isNotEmpty) ...[
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 15, color: Color(0xFF16A34A)),
+                          label: const Text(
+                            'WhatsApp',
+                            style: TextStyle(fontSize: 12, color: Color(0xFF16A34A), fontWeight: FontWeight.bold),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFBBF7D0)),
+                            backgroundColor: const Color(0xFFF0FDF4),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          onPressed: () => _launchWhatsApp(item.telp, name: item.pemegang),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    if (item.email.isNotEmpty) ...[
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.email_outlined, size: 15, color: Color(0xFF2563EB)),
+                          label: const Text(
+                            'Email',
+                            style: TextStyle(fontSize: 12, color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFBFDBFE)),
+                            backgroundColor: const Color(0xFFEFF6FF),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          onPressed: () => _launchEmail(item.email, name: item.pemegang),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFF1F5F9),
+                          foregroundColor: const Color(0xFF334155),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+            ),
+          ),
+          const Text(': ', style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B))),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTalentaCard(TalentaItem item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12.0),
-      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -1405,8 +2391,15 @@ class _TalentaScreenState extends State<TalentaScreen> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _showTalentaDetailModal(item),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header: Name & Distance Badge
           Row(
@@ -1586,17 +2579,17 @@ class _TalentaScreenState extends State<TalentaScreen> {
           ),
 
           // Contact actions if logged in, or hint if guest
+          const SizedBox(height: 12),
           if (!isGuest && item.hasKontak) ...[
-            const SizedBox(height: 12),
             Row(
               children: [
                 if (item.telp.isNotEmpty) ...[
                   Expanded(
                     child: OutlinedButton.icon(
-                      icon: const Icon(Icons.chat_bubble_outline_rounded, size: 15, color: Color(0xFF16A34A)),
+                      icon: const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Color(0xFF16A34A)),
                       label: const Text(
                         'WhatsApp',
-                        style: TextStyle(fontSize: 12, color: Color(0xFF16A34A), fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 11.5, color: Color(0xFF16A34A), fontWeight: FontWeight.bold),
                       ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFBBF7D0)),
@@ -1604,27 +2597,18 @@ class _TalentaScreenState extends State<TalentaScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         padding: const EdgeInsets.symmetric(vertical: 8),
                       ),
-                      onPressed: () async {
-                        var phone = item.telp.replaceAll(RegExp(r'[^0-9]'), '');
-                        if (phone.startsWith('0')) {
-                          phone = '62${phone.substring(1)}';
-                        }
-                        final url = Uri.parse('https://wa.me/$phone');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url, mode: LaunchMode.externalApplication);
-                        }
-                      },
+                      onPressed: () => _launchWhatsApp(item.telp, name: item.pemegang),
                     ),
                   ),
                   const SizedBox(width: 8),
                 ],
-                if (item.email.isNotEmpty)
+                if (item.email.isNotEmpty) ...[
                   Expanded(
                     child: OutlinedButton.icon(
-                      icon: const Icon(Icons.email_outlined, size: 15, color: Color(0xFF2563EB)),
+                      icon: const Icon(Icons.email_outlined, size: 14, color: Color(0xFF2563EB)),
                       label: const Text(
                         'Email',
-                        style: TextStyle(fontSize: 12, color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 11.5, color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
                       ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFBFDBFE)),
@@ -1632,39 +2616,56 @@ class _TalentaScreenState extends State<TalentaScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         padding: const EdgeInsets.symmetric(vertical: 8),
                       ),
-                      onPressed: () async {
-                        final url = Uri.parse('mailto:${item.email}');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url);
-                        }
-                      },
+                      onPressed: () => _launchEmail(item.email, name: item.pemegang),
                     ),
                   ),
+                  const SizedBox(width: 8),
+                ],
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.visibility_outlined, size: 14, color: Color(0xFF475569)),
+                  label: const Text(
+                    'Detail',
+                    style: TextStyle(fontSize: 11.5, color: Color(0xFF475569), fontWeight: FontWeight.bold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFCBD5E1)),
+                    backgroundColor: const Color(0xFFF8FAFC),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  ),
+                  onPressed: () => _showTalentaDetailModal(item),
+                ),
               ],
             ),
-          ] else if (isGuest) ...[
-            const SizedBox(height: 8),
-            Container(
+          ] else ...[
+            SizedBox(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                '🔒 Masuk ke akun Anda untuk melihat kontak pemegang sertifikat',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF94A3B8),
-                  fontStyle: FontStyle.italic,
+              height: 38,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.visibility_outlined, size: 16, color: Color(0xFF2563EB)),
+                label: const Text(
+                  'Lihat Informasi',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2563EB),
+                  ),
                 ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFBFDBFE)),
+                  backgroundColor: const Color(0xFFEFF6FF),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 0,
+                ),
+                onPressed: () => _showTalentaDetailModal(item),
               ),
             ),
           ],
         ],
       ),
-    );
-  }
+    ),
+  ),
+);
 
   Widget _buildFilterChip({
     required String label,
