@@ -352,8 +352,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       color: Color(
                                         0xE6FFFFFF,
                                       ), // white with 0.9 opacity
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w400,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
@@ -434,8 +434,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       color: Color(
                                         0xE6FFFFFF,
                                       ), // white with 0.9 opacity
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w400,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
