@@ -32,6 +32,47 @@ class LocationService {
   static const double defaultLat = -6.2088;
   static const double defaultLng = 106.8456;
 
+  static UserGeoLocation? _lastKnownLocation;
+
+  /// Cached user location resolved previously (instant 0ms)
+  static UserGeoLocation? get lastKnownLocation => _lastKnownLocation;
+
+  /// Request location permission early (e.g. during splash screen).
+  /// Hanya menunggu dialog izin sistem; pengambilan koordinat GPS dijalankan
+  /// fire-and-forget di background supaya splash TIDAK ikut menunggu GPS fix
+  /// (getCurrentLocation bisa memakan 10-16 detik saat sinyal jelek).
+  static Future<void> requestPermissionAndWarmup() async {
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        if (kDebugMode) {
+          debugPrint('⚠️ GPS Location service is disabled on device.');
+        }
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        // Fire-and-forget: hasilnya masuk ke _lastKnownLocation lewat
+        // getCurrentLocation() sendiri, tanpa menahan pemanggil.
+        getCurrentLocation().catchError((e) {
+          if (kDebugMode) debugPrint('⚠️ GPS warm-up failed: $e');
+          return _fallbackLocation();
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ Error requesting location permission: $e');
+    }
+  }
+
+  static UserGeoLocation _fallbackLocation() => const UserGeoLocation(
+        latitude: defaultLat,
+        longitude: defaultLng,
+      );
+
   static bool _cacheInitialized = false;
 
   static Future<void> _ensureCacheInit() async {
@@ -120,11 +161,13 @@ class LocationService {
       debugPrint('📍 Geocoded Location resolved: $lat, $lng ($realName)');
     }
 
-    return UserGeoLocation(
+    final resolved = UserGeoLocation(
       latitude: lat,
       longitude: lng,
       locationName: realName,
     );
+    _lastKnownLocation = resolved;
+    return resolved;
   }
 
   /// Resolve exact City / Kabupaten using geocode_cache + Native OS Geocoder + Google Maps fallback
@@ -260,5 +303,71 @@ class LocationService {
   static double distanceBetween(
       double startLat, double startLng, double endLat, double endLng) {
     return distanceInMeters(startLat, startLng, endLat, endLng) / 1000.0;
+  }
+
+  /// Search coordinates and place names by query (e.g. city, regency, or address)
+  static Future<List<UserGeoLocation>> searchLocations(String query) async {
+    if (query.trim().isEmpty) return [];
+    final cleanQuery = query.trim();
+
+    // 1. Google Maps Geocoding API
+    try {
+      final dio = Dio();
+      final url =
+          'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent('$cleanQuery, Indonesia')}&language=id&key=$apiKey';
+      final response = await dio.get(
+        url,
+        options: Options(
+          receiveTimeout: const Duration(seconds: 6),
+          sendTimeout: const Duration(seconds: 6),
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = response.data is Map<String, dynamic>
+            ? response.data as Map<String, dynamic>
+            : jsonDecode(response.data.toString());
+
+        if (data['status'] == 'OK') {
+          final results = data['results'] as List<dynamic>? ?? [];
+          final List<UserGeoLocation> list = [];
+          for (final item in results.take(6)) {
+            final loc = item['geometry']?['location'];
+            final formatted =
+                item['formatted_address']?.toString() ?? cleanQuery;
+            if (loc != null && loc['lat'] != null && loc['lng'] != null) {
+              final cleanName = formatted.replaceAll(', Indonesia', '').trim();
+              list.add(
+                UserGeoLocation(
+                  latitude: (loc['lat'] as num).toDouble(),
+                  longitude: (loc['lng'] as num).toDouble(),
+                  locationName: cleanName,
+                ),
+              );
+            }
+          }
+          if (list.isNotEmpty) return list;
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ searchLocations Geocoding API error: $e');
+    }
+
+    // 2. Native Geocoding fallback
+    try {
+      final locations =
+          await native_geo.locationFromAddress('$cleanQuery, Indonesia');
+      if (locations.isNotEmpty) {
+        return locations.take(5).map((loc) {
+          return UserGeoLocation(
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            locationName: cleanQuery,
+          );
+        }).toList();
+      }
+    } catch (_) {}
+
+    return [];
   }
 }

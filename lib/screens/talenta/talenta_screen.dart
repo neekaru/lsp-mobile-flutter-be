@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/talenta_models.dart';
 import '../../models/master_models.dart';
@@ -26,6 +26,7 @@ class _TalentaScreenState extends State<TalentaScreen> {
   UserGeoLocation? _currentGeo;
   String _currentLocationName = 'Mendeteksi lokasi...';
   bool _isDetectingLocation = false;
+  bool _isManualLocation = false;
 
   // Filter state
   int? _selectedSkemaId;
@@ -51,7 +52,11 @@ class _TalentaScreenState extends State<TalentaScreen> {
     super.initState();
     _searchController.addListener(_onSearchChanged);
     _scrollController.addListener(_onScroll);
-    _loadInitialData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadInitialData();
+      }
+    });
   }
 
   @override
@@ -98,8 +103,21 @@ class _TalentaScreenState extends State<TalentaScreen> {
       }
     } catch (_) {}
 
-    // Auto-detect GPS location via Google Maps Geocoding
-    await _detectLocation();
+    // If LocationService already warmed up location in splash screen, use it instantly!
+    if (LocationService.lastKnownLocation != null) {
+      final cached = LocationService.lastKnownLocation!;
+      if (mounted) {
+        setState(() {
+          _isManualLocation = false;
+          _currentGeo = cached;
+          _currentLocationName = cached.locationName;
+        });
+        _fetchTalenta(isRefresh: true);
+      }
+    } else {
+      // Auto-detect GPS location via Google Maps Geocoding
+      await _detectLocation();
+    }
   }
 
   Future<void> _detectLocation() async {
@@ -118,8 +136,10 @@ class _TalentaScreenState extends State<TalentaScreen> {
 
       if (mounted) {
         setState(() {
+          _isManualLocation = false;
           _currentGeo = geo;
-          _currentLocationName = realName.isNotEmpty ? realName : geo.locationName;
+          _currentLocationName =
+              realName.isNotEmpty ? realName : geo.locationName;
           _isDetectingLocation = false;
         });
         _fetchTalenta(isRefresh: true);
@@ -133,6 +153,15 @@ class _TalentaScreenState extends State<TalentaScreen> {
         _fetchTalenta(isRefresh: true);
       }
     }
+  }
+
+  void _onManualLocationSelected(UserGeoLocation geo, {String? customName}) {
+    setState(() {
+      _isManualLocation = true;
+      _currentGeo = geo;
+      _currentLocationName = customName ?? geo.locationName;
+    });
+    _fetchTalenta(isRefresh: true);
   }
 
   Future<void> _fetchTalenta({required bool isRefresh}) async {
@@ -318,6 +347,556 @@ class _TalentaScreenState extends State<TalentaScreen> {
     );
   }
 
+  void _showManualLocationPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        String searchQuery = '';
+        List<UserGeoLocation> searchResults = [];
+        bool isSearching = false;
+        Timer? debounce;
+        final searchController = TextEditingController();
+
+        // Master Wilayah state
+        List<MasterItem> provList = [];
+        List<MasterItem> filteredProvList = [];
+        List<MasterItem> kabList = [];
+        List<MasterItem> filteredKabList = [];
+        MasterItem? selectedProv;
+        bool isLoadingMaster = false;
+        bool isMasterView = false;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            void performSearch(String q) {
+              debounce?.cancel();
+              if (q.trim().isEmpty) {
+                setModalState(() {
+                  searchQuery = '';
+                  searchResults = [];
+                  isSearching = false;
+                });
+                return;
+              }
+
+              debounce = Timer(const Duration(milliseconds: 350), () async {
+                setModalState(() {
+                  isSearching = true;
+                  searchQuery = q.trim();
+                });
+
+                final results = await LocationService.searchLocations(q.trim());
+                if (ctx.mounted) {
+                  setModalState(() {
+                    searchResults = results;
+                    isSearching = false;
+                  });
+                }
+              });
+            }
+
+            void loadProvinces() async {
+              setModalState(() {
+                isLoadingMaster = true;
+                isMasterView = true;
+                selectedProv = null;
+              });
+              try {
+                final list = await MasterService.getProvinsiList();
+                if (ctx.mounted) {
+                  setModalState(() {
+                    provList = list;
+                    filteredProvList = list;
+                    isLoadingMaster = false;
+                  });
+                }
+              } catch (_) {
+                if (ctx.mounted) {
+                  setModalState(() => isLoadingMaster = false);
+                }
+              }
+            }
+
+            void filterProvinces(String q) {
+              setModalState(() {
+                if (q.trim().isEmpty) {
+                  filteredProvList = provList;
+                } else {
+                  filteredProvList = provList
+                      .where((p) =>
+                          p.name.toLowerCase().contains(q.toLowerCase()))
+                      .toList();
+                }
+              });
+            }
+
+            void loadKabupaten(MasterItem prov) async {
+              setModalState(() {
+                selectedProv = prov;
+                isLoadingMaster = true;
+              });
+              try {
+                final list = await MasterService.getKabupatenList(prov.id);
+                if (ctx.mounted) {
+                  setModalState(() {
+                    kabList = list;
+                    filteredKabList = list;
+                    isLoadingMaster = false;
+                  });
+                }
+              } catch (_) {
+                if (ctx.mounted) {
+                  setModalState(() => isLoadingMaster = false);
+                }
+              }
+            }
+
+            void filterKabupaten(String q) {
+              setModalState(() {
+                if (q.trim().isEmpty) {
+                  filteredKabList = kabList;
+                } else {
+                  filteredKabList = kabList
+                      .where((k) =>
+                          k.name.toLowerCase().contains(q.toLowerCase()))
+                      .toList();
+                }
+              });
+            }
+
+            void selectKabupaten(MasterItem kab) async {
+              Navigator.pop(ctx);
+              final query = '${kab.name}, ${selectedProv?.name ?? ''}';
+              final results = await LocationService.searchLocations(query);
+              if (results.isNotEmpty) {
+                _onManualLocationSelected(results.first, customName: kab.name);
+              } else {
+                _onManualLocationSelected(
+                  UserGeoLocation(
+                    latitude: LocationService.defaultLat,
+                    longitude: LocationService.defaultLng,
+                    locationName: kab.name,
+                  ),
+                  customName: kab.name,
+                );
+              }
+            }
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.82,
+              padding: EdgeInsets.only(
+                top: 16,
+                left: 16,
+                right: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isMasterView
+                            ? (selectedProv == null
+                                ? 'Pilih Provinsi'
+                                : 'Pilih Kabupaten/Kota')
+                            : 'Pilih Lokasi Manual',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded,
+                            size: 20, color: Color(0xFF64748B)),
+                        onPressed: () => Navigator.pop(ctx),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isMasterView
+                        ? (selectedProv == null
+                            ? 'Pilih provinsi dari master wilayah'
+                            : 'Provinsi: ${selectedProv!.name}')
+                        : 'Cari kota/wilayah atau pilih dari master data',
+                    style:
+                        const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // GPS Reset Shortcut
+                  if (_isManualLocation && !isMasterView) ...[
+                    InkWell(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _detectLocation();
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                        ),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.my_location_rounded,
+                                size: 18, color: Color(0xFF2563EB)),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Kembali Gunakan Lokasi GPS Saya',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_ios_rounded,
+                                size: 12, color: Color(0xFF2563EB)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  if (!isMasterView) ...[
+                    // Dynamic Search Box
+                    TextField(
+                      controller: searchController,
+                      onChanged: performSearch,
+                      decoration: InputDecoration(
+                        hintText: 'Ketik nama kota, kabupaten, atau alamat...',
+                        hintStyle: const TextStyle(
+                            fontSize: 13, color: Color(0xFF94A3B8)),
+                        prefixIcon: const Icon(Icons.search_rounded,
+                            size: 20, color: Color(0xFF64748B)),
+                        suffixIcon: searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded, size: 18),
+                                onPressed: () {
+                                  searchController.clear();
+                                  performSearch('');
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: const Color(0xFFF1F5F9),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Content Area: Search results or Master Button
+                    Expanded(
+                      child: isSearching
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(24.0),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2.5),
+                              ),
+                            )
+                          : searchQuery.isNotEmpty
+                              ? searchResults.isEmpty
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.location_off_rounded,
+                                              size: 40,
+                                              color: Colors.grey.shade400),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            'Lokasi "$searchQuery" tidak ditemukan',
+                                            style: const TextStyle(
+                                                fontSize: 13,
+                                                color: Color(0xFF64748B)),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          const Text(
+                                            'Coba gunakan nama kota atau kabupaten lain',
+                                            style: TextStyle(
+                                                fontSize: 11.5,
+                                                color: Color(0xFF94A3B8)),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      itemCount: searchResults.length,
+                                      separatorBuilder: (_, _) =>
+                                          const Divider(height: 1),
+                                      itemBuilder: (context, index) {
+                                        final item = searchResults[index];
+                                        return ListTile(
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 8, vertical: 4),
+                                          leading: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFEFF6FF),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: const Icon(
+                                              Icons.location_on_rounded,
+                                              color: Color(0xFF2563EB),
+                                              size: 18,
+                                            ),
+                                          ),
+                                          title: Text(
+                                            item.locationName,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF0F172A),
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            'Koordinat: ${item.latitude.toStringAsFixed(4)}, ${item.longitude.toStringAsFixed(4)}',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                          trailing: const Icon(
+                                            Icons.arrow_forward_ios_rounded,
+                                            size: 14,
+                                            color: Color(0xFF94A3B8),
+                                          ),
+                                          onTap: () {
+                                            Navigator.pop(ctx);
+                                            _onManualLocationSelected(item);
+                                          },
+                                        );
+                                      },
+                                    )
+                              : SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      const SizedBox(height: 8),
+                                      InkWell(
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                        onTap: loadProvinces,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(14),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFF8FAFC),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            border: Border.all(
+                                                color: const Color(0xFFE2E8F0)),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFEFF6FF),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.account_balance_rounded,
+                                                  size: 22,
+                                                  color: Color(0xFF2563EB),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              const Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'Pilih dari Master Wilayah',
+                                                      style: TextStyle(
+                                                        fontSize: 13.5,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Color(0xFF0F172A),
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 2),
+                                                    Text(
+                                                      'Daftar resmi Provinsi & Kabupaten/Kota',
+                                                      style: TextStyle(
+                                                        fontSize: 11.5,
+                                                        color: Color(0xFF64748B),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.chevron_right_rounded,
+                                                color: Color(0xFF94A3B8),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 36),
+                                      Center(
+                                        child: Text(
+                                          'Ketik nama kota atau daerah pada kolom di atas untuk mencari secara langsung.',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 11.5,
+                                            color: Colors.grey.shade500,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                    ],
+                                  ),
+                                ),
+                    ),
+                  ] else ...[
+                    // Master Wilayah Selection View
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_rounded, size: 20),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            if (selectedProv != null) {
+                              setModalState(() {
+                                selectedProv = null;
+                                kabList = [];
+                                filteredKabList = [];
+                              });
+                            } else {
+                              setModalState(() {
+                                isMasterView = false;
+                              });
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            onChanged: selectedProv == null
+                                ? filterProvinces
+                                : filterKabupaten,
+                            decoration: InputDecoration(
+                              hintText: selectedProv == null
+                                  ? 'Cari nama provinsi...'
+                                  : 'Cari kabupaten/kota...',
+                              hintStyle: const TextStyle(
+                                  fontSize: 12.5, color: Color(0xFF94A3B8)),
+                              prefixIcon: const Icon(Icons.search_rounded,
+                                  size: 18, color: Color(0xFF64748B)),
+                              filled: true,
+                              fillColor: const Color(0xFFF1F5F9),
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: isLoadingMaster
+                          ? const Center(
+                              child:
+                                  CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : selectedProv == null
+                              ? ListView.separated(
+                                  itemCount: filteredProvList.length,
+                                  separatorBuilder: (_, _) =>
+                                      const Divider(height: 1),
+                                  itemBuilder: (context, idx) {
+                                    final prov = filteredProvList[idx];
+                                    return ListTile(
+                                      dense: true,
+                                      title: Text(prov.name,
+                                          style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500)),
+                                      trailing: const Icon(
+                                          Icons.chevron_right_rounded,
+                                          size: 18,
+                                          color: Color(0xFF94A3B8)),
+                                      onTap: () => loadKabupaten(prov),
+                                    );
+                                  },
+                                )
+                              : ListView.separated(
+                                  itemCount: filteredKabList.length,
+                                  separatorBuilder: (_, _) =>
+                                      const Divider(height: 1),
+                                  itemBuilder: (context, idx) {
+                                    final kab = filteredKabList[idx];
+                                    return ListTile(
+                                      dense: true,
+                                      title: Text(kab.name,
+                                          style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500)),
+                                      trailing: const Icon(
+                                        Icons.check_circle_outline_rounded,
+                                        size: 18,
+                                        color: Color(0xFF2563EB),
+                                      ),
+                                      onTap: () => selectKabupaten(kab),
+                                    );
+                                  },
+                                ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -328,6 +907,23 @@ class _TalentaScreenState extends State<TalentaScreen> {
             CustomAppBar(
               title: 'Talenta Terdekat',
               onBack: widget.onBackToHome ?? () => Navigator.of(context).pop(),
+              rightWidget: GestureDetector(
+                onTap: _showManualLocationPicker,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                  ),
+                  child: const Icon(
+                    Icons.edit_location_alt_rounded,
+                    color: Color(0xFF2563EB),
+                    size: 18,
+                  ),
+                ),
+              ),
             ),
             Expanded(
               child: RefreshIndicator(
@@ -358,73 +954,201 @@ class _TalentaScreenState extends State<TalentaScreen> {
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.location_on_rounded,
-                              color: Color(0xFF2563EB),
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Posisi Anda Saat Ini',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF64748B),
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: _isManualLocation
+                                      ? const Color(0xFFF5F3FF)
+                                      : const Color(0xFFEFF6FF),
+                                  shape: BoxShape.circle,
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _currentLocationName,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0F172A),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                child: Icon(
+                                  _isManualLocation
+                                      ? Icons.pin_drop_rounded
+                                      : Icons.location_on_rounded,
+                                  color: _isManualLocation
+                                      ? const Color(0xFF7C3AED)
+                                      : const Color(0xFF2563EB),
+                                  size: 20,
                                 ),
-                              ],
-                            ),
-                          ),
-                          InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: _isDetectingLocation ? null : _detectLocation,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              child: _isDetectingLocation
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                  : Row(
-                                      children: const [
-                                        Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF2563EB)),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'GPS',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF2563EB),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            _isManualLocation
+                                                ? 'Lokasi Pilihan Manual'
+                                                : 'Posisi Anda Saat Ini',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF64748B),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 6, vertical: 1.5),
+                                          decoration: BoxDecoration(
+                                            color: _isManualLocation
+                                                ? const Color(0xFFFAF5FF)
+                                                : const Color(0xFFEFF6FF),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                            border: Border.all(
+                                              color: _isManualLocation
+                                                  ? const Color(0xFFDDD6FE)
+                                                  : const Color(0xFFBFDBFE),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            _isManualLocation
+                                                ? 'Manual'
+                                                : 'GPS',
+                                            style: TextStyle(
+                                              fontSize: 9.5,
+                                              fontWeight: FontWeight.bold,
+                                              color: _isManualLocation
+                                                  ? const Color(0xFF7C3AED)
+                                                  : const Color(0xFF2563EB),
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
-                            ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      _currentLocationName,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0F172A),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              // Deteksi GPS
+                              Expanded(
+                                child: InkWell(
+                                  onTap: _isDetectingLocation
+                                      ? null
+                                      : _detectLocation,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 6, horizontal: 8),
+                                    decoration: BoxDecoration(
+                                      color: !_isManualLocation
+                                          ? const Color(0xFFEFF6FF)
+                                          : const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: !_isManualLocation
+                                            ? const Color(0xFFBFDBFE)
+                                            : const Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    child: _isDetectingLocation
+                                        ? const Center(
+                                            child: SizedBox(
+                                              width: 14,
+                                              height: 14,
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2),
+                                            ),
+                                          )
+                                        : Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: const [
+                                              Icon(Icons.my_location_rounded,
+                                                  size: 14,
+                                                  color: Color(0xFF2563EB)),
+                                              SizedBox(width: 5),
+                                              Text(
+                                                'Deteksi GPS',
+                                                style: TextStyle(
+                                                  fontSize: 11.5,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFF2563EB),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              // Pilih Manual
+                              Expanded(
+                                child: InkWell(
+                                  onTap: _showManualLocationPicker,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 6, horizontal: 8),
+                                    decoration: BoxDecoration(
+                                      color: _isManualLocation
+                                          ? const Color(0xFFFAF5FF)
+                                          : const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: _isManualLocation
+                                            ? const Color(0xFFDDD6FE)
+                                            : const Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.edit_location_alt_rounded,
+                                          size: 14,
+                                          color: _isManualLocation
+                                              ? const Color(0xFF7C3AED)
+                                              : const Color(0xFF64748B),
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          'Pilih Manual',
+                                          style: TextStyle(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: _isManualLocation
+                                                ? const Color(0xFF7C3AED)
+                                                : const Color(0xFF475569),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

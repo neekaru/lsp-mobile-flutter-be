@@ -13,6 +13,7 @@ import '../../models/auth_models.dart';
 import '../../services/common/app_update_service.dart';
 import 'onboarding_screen.dart';
 import 'login_screen.dart';
+import '../../services/marketing/location_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -126,6 +127,31 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       return;
     }
 
+    // Stage 1.8: Perizinan Aplikasi (Notifikasi & Lokasi GPS)
+    if (mounted) {
+      setState(() {
+        _loadingStatus = "Memeriksa perizinan aplikasi...";
+        _loadingProgress = 0.58;
+      });
+    }
+
+    try {
+      // 1. Izin Notifikasi
+      await NotificationService.instance
+          .requestPermission()
+          .timeout(const Duration(seconds: 20));
+    } catch (e) {
+      debugPrint('⚠️ Notification permission check failed: $e');
+    }
+
+    try {
+      // 2. Izin Lokasi (koordinat GPS dihangatkan di background oleh service)
+      await LocationService.requestPermissionAndWarmup()
+          .timeout(const Duration(seconds: 20));
+    } catch (e) {
+      debugPrint('⚠️ Location permission check failed: $e');
+    }
+
     // Stage 2: Initialize assets / session check
     await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) {
@@ -191,8 +217,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     // Smooth transition
     await Future.delayed(const Duration(milliseconds: 500));
-    final bool seenOnboarding =
-        await TokenStorage.instance.hasSeenOnboarding();
+    // Baca flag onboarding WAJIB fail-safe: EncryptedSharedPreferences bisa
+    // throw/menggantung di Android, dan kalau itu terjadi splash terjebak
+    // selamanya di status terakhir tanpa pernah pindah layar.
+    bool seenOnboarding = false;
+    try {
+      seenOnboarding = await TokenStorage.instance
+          .hasSeenOnboarding()
+          .timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('⚠️ Onboarding flag read failed (non-fatal): $e');
+    }
     if (!mounted) return;
 
     // If a token expired during cold start (before the main shell mounted),
