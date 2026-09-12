@@ -53,12 +53,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
     });
     try {
       final String tabStatus = statusOverride ??
-          (_selectedTabIndex == 1
-              ? 'menunggu'
-              : _selectedTabIndex == 2
-                  ? 'selesai'
-                  : 'semua');
-
+          (_selectedTabIndex == 1 ? 'selesai' : 'semua');
       // 1. Try Admin endpoint first (/api/admin/honor-asesor)
       final resAdmin = await AsesorService.getAdminHonorAsesorList(
         status: tabStatus,
@@ -95,6 +90,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       // 2. Fallback to Asesor endpoint (/api/asesor/honor) if logged in as Asesor (403 on Admin endpoint)
       final resAsesor = await AsesorService.getHonorList(
         _selectedMonth == null ? null : _selectedMonthLabel,
+        tabStatus,
       );
 
       if (mounted && resAsesor != null) {
@@ -279,13 +275,6 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
   void _updateFilteredItems() {
     List<Map<String, dynamic>> result = List.from(_honorItems);
 
-    // Filter out items that are already lunas / Selesai per business rule
-    result = result.where((item) {
-      final st = (item['status'] ?? '').toString().toLowerCase();
-      final stPembayaran = (item['status_pembayaran_honor'] ?? '').toString();
-      return st != 'selesai' && st != 'lunas' && stPembayaran != '1';
-    }).toList();
-
     if (_searchQuery.trim().isNotEmpty) {
       final q = _searchQuery.trim().toLowerCase();
       result = result.where((item) {
@@ -421,9 +410,9 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          _buildPillTab(index: 0, label: 'Semua (Belum Lunas)'),
+          _buildPillTab(index: 0, label: 'Semua'),
           const SizedBox(width: 8),
-          _buildPillTab(index: 1, label: 'Menunggu'),
+          _buildPillTab(index: 1, label: 'Selesai'),
         ],
       ),
     );
@@ -437,11 +426,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
     return Expanded(
       child: GestureDetector(
         onTap: () {
-          final String nextStatus = index == 1
-              ? 'menunggu'
-              : index == 2
-                  ? 'selesai'
-                  : 'semua';
+          final String nextStatus = index == 1 ? 'selesai' : 'semua';
           setState(() {
             _selectedTabIndex = index;
           });

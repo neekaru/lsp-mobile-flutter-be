@@ -18,6 +18,7 @@ class DetailTugasAsesorScreen extends StatefulWidget {
 class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
   int _selectedTabIndex = 0;
   List<Map<String, dynamic>> _loadedTasks = [];
+  Map<String, dynamic>? _taskCounts;
   bool _isLoading = false;
 
   @override
@@ -37,24 +38,21 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
     });
 
     try {
-      final String tabStatus = _selectedTabIndex == 1
-          ? 'selesai'
-          : _selectedTabIndex == 2
-              ? 'menunggu'
-              : 'semua';
+      final String tabStatus = _selectedTabIndex == 1 ? 'selesai' : 'semua';
 
       final res = await AsesorService.getAdminHonorAsesorTugas(
         asesorId,
         status: tabStatus,
       );
 
-      if (mounted && res != null && res['tugas'] != null) {
-        final List<dynamic> list = res['tugas'];
-        if (list.isNotEmpty) {
-          setState(() {
-            _loadedTasks = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-          });
-        }
+      if (mounted && res != null) {
+        final List<dynamic> list = res['tugas'] as List<dynamic>? ?? [];
+        setState(() {
+          _loadedTasks = list
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
+          _taskCounts = res['counts'] as Map<String, dynamic>?;
+        });
       }
     } catch (e) {
       debugPrint('🔴 Error fetching tugas data: $e');
@@ -72,11 +70,23 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
     super.dispose();
   }
 
-  List<Map<String, dynamic>> _getTasksForAsesor() {
-    return _loadedTasks.where((task) {
-      final st = (task['status_pembayaran_honor'] ?? '').toString();
-      return st != '1';
-    }).toList();
+  int get _totalCount =>
+      _asCount(_taskCounts?['semua']) ?? _loadedTasks.length;
+
+  int get _selesaiCount {
+    final fromBackend = _asCount(_taskCounts?['selesai']);
+    if (fromBackend != null) return fromBackend;
+    return _loadedTasks.where(_isTaskSelesai).length;
+  }
+
+  static int? _asCount(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  static bool _isTaskSelesai(Map<String, dynamic> task) {
+    final status = (task['status'] ?? '').toString().trim().toLowerCase();
+    return status == 'selesai' || status == 'complete' || status == 'lunas';
   }
 
   void _navigateToDetailHonor(Map<String, dynamic> task) {
@@ -113,16 +123,8 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
     final String totalHonor = widget.asesorData['honor'] ?? widget.asesorData['total_honor'] ?? 'Rp 0';
     final String statusAsesor = widget.asesorData['status_asesor'] ?? 'Aktif';
 
-    final allTasks = _getTasksForAsesor();
-    final selesaiTasks = allTasks.where((t) => (t['status'] ?? '').toString().toLowerCase() == 'selesai').toList();
-    final menungguTasks = allTasks.where((t) => (t['status'] ?? '').toString().toLowerCase() == 'menunggu').toList();
-
-    List<Map<String, dynamic>> currentTasks = allTasks;
-    if (_selectedTabIndex == 1) {
-      currentTasks = selesaiTasks;
-    } else if (_selectedTabIndex == 2) {
-      currentTasks = menungguTasks;
-    }
+    // Backend sudah memfilter sesuai status tab — jangan difilter ulang di FE.
+    final currentTasks = _loadedTasks;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F8),
@@ -274,13 +276,18 @@ class _DetailTugasAsesorScreenState extends State<DetailTugasAsesorScreen> {
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       children: [
-                        // Tab Bar Header (Belum Lunas)
+                        // Tab Bar Header
                         Row(
                           children: [
                             _buildUnderlineTab(
                               index: 0,
-                              label: 'Menunggu Pembayaran',
-                              count: _getTasksForAsesor().length,
+                              label: 'Semua',
+                              count: _totalCount,
+                            ),
+                            _buildUnderlineTab(
+                              index: 1,
+                              label: 'Selesai',
+                              count: _selesaiCount,
                             ),
                           ],
                         ),

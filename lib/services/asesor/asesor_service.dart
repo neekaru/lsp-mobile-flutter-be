@@ -274,13 +274,21 @@ class AsesorService {
     }
   }
 
-  /// 13. Daftar Honor Asesor (Berdasarkan Periode)
+  /// 13. Daftar Honor Asesor (Berdasarkan Periode & Status Pembayaran)
+  /// [status]: 'semua' | 'menunggu' | 'selesai'. Biarkan null untuk default
+  /// backend ('menunggu') agar pemanggil lama tetap kompatibel.
   /// If periode is null or empty, returns all honor.
-  static Future<Map<String, dynamic>?> getHonorList([String? periode]) async {
+  static Future<Map<String, dynamic>?> getHonorList([
+    String? periode,
+    String? status,
+  ]) async {
     try {
       final Map<String, dynamic> queryParams = {};
       if (periode != null && periode.isNotEmpty) {
         queryParams['periode'] = periode;
+      }
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
       }
       final response = await _dio.get(
         ApiRoutes.asesorHonor,
