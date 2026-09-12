@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../services/asesi/asesi_service.dart';
 import '../../services/asesor/asesor_service.dart';
 import '../../services/auth/auth_repository.dart';
 import '../../utils/url_helper.dart';
@@ -31,9 +32,11 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
   late TextEditingController _domisiliController;
 
   String? _fotoProfilUrl;
+  double? _latitude;
+  double? _longitude;
+  int _statusPencariKerja = 1;
   bool _isLoading = true;
   bool _isUploadingPhoto = false;
-
   @override
   void initState() {
     super.initState();
@@ -59,26 +62,49 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
     setState(() {
       _isLoading = true;
     });
+    final user = AuthRepository.currentUserInstance;
+    final bool isAsesi = user?.role == 'asesi';
+
     try {
-      final profile = await AsesorService.getProfile();
-      if (profile != null && mounted) {
-        setState(() {
-          _nameController.text = profile['nama_lengkap']?.toString() ?? profile['nama']?.toString() ?? '';
-          _emailController.text = profile['email']?.toString() ?? '';
-          _phoneController.text = profile['no_telepon']?.toString() ?? profile['telepon']?.toString() ?? profile['phone']?.toString() ?? '';
-          _addressController.text = profile['alamat']?.toString() ?? '';
-          _noRegController.text = profile['no_reg']?.toString() ?? profile['id_asesor']?.toString() ?? profile['nik']?.toString() ?? '';
-          _npwpController.text = profile['npwp']?.toString() ?? '';
-          _noRekeningController.text = profile['no_rekening']?.toString() ?? '';
-          _bankController.text = profile['bank']?.toString() ?? '';
-          _atasNamaController.text = profile['atas_nama_rekening']?.toString() ?? profile['atas_nama']?.toString() ?? '';
-          _linkCvController.text = profile['link_cv']?.toString() ?? '';
-          _homebaseController.text = profile['homebase']?.toString() ?? '';
-          _domisiliController.text = profile['domisili']?.toString() ?? profile['alamat']?.toString() ?? '';
-          if (profile['foto_profil_url'] != null && profile['foto_profil_url'].toString().isNotEmpty) {
-            _fotoProfilUrl = profile['foto_profil_url'].toString();
-          }
-        });
+      if (isAsesi) {
+        final profile = await AsesiService.getProfile();
+        if (profile != null && mounted) {
+          setState(() {
+            _nameController.text = profile['nama_lengkap']?.toString() ?? profile['nama']?.toString() ?? user?.name ?? '';
+            _emailController.text = profile['email']?.toString() ?? user?.email ?? '';
+            _phoneController.text = profile['telp']?.toString() ?? profile['no_telepon']?.toString() ?? '';
+            _addressController.text = profile['alamat']?.toString() ?? '';
+            _domisiliController.text = profile['alamat']?.toString() ?? '';
+            _noRegController.text = profile['nik']?.toString() ?? '';
+            _latitude = (profile['latitude'] as num?)?.toDouble();
+            _longitude = (profile['longitude'] as num?)?.toDouble();
+            _statusPencariKerja = (profile['status_pencari_kerja'] as num?)?.toInt() ?? 1;
+            if (profile['foto_profil_url'] != null && profile['foto_profil_url'].toString().isNotEmpty) {
+              _fotoProfilUrl = profile['foto_profil_url'].toString();
+            }
+          });
+        }
+      } else {
+        final profile = await AsesorService.getProfile();
+        if (profile != null && mounted) {
+          setState(() {
+            _nameController.text = profile['nama_lengkap']?.toString() ?? profile['nama']?.toString() ?? '';
+            _emailController.text = profile['email']?.toString() ?? '';
+            _phoneController.text = profile['no_telepon']?.toString() ?? profile['telepon']?.toString() ?? profile['phone']?.toString() ?? '';
+            _addressController.text = profile['alamat']?.toString() ?? '';
+            _noRegController.text = profile['no_reg']?.toString() ?? profile['id_asesor']?.toString() ?? profile['nik']?.toString() ?? '';
+            _npwpController.text = profile['npwp']?.toString() ?? '';
+            _noRekeningController.text = profile['no_rekening']?.toString() ?? '';
+            _bankController.text = profile['bank']?.toString() ?? '';
+            _atasNamaController.text = profile['atas_nama_rekening']?.toString() ?? profile['atas_nama']?.toString() ?? '';
+            _linkCvController.text = profile['link_cv']?.toString() ?? '';
+            _homebaseController.text = profile['homebase']?.toString() ?? '';
+            _domisiliController.text = profile['domisili']?.toString() ?? profile['alamat']?.toString() ?? '';
+            if (profile['foto_profil_url'] != null && profile['foto_profil_url'].toString().isNotEmpty) {
+              _fotoProfilUrl = profile['foto_profil_url'].toString();
+            }
+          });
+        }
       }
     } catch (_) {}
     if (mounted) {
@@ -195,9 +221,10 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
     final user = AuthRepository.currentUserInstance;
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
+      body: SafeArea(
+        bottom: true,
+        child: Column(
+          children: [
           // Blue Header Container
           Container(
             width: double.infinity,
@@ -387,7 +414,12 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
           // Form Fields Section
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              padding: EdgeInsets.fromLTRB(
+                20.0,
+                20.0,
+                20.0,
+                MediaQuery.paddingOf(context).bottom + 24.0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -436,6 +468,100 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                           hint: 'Belum diatur',
                           maxLines: 2,
                         ),
+                        if (user?.role == 'asesi') ...[
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Titik Koordinat Lokasi (GPS)',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: _latitude != null ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: _latitude != null ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.location_on_rounded,
+                                        size: 18,
+                                        color: _latitude != null ? const Color(0xFF16A34A) : const Color(0xFF94A3B8),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          _latitude != null
+                                              ? '${_latitude!.toStringAsFixed(6)}, ${_longitude!.toStringAsFixed(6)}'
+                                              : 'Titik koordinat belum terpasang',
+                                          style: TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: _latitude != null ? const Color(0xFF16A34A) : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Status Pencari Kerja',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  ),
+                                  child: Text(
+                                    _statusPencariKerja == 1
+                                        ? 'Sedang aktif mencari kerja (Open to Work)'
+                                        : _statusPencariKerja == 2
+                                            ? 'Bekerja, tapi terbuka untuk peluang baru'
+                                            : 'Tidak sedang mencari kerja',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: _statusPencariKerja == 1
+                                          ? const Color(0xFF16A34A)
+                                          : _statusPencariKerja == 2
+                                              ? const Color(0xFF2563EB)
+                                              : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         if (_homebaseController.text.isNotEmpty)
                           _buildField(
                             label: 'Homebase',
@@ -447,101 +573,103 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // 2. Section Rekening & Pajak
-                  _buildSectionHeader(
-                    icon: Icons.account_balance_wallet_outlined,
-                    title: 'Rekening Bank & Pajak (Honorarium)',
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                  if (user?.role != 'asesi') ...[
+                    // 2. Section Rekening & Pajak
+                    _buildSectionHeader(
+                      icon: Icons.account_balance_wallet_outlined,
+                      title: 'Rekening Bank & Pajak (Honorarium)',
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _buildField(
-                          label: 'No. NPWP',
-                          controller: _npwpController,
-                          hint: 'Belum diisi',
-                          showCopyButton: _npwpController.text.isNotEmpty,
-                        ),
-                        _buildField(
-                          label: 'Nama Bank',
-                          controller: _bankController,
-                          hint: 'Belum diisi (Contoh: BCA, Mandiri, BRI)',
-                        ),
-                        _buildField(
-                          label: 'No. Rekening',
-                          controller: _noRekeningController,
-                          hint: 'Belum diisi',
-                          showCopyButton: _noRekeningController.text.isNotEmpty,
-                        ),
-                        _buildField(
-                          label: 'Atas Nama Rekening',
-                          controller: _atasNamaController,
-                          hint: 'Belum diisi',
-                        ),
-                      ],
+                    const SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _buildField(
+                            label: 'No. NPWP',
+                            controller: _npwpController,
+                            hint: 'Belum diisi',
+                            showCopyButton: _npwpController.text.isNotEmpty,
+                          ),
+                          _buildField(
+                            label: 'Nama Bank',
+                            controller: _bankController,
+                            hint: 'Belum diisi (Contoh: BCA, Mandiri, BRI)',
+                          ),
+                          _buildField(
+                            label: 'No. Rekening',
+                            controller: _noRekeningController,
+                            hint: 'Belum diisi',
+                            showCopyButton: _noRekeningController.text.isNotEmpty,
+                          ),
+                          _buildField(
+                            label: 'Atas Nama Rekening',
+                            controller: _atasNamaController,
+                            hint: 'Belum diisi',
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // 3. Section Dokumen & CV
-                  _buildSectionHeader(
-                    icon: Icons.description_outlined,
-                    title: 'Dokumen & Portofolio',
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    // 3. Section Dokumen & CV
+                    _buildSectionHeader(
+                      icon: Icons.description_outlined,
+                      title: 'Dokumen & Portofolio',
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _buildField(
-                          label: 'Link CV / Dokumen Asesor',
-                          controller: _linkCvController,
-                          hint: 'Belum diisi (Contoh: Link Google Drive CV)',
-                          showCopyButton: _linkCvController.text.isNotEmpty,
-                          actionWidget: _linkCvController.text.isNotEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: TextButton.icon(
-                                      onPressed: () =>
-                                          _openCvLink(_linkCvController.text),
-                                      icon: const Icon(
-                                        Icons.open_in_new_rounded,
-                                        size: 15,
-                                      ),
-                                      label: const Text(
-                                        'Buka Link Dokumen CV',
-                                        style: TextStyle(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.bold,
+                    const SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _buildField(
+                            label: 'Link CV / Dokumen Asesor',
+                            controller: _linkCvController,
+                            hint: 'Belum diisi (Contoh: Link Google Drive CV)',
+                            showCopyButton: _linkCvController.text.isNotEmpty,
+                            actionWidget: _linkCvController.text.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: TextButton.icon(
+                                        onPressed: () =>
+                                            _openCvLink(_linkCvController.text),
+                                        icon: const Icon(
+                                          Icons.open_in_new_rounded,
+                                          size: 15,
+                                        ),
+                                        label: const Text(
+                                          'Buka Link Dokumen CV',
+                                          style: TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: const Color(0xFF3B82F6),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 4),
+                                          visualDensity: VisualDensity.compact,
                                         ),
                                       ),
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: const Color(0xFF3B82F6),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 4),
-                                        visualDensity: VisualDensity.compact,
-                                      ),
                                     ),
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ],
+                                  )
+                                : null,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                   const SizedBox(height: 32),
                   
                   // Bottom Button (Edit Data Diri)
@@ -557,15 +685,21 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                               currentName: _nameController.text,
                               currentPhone: _phoneController.text,
                               currentEmail: _emailController.text,
-                              currentAddress: _addressController.text,
+                              currentAddress: _addressController.text.isNotEmpty
+                                  ? _addressController.text
+                                  : _domisiliController.text,
                               currentNPWP: _npwpController.text,
                               currentNoRekening: _noRekeningController.text,
                               currentBank: _bankController.text,
                               currentAtasNama: _atasNamaController.text,
                               currentLinkCV: _linkCvController.text,
                               currentHomebase: _homebaseController.text,
+                              currentLatitude: _latitude,
+                              currentLongitude: _longitude,
+                              currentStatusPencariKerja: _statusPencariKerja,
                               onSave: (name, phone, email, address, npwp,
-                                  noRekening, bank, atasNama, linkCv, homebase) {
+                                  noRekening, bank, atasNama, linkCv, homebase,
+                                  {lat, lng, statusPencariKerja}) {
                                 setState(() {
                                   _nameController.text = name;
                                   _emailController.text = email;
@@ -579,6 +713,13 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                                   _homebaseController.text = homebase;
                                   _domisiliController.text =
                                       address.isNotEmpty ? address : homebase;
+                                  if (lat != null && lng != null) {
+                                    _latitude = lat;
+                                    _longitude = lng;
+                                  }
+                                  if (statusPencariKerja != null) {
+                                    _statusPencariKerja = statusPencariKerja;
+                                  }
                                 });
                                 final user = AuthRepository.currentUserInstance;
                                 if (user != null) {
@@ -620,7 +761,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -345,12 +345,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   SizedBox(height: 2),
                                   Text(
-                                    'Dashboard Sertifikasi',
+                                    'Kompeten, Profesional dan Inovatif',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: Color(
                                         0xE6FFFFFF,
                                       ), // white with 0.9 opacity
-                                      fontSize: 14,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.w400,
                                     ),
                                   ),
@@ -425,12 +427,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   SizedBox(height: 2),
                                   Text(
-                                    'Dashboard Sertifikasi',
+                                    'Kompeten, Profesional dan Inovatif',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: Color(
                                         0xE6FFFFFF,
                                       ), // white with 0.9 opacity
-                                      fontSize: 14,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.w400,
                                     ),
                                   ),

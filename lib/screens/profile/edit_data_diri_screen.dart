@@ -1,7 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../services/asesor/asesor_service.dart';
-
+import '../../services/asesi/asesi_service.dart';
+import '../../services/auth/auth_repository.dart';
+import '../../services/marketing/location_service.dart';
 class EditDataDiriScreen extends StatefulWidget {
   final String currentName;
   final String currentPhone;
@@ -13,6 +15,9 @@ class EditDataDiriScreen extends StatefulWidget {
   final String currentAtasNama;
   final String currentLinkCV;
   final String currentHomebase;
+  final double? currentLatitude;
+  final double? currentLongitude;
+  final int currentStatusPencariKerja;
   final Function(
     String name,
     String phone,
@@ -23,8 +28,11 @@ class EditDataDiriScreen extends StatefulWidget {
     String bank,
     String atasNama,
     String linkCv,
-    String homebase,
-  ) onSave;
+    String homebase, {
+    double? lat,
+    double? lng,
+    int? statusPencariKerja,
+  }) onSave;
 
   const EditDataDiriScreen({
     super.key,
@@ -38,6 +46,9 @@ class EditDataDiriScreen extends StatefulWidget {
     this.currentAtasNama = '',
     this.currentLinkCV = '',
     this.currentHomebase = '',
+    this.currentLatitude,
+    this.currentLongitude,
+    this.currentStatusPencariKerja = 1,
     required this.onSave,
   });
 
@@ -47,6 +58,10 @@ class EditDataDiriScreen extends StatefulWidget {
 
 class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
   bool _isSaving = false;
+  bool _isLocating = false;
+  double? _lat;
+  double? _lng;
+  int _statusPencariKerja = 1;
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
@@ -57,7 +72,6 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
   late TextEditingController _atasNamaController;
   late TextEditingController _linkCvController;
   late TextEditingController _homebaseController;
-
   @override
   void initState() {
     super.initState();
@@ -71,6 +85,41 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
     _atasNamaController = TextEditingController(text: widget.currentAtasNama);
     _linkCvController = TextEditingController(text: widget.currentLinkCV);
     _homebaseController = TextEditingController(text: widget.currentHomebase);
+    _lat = widget.currentLatitude;
+    _lng = widget.currentLongitude;
+    _statusPencariKerja = widget.currentStatusPencariKerja;
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isLocating = true);
+    try {
+      final loc = await LocationService.getCurrentLocation();
+      if (!mounted) return;
+      setState(() {
+        _lat = loc.latitude;
+        _lng = loc.longitude;
+        _isLocating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Lokasi berhasil diambil: ${loc.latitude.toStringAsFixed(5)}, ${loc.longitude.toStringAsFixed(5)}',
+          ),
+          backgroundColor: const Color(0xFF16A34A),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLocating = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal mengambil lokasi GPS. Pastikan GPS aktif.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -93,18 +142,35 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
       _isSaving = true;
     });
 
+    final user = AuthRepository.currentUserInstance;
+    final bool isAsesi = user?.role == 'asesi';
+
     try {
-      // Perform API call to update profile on backend
-      await AsesorService.updateProfile(
-        noTelepon: _phoneController.text.trim(),
-        alamat: _addressController.text.trim(),
-        npwp: _npwpController.text.trim(),
-        noRekening: _noRekeningController.text.trim(),
-        bank: _bankController.text.trim(),
-        atasNamaRekening: _atasNamaController.text.trim(),
-        linkCv: _linkCvController.text.trim(),
-        homebase: _homebaseController.text.trim(),
-      );
+      if (isAsesi) {
+        final body = <String, dynamic>{
+          'nama_lengkap': _nameController.text.trim(),
+          'telp': _phoneController.text.trim(),
+          'email': _emailController.text.trim(),
+          'alamat': _addressController.text.trim(),
+          'status_pencari_kerja': _statusPencariKerja,
+        };
+        if (_lat != null && _lng != null) {
+          body['latitude'] = _lat;
+          body['longitude'] = _lng;
+        }
+        await AsesiService.updateProfile(body);
+      } else {
+        await AsesorService.updateProfile(
+          noTelepon: _phoneController.text.trim(),
+          alamat: _addressController.text.trim(),
+          npwp: _npwpController.text.trim(),
+          noRekening: _noRekeningController.text.trim(),
+          bank: _bankController.text.trim(),
+          atasNamaRekening: _atasNamaController.text.trim(),
+          linkCv: _linkCvController.text.trim(),
+          homebase: _homebaseController.text.trim(),
+        );
+      }
     } catch (_) {}
 
     widget.onSave(
@@ -118,6 +184,9 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
       _atasNamaController.text.trim(),
       _linkCvController.text.trim(),
       _homebaseController.text.trim(),
+      lat: _lat,
+      lng: _lng,
+      statusPencariKerja: _statusPencariKerja,
     );
 
     if (mounted) {
@@ -132,7 +201,6 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        top: false,
         child: Column(
           children: [
             SizedBox(height: statusBarHeight + 8),
@@ -145,7 +213,12 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(20.0),
+                padding: EdgeInsets.fromLTRB(
+                  20.0,
+                  20.0,
+                  20.0,
+                  MediaQuery.paddingOf(context).bottom + 24.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -194,16 +267,69 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
                             hint: 'Masukan alamat atau domisili Anda',
                             maxLines: 3,
                           ),
-                          _buildTextField(
-                            label: 'Homebase / Wilayah',
-                            controller: _homebaseController,
-                            hint: 'Contoh: LSP Teknologi Digital, DKI Jakarta',
-                          ),
+                          if (AuthRepository.currentUserInstance?.role == 'asesi') ...[
+                            const SizedBox(height: 4),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _isLocating ? null : _getCurrentLocation,
+                                icon: _isLocating
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : const Icon(
+                                        Icons.my_location_rounded,
+                                        size: 18,
+                                        color: Color(0xFF2563EB),
+                                      ),
+                                label: Text(
+                                  _lat == null
+                                      ? 'Ambil Titik Lokasi Saya (GPS)'
+                                      : 'Lokasi Terpasang: ${_lat!.toStringAsFixed(5)}, ${_lng!.toStringAsFixed(5)}',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: _lat == null
+                                        ? const Color(0xFF2563EB)
+                                        : const Color(0xFF16A34A),
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                    color: _lat == null
+                                        ? const Color(0xFFBFDBFE)
+                                        : const Color(0xFFBBF7D0),
+                                  ),
+                                  backgroundColor: _lat == null
+                                      ? const Color(0xFFEFF6FF)
+                                      : const Color(0xFFF0FDF4),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                    horizontal: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildStatusPencariKerjaField(),
+                          ] else ...[
+                            _buildTextField(
+                              label: 'Homebase / Wilayah',
+                              controller: _homebaseController,
+                              hint: 'Contoh: LSP Teknologi Digital, DKI Jakarta',
+                            ),
+                          ],
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
 
+                  if (AuthRepository.currentUserInstance?.role != 'asesi') ...[
                     const Text(
                       'Rekening Bank & Pajak (Honorarium)',
                       style: TextStyle(
@@ -279,6 +405,7 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
+                  ],
                     
                     Row(
                       children: [
@@ -431,6 +558,77 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildStatusPencariKerjaField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Status Pencari Kerja',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value: _statusPencariKerja,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF64748B)),
+              items: const [
+                DropdownMenuItem(
+                  value: 0,
+                  child: Text(
+                    'Tidak sedang mencari kerja',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF334155)),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 1,
+                  child: Text(
+                    'Sedang aktif mencari kerja (Open to Work)',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF16A34A), fontWeight: FontWeight.bold),
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 2,
+                  child: Text(
+                    'Bekerja, tapi terbuka untuk peluang baru',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _statusPencariKerja = val);
+                }
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          _statusPencariKerja == 0
+              ? 'Profil Anda tidak akan ditampilkan di menu Talenta.'
+              : 'Profil Anda akan ditampilkan kepada pencari talenta di menu Talenta.',
+          style: TextStyle(
+            fontSize: 11,
+            color: _statusPencariKerja == 0 ? const Color(0xFF94A3B8) : const Color(0xFF2563EB),
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
     );
   }
 }

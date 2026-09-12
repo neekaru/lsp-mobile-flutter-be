@@ -71,16 +71,20 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
         setState(() {
           _honorItems = list.map((item) {
             final Map<String, dynamic> map = Map<String, dynamic>.from(item as Map);
+            String rawJudul = (map['nama_jadwal'] ?? map['judul_asesmen'] ?? map['skema'] ?? '').toString();
+            rawJudul = rawJudul.replaceAll(RegExp(r'^Uji Kompetensi:\s*', caseSensitive: false), '').trim();
             return {
               ...map,
               'id': map['id'] ?? map['asesor_id'],
               'nama_asesor': map['nama_asesor'] ?? 'Asesor',
               'tipe_asesor': map['tipe_asesor'] ?? 'Asesor Internal',
-              'judul_asesmen': map['judul_asesmen'] ?? map['skema'] ?? '',
-              'skema': map['skema'] ?? map['judul_asesmen'] ?? '',
+              'judul_asesmen': rawJudul,
+              'nama_jadwal': rawJudul,
+              'skema': map['skema'] ?? rawJudul,
+              'tuk': map['nama_tuk'] ?? map['tuk'] ?? '-',
+              'tanggal': map['tanggal_pelaksanaan'] ?? map['tanggal_jadwal'] ?? map['tanggal'] ?? '',
               'honor': map['honor'] ?? 'Rp 0',
               'status': map['status'] ?? 'Selesai',
-              'tanggal': map['tanggal'] ?? '',
             };
           }).toList();
           _updateFilteredItems();
@@ -98,16 +102,20 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
         setState(() {
           _honorItems = list.map((item) {
             final Map<String, dynamic> map = Map<String, dynamic>.from(item as Map);
+            String rawJudul = (map['nama_jadwal'] ?? map['judul_asesmen'] ?? map['skema'] ?? '').toString();
+            rawJudul = rawJudul.replaceAll(RegExp(r'^Uji Kompetensi:\s*', caseSensitive: false), '').trim();
             return {
               ...map,
-              'id': map['id'] ?? map['asesor_id'] ?? map['tugas_id'],
-              'nama_asesor': map['nama_asesor'] ?? map['judul_asesmen'] ?? 'Asesor',
-              'tipe_asesor': map['tipe_asesor'] ?? map['skema'] ?? 'Asesor Internal',
-              'judul_asesmen': map['judul_asesmen'] ?? map['skema'] ?? '',
-              'skema': map['skema'] ?? map['judul_asesmen'] ?? '',
+              'id': map['id'] ?? map['asesor_id'] ?? map['tugas_id'] ?? map['id_detail'],
+              'nama_asesor': map['nama_asesor'] ?? rawJudul,
+              'tipe_asesor': map['tipe_asesor'] ?? 'Asesor Internal',
+              'judul_asesmen': rawJudul,
+              'nama_jadwal': rawJudul,
+              'skema': map['skema'] ?? rawJudul,
+              'tuk': map['nama_tuk'] ?? map['tuk'] ?? '-',
+              'tanggal': map['tanggal_pelaksanaan'] ?? map['tanggal_jadwal'] ?? map['tanggal'] ?? '',
               'honor': map['honor'] ?? 'Rp 0',
               'status': map['status'] ?? 'Selesai',
-              'tanggal': map['tanggal'] ?? '',
             };
           }).toList();
           _updateFilteredItems();
@@ -278,14 +286,13 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
       return st != 'selesai' && st != 'lunas' && stPembayaran != '1';
     }).toList();
 
-    // Filter by search query
     if (_searchQuery.trim().isNotEmpty) {
       final q = _searchQuery.trim().toLowerCase();
       result = result.where((item) {
-        final nama = (item['nama_asesor'] ?? '').toString().toLowerCase();
-        final tipe = (item['tipe_asesor'] ?? '').toString().toLowerCase();
-        final skema = (item['skema'] ?? item['judul_asesmen'] ?? '').toString().toLowerCase();
-        return nama.contains(q) || tipe.contains(q) || skema.contains(q);
+        final nama = (item['nama_jadwal'] ?? item['judul_asesmen'] ?? item['nama_asesor'] ?? '').toString().toLowerCase();
+        final tuk = (item['tuk'] ?? '').toString().toLowerCase();
+        final tgl = (item['tanggal'] ?? '').toString().toLowerCase();
+        return nama.contains(q) || tuk.contains(q) || tgl.contains(q);
       }).toList();
     }
 
@@ -552,8 +559,14 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
   }
 
   Widget _buildHonorCard(Map<String, dynamic> item) {
-    final String nama = item['nama_asesor'] ?? item['judul_asesmen'] ?? 'Asesor';
-    final String tipe = item['tipe_asesor'] ?? item['skema'] ?? 'Asessor Internal';
+    String namaJadwal = (item['nama_jadwal'] ?? item['judul_asesmen'] ?? item['skema'] ?? '').toString();
+    namaJadwal = namaJadwal.replaceAll(RegExp(r'^Uji Kompetensi:\s*', caseSensitive: false), '').trim();
+    if (namaJadwal.isEmpty) {
+      namaJadwal = (item['nama_asesor'] ?? 'Jadwal Asesmen').toString();
+    }
+
+    final String tuk = (item['tuk'] ?? '-').toString().trim();
+    final String tanggal = (item['tanggal'] ?? '').toString().trim();
     final String honor = item['honor'] ?? 'Rp 0';
     final String status = item['status'] ?? 'Selesai';
     final bool isSelesai = status.toLowerCase() == 'selesai' || status.toLowerCase() == 'complete';
@@ -573,6 +586,7 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Avatar Box
                 Container(
@@ -591,35 +605,69 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Name & Type
+                // Nama Jadwal & Info TUK + Tanggal
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        nama,
+                        namaJadwal,
                         style: const TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF0F172A),
+                          height: 1.3,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        tipe,
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          color: Color(0xFF64748B),
+                      const SizedBox(height: 5),
+                      if (tuk.isNotEmpty && tuk != '-') ...[
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.location_on_outlined,
+                              size: 13,
+                              color: Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                tuk,
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  color: Color(0xFF475569),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(height: 2),
+                      ],
+                      if (tanggal.isNotEmpty) ...[
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today_outlined,
+                              size: 12,
+                              color: Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              tanggal,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 // Honor Amount & Badge
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -650,11 +698,14 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFF94A3B8),
-                  size: 20,
+                const SizedBox(width: 6),
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: Color(0xFF94A3B8),
+                    size: 20,
+                  ),
                 ),
               ],
             ),
@@ -662,5 +713,4 @@ class _HonorAsesorScreenState extends State<HonorAsesorScreen> {
         ),
       ),
     );
-  }
 }
