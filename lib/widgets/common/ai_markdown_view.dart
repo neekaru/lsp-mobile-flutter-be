@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 /// Clean, beautiful, lightweight Markdown Renderer for AI responses in LSP Mobile.
@@ -37,7 +37,7 @@ class AiMarkdownView extends StatelessWidget {
     return MarkdownBody(
       data: text,
       selectable: true,
-      styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+      styleSheet: MarkdownStyleSheet(
         p: base,
         h1: base.copyWith(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
         h2: base.copyWith(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),

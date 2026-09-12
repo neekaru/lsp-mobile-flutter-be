@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class MenuBulatItem {
   final IconData icon;
@@ -47,7 +47,9 @@ class MenuBulatSection extends StatelessWidget {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: items.map((item) => _buildCircleItem(context, item)).toList(),
+          children: items
+              .map((item) => Expanded(child: _buildCircleItem(context, item)))
+              .toList(),
         ),
       ),
     );
@@ -76,19 +78,16 @@ class MenuBulatSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              width: 70,
-              child: Text(
-                item.label,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF0F172A),
-                  height: 1.2,
-                ),
+            Text(
+              item.label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF0F172A),
+                height: 1.2,
               ),
             ),
           ],

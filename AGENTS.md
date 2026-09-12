@@ -62,6 +62,46 @@ Untuk **SETIAP PERUBAHAN APAPUN** (Widget, Screen, Form, Model Parsing, Service 
 - Hindari membuat widget monolithic / god widget dalam satu file jika sudah terlalu panjang (> 500 baris). Pisahkan sub-widget / helper component ke file terpisah.
 - Ikuti linting standard (`flutter_lints`).
 
+## Import UI: WAJIB `material_ui`, DILARANG `flutter/material` (ZERO TOLERANCE)
+
+> **Alasan**: proyek ini memakai `material_ui` (lihat `pubspec.yaml`) dan membungkus seluruh app dengan `MaterialUiCompatibilityBridge` di `lib/app.dart`. Mencampur `package:flutter/material.dart` di sebagian file membuat widget berjalan di luar bridge tersebut. Akibatnya muncul **exception layout/render yang dilempar berulang setiap frame** — jejaknya berakhir di `BuildOwner.buildScope → WidgetsBinding.drawFrame`, layar terlihat "stuck"/beku, dan penyebabnya menyesatkan karena widget yang dilaporkan Flutter hanyalah korban, bukan sumbernya. **Terbukti di lapangan: error hilang begitu import-nya diganti ke `material_ui`.**
+
+**WAJIB** untuk semua file `.dart` yang memakai widget/UI (Widget, Screen, Dialog, BottomSheet, Theme, Icons, Colors, TextStyle, `BuildContext`):
+
+```dart
+// ✅ BENAR
+import 'package:material_ui/material_ui.dart';
+
+// ❌ SALAH — DILARANG
+import 'package:flutter/material.dart';
+```
+
+**TIDAK BOLEH BERALIBI DENGAN ALASAN APA PUN:**
+- ❌ **DILARANG beralibi** "cuma butuh `Colors`/`Icons`/`TextStyle` saja"
+- ❌ **DILARANG beralibi** "file lain di folder ini juga sudah pakai `flutter/material`"
+- ❌ **DILARANG beralibi** "`flutter analyze` sudah lolos / tidak ada warning"
+- ❌ **DILARANG beralibi** "widget-nya kecil / cuma helper / cuma service"
+- ❌ **DILARANG beralibi** "sudah jalan normal di HP saya"
+
+**Yang TETAP boleh di-import langsung dari `package:flutter/...`** (bukan layer Material UI, tidak lewat bridge):
+
+|Import|Untuk|
+|---|---|
+|`package:flutter/foundation.dart`|`kDebugMode`, `debugPrint`, `ChangeNotifier`, `compute`|
+|`package:flutter/services.dart`|`SystemChrome`, `SystemUiOverlayStyle`, `Clipboard`, `HapticFeedback`|
+|`package:flutter/rendering.dart`|API render layer (`RenderBox`, dsb.)|
+|`package:flutter_test/flutter_test.dart`|file test|
+
+**Kewajiban AI:**
+1. Saat **membuat file UI baru** → langsung tulis `import 'package:material_ui/material_ui.dart';`. Jangan pernah `flutter/material`.
+2. Saat **menyentuh file lama** yang masih memakai `flutter/material` → **ganti import-nya ke `material_ui` di kesempatan itu juga** (bukan tugas terpisah, bukan "nanti").
+3. Saat muncul error render/layout yang jejaknya berakhir di `BuildOwner.buildScope` / `drawFrame` → **CEK IMPORT DULU sebelum membongkar widget tree**. Jangan langsung menyalahkan `Row`/`Column`/`Expanded`/`IconButton`; verifikasi lebih dulu apakah file (dan file induknya) sudah memakai `material_ui`.
+
+**Cara audit cepat (harus 0 hasil):**
+```bash
+grep -rl "^import 'package:flutter/material\.dart';" lib
+```
+
 ## Git & File Management (WAJIB)
 
 ### LARANGAN MUTLAK `git add .` (ZERO TOLERANCE)
