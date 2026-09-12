@@ -63,7 +63,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
       _isLoading = true;
     });
     final user = AuthRepository.currentUserInstance;
-    final bool isAsesi = user?.role == 'asesi';
+    final bool isAsesi = user?.isAsesi ?? false;
 
     try {
       if (isAsesi) {
@@ -468,7 +468,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                           hint: 'Belum diatur',
                           maxLines: 2,
                         ),
-                        if (user?.role == 'asesi') ...[
+                        if (user?.isAsesi ?? false) ...[
                           Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: Column(
@@ -573,7 +573,7 @@ class _DataDiriScreenState extends State<DataDiriScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  if (user?.role != 'asesi') ...[
+                  if (!(user?.isAsesi ?? false)) ...[
                     // 2. Section Rekening & Pajak
                     _buildSectionHeader(
                       icon: Icons.account_balance_wallet_outlined,

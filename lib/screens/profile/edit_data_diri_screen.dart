@@ -143,7 +143,7 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
     });
 
     final user = AuthRepository.currentUserInstance;
-    final bool isAsesi = user?.role == 'asesi';
+    final bool isAsesi = user?.isAsesi ?? false;
 
     try {
       if (isAsesi) {
@@ -267,7 +267,7 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
                             hint: 'Masukan alamat atau domisili Anda',
                             maxLines: 3,
                           ),
-                          if (AuthRepository.currentUserInstance?.role == 'asesi') ...[
+                          if (AuthRepository.currentUserInstance?.isAsesi ?? false) ...[
                             const SizedBox(height: 4),
                             SizedBox(
                               width: double.infinity,
@@ -329,7 +329,7 @@ class _EditDataDiriScreenState extends State<EditDataDiriScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                  if (AuthRepository.currentUserInstance?.role != 'asesi') ...[
+                  if (!(AuthRepository.currentUserInstance?.isAsesi ?? false)) ...[
                     const Text(
                       'Rekening Bank & Pajak (Honorarium)',
                       style: TextStyle(

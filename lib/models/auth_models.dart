@@ -19,6 +19,14 @@ class AuthUser {
   final String? fotoProfil;
   final String? fotoProfilUrl;
 
+  /// Deteksi asesi kanonikal. Backend mengirim `role` tunggal berdasarkan
+  /// prioritas admin > asesor > asesi (`auth_shared.go:mapLegacyRoles`), jadi
+  /// user yang punya role ganda (mis. Pemegang Sertifikat + Asesor) akan
+  /// menerima `role: "asesor"` walaupun dia juga asesi. Mengecek `role` saja
+  /// membuat fitur khusus asesi (Titik Koordinat, Status Pencari Kerja) hilang
+  /// untuk user tersebut, karena itu keanggotaan `roles[]` WAJIB ikut dicek.
+  bool get isAsesi => role == 'asesi' || roles.contains('asesi');
+
   factory AuthUser.fromJson(Map<String, dynamic> json) {
     return AuthUser(
       id: json['id']?.toString() ?? '',
