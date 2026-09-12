@@ -1131,13 +1131,17 @@ class AsesorService {
   }
 
   /// POST /api/asesor/ai/chat
-  static Future<String> sendAiChat(String message) async {
+  static Future<String> sendAiChat(String message, {String? context}) async {
     try {
+      final Map<String, dynamic> body = {
+        'message': message,
+      };
+      if (context != null && context.trim().isNotEmpty) {
+        body['context'] = context.trim();
+      }
       final response = await _dio.post(
         ApiRoutes.asesorAiChat,
-        data: {
-          'message': message,
-        },
+        data: body,
         options: Options(
           receiveTimeout: const Duration(seconds: 90),
           sendTimeout: const Duration(seconds: 30),
@@ -1157,13 +1161,17 @@ class AsesorService {
   }
 
   /// POST /api/ai/chat (Public AI Assistant Chat)
-  static Future<String> sendPublicAiChat(String message) async {
+  static Future<String> sendPublicAiChat(String message, {String? context}) async {
     try {
+      final Map<String, dynamic> body = {
+        'message': message,
+      };
+      if (context != null && context.trim().isNotEmpty) {
+        body['context'] = context.trim();
+      }
       final response = await _dio.post(
         ApiRoutes.publicAiChat,
-        data: {
-          'message': message,
-        },
+        data: body,
         options: Options(
           receiveTimeout: const Duration(seconds: 90),
           sendTimeout: const Duration(seconds: 30),

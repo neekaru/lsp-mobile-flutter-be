@@ -135,11 +135,28 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
     try {
       final user = AuthRepository.currentUserInstance;
       final bool isAsesor = user?.role == 'asesor';
-      final aiReplyText = isAsesor
-          ? await AsesorService.sendAiChat(trimmed)
-          : await AsesorService.sendPublicAiChat(trimmed);
-      if (!mounted) return;
 
+      // Buat ringkasan riwayat chat sebelumnya (maksimal 4 percakapan terakhir) sebagai memori konteks
+      String? conversationContext;
+      final recentMessages = _messages
+          .where((m) => m.id != 'welcome-1' && m != userMsg)
+          .toList();
+      if (recentMessages.isNotEmpty) {
+        final startIdx = recentMessages.length > 4 ? recentMessages.length - 4 : 0;
+        final buffer = StringBuffer();
+        for (final m in recentMessages.sublist(startIdx)) {
+          final sender = m.isUser ? 'Pengguna' : 'Asisten LSP';
+          // Potong panjang teks per pesan agar hemat token
+          final shortText = m.text.length > 200 ? '${m.text.substring(0, 200)}...' : m.text;
+          buffer.writeln('$sender: $shortText');
+        }
+        conversationContext = buffer.toString().trim();
+      }
+
+      final aiReplyText = isAsesor
+          ? await AsesorService.sendAiChat(trimmed, context: conversationContext)
+          : await AsesorService.sendPublicAiChat(trimmed, context: conversationContext);
+      if (!mounted) return;
       setState(() {
         _isAiThinking = false;
         _messages.add(
