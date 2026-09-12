@@ -115,9 +115,9 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
   }
 
   Future<void> _sendMessage(String text) async {
+    if (_isAiThinking) return;
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
-
     final userMsg = _ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       text: trimmed,
@@ -381,7 +381,9 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  onPressed: () => _sendMessage(prompt.replaceFirst(RegExp(r'^[^\w\s]+\s*'), '')),
+                  onPressed: _isAiThinking
+                      ? null
+                      : () => _sendMessage(prompt.replaceFirst(RegExp(r'^[^\w\s]+\s*'), '')),
                 );
               },
             ),
@@ -412,7 +414,7 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
                         controller: _textController,
                         focusNode: _focusNode,
                         textInputAction: TextInputAction.send,
-                        onSubmitted: _sendMessage,
+                        onSubmitted: _isAiThinking ? null : _sendMessage,
                         maxLines: null,
                         style: const TextStyle(
                           fontSize: 14,
@@ -435,12 +437,12 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
 
                   // Send Button
                   GestureDetector(
-                    onTap: () => _sendMessage(_textController.text),
+                    onTap: _isAiThinking ? null : () => _sendMessage(_textController.text),
                     child: Container(
                       width: 44,
                       height: 44,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF2563EB),
+                      decoration: BoxDecoration(
+                        color: _isAiThinking ? const Color(0xFF94A3B8) : const Color(0xFF2563EB),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
