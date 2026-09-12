@@ -7,11 +7,13 @@ import '../../widgets/common/ai_markdown_view.dart';
 class AsesorAiScreen extends StatefulWidget {
   final VoidCallback? onBackToHome;
   final VoidCallback? onNavigateToJadwal;
+  final String? initialQuery;
 
   const AsesorAiScreen({
     super.key,
     this.onBackToHome,
     this.onNavigateToJadwal,
+    this.initialQuery,
   });
 
   @override
@@ -41,19 +43,23 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
   final List<_ChatMessage> _messages = [];
 
   final List<String> _quickPrompts = [
+    '🎓 Rekomendasi skema untuk Dosen/Kampus',
     '👥 Tampilkan asesi bulan ini',
     '📋 Tampilkan asesi hari ini',
     '📅 Cek jadwal asesmen aktif',
     '📜 Syarat pemeliharaan RCC Asesor',
     '💡 Panduan pengisian FR-AK.05 & FR-AK.06',
   ];
-
   @override
   void initState() {
     super.initState();
     _initWelcomeMessage();
+    if (widget.initialQuery != null && widget.initialQuery!.trim().isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _sendMessage(widget.initialQuery!.trim());
+      });
+    }
   }
-
   @override
   void dispose() {
     _textController.dispose();
@@ -64,15 +70,19 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
 
   void _initWelcomeMessage() {
     final user = AuthRepository.currentUserInstance;
-    final asesorName = (user?.name != null && user!.name.isNotEmpty)
+    final bool isAsesor = user?.role == 'asesor';
+    final name = (user?.name != null && user!.name.isNotEmpty)
         ? user.name
-        : 'Bapak/Ibu Asesor';
+        : (isAsesor ? 'Bapak/Ibu Asesor' : 'Pengguna LSP');
+
+    final welcomeText = isAsesor
+        ? 'Halo $name! 👋\n\nSaya Asisten AI LSP Teknologi Digital. Anda dapat bertanya seputar agenda asesmen, verifikasi berkas, status asesi, atau materi uji kompetensi.\n\nKetik pesan Anda atau pilih salah satu prompt di bawah untuk mencoba:'
+        : 'Halo $name! 👋\n\nSaya Asisten AI LSP Teknologi Digital. Anda dapat menanyakan rekomendasi skema sertifikasi (misalnya: untuk dosen, guru, mahasiswa, atau prodi tertentu), informasi syarat uji kompetensi, dan panduan sertifikasi.\n\nKetik pertanyaan Anda di bawah:';
 
     _messages.add(
       _ChatMessage(
         id: 'welcome-1',
-        text:
-            'Halo $asesorName! 👋\n\nSaya Asisten AI LSP Teknologi Digital. Anda dapat bertanya seputar agenda asesmen, verifikasi berkas, status asesi, atau materi uji kompetensi.\n\nKetik pesan Anda atau pilih salah satu prompt di bawah untuk mencoba:',
+        text: welcomeText,
         isUser: false,
         timestamp: DateTime.now(),
       ),
@@ -110,7 +120,11 @@ class _AsesorAiScreenState extends State<AsesorAiScreen> {
     _scrollToBottom();
 
     try {
-      final aiReplyText = await AsesorService.sendAiChat(trimmed);
+      final user = AuthRepository.currentUserInstance;
+      final bool isAsesor = user?.role == 'asesor';
+      final aiReplyText = isAsesor
+          ? await AsesorService.sendAiChat(trimmed)
+          : await AsesorService.sendPublicAiChat(trimmed);
       if (!mounted) return;
 
       setState(() {

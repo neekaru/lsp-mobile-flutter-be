@@ -1156,6 +1156,32 @@ class AsesorService {
     }
   }
 
+  /// POST /api/ai/chat (Public AI Assistant Chat)
+  static Future<String> sendPublicAiChat(String message) async {
+    try {
+      final response = await _dio.post(
+        ApiRoutes.publicAiChat,
+        data: {
+          'message': message,
+        },
+        options: Options(
+          receiveTimeout: const Duration(seconds: 90),
+          sendTimeout: const Duration(seconds: 30),
+        ),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data['data'];
+        if (data != null && data['message'] != null) {
+          return data['message'].toString();
+        }
+      }
+      return 'Mohon maaf, asisten AI sedang tidak dapat merespons saat ini.';
+    } catch (e) {
+      debugPrint('🔴 Error sending public AI chat: $e');
+      return 'Terjadi kendala koneksi ke server asisten AI. Silakan coba lagi.';
+    }
+  }
+
   /// Fetch daftar jadwal asesmen di TUK tertentu
   static Future<List<TUKJadwalItem>> getTukJadwal({
     required int idTuk,

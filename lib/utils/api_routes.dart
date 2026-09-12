@@ -213,6 +213,7 @@ class ApiRoutes {
   static String asesorTiketDetail(int id) => '/api/asesor/tiket/$id';
   static String asesorTiketReply(int id) => '/api/asesor/tiket/$id/reply';
   static const String asesorAiChat = '/api/asesor/ai/chat';
+  static const String publicAiChat = '/api/ai/chat';
   static const String asesorLeads = '/api/asesor/leads';
   static const String asesorLeadsStats = '/api/asesor/leads/stats';
   static const String asesorLeadsRegisteredPlaces = '/api/asesor/leads/registered-places';

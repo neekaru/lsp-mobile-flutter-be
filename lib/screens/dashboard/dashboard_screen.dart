@@ -29,7 +29,7 @@ import '../talenta/talenta_screen.dart';
 import '../sertifikat/skema_sertifikasi_screen.dart';
 import '../sertifikat/validasi_sertifikat_screen.dart';
 import 'berita_screen.dart';
-
+import '../ai/asesor_ai_screen.dart';
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onNavigateToJadwal;
   final Function(int tabIndex)? onNavigateToTab;
@@ -191,7 +191,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 // Sky Blue Header Background
                 Container(
                   width: double.infinity,
-                  height: 260 + statusBarHeight,
+                  height: 310 + statusBarHeight,
                   decoration: const BoxDecoration(
                     color: Color(0xFF4FA8E8),
                     borderRadius: BorderRadius.only(
@@ -451,6 +451,78 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ],
                       ),
+                      const SizedBox(height: 14),
+                      // Searchbox AI Asisten (Tanya AI / Rekomendasi Skema)
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AsesorAiScreen(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.auto_awesome_rounded,
+                                  size: 17,
+                                  color: Color(0xFF2563EB),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              const Expanded(
+                                child: Text(
+                                  'Tanya AI: cari info, rekomendasi skema...',
+                                  style: TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF2563EB),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text(
+                                  'Cari',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -458,13 +530,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 // Rangkuman Utama Card Container (Imported widget)
                 Padding(
                   padding: EdgeInsets.only(
-                    top: statusBarHeight + (isAsesor ? 110 : 90),
+                    top: statusBarHeight + (isAsesor ? 162 : 142),
                     left: 16,
                     right: 16,
-                    bottom: 12, // Set to 12
+                    bottom: 12,
                   ),
-                  child: isGuest
-                      ? const PublicSertifikatCard()
+                child: isGuest
+                  ? const PublicSertifikatCard()
                       : (isAsesi
                             ? RangkumanAsesi(
                                 data: _asesiSummaryData,
